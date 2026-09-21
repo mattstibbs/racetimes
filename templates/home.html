@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Race Times</h1>
+<button hx-get="{% url 'races:ping' %}" hx-target="#ping" hx-swap="innerHTML">Ping</button>
+<p id="ping"></p>
+{% endblock %}
