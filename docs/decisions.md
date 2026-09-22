@@ -25,7 +25,10 @@ failure in those two is a defect in the engine, never a fixture to adjust.
 
 ---
 
-## 2026-09-22 - Tests are written against stdlib unittest
+## 2026-09-22 - Tests are written against stdlib unittest (SUPERSEDED)
+
+> Superseded the same day by "pytest is the project's test framework" below.
+> Kept for the reasoning, which still explains what the switch gave up.
 
 **Context.** `CLAUDE.md` mandates `manage.py test`. The fixture file was
 headed "PyTest Configuration Matrix". The engine itself is meant to be a
@@ -67,6 +70,44 @@ boundary, never inside the package.
 `docs/slices/00-scoring-engine.md` names `tests/fixtures/` in its acceptance
 criteria; the file was at `tests/nhc_test_scenarios.yaml`. Moved to match the
 spec rather than amending the spec.
+
+---
+
+## 2026-09-22 - pytest is the project's test framework
+
+**Context.** The earlier stdlib-unittest decision was made to satisfy
+`CLAUDE.md`'s `manage.py test` instruction without imposing a test dependency on
+anyone vendoring `nhc`. Direction since: pytest is wanted in the stack outright,
+for both the Django app and the engine.
+
+**Decision.** pytest with `pytest-django`, configured in `pytest.ini`. Tests are
+plain functions with bare `assert`s. `races/tests.py` moved off
+`django.test.TestCase` onto pytest-django's `client` fixture; neither view
+touches the database, so no `django_db` marker is needed and no test database
+is created.
+
+**Consequence.** Scenario tests get `@pytest.mark.parametrize`, which is the
+real win: each of the six scenarios reports as its own named test rather than
+disappearing into one `subTest` block. The cost, accepted knowingly, is that
+`nhc`'s tests now need pytest installed, so vendoring the package no longer
+brings a runnable suite with it. The package itself stays standard-library
+only - the purity test still enforces that, and it is the constraint that
+actually matters.
+
+`manage.py test` is now a trap: pytest-style functions are not
+`unittest.TestCase` subclasses, so Django's runner collects nothing and exits 0
+with "Ran 0 tests ... OK". That is a false green, and worse in CI than a
+failure. `config/test_runner.py` is wired in as `TEST_RUNNER` so the old command
+exits non-zero with a pointer to the pytest invocations instead.
+
+**Fixture plumbing.** `tests/scenario_loader.py` reads the YAML and exposes the
+scenarios as module-level lists, because `parametrize` needs them at import
+time and conftest fixtures only exist once a test is running.
+`tests/conftest.py` wraps the same objects as fixtures for tests that would
+rather take them as arguments. `tests/test_fixtures.py` checks the fixtures are
+well-formed - unique ids, statuses within the spec's vocabulary, positive
+handicaps, finishers with positive elapsed times - because a typo in the
+fixtures silently moves the target the engine is built against.
 
 ---
 

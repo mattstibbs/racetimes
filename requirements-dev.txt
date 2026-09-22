@@ -2,10 +2,17 @@
 #
 #   .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 #
-# Nothing here may be imported by nhc/ or by the Django app. The nhc package is
-# standard-library only by design, and tests/test_package_purity.py enforces it.
+# Nothing here may be imported by application code - only by tests. The nhc
+# package is standard-library only by design, and tests/test_package_purity.py
+# enforces that for nhc/ specifically.
 
 -r requirements.txt
+
+# The test framework for the whole project - both the scoring engine and the
+# Django app. pytest-django supplies the `client` fixture and the settings
+# wiring; without it, importing anything from races/ fails before a test runs.
+pytest==9.1.1
+pytest-django==4.14.0
 
 # Reads the scenario fixtures in tests/fixtures/. Test-side only: the engine
 # takes plain Python data structures and does no I/O of its own.

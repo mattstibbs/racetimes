@@ -8,7 +8,7 @@ I'm a capable amateur in Python; explain non-obvious decisions briefly in commit
 
 ## Stack and versions
 
-Python 3.11, Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary).
+Python 3.11, Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary). pytest (with `pytest-django`) is the test framework for the whole project - both the Django app and the scoring engine. Write tests as plain functions with bare `assert`s, not `unittest.TestCase` subclasses.
 
 ## Definition of done
 New behaviour has tests. No linter errors. All tests pass. Migrations created. Manual checks completed.
@@ -28,17 +28,25 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requiremen
 ```bash
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py runserver
-.venv/bin/python manage.py test                      # all tests
-.venv/bin/python manage.py test races.tests.SomeTest.test_name   # a single test
-.venv/bin/python manage.py test tests                # scoring engine tests only
 .venv/bin/python manage.py makemigrations
+```
+
+Tests:
+
+```bash
+.venv/bin/python -m pytest                           # all tests
+.venv/bin/python -m pytest tests                     # scoring engine only
+.venv/bin/python -m pytest races                     # Django app only
+.venv/bin/python -m pytest tests/test_fixtures.py::test_fixtures_load   # a single test
+.venv/bin/python -m pytest -k "SCEN-005"              # by name (case-sensitive)
 ```
 
 No linter is configured yet.
 
-The scoring engine's tests are plain `unittest`, so they also run without Django
-via `.venv/bin/python -m unittest discover -s tests -t .` (or under `pytest`, if
-you have it). `manage.py test` discovers them alongside the Django tests.
+Do not use `manage.py test`. pytest-style tests are plain functions, so Django's
+runner collects none of them and exits 0 with "Ran 0 tests ... OK" - a false
+green. `config/test_runner.py` is wired in as `TEST_RUNNER` to fail loudly with
+a pointer instead.
 
 ## Architecture
 
@@ -49,6 +57,10 @@ you have it). `manage.py test` discovers them alongside the Django tests.
   `tests/test_package_purity.py` enforces this. Its reference documents are in
   `docs/reference/` and they win over any contrary assumption; the fixtures in
   `tests/fixtures/` encode the RYA's own published worked examples.
+- Engine tests live in `tests/`. `tests/scenario_loader.py` reads the YAML fixtures
+  and exposes them as module-level lists so tests can `@pytest.mark.parametrize`
+  over them; `tests/conftest.py` wraps the same objects as pytest fixtures. All
+  fixture I/O happens there, never inside `nhc/`.
 - `config/` is the Django project (settings, root URLs, WSGI/ASGI). `races/` is the app (no models yet; `races/urls.py` is included at the site root). Project-level templates live in `templates/` (`base.html` loads HTMX and sends the CSRF token via `hx-headers`, so HTMX POSTs work without per-form tokens); HTMX is vendored at `static/js/htmx.min.js` (v2.0.10), not loaded from a CDN. `home` and `ping` are example views demonstrating HTMX fragment responses.
 - Settings are driven by environment variables (see `.env.example`; `.env` is gitignored but not loaded automatically, so export the variables yourself): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` (defaults on), `DJANGO_ALLOWED_HOSTS` (comma-separated), and `DATABASE_URL`. With `DATABASE_URL` unset, the database is `db.sqlite3` in the repo root; set it to a `postgres://...` URL to use PostgreSQL.
 
