@@ -1,0 +1,103 @@
+# PyTest Configuration Matrix & Scenarios for RYA NHC Scoring Engine
+# Used to validate Corrected Time calculations and Progressive Handicap adjustments
+
+- scenario_id: "SCEN-001_BASE_CALCULATION"
+  description: "Verify basic Corrected Time math and rank distribution using initial RYA NHC Base Numbers."
+  initial_state:
+    race_number: 1
+    clamp_max_increase: 0.020
+    clamp_max_decrease: 0.020
+  boats:
+    - boat_id: "BOAT_A_ACHILLES_24"
+      design: "Achilles 24"
+      start_handicap: 0.843
+      elapsed_seconds: 5100  # 85 minutes
+      expected:
+        corrected_seconds: 4299.3
+        rank: 2
+    - boat_id: "BOAT_B_ARCONA_340"
+      design: "Arcona 340"
+      start_handicap: 0.985
+      elapsed_seconds: 4320  # 72 minutes
+      expected:
+        corrected_seconds: 4255.2
+        rank: 1
+    - boat_id: "BOAT_C_1D35"
+      design: "1D35"
+      start_handicap: 1.135
+      elapsed_seconds: 3840  # 64 minutes
+      expected:
+        corrected_seconds: 4358.4
+        rank: 3
+
+- scenario_id: "SCEN-002_PROGRESSIVE_ADJUSTMENT"
+  description: "Verify post-race algorithm adjustments. Winners trend up, bottom trends down, applying max clamp limits."
+  initial_state:
+    race_number: 1
+    clamp_max_increase: 0.020
+    clamp_max_decrease: 0.020
+  boats:
+    - boat_id: "BOAT_WINNER"
+      start_handicap: 1.000
+      elapsed_seconds: 3600
+      expected:
+        rank: 1
+        handicap_adjusted_next_race: 1.020  # Reached max capped increase
+    - boat_id: "BOAT_MID_FLEET"
+      start_handicap: 1.000
+      elapsed_seconds: 4000
+      expected:
+        rank: 2
+        handicap_adjusted_next_race: 1.000  # No structural deviation from performance center
+    - boat_id: "BOAT_LOSER"
+      start_handicap: 1.000
+      elapsed_seconds: 4600
+      expected:
+        rank: 3
+        handicap_adjusted_next_race: 0.980  # Reached max capped decrease
+
+- scenario_id: "SCEN-003_DEAD_HEAT_TYING"
+  description: "Verify tying logic handling where two boats achieve identical calculated corrected times."
+  initial_state:
+    race_number: 2
+  boats:
+    - boat_id: "BOAT_X"
+      start_handicap: 1.000
+      elapsed_seconds: 4000
+      expected:
+        corrected_seconds: 4000.0
+        rank: 1  # Tied for first
+    - boat_id: "BOAT_Y"
+      start_handicap: 0.800
+      elapsed_seconds: 5000
+      expected:
+        corrected_seconds: 4000.0
+        rank: 1  # Tied for first
+    - boat_id: "BOAT_Z"
+      start_handicap: 1.200
+      elapsed_seconds: 3500
+      expected:
+        corrected_seconds: 4200.0
+        rank: 3
+
+- scenario_id: "SCEN-004_DNF_EDGE_CASE"
+  description: "Ensure Did Not Finish (DNF) statuses do not cause math crashes and skip progressive handicap changes."
+  initial_state:
+    race_number: 3
+  boats:
+    - boat_id: "BOAT_FINISHER"
+      start_handicap: 0.950
+      elapsed_seconds: 3600
+      status: "FIN"
+      expected:
+        corrected_seconds: 3420.0
+        rank: 1
+        handicap_adjusted_next_race: 0.970
+    - boat_id: "BOAT_CRASHED"
+      start_handicap: 1.050
+      elapsed_seconds: 0
+      status: "DNF"
+      expected:
+        corrected_seconds: null
+        rank: null
+        handicap_adjusted_next_race: 1.050  # Must remain entirely unchanged
