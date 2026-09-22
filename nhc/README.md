@@ -29,6 +29,8 @@ So far, importable from `nhc`:
 | `InvalidInput` | Raised on construction for input the spec says to reject |
 | `score_race(race)` | Corrected times and finishing places for one race |
 | `corrected_time(elapsed, tcf)` | `C = E x TCF` on its own |
+| `compute_club_adjustment(race, *, minimum_finishers=0)` | Scores a club race and computes everyone's handicap for the next one |
+| `adjustment_scale(elapsed)` | `AS = 100 / E` on its own |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.

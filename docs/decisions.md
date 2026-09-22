@@ -210,6 +210,56 @@ results table.
 
 ---
 
+## 2026-09-22 - The minimum-finisher threshold is an option, defaulting to off
+
+**Context.** Spec section 9 flags it as unconfirmed: some third-party club
+software declines to move any handicap in a race with fewer than three
+finishers, on the grounds that so small a fleet says little about anyone's
+form. The RYA's own text does not require it.
+
+**Decision.** `compute_club_adjustment(race, minimum_finishers=0)`. Zero is off,
+which is the RYA's behaviour; a club that wants the threshold passes 3.
+
+**Consequence.** Below the threshold, nothing is adjusted and the handicap
+fields stay None rather than being computed and discarded. None means "the
+adjustment did not run", which stays distinct from a boat that ran through it
+and earned no change - the sole-finisher case in SCEN-004, where TCFr comes out
+equal to TCF and the handicap legitimately does not move. Scoring is unaffected:
+a below-threshold race still has corrected times and finishing places. Only
+finishers count towards the threshold.
+
+A race with no finishers at all takes the same path rather than raising. There
+is nothing to divide by, and a race everyone retired from is a real thing that
+should not crash the scorer.
+
+---
+
+## 2026-09-22 - Performance classification needs a tolerance too
+
+**Context.** Spec section 3 step 3 classifies on `TCFr > TCF`, with equality
+falling to the under-performance branch. In the degenerate single-finisher case
+the sums collapse and TCFr should come out exactly equal to TCF - but the round
+trip through `100/E` and back can land a unit in the last place above it, which
+a bare `>` reports as over-performance.
+
+**Decision.** `PERFORMANCE_TOLERANCE = 1e-12`, relative. Values that close are
+equal, and equality is UNDER.
+
+**Consequence.** Both branches give the same TCFn at exact equality, so the
+number is unaffected either way - but the label is not, and something will
+eventually key off it. SCEN-004 pins the behaviour.
+
+---
+
+## 2026-09-22 - compute_club_adjustment refuses a regatta race
+
+Club and regatta rules use different blend weights and only regattas clamp to
+the Base Number. Applying the club formulas to a regatta produces
+plausible-looking numbers that are quietly wrong, so the function raises
+`InvalidInput` pointing at `compute_regatta_adjustment` rather than guessing.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
@@ -217,17 +267,11 @@ step, not before any code is written.
 
 - **DNF in a club race.** Spec section 3 step 1 computes AS "for every boat that
   finished"; step 2 says the sums run over "every boat that started". A DNF boat
-  started but has no elapsed time, so the two sentences disagree. Current
-  assumption, encoded in SCEN-004: excluded from both sums, handicap carried
-  forward unchanged. Matches the brief's per-series "adjusted / not adjusted"
-  switch.
-- **Minimum-finisher threshold.** Spec section 9 flags the 3-finisher rule as
-  unconfirmed. Intended as an option defaulting to off rather than a guess.
-  SCEN-004 (one finisher) is exactly this case.
-- **Equality classification.** When TCFr == TCF exactly, the spec's
-  "TCFr <= TCF" branch makes it UNDER, but a bare `>` comparison in floating
-  point can flip it to OVER. Needs a tolerance. Cosmetic today - both branches
-  give the same TCFn at equality - but not once anything keys off the label.
+  started but has no elapsed time, so the two sentences disagree. Implemented
+  and tested as: excluded from both sums, handicap carried forward unchanged.
+  Still worth confirming with the club. The brief also wants this configurable
+  per series ("adjusted / not adjusted"), which lands with the series
+  orchestrator, not here.
 - **Regatta scoring in slice 0?** All five user journeys in the brief are club
   series; the spec devotes a full section to regattas. Sequenced last.
 - **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the

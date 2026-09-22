@@ -17,8 +17,8 @@ the note in ``nhc/domain.py``.
 
 The public interface is exported from here and is not yet complete; it is being
 built out slice by slice against the fixtures in ``tests/fixtures/``. So far it
-is the domain types, their validation, and race scoring - corrected times
-and finishing places. The handicap adjustment follows.
+covers the domain types, race scoring, and club-series handicap adjustment.
+Regatta adjustment, realignment and Appendix A points follow.
 """
 
 from .domain import (
@@ -33,6 +33,7 @@ from .domain import (
     SeriesType,
 )
 from .errors import InvalidInput
+from .handicap import adjustment_scale, compute_club_adjustment
 from .scoring import corrected_time, score_race
 
 __version__ = "0.0.0"
@@ -48,6 +49,8 @@ __all__ = [
     "RealignmentEntry",
     "RealignmentResult",
     "SeriesType",
+    "adjustment_scale",
+    "compute_club_adjustment",
     "corrected_time",
     "score_race",
 ]
