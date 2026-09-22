@@ -40,6 +40,9 @@ So far, importable from `nhc`:
 | `SeriesOutcome` / `RaceOutcome` | The replayed series, and each race within it |
 | `compute_standings(races, *, discards=1)` | Series table: A2.1 totals and discards, A8 countback |
 | `BoatStanding` / `RaceScore` | A boat's line in the table, and its score in one race |
+| `realign_series(entries)` | End-of-series realignment, `CN = (sum BN / sum EH) x EH` |
+| `realignment_entries(series, outcome)` | Builds realignment input from a scored series |
+| `realigned_boats(series, results)` | The same boats, ready to start the next series |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.

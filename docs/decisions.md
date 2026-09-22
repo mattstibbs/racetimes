@@ -433,6 +433,36 @@ they are ranked.
 
 ---
 
+## 2026-09-22 - Realignment scales the whole fleet by one factor
+
+**Context.** Spec section 5: after the final race of a club series,
+`CN = (sum(BN) / sum(EH)) x EH` pulls drifted handicaps back towards the
+published Base Numbers.
+
+**Decision.** `realign_series(entries)` implements it directly, plus two
+helpers that join it to the rest: `realignment_entries(series, outcome)` pairs
+each boat's base number with the handicap the series left it on, and
+`realigned_boats(series, results)` returns the same boats ready to start the
+next series, base numbers untouched and only `current_tcf` moved.
+
+**Consequence.** Every boat is scaled by the same factor, so the fleet keeps
+its internal spread exactly - a boat rated 10% faster than another before
+realignment is still 10% faster after. What moves is the overall level, and it
+moves so that the realigned numbers total the base numbers again. Both
+properties are pinned by tests, because they are the clearest statement of what
+the formula is *for* and would survive a refactor that quietly broke the
+arithmetic.
+
+Together with the progression decision, this closes the loop: realign, store
+the result as `current_tcf`, and start the next series on CARRY_OVER. A test
+sails that whole round trip.
+
+Not to be confused with the regatta clamp in section 4, which limits how far
+one boat may move from its own base number in a single race. Realignment is
+fleet-wide and happens between series.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
@@ -453,6 +483,12 @@ step, not before any code is written.
   section 4 step 1, so "adjusted" would mean borrowing that into a club series.
   Coherent, but a rule decision for the club rather than an implementation
   detail, so it is not guessed at.
+- **Who counts as having "taken part"?** Spec section 5 opens by realigning
+  "every boat that took part in that series", but the note on its formula says
+  the sums run over "every boat in the series being realigned". A boat that
+  entered and never sailed is arguably not the first, and including it shifts
+  the ratio for everyone else. `realignment_entries` includes every entered
+  boat and returns a plain sequence, so the stricter reading is a filter away.
 - **Regatta scoring in slice 0?** All five user journeys in the brief are club
   series; the spec devotes a full section to regattas. Sequenced last.
 - **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
