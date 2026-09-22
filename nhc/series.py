@@ -27,6 +27,7 @@ from .domain import Boat, Finish, RaceEntry, RaceInput, RaceResult, RaceStatus, 
 from .errors import InvalidInput
 from .handicap import compute_club_adjustment
 from .points import score_points
+from .standings import BoatStanding, compute_standings
 
 
 class HandicapProgression(StrEnum):
@@ -87,6 +88,7 @@ class Series:
     progression: HandicapProgression = HandicapProgression.CARRY_OVER
     minimum_finishers: int = 0
     apply_a5_3: bool = False
+    discards: int = 1
 
     def __init__(
         self,
@@ -96,6 +98,7 @@ class Series:
         progression: HandicapProgression = HandicapProgression.CARRY_OVER,
         minimum_finishers: int = 0,
         apply_a5_3: bool = False,
+        discards: int = 1,
     ) -> None:
         object.__setattr__(self, "boats", tuple(boats))
         object.__setattr__(self, "races", tuple(races))
@@ -103,6 +106,7 @@ class Series:
         object.__setattr__(self, "progression", progression)
         object.__setattr__(self, "minimum_finishers", minimum_finishers)
         object.__setattr__(self, "apply_a5_3", apply_a5_3)
+        object.__setattr__(self, "discards", discards)
         self.__post_init__()
 
     def __post_init__(self) -> None:
@@ -119,6 +123,8 @@ class Series:
                 f"got {self.series_type!r}"
             )
 
+        if self.discards < 0:
+            raise InvalidInput(f"discards cannot be negative, got {self.discards!r}")
         if self.minimum_finishers < 0:
             # Caught here as well as in compute_club_adjustment, so a bad series
             # fails when it is built rather than when it is scored.
@@ -170,6 +176,7 @@ class SeriesOutcome:
 
     races: tuple[RaceOutcome, ...]
     starting_handicaps: tuple[tuple[str, float], ...]
+    standings: tuple[BoatStanding, ...] = ()
 
     @property
     def ending_handicaps(self) -> dict[str, float]:
@@ -213,7 +220,11 @@ def score_series(series: Series) -> SeriesOutcome:
         # whole point of the module.
         handicaps = {result.boat_id: result.next_tcf for result in results}
 
-    return SeriesOutcome(races=tuple(outcomes), starting_handicaps=starting)
+    return SeriesOutcome(
+        races=tuple(outcomes),
+        starting_handicaps=starting,
+        standings=compute_standings(outcomes, discards=series.discards),
+    )
 
 
 def _starting_handicaps(series: Series) -> dict[str, float]:

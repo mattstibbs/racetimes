@@ -380,6 +380,59 @@ club gets realigned carry-over.
 
 ---
 
+## 2026-09-22 - Standings: A8.1 ignores discards, A8.2 counts them
+
+**Context.** RRS A2.1 totals a boat's race scores excluding her worst, and A8
+breaks the resulting ties in two stages. The stages disagree about discarded
+scores on purpose: A8.1 says "no excluded scores shall be used", A8.2 says
+"these scores shall be used even if some of them are excluded scores".
+
+**Decision.** Ranking is a three-level sort key, all lower-is-better: the
+series total, then the counted scores sorted best to worst, then every race's
+score in reverse series order so the last race is compared first.
+
+**Consequence.** Getting the two rules the wrong way round would break ties
+backwards in a way no single-boat test could catch, so there is a test built
+specifically to tell a correct implementation from a plausible wrong one: two
+boats with equal totals and identical counted scores, separated only by A8.2
+on a score one of them discarded. An implementation that let discards into
+A8.1 hands that series to the other boat.
+
+A2.1's other subtlety is that equal worst scores are broken by excluding the
+race sailed *earliest*. The total is identical either way, so only the race
+shown in brackets reveals whether it is right; a test pins the race id rather
+than the total.
+
+Points are always multiples of 0.5 - whole places, halved across A7 ties - so
+totals are exactly representable and compared exactly. Unlike the handicap
+arithmetic, no tolerance is needed.
+
+Boats still tied after both stages share a place and consume the ones below,
+as with A7 in a single race.
+
+---
+
+## 2026-09-22 - Discards are a plain count, and misconfiguration is visible
+
+**Context.** A2.1's default is one discard, but a notice of race may set none,
+two, or "a specified number of scores excluded if a specified number of races
+are scored" - the familiar "no discard until four races" arrangement.
+
+**Decision.** `Series.discards` is an integer, defaulting to 1. The
+races-sailed schedule is not implemented.
+
+**Consequence.** A series that has sailed fewer races than the discard count
+excludes all of them and every boat totals zero. That is the literal reading,
+and it makes the misconfiguration obvious rather than producing a subtly wrong
+table. The fleet is still ranked, because A8.2 breaks the resulting tie on the
+last race using the excluded scores.
+
+The schedule form is a genuine gap against A2.1 and is worth adding when a real
+notice of race needs it; it is a small change to which races count, not to how
+they are ranked.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

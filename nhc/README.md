@@ -38,6 +38,8 @@ So far, importable from `nhc`:
 | `HandicapProgression` | Whether a series starts on carried-over handicaps or base numbers |
 | `score_series(series)` | Replays a series, scoring each race on the previous race's handicaps |
 | `SeriesOutcome` / `RaceOutcome` | The replayed series, and each race within it |
+| `compute_standings(races, *, discards=1)` | Series table: A2.1 totals and discards, A8 countback |
+| `BoatStanding` / `RaceScore` | A boat's line in the table, and its score in one race |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.
