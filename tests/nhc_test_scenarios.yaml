@@ -1,0 +1,318 @@
+# Test scenarios for the RYA NHC scoring engine.
+#
+# SOURCE OF TRUTH: docs/reference/RYA_nhc_calculation_spec.md
+# Every expected value below is derived from that document's formulas. Where an
+# earlier revision of this file disagreed with the spec, the spec won and the
+# expectation was regenerated (see "Revision note" at the foot of this file).
+#
+# Club-series formulas used (spec section 3), over boats with a valid E only:
+#   AS   = 100 / E
+#   TCFr = (sum(TCF) / sum(AS)) * AS
+#   TCFn = 0.70*TCF + 0.30*TCFr   when TCFr >  TCF  (over-performance)
+#          0.85*TCF + 0.15*TCFr   when TCFr <= TCF  (under-performance)
+# Boats with no valid E are excluded from both sums and carry TCF forward.
+#
+# CONVENTIONS
+# - status uses the spec's RaceStatus vocabulary: FINISHED | DNC | DNS | DNF.
+# - All float expectations are full-precision to 8 d.p.; compare with an
+#   absolute tolerance of 1e-6. The spec (section 7) requires full precision be
+#   carried through the calculation; 3 d.p. is a display convention only.
+#   Where the RYA publishes a 3 d.p. value, it is given in a trailing comment.
+# - corrected_seconds is E * TCF, unrounded.
+# - rank is by ascending corrected time. Ties share the better rank (RRS A7).
+# - points are only asserted where they need no series context; A5.2 scoring
+#   (entries + 1) needs a series entry count and is covered elsewhere.
+
+- scenario_id: "SCEN-001_BASE_CALCULATION"
+  description: >-
+    Verify basic corrected-time math and rank distribution using initial RYA NHC
+    Base Numbers. Corrected time only; no handicap adjustment asserted.
+  series_type: "CLUB"
+  initial_state:
+    race_number: 1
+  boats:
+    - boat_id: "BOAT_A_ACHILLES_24"
+      design: "Achilles 24"
+      start_handicap: 0.843
+      elapsed_seconds: 5100  # 85 minutes
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4299.3
+        rank: 2
+    - boat_id: "BOAT_B_ARCONA_340"
+      design: "Arcona 340"
+      start_handicap: 0.985
+      elapsed_seconds: 4320  # 72 minutes
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4255.2
+        rank: 1
+    - boat_id: "BOAT_C_1D35"
+      design: "1D35"
+      start_handicap: 1.135
+      elapsed_seconds: 3840  # 64 minutes
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4358.4
+        rank: 3
+
+- scenario_id: "SCEN-002_PROGRESSIVE_ADJUSTMENT"
+  description: >-
+    Verify the club-series progressive adjustment across a spread fleet on equal
+    handicaps. The fastest boat over-performs and is rated down harder (0.30
+    weighting); the slowest under-performs and is rated up more gently (0.15
+    weighting). There is no per-race clamp in a club series - the only clamp in
+    the spec is the +/-10% of Base Number clamp, and that applies to regattas
+    only (spec section 4, step 4).
+  series_type: "CLUB"
+  initial_state:
+    race_number: 1
+  boats:
+    - boat_id: "BOAT_WINNER"
+      start_handicap: 1.000
+      elapsed_seconds: 3600
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3600.0
+        rank: 1
+        adjustment_scale: 0.02777778
+        achieved_handicap: 1.11831442
+        performance: "OVER"
+        handicap_adjusted_next_race: 1.03549433  # 1.035
+    - boat_id: "BOAT_MID_FLEET"
+      start_handicap: 1.000
+      elapsed_seconds: 4000
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4000.0
+        rank: 2
+        adjustment_scale: 0.02500000
+        achieved_handicap: 1.00648298
+        performance: "OVER"
+        handicap_adjusted_next_race: 1.00194489  # 1.002
+    - boat_id: "BOAT_LOSER"
+      start_handicap: 1.000
+      elapsed_seconds: 4600
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4600.0
+        rank: 3
+        adjustment_scale: 0.02173913
+        achieved_handicap: 0.87520259
+        performance: "UNDER"
+        handicap_adjusted_next_race: 0.98128039  # 0.981
+
+- scenario_id: "SCEN-003_DEAD_HEAT_TYING"
+  description: >-
+    Verify tie handling where two boats achieve identical corrected times. Per
+    RRS A7 the points for the tied place and the place(s) below are added and
+    divided equally, so the two tied boats score (1+2)/2 = 1.5 and the third
+    boat still scores 3. Handicap adjustment is unaffected by the tie - it is
+    driven by elapsed time, not by finishing place.
+  series_type: "CLUB"
+  initial_state:
+    race_number: 2
+  boats:
+    - boat_id: "BOAT_X"
+      start_handicap: 1.000
+      elapsed_seconds: 4000
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4000.0
+        rank: 1  # tied for first
+        points: 1.5
+        achieved_handicap: 1.01941748
+        performance: "OVER"
+        handicap_adjusted_next_race: 1.00582524  # 1.006
+    - boat_id: "BOAT_Y"
+      start_handicap: 0.800
+      elapsed_seconds: 5000
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4000.0
+        rank: 1  # tied for first
+        points: 1.5
+        achieved_handicap: 0.81553398
+        performance: "OVER"
+        handicap_adjusted_next_race: 0.80466019  # 0.805
+    - boat_id: "BOAT_Z"
+      start_handicap: 1.200
+      elapsed_seconds: 3500
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 4200.0
+        rank: 3
+        points: 3.0
+        achieved_handicap: 1.16504854
+        performance: "UNDER"
+        handicap_adjusted_next_race: 1.19475728  # 1.195
+
+- scenario_id: "SCEN-004_DNF_EDGE_CASE"
+  description: >-
+    Ensure a DNF does not crash the maths and is excluded from the AS/TCF sums,
+    carrying its handicap forward unchanged. This also exercises the degenerate
+    single-finisher case called out in spec section 7: with one boat in the
+    sums, (sum(TCF)/sum(AS))*AS collapses to that boat's own TCF, so TCFr == TCF
+    and TCFn == TCF. Because TCFr == TCF exactly, the spec's "TCFr <= TCF"
+    branch applies and performance is UNDER - implementations must classify
+    equality with a tolerance rather than a bare > comparison, or floating-point
+    noise will flip this to OVER. (Both branches yield the same TCFn at
+    equality, so the classification is cosmetic here, but it is asserted.)
+  series_type: "CLUB"
+  initial_state:
+    race_number: 3
+  boats:
+    - boat_id: "BOAT_FINISHER"
+      start_handicap: 0.950
+      elapsed_seconds: 3600
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3420.0
+        rank: 1
+        adjustment_scale: 0.02777778
+        achieved_handicap: 0.95000000
+        performance: "UNDER"
+        handicap_adjusted_next_race: 0.95000000  # unchanged: sole finisher
+    - boat_id: "BOAT_CRASHED"
+      start_handicap: 1.050
+      elapsed_seconds: 0
+      status: "DNF"
+      expected:
+        corrected_seconds: null
+        rank: null
+        adjustment_scale: 0.0
+        achieved_handicap: null
+        performance: null
+        handicap_adjusted_next_race: 1.050  # must remain entirely unchanged
+
+- scenario_id: "SCEN-005_RYA_PUBLISHED_WORKED_EXAMPLE"
+  description: >-
+    The RYA's own published worked example, reproduced verbatim from spec
+    section 8. This is the authoritative club-series vector: a correct
+    implementation reproduces TCFn to 3 d.p. for the four finishers and carries
+    the DNC boat's TCF forward unchanged. Treat a failure here as a defect in
+    the engine, never as a fixture to be adjusted.
+  series_type: "CLUB"
+  initial_state:
+    race_number: 1
+  boats:
+    - boat_id: "BOAT_4"
+      start_handicap: 0.964
+      elapsed_seconds: 3448
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3323.872
+        rank: 1
+        adjustment_scale: 0.02900232
+        achieved_handicap: 0.99746962  # 0.997
+        performance: "OVER"
+        handicap_adjusted_next_race: 0.97404088  # 0.974
+    - boat_id: "BOAT_3"
+      start_handicap: 0.939
+      elapsed_seconds: 3548
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3331.572
+        rank: 2
+        adjustment_scale: 0.02818489
+        achieved_handicap: 0.96935604  # 0.969
+        performance: "OVER"
+        handicap_adjusted_next_race: 0.94810681  # 0.948
+    - boat_id: "BOAT_1"
+      start_handicap: 0.966
+      elapsed_seconds: 3527
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3407.082
+        rank: 3
+        adjustment_scale: 0.02835271
+        achieved_handicap: 0.97512765  # 0.975
+        performance: "OVER"
+        handicap_adjusted_next_race: 0.96873830  # 0.969
+    - boat_id: "BOAT_2"
+      start_handicap: 0.819
+      elapsed_seconds: 4610
+      status: "FINISHED"
+      expected:
+        corrected_seconds: 3775.590
+        rank: 4
+        adjustment_scale: 0.02169197
+        achieved_handicap: 0.74604669  # 0.746
+        performance: "UNDER"
+        handicap_adjusted_next_race: 0.80805700  # 0.808
+    - boat_id: "BOAT_5"
+      start_handicap: 0.983
+      elapsed_seconds: 0
+      status: "DNC"
+      expected:
+        corrected_seconds: null
+        rank: null
+        adjustment_scale: 0.0
+        achieved_handicap: null
+        performance: null
+        handicap_adjusted_next_race: 0.983  # unchanged
+
+- scenario_id: "SCEN-006_END_OF_SERIES_REALIGNMENT"
+  description: >-
+    The RYA's published realignment vector, from spec section 5. Run once after
+    the final race of a club series to pull the fleet's drifted handicaps back
+    towards their Base Numbers:
+      CN = (sum(BN) / sum(EH)) * EH
+    Note BOAT_3 lands on 0.88050096, a whisker above the 3 d.p. rounding
+    boundary. Rounding TCFn to 3 d.p. between races instead of carrying full
+    precision can push it the other way, so this boat is a useful canary for the
+    precision question.
+  calculation: "REALIGNMENT"
+  boats:
+    - boat_id: "BOAT_1"
+      base_number: 0.821
+      ending_handicap: 0.966
+      expected:
+        realigned_tcf: 0.90581888  # 0.906
+    - boat_id: "BOAT_2"
+      base_number: 0.770
+      ending_handicap: 0.819
+      expected:
+        realigned_tcf: 0.76797688  # 0.768
+    - boat_id: "BOAT_3"
+      base_number: 0.890
+      ending_handicap: 0.939
+      expected:
+        realigned_tcf: 0.88050096  # 0.881
+    - boat_id: "BOAT_4"
+      base_number: 0.922
+      ending_handicap: 0.964
+      expected:
+        realigned_tcf: 0.90394348  # 0.904
+    - boat_id: "BOAT_5"
+      base_number: 0.977
+      ending_handicap: 0.983
+      expected:
+        realigned_tcf: 0.92175979  # 0.922
+
+# ---------------------------------------------------------------------------
+# Revision note (2026-09-22)
+#
+# The previous revision of this file asserted a per-race absolute clamp of
+# +/-0.020 on club-series handicaps and a rank-based nudge ("winners trend up,
+# bottom trends down"). Neither appears anywhere in the RYA specification. The
+# following expectations were wrong and have been regenerated from the spec:
+#
+#   SCEN-002 BOAT_WINNER      1.020 -> 1.03549433
+#   SCEN-002 BOAT_MID_FLEET   1.000 -> 1.00194489
+#   SCEN-002 BOAT_LOSER       0.980 -> 0.98128039
+#   SCEN-004 BOAT_FINISHER    0.970 -> 0.95000000
+#
+# The clamp_max_increase / clamp_max_decrease keys in initial_state were removed
+# for the same reason. The +/-10% of Base Number clamp in spec section 4 is a
+# regatta-only rule and belongs with the regatta scenarios, which are not yet
+# written.
+#
+# SCEN-001 and SCEN-003 were already correct and are unchanged apart from
+# explicit status fields and added intermediate expectations. SCEN-005 and
+# SCEN-006 are new, carrying the RYA's two published worked examples.
+#
+# Still not covered here, pending decisions: regatta adjustment (spec section
+# 4), the optional 3-finisher threshold (spec section 9), multi-race series
+# replay, and RRS Appendix A points/discards/series ties.
+# ---------------------------------------------------------------------------
