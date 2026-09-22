@@ -230,6 +230,13 @@ class RaceInput:
 class RaceResult:
     """What the engine computes for one boat in one race (spec section 6).
 
+    One result type serves both passes over a race, because the spec's own model
+    does. ``score_race`` fills in the corrected time and finishing place;
+    ``compute_club_adjustment`` additionally fills in the handicap fields. A
+    handicap field left as None therefore means "this call did not compute it",
+    which is distinct from the 0.0 adjustment scale a boat that did not finish
+    genuinely earns.
+
     ``next_tcf`` is the handicap for the boat's next race. For a non-finisher it
     equals the handicap raced under, unchanged. ``next_tcf_clamped`` is regatta
     only and stays None for club races, so the pre-clamp value remains visible
@@ -246,10 +253,10 @@ class RaceResult:
     elapsed_seconds: float | None
     corrected_time: float | None
     position: int | None
-    adjustment_scale: float
-    achieved_handicap: float | None
-    performance: Performance | None
-    next_tcf: float
+    adjustment_scale: float | None = None
+    achieved_handicap: float | None = None
+    performance: Performance | None = None
+    next_tcf: float | None = None
     next_tcf_clamped: float | None = None
 
 

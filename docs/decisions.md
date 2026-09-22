@@ -163,6 +163,53 @@ separate layer.
 
 ---
 
+## 2026-09-22 - Tie detection uses a tolerance, but only for float noise
+
+**Context.** RRS A7 ties boats on equal corrected times. Corrected time is
+`E x TCF`, and handicaps like 0.8 have no exact binary representation, so a
+genuine dead heat can miss exact equality by a unit in the last place.
+
+**Decision.** `TIE_TOLERANCE_SECONDS = 1e-9`. Two corrected times within a
+nanosecond are the same time.
+
+**Consequence.** The number is deliberately far below any timing system's
+resolution, so it absorbs representation error and nothing else. It is *not* a
+"near enough to call it a tie" rule - boats a hundredth of a second apart are
+two different times, and a test pins that. Candidates are compared against the
+first member of a tie group rather than their neighbour, so a long run of
+near-equal times cannot drift a tolerance-width at a time into one large tie;
+a test pins that too.
+
+Tied boats share the better place and consume the one below, so a two-way tie
+for first scores 1, 1, 3. That is the ranking half of A7. The other half -
+adding the tied places' points and dividing them equally - needs a points
+system and belongs to the Appendix A layer.
+
+---
+
+## 2026-09-22 - One RaceResult type, with "not computed" distinct from zero
+
+**Context.** The spec's model has both `score_race` and
+`compute_club_adjustment` returning `RaceResult[]`, but scoring computes only
+the corrected time and place, while adjustment computes the handicap fields.
+
+**Decision.** Keep the single result type and make the handicap fields optional,
+defaulting to None. `score_race` leaves them None; the adjustment pass fills
+them in.
+
+**Consequence.** None means "this call did not compute it", which stays distinct
+from the 0.0 adjustment scale a boat that did not finish genuinely earns. The
+alternative - a second, narrower result type - would have meant two near
+identical shapes and a conversion between them.
+
+`score_race` takes a `RaceInput` rather than the spec's bare entry list, so the
+race's invariants (no duplicate boats, a non-empty fleet) are guaranteed before
+any arithmetic runs. Results come back in entry order rather than finishing
+order, so a caller can zip them against the input; sort on `position` for a
+results table.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

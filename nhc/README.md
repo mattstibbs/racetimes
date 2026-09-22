@@ -27,6 +27,8 @@ So far, importable from `nhc`:
 | `RealignmentEntry` / `RealignmentResult` | End-of-series realignment in and out |
 | `RaceStatus`, `SeriesType`, `Performance` | The closed sets of values, as `StrEnum`s |
 | `InvalidInput` | Raised on construction for input the spec says to reject |
+| `score_race(race)` | Corrected times and finishing places for one race |
+| `corrected_time(elapsed, tcf)` | `C = E x TCF` on its own |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.

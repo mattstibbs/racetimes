@@ -82,3 +82,18 @@ def build_realignment_entries(scenario):
 def expected_for(scenario):
     """The scenario's expectations, keyed by boat_id."""
     return {boat["boat_id"]: boat["expected"] for boat in scenario["boats"]}
+
+
+def race_boat_params(field):
+    """(scenario, boat_id) pairs for every boat asserting `field`, plus test ids.
+
+    Lets a test parametrise per boat rather than per scenario, so a failure
+    names the one boat that is wrong instead of the whole race.
+    """
+    params, ids = [], []
+    for scenario in RACE_SCENARIOS:
+        for boat in scenario["boats"]:
+            if field in boat["expected"]:
+                params.append((scenario, boat["boat_id"]))
+                ids.append(f"{scenario['scenario_id']}-{boat['boat_id']}")
+    return params, ids
