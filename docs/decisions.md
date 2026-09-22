@@ -463,6 +463,68 @@ fleet-wide and happens between series.
 
 ---
 
+## 2026-09-22 - Regatta adjustment, and how it differs from a club series
+
+**Context.** Spec section 4. A regatta is short and standalone, so the rules
+differ from a club series in three ways that all pull the same direction:
+find the right handicaps fast, and do not let one race distort them.
+
+**Decision.** `compute_regatta_adjustment(race)` implements all four steps.
+Whether it is the regatta's first race is read from
+`RaceInput.is_first_race_of_regatta` rather than passed separately, so there is
+one source of truth.
+
+**Consequence.** Three differences worth knowing, each with a test that would
+fail if the club rules leaked in:
+
+- **Every boat is in the sums.** A club series excludes non-finishers. A
+  regatta back-calculates an elapsed time for them - the top finishers' average
+  for a boat that never sailed, the median finisher's for one that retired -
+  so they count. A test asserts that adding an absent boat *does* move everyone
+  else's handicap, which is the exact opposite of the club test beside it.
+- **The blend is stronger.** 60% and 50%, against the club's 30% and 15%; and
+  on the first race, 60% for everyone with no over/under distinction at all.
+  `performance` is reported as None there rather than computed, because a
+  classification that did not drive the weight would mislead.
+- **Handicaps are clamped** to within 10% of each boat's own Base Number, at
+  every race including the first.
+
+The clamp creates a trap: spec section 6 keeps the pre-clamp TCFn visible so
+the arithmetic can be checked, which means `next_tcf` is not the number a boat
+actually races on. `RaceResult.effective_next_tcf` returns the clamped value
+when there is one, and `score_series` uses it to carry handicaps forward.
+
+`RaceResult.elapsed_seconds_used` is new: the E the adjustment worked from,
+which for a back-calculated boat is not the recorded time (there is none). It
+is what makes the back-calculation auditable, and a scorer will want to check
+it.
+
+There is no published RYA vector for regattas as there is for club series, so
+these expectations are hand-derived from the formulas and computed
+independently of the engine.
+
+---
+
+## 2026-09-22 - A regatta series always starts on base numbers
+
+**Context.** Section 4 opens "All boats start on their Base Number". The
+series-level `progression` setting says otherwise when left on its default,
+CARRY_OVER.
+
+**Decision.** For a regatta, `score_series` starts every boat on its base
+number and ignores `progression`. `minimum_finishers`, a club-series option, is
+refused outright on a regatta rather than ignored.
+
+**Consequence.** The asymmetry is deliberate. Ignoring `progression` is
+unavoidable, since CARRY_OVER is the default and a caller who never thought
+about it would otherwise get a regatta scored against the wrong rule; the
+behaviour is documented on `Series`. `minimum_finishers`, by contrast, has to
+be set on purpose, so silently dropping it would hide a real misunderstanding -
+a regatta has no fleet-size threshold, because every boat is in the sums
+regardless.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
@@ -489,8 +551,6 @@ step, not before any code is written.
   entered and never sailed is arguably not the first, and including it shifts
   the ratio for everyone else. `realignment_entries` includes every entered
   boat and returns a plain sequence, so the stricter reading is a filter away.
-- **Regatta scoring in slice 0?** All five user journeys in the brief are club
-  series; the spec devotes a full section to regattas. Sequenced last.
 - **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
   brief's glossary adds OCS, RET and DSQ; RRS A10 lists fourteen. Which subset
   for v1? This now gates two things. RRS A6.1 (boats moving up when one ahead

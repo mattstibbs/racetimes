@@ -65,6 +65,16 @@ def classify_performance(achieved: float, raced_under: float) -> Performance:
     return Performance.OVER if achieved > raced_under else Performance.UNDER
 
 
+def blend_handicap(raced_under: float, achieved: float, weight: float) -> float:
+    """Move a handicap ``weight`` of the way from TCF towards TCFr.
+
+    The spec writes this two ways - `0.7 x TCF + 0.3 x TCFr` for club series,
+    `TCF + 0.6 x (TCFr - TCF)` for regattas - but they are the same operation
+    with different weights, so both layers share it.
+    """
+    return (1.0 - weight) * raced_under + weight * achieved
+
+
 def next_tcf(raced_under: float, achieved: float, performance: Performance) -> float:
     """TCFn, the handicap for the boat's next race (spec section 3, step 4)."""
     weight = (
@@ -72,7 +82,7 @@ def next_tcf(raced_under: float, achieved: float, performance: Performance) -> f
         if performance is Performance.OVER
         else UNDER_PERFORMANCE_WEIGHT
     )
-    return (1.0 - weight) * raced_under + weight * achieved
+    return blend_handicap(raced_under, achieved, weight)
 
 
 def compute_club_adjustment(
@@ -136,6 +146,7 @@ def compute_club_adjustment(
             replace(
                 result,
                 adjustment_scale=scale,
+                elapsed_seconds_used=result.elapsed_seconds,
                 achieved_handicap=achieved,
                 performance=performance,
                 next_tcf=next_tcf(result.tcf_used, achieved, performance),

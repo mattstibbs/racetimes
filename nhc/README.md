@@ -43,6 +43,8 @@ So far, importable from `nhc`:
 | `realign_series(entries)` | End-of-series realignment, `CN = (sum BN / sum EH) x EH` |
 | `realignment_entries(series, outcome)` | Builds realignment input from a scored series |
 | `realigned_boats(series, results)` | The same boats, ready to start the next series |
+| `compute_regatta_adjustment(race)` | Regatta adjustment: back-calculation, stronger blend, base-number clamp |
+| `clamp_to_base_number(tcf, base)` | Holds a handicap within 10% of a base number |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.

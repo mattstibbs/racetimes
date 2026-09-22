@@ -273,10 +273,16 @@ class RaceResult:
     which is distinct from the 0.0 adjustment scale a boat that did not finish
     genuinely earns.
 
-    ``next_tcf`` is the handicap for the boat's next race. For a non-finisher it
-    equals the handicap raced under, unchanged. ``next_tcf_clamped`` is regatta
-    only and stays None for club races, so the pre-clamp value remains visible
-    for anyone checking the arithmetic against the spec.
+    ``next_tcf`` is the handicap for the boat's next race. For a non-finisher in
+    a club race it equals the handicap raced under, unchanged. ``next_tcf_clamped``
+    is regatta only and stays None for club races, so the pre-clamp value remains
+    visible for anyone checking the arithmetic against the spec - use
+    ``effective_next_tcf`` for the number that actually counts.
+
+    ``elapsed_seconds_used`` is the E the adjustment worked from. In a club race
+    that is the recorded time, or None for a boat with none. In a regatta every
+    boat needs a usable E, so a non-finisher's is back-calculated (spec section
+    4, step 1) and this is where that shows.
 
     ``points`` is filled by a third pass, ``score_points``, and stays None until
     then. It is separate because it needs something a single race does not
@@ -296,6 +302,17 @@ class RaceResult:
     next_tcf: float | None = None
     next_tcf_clamped: float | None = None
     points: float | None = None
+    elapsed_seconds_used: float | None = None
+
+    @property
+    def effective_next_tcf(self) -> float | None:
+        """The handicap the boat actually races next.
+
+        Regattas clamp TCFn to within 10% of the Base Number, and the spec
+        keeps the pre-clamp value visible so the arithmetic can be checked -
+        which means ``next_tcf`` is not always the number that counts. This is.
+        """
+        return self.next_tcf if self.next_tcf_clamped is None else self.next_tcf_clamped
 
 
 @dataclass(frozen=True, slots=True)

@@ -280,9 +280,69 @@ def test_an_unknown_progression_is_rejected():
         Series(boats=three_boats(), races=[], progression="SOMETIMES")
 
 
-def test_regatta_series_are_refused_for_now():
-    series = Series(boats=three_boats(), races=[], series_type=SeriesType.REGATTA)
-    with pytest.raises(InvalidInput, match="not implemented yet"):
+# --------------------------------------------------------------------------
+# Regatta series
+# --------------------------------------------------------------------------
+
+
+def regatta_series(**kwargs):
+    # current_tcf deliberately far from base, to prove a regatta ignores it.
+    boats = [
+        Boat("A", base_number=0.95, current_tcf=1.40),
+        Boat("B", base_number=1.00, current_tcf=1.40),
+        Boat("C", base_number=1.08, current_tcf=1.40),
+    ]
+    races = [
+        race("R1", A=3600, B=3500, C=RaceStatus.DNF),
+        race("R2", A=3000, B=3600, C=3550),
+    ]
+    return Series(boats=boats, races=races, series_type=SeriesType.REGATTA, **kwargs)
+
+
+def test_a_regatta_starts_every_boat_on_its_base_number():
+    """Spec section 4: "All boats start on their Base Number", so the
+    progression setting does not apply."""
+    outcome = score_series(regatta_series(progression=HandicapProgression.CARRY_OVER))
+    used = {r.boat_id: r.tcf_used for r in outcome.races[0].results}
+    assert used == {"A": 0.95, "B": 1.00, "C": 1.08}
+
+
+def test_only_the_first_race_of_a_regatta_skips_the_over_under_distinction():
+    outcome = score_series(regatta_series())
+    assert all(r.performance is None for r in outcome.races[0].results)
+    assert all(r.performance is not None for r in outcome.races[1].results)
+
+
+def test_a_regatta_carries_the_clamped_handicap_forward():
+    """The clamped number is the one a boat races on, so it is the one that
+    must reach the next race."""
+    outcome = score_series(regatta_series())
+    produced = {r.boat_id: r.effective_next_tcf for r in outcome.races[0].results}
+    used = {r.boat_id: r.tcf_used for r in outcome.races[1].results}
+    assert used == produced
+
+
+def test_a_regatta_clamp_actually_bites_in_this_series():
+    """Guards the test above against passing vacuously: A wins race 2 by so
+    much that its new handicap is held at 1.1 x 0.95."""
+    result = {r.boat_id: r for r in score_series(regatta_series()).races[1].results}["A"]
+    assert result.next_tcf > result.next_tcf_clamped
+    assert result.next_tcf_clamped == pytest.approx(1.045)
+
+
+def test_a_regatta_refuses_the_club_only_finisher_threshold():
+    with pytest.raises(InvalidInput, match="club-series option"):
+        Series(boats=three_boats(), races=[], series_type=SeriesType.REGATTA, minimum_finishers=3)
+
+
+def test_a_regatta_race_nobody_finished_is_refused():
+    boats = [Boat("A", base_number=1.0, current_tcf=1.0)]
+    series = Series(
+        boats=boats,
+        races=[race("R1", A=RaceStatus.DNF)],
+        series_type=SeriesType.REGATTA,
+    )
+    with pytest.raises(InvalidInput, match="at least one finisher"):
         score_series(series)
 
 

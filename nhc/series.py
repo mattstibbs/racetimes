@@ -26,6 +26,7 @@ from enum import StrEnum
 from .domain import Boat, Finish, RaceEntry, RaceInput, RaceResult, RaceStatus, SeriesType
 from .errors import InvalidInput
 from .handicap import compute_club_adjustment
+from .regatta import compute_regatta_adjustment
 from .points import score_points
 from .standings import BoatStanding, compute_standings
 
@@ -80,6 +81,11 @@ class Series:
     ``races`` are replayed in the order given, and that order is the series
     order. The engine does not sort by date, because a race's date is the
     caller's business and two races on one evening still have an order.
+
+    ``progression`` is ignored for a regatta: spec section 4 requires every boat
+    to start a regatta on its published Base Number, so that is what happens
+    regardless. ``minimum_finishers`` is a club-series option and is refused on
+    a regatta rather than silently ignored.
     """
 
     boats: tuple[Boat, ...]
@@ -130,6 +136,11 @@ class Series:
             # fails when it is built rather than when it is scored.
             raise InvalidInput(
                 f"minimum_finishers cannot be negative, got {self.minimum_finishers!r}"
+            )
+        if self.minimum_finishers and self.series_type is SeriesType.REGATTA:
+            raise InvalidInput(
+                "minimum_finishers is a club-series option; a regatta races too "
+                "few times to skip an adjustment, and every boat is in the sums"
             )
 
         boat_ids = [boat.boat_id for boat in self.boats]
@@ -203,22 +214,17 @@ def score_series(series: Series) -> SeriesOutcome:
     the handicaps for the next one. Boats with no recorded finish in a race are
     scored DNC, per RRS A2.2.
     """
-    if series.series_type is not SeriesType.CLUB:
-        raise InvalidInput(
-            f"{series.series_type.value} series scoring is not implemented yet; "
-            f"only {SeriesType.CLUB.value} series can be replayed"
-        )
-
     handicaps = _starting_handicaps(series)
     starting = tuple(sorted(handicaps.items()))
 
     outcomes = []
-    for race in series.races:
-        results = _score_one_race(series, race, handicaps)
+    for index, race in enumerate(series.races):
+        results = _score_one_race(series, race, handicaps, is_first_race=index == 0)
         outcomes.append(RaceOutcome(race_id=race.race_id, results=results))
         # Feed this race's handicaps into the next. This single line is the
-        # whole point of the module.
-        handicaps = {result.boat_id: result.next_tcf for result in results}
+        # whole point of the module. effective_next_tcf rather than next_tcf,
+        # because a regatta clamps and it is the clamped number a boat races on.
+        handicaps = {result.boat_id: result.effective_next_tcf for result in results}
 
     return SeriesOutcome(
         races=tuple(outcomes),
@@ -228,7 +234,12 @@ def score_series(series: Series) -> SeriesOutcome:
 
 
 def _starting_handicaps(series: Series) -> dict[str, float]:
-    reset = series.progression is HandicapProgression.RESET
+    # Spec section 4: "All boats start on their Base Number" in a regatta, so
+    # the progression setting does not apply there.
+    reset = (
+        series.progression is HandicapProgression.RESET
+        or series.series_type is SeriesType.REGATTA
+    )
     return {
         boat.boat_id: (boat.base_number if reset else boat.current_tcf)
         for boat in series.boats
@@ -236,7 +247,11 @@ def _starting_handicaps(series: Series) -> dict[str, float]:
 
 
 def _score_one_race(
-    series: Series, race: SeriesRace, handicaps: dict[str, float]
+    series: Series,
+    race: SeriesRace,
+    handicaps: dict[str, float],
+    *,
+    is_first_race: bool,
 ) -> tuple[RaceResult, ...]:
     recorded = {finish.boat_id: finish for finish in race.finishes}
 
@@ -255,10 +270,17 @@ def _score_one_race(
             )
         )
 
-    race_input = RaceInput(series_type=series.series_type, entries=entries)
-    results = compute_club_adjustment(
-        race_input, minimum_finishers=series.minimum_finishers
+    race_input = RaceInput(
+        series_type=series.series_type,
+        entries=entries,
+        is_first_race_of_regatta=is_first_race,
     )
+    if series.series_type is SeriesType.REGATTA:
+        results = compute_regatta_adjustment(race_input)
+    else:
+        results = compute_club_adjustment(
+            race_input, minimum_finishers=series.minimum_finishers
+        )
     return score_points(
         results,
         series_entry_count=series.entry_count,
