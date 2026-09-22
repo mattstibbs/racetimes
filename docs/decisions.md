@@ -111,15 +111,63 @@ fixtures silently moves the target the engine is built against.
 
 ---
 
+## 2026-09-22 - Handicaps carry full precision; rounding is display only
+
+**Context.** Spec section 7 says to keep full floating-point precision through
+all TCF/TCFr/TCFn calculations and round only for display. But the RYA publishes
+its tables at 3 d.p., which makes 3 d.p. look canonical, and a club's existing
+software may well round between races. The two give different answers over a
+six-race series, because the error compounds.
+
+**Decision.** Full precision throughout. Nothing in `nhc/` rounds a handicap,
+and nothing rounds between races. Callers round when they show a number to a
+person.
+
+**Consequence.** Results may differ in the third decimal place from software
+that rounds as it goes. If the target club's scoring package turns out to round
+between races, that is a compatibility requirement to raise explicitly rather
+than something to quietly match - spec section 9 already flags it as a question
+to confirm. `test_full_precision_is_preserved_through_construction` pins the
+behaviour using the SCEN-006 canary value, 0.88050096, which sits a millionth
+above the 3 d.p. rounding boundary.
+
+---
+
+## 2026-09-22 - Domain types validate on construction
+
+**Context.** Spec section 7 lists inputs to reject outright: a non-positive TCF
+or Base Number, a boat marked FINISHED with no usable elapsed time, a regatta
+entry with no Base Number to clamp against.
+
+**Decision.** The types in `nhc/domain.py` are frozen dataclasses that validate
+in `__post_init__`, so an invalid race cannot be constructed. Non-finite values
+are rejected alongside non-positive ones: a NaN handicap propagates silently
+through every fleet-wide sum and emerges as a whole race of NaN with nothing to
+say where it began. Errors are `InvalidInput`, which subclasses `ValueError` so
+a Django form can catch it without importing from `nhc`.
+
+**Consequence.** Failures surface where the bad data enters rather than several
+formulas later. Two deliberate departures from the spec's suggested data model,
+which explicitly invites adaptation to idiomatic types:
+
+- `position` is `int | None`, not `int | "DNC"`. A magic string in a numeric
+  field is awkward, and `status` already records why there is no position.
+- A non-finisher's elapsed time normalises to `None`. The spec writes E = 0 for
+  a DNC and the fixtures follow it, but `null` is what a caller would naturally
+  pass; accepting both and storing one means the rest of the engine tests one
+  thing rather than two.
+
+`RaceResult` carries no points field. Points are an RRS Appendix A concern,
+need a series entry count that a single race does not have, and belong to a
+separate layer.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
 step, not before any code is written.
 
-- **Rounding between races.** Spec section 7 says carry full precision; the
-  published tables are 3 d.p. Rounding TCFn to 3 d.p. between races will drift
-  from full precision over a six-race series. SCEN-006 BOAT_3 lands on
-  0.88050096, a millionth above the rounding boundary, and is the canary.
 - **DNF in a club race.** Spec section 3 step 1 computes AS "for every boat that
   finished"; step 2 says the sums run over "every boat that started". A DNF boat
   started but has no elapsed time, so the two sentences disagree. Current

@@ -14,6 +14,8 @@ from pathlib import Path
 
 import yaml
 
+from nhc import RaceEntry, RaceInput, RaceStatus, RealignmentEntry, SeriesType
+
 FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "nhc_test_scenarios.yaml"
 
 #: Scoring codes the spec's RaceStatus admits (section 6).
@@ -41,3 +43,42 @@ REALIGNMENT_SCENARIO_IDS = [s["scenario_id"] for s in REALIGNMENT_SCENARIOS]
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.
 TOLERANCE = 1e-6
+
+
+def build_race_entries(scenario):
+    """Turn a race scenario's boats into RaceEntry objects.
+
+    Lives on the test side because it knows the fixture file's shape, which is
+    exactly the kind of knowledge nhc is meant not to have.
+    """
+    return [
+        RaceEntry(
+            boat_id=boat["boat_id"],
+            status=RaceStatus(boat["status"]),
+            tcf_used=boat["start_handicap"],
+            elapsed_seconds=boat["elapsed_seconds"],
+        )
+        for boat in scenario["boats"]
+    ]
+
+
+def build_race_input(scenario, series_type=SeriesType.CLUB):
+    """Turn a race scenario into a RaceInput ready to score."""
+    return RaceInput(series_type=series_type, entries=build_race_entries(scenario))
+
+
+def build_realignment_entries(scenario):
+    """Turn the realignment scenario's boats into RealignmentEntry objects."""
+    return [
+        RealignmentEntry(
+            boat_id=boat["boat_id"],
+            base_number=boat["base_number"],
+            ending_handicap=boat["ending_handicap"],
+        )
+        for boat in scenario["boats"]
+    ]
+
+
+def expected_for(scenario):
+    """The scenario's expectations, keyed by boat_id."""
+    return {boat["boat_id"]: boat["expected"] for boat in scenario["boats"]}

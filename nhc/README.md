@@ -11,9 +11,32 @@ imported into any Python project.
 
 ## Status
 
-Skeleton. The public interface is being built out against the fixtures in
-`tests/fixtures/`; this README documents it once it stabilises (an acceptance
-criterion of `docs/slices/00-scoring-engine.md`).
+In progress. The domain types and their validation are in place; the
+calculations follow. The public interface is being built out against the
+fixtures in `tests/fixtures/`, and this README documents it in full once it
+stabilises (an acceptance criterion of `docs/slices/00-scoring-engine.md`).
+
+So far, importable from `nhc`:
+
+| Name | What it is |
+| --- | --- |
+| `Boat` | A boat's base number (BN) and the handicap it carries into its next race |
+| `RaceEntry` | One boat's participation in one race: status, the TCF it raced under, elapsed time |
+| `RaceInput` | A race ready to score: series type plus its entries |
+| `RaceResult` | What the engine computes per boat per race |
+| `RealignmentEntry` / `RealignmentResult` | End-of-series realignment in and out |
+| `RaceStatus`, `SeriesType`, `Performance` | The closed sets of values, as `StrEnum`s |
+| `InvalidInput` | Raised on construction for input the spec says to reject |
+
+Every type is a frozen dataclass that validates itself, so an invalid race
+cannot be built. `InvalidInput` subclasses `ValueError`.
+
+## Precision
+
+Handicaps are carried at full floating-point precision and are never rounded
+between races, per section 7 of the RYA spec. The published RYA tables are at
+3 d.p., but that is a display convention - rounding as you go compounds across
+a series. Round at the edges, when showing a number to a person.
 
 ## Source of truth
 
