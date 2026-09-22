@@ -260,6 +260,60 @@ plausible-looking numbers that are quietly wrong, so the function raises
 
 ---
 
+## 2026-09-22 - Race points are a third pass, and need the series entry count
+
+**Context.** RRS A5.2 scores every boat that did not finish at "one more than
+the number of boats entered in the series". A single race does not contain that
+number.
+
+**Decision.** `score_points(results, *, series_entry_count, apply_a5_3=False)`
+is a third pass over the results, filling in `RaceResult.points`, which stays
+None until then. The entry count is a required keyword argument rather than
+inferred from the boats present.
+
+**Consequence.** Inferring it would quietly under-score every non-finisher in a
+race with absentees - a wrong answer that looks entirely reasonable. Note RRS
+A2.2: a boat that has entered any race in a series is scored for the whole
+series, so in a complete series every entrant appears in every race, DNC if
+absent, and the count does equal the number of results. The engine still will
+not assume that, because a caller mid-series may not have built the full list.
+
+Points are floats throughout, since A7 ties produce halves and a field that
+changes type depending on whether anyone tied would be worse than one that is
+always a float.
+
+---
+
+## 2026-09-22 - A5.2 follows the 2025-2028 wording, not the older split
+
+**Context.** In the 2025-2028 rules, A5.2 scores every non-finisher alike -
+"did not sail the course, retired or was disqualified" all get series entries
+plus one. Earlier editions scored DNC differently from boats that came to the
+line, and software written against those still does.
+
+**Decision.** Follow the edition in `docs/reference/`. A5.3, which restores a
+softer score for boats that at least came to the starting area, is available as
+`apply_a5_3=True` and defaults to off, because the rule applies only if the
+notice of race or sailing instructions say so.
+
+**Consequence.** Boats that came to the starting area are taken to be every
+boat except the DNCs, which is what DNC means in A10: "did not come to the
+starting area". If the club's existing software splits DNC out by default, that
+is a compatibility difference to raise rather than quietly match.
+
+---
+
+## 2026-09-22 - A6.1 is not implemented, because it cannot fire yet
+
+A6.1 moves every boat behind up a place when a boat is disqualified, retires
+after finishing, or is scored Did not sail the course. All three are boats that
+took a finishing place and then lost it. The engine models FINISHED, DNC, DNS
+and DNF; none of those ever held a place to vacate, so the rule is a no-op
+today. It becomes real as soon as DSQ, RET, OCS or NSC are modelled - see the
+open question on scoring codes, which this now blocks on.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
@@ -275,8 +329,13 @@ step, not before any code is written.
 - **Regatta scoring in slice 0?** All five user journeys in the brief are club
   series; the spec devotes a full section to regattas. Sequenced last.
 - **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
-  brief's glossary adds OCS, RET, DSQ; RRS A10 lists fourteen. Which subset for
-  v1?
+  brief's glossary adds OCS, RET and DSQ; RRS A10 lists fourteen. Which subset
+  for v1? This now gates two things. RRS A6.1 (boats moving up when one ahead
+  is disqualified or retires after finishing) cannot fire without DSQ/RET/NSC.
+  And those codes break an invariant the domain types currently hold: a boat
+  disqualified after finishing *does* have an elapsed time, whereas today only
+  a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
+  not addressed by the RYA spec at all.
 - **Elapsed time vs start/finish clock times.** Slice 0's scope says the input
   is "races with start times, finishes", but every formula takes elapsed
   seconds. Does the engine derive elapsed from start + finish, or does the

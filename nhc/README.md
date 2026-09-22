@@ -31,6 +31,8 @@ So far, importable from `nhc`:
 | `corrected_time(elapsed, tcf)` | `C = E x TCF` on its own |
 | `compute_club_adjustment(race, *, minimum_finishers=0)` | Scores a club race and computes everyone's handicap for the next one |
 | `adjustment_scale(elapsed)` | `AS = 100 / E` on its own |
+| `score_points(results, *, series_entry_count, apply_a5_3=False)` | RRS Appendix A race points |
+| `points_for_place(place, boats_tied=1)` | A4 points for a place, shared across an A7 tie |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.

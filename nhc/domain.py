@@ -242,9 +242,10 @@ class RaceResult:
     only and stays None for club races, so the pre-clamp value remains visible
     for anyone checking the arithmetic against the spec.
 
-    Points are deliberately absent. They are an RRS Appendix A concern, need the
-    series entry count that a single race does not have, and are produced by a
-    separate layer.
+    ``points`` is filled by a third pass, ``score_points``, and stays None until
+    then. It is separate because it needs something a single race does not
+    contain: the number of boats entered in the series, which RRS A5.2 uses to
+    score everyone who did not finish.
     """
 
     boat_id: str
@@ -258,6 +259,7 @@ class RaceResult:
     performance: Performance | None = None
     next_tcf: float | None = None
     next_tcf_clamped: float | None = None
+    points: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
