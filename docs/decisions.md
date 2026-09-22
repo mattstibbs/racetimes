@@ -101,3 +101,21 @@ step, not before any code is written.
   is "races with start times, finishes", but every formula takes elapsed
   seconds. Does the engine derive elapsed from start + finish, or does the
   caller? Shapes the public interface.
+
+---
+
+## 2026-09-22 - PyYAML and pypdf added as test/dev-only dependencies
+
+**Context.** `CLAUDE.md` guards against new dependencies. Two were needed: the
+scenario fixtures are YAML and nothing in the stack read YAML, and the RRS PDF
+is font-subset encoded with no `pdftotext` on this machine, so Appendix A is not
+greppable without a library.
+
+**Decision.** Both go in a new `requirements-dev.txt`, which pulls in
+`requirements.txt` and is never installed in production. Approved explicitly
+rather than assumed.
+
+**Consequence.** The fixtures stay as YAML and keep their comments, which now
+carry the spec rationale and the revision note - the main reason not to convert
+them to JSON and drop the dependency. Neither package may be imported by `nhc/`;
+the purity test fails by name if either is.

@@ -22,7 +22,7 @@ Ask before changing the data model. Don't install new dependencies without askin
 Setup (uses a local `.venv`, which is gitignored):
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ```bash
@@ -30,13 +30,25 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python manage.py runserver
 .venv/bin/python manage.py test                      # all tests
 .venv/bin/python manage.py test races.tests.SomeTest.test_name   # a single test
+.venv/bin/python manage.py test tests                # scoring engine tests only
 .venv/bin/python manage.py makemigrations
 ```
 
 No linter is configured yet.
 
+The scoring engine's tests are plain `unittest`, so they also run without Django
+via `.venv/bin/python -m unittest discover -s tests -t .` (or under `pytest`, if
+you have it). `manage.py test` discovers them alongside the Django tests.
+
 ## Architecture
 
+- `nhc/` is the scoring engine: a standalone, standard-library-only package
+  implementing the RYA NHC handicap rules and RRS Appendix A scoring. It must not
+  import Django, third-party packages, or do any I/O - it takes plain Python data
+  and returns plain Python data, so it can be vendored into any project.
+  `tests/test_package_purity.py` enforces this. Its reference documents are in
+  `docs/reference/` and they win over any contrary assumption; the fixtures in
+  `tests/fixtures/` encode the RYA's own published worked examples.
 - `config/` is the Django project (settings, root URLs, WSGI/ASGI). `races/` is the app (no models yet; `races/urls.py` is included at the site root). Project-level templates live in `templates/` (`base.html` loads HTMX and sends the CSRF token via `hx-headers`, so HTMX POSTs work without per-form tokens); HTMX is vendored at `static/js/htmx.min.js` (v2.0.10), not loaded from a CDN. `home` and `ping` are example views demonstrating HTMX fragment responses.
 - Settings are driven by environment variables (see `.env.example`; `.env` is gitignored but not loaded automatically, so export the variables yourself): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` (defaults on), `DJANGO_ALLOWED_HOSTS` (comma-separated), and `DATABASE_URL`. With `DATABASE_URL` unset, the database is `db.sqlite3` in the repo root; set it to a `postgres://...` URL to use PostgreSQL.
 

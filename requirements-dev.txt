@@ -1,0 +1,18 @@
+# Development and test dependencies. Installed on top of requirements.txt:
+#
+#   .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+#
+# Nothing here may be imported by nhc/ or by the Django app. The nhc package is
+# standard-library only by design, and tests/test_package_purity.py enforces it.
+
+-r requirements.txt
+
+# Reads the scenario fixtures in tests/fixtures/. Test-side only: the engine
+# takes plain Python data structures and does no I/O of its own.
+PyYAML==6.0.3
+
+# Reads docs/reference/2025-2028-RRS-with-Changes-and-Corrections.pdf, the
+# source of truth for RRS Appendix A scoring. This machine has no pdftotext, and
+# the PDF's text is font-subset encoded, so it is not greppable without a
+# library. Only needed when checking a scoring question against the rules.
+pypdf==6.19.0
