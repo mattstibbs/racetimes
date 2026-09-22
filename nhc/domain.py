@@ -87,6 +87,62 @@ def _check_positive(value: float | None, field: str, context: str) -> None:
         raise InvalidInput(f"{context}: {field} must be greater than zero, got {value!r}")
 
 
+def _check_status(status: object, context: str) -> None:
+    if not isinstance(status, RaceStatus):
+        raise InvalidInput(
+            f"{context}: status must be one of "
+            f"{[s.value for s in RaceStatus]}, got {status!r}"
+        )
+
+
+def _check_elapsed_time(record, context: str) -> None:
+    """Validate and normalise ``record.elapsed_seconds`` against its status.
+
+    Shared by RaceEntry and Finish, which hold the same two rules: a finisher
+    needs a usable time, and anyone else must not have one.
+    """
+    if record.status.is_finisher:
+        # Spec section 7: FINISHED with elapsed <= 0 is invalid input.
+        _check_positive(record.elapsed_seconds, "elapsed_seconds", context)
+    elif record.elapsed_seconds:
+        # A non-finisher with a time is a data-entry mistake, and a costly one:
+        # the time would look usable and quietly skew the whole fleet's
+        # adjustment.
+        raise InvalidInput(
+            f"{context}: status is {record.status.value} but an elapsed time "
+            f"of {record.elapsed_seconds!r} was recorded"
+        )
+    else:
+        # Both None and 0 are used to mean "no time recorded" - the spec writes
+        # E = 0 for a DNC, the fixtures follow it, and null is the natural thing
+        # for a caller to pass. Normalise to None so the rest of the engine has
+        # one thing to test rather than two.
+        object.__setattr__(record, "elapsed_seconds", None)
+
+
+@dataclass(frozen=True, slots=True)
+class Finish:
+    """A boat's recorded outcome in a race: a time, or a scoring code.
+
+    The brief's own glossary term. This is what a race officer writes down -
+    who finished and when - with no handicap attached, because the handicap a
+    boat races under is derived from the series' history rather than entered by
+    hand. ``score_series`` pairs each finish with the handicap that applied at
+    the time and produces the ``RaceEntry`` the scoring functions want.
+    """
+
+    boat_id: str
+    status: RaceStatus
+    elapsed_seconds: float | None = None
+
+    def __post_init__(self) -> None:
+        if not self.boat_id:
+            raise InvalidInput("boat_id is required")
+        context = f"finish for boat {self.boat_id}"
+        _check_status(self.status, context)
+        _check_elapsed_time(self, context)
+
+
 @dataclass(frozen=True, slots=True)
 class Boat:
     """A boat as the engine sees it (spec section 6).
@@ -135,30 +191,10 @@ class RaceEntry:
             raise InvalidInput("boat_id is required")
 
         context = f"entry for boat {self.boat_id}"
-        if not isinstance(self.status, RaceStatus):
-            raise InvalidInput(
-                f"{context}: status must be one of "
-                f"{[s.value for s in RaceStatus]}, got {self.status!r}"
-            )
+        _check_status(self.status, context)
         _check_positive(self.tcf_used, "tcf_used", context)
 
-        if self.status.is_finisher:
-            # Spec section 7: FINISHED with elapsed <= 0 is invalid input.
-            _check_positive(self.elapsed_seconds, "elapsed_seconds", context)
-        elif self.elapsed_seconds:
-            # A non-finisher with a time is a data-entry mistake, and a costly
-            # one: the time would look usable and quietly skew the whole fleet's
-            # adjustment.
-            raise InvalidInput(
-                f"{context}: status is {self.status.value} but an elapsed time "
-                f"of {self.elapsed_seconds!r} was recorded"
-            )
-        else:
-            # Both None and 0 are used to mean "no time recorded" - the spec
-            # writes E = 0 for a DNC, the fixtures follow it, and null is the
-            # natural thing for a caller to pass. Normalise to None so the rest
-            # of the engine has one thing to test rather than two.
-            object.__setattr__(self, "elapsed_seconds", None)
+        _check_elapsed_time(self, context)
 
         if self.base_number is not None:
             _check_positive(self.base_number, "base_number", context)

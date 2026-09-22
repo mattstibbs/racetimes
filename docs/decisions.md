@@ -314,34 +314,6 @@ open question on scoring codes, which this now blocks on.
 
 ---
 
-## Open questions
-
-Carried from the slice 0 planning pass. These need answers before the affected
-step, not before any code is written.
-
-- **DNF in a club race.** Spec section 3 step 1 computes AS "for every boat that
-  finished"; step 2 says the sums run over "every boat that started". A DNF boat
-  started but has no elapsed time, so the two sentences disagree. Implemented
-  and tested as: excluded from both sums, handicap carried forward unchanged.
-  Still worth confirming with the club. The brief also wants this configurable
-  per series ("adjusted / not adjusted"), which lands with the series
-  orchestrator, not here.
-- **Regatta scoring in slice 0?** All five user journeys in the brief are club
-  series; the spec devotes a full section to regattas. Sequenced last.
-- **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
-  brief's glossary adds OCS, RET and DSQ; RRS A10 lists fourteen. Which subset
-  for v1? This now gates two things. RRS A6.1 (boats moving up when one ahead
-  is disqualified or retires after finishing) cannot fire without DSQ/RET/NSC.
-  And those codes break an invariant the domain types currently hold: a boat
-  disqualified after finishing *does* have an elapsed time, whereas today only
-  a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
-  not addressed by the RYA spec at all.
-- **Elapsed time vs start/finish clock times.** Slice 0's scope says the input
-  is "races with start times, finishes", but every formula takes elapsed
-  seconds. Does the engine derive elapsed from start + finish, or does the
-  caller? Shapes the public interface.
-
----
 
 ## 2026-09-22 - PyYAML and pypdf added as test/dev-only dependencies
 
@@ -358,3 +330,89 @@ rather than assumed.
 carry the spec rationale and the revision note - the main reason not to convert
 them to JSON and drop the dependency. Neither package may be imported by `nhc/`;
 the purity test fails by name if either is.
+
+## 2026-09-22 - A series is scored by replaying it, never by updating in place
+
+**Context.** The brief's central invariant: handicaps are never edited
+directly, and correcting any finish must recalculate every later race in the
+series.
+
+**Decision.** `score_series(series)` replays from the start every time. Each
+race is scored on the handicaps the previous race produced. There is no
+incremental update path.
+
+**Consequence.** Correction is free - change a finish, call it again. An
+incremental path would be faster and would eventually drift out of step with a
+full replay, which is the quietest class of bug a scoring system can have.
+Replaying a dozen races for a fleet of thirty is microseconds of arithmetic;
+there is nothing here worth optimising.
+
+Two things the caller no longer supplies, because the rules supply them. A
+boat's handicap per race is derived rather than entered - which is why the new
+`Finish` type carries only a boat, a time or a code, i.e. what a race officer
+actually writes down. And a boat with no recorded finish in a race is scored
+DNC, per RRS A2.2: a boat that has entered any race in a series is scored for
+the whole series. That also makes A5.2's entry count equal the number of
+results, as it should be.
+
+Races replay in the order given rather than sorted by date. A race's date is
+the caller's business, and two races on one evening still have an order.
+
+---
+
+## 2026-09-22 - "Carries over / resets" means where the series starts
+
+**Context.** The brief makes handicap progression configurable per series -
+"carries over / resets" - and user journey 1 sets a new series to reset. It was
+not obvious whether reset meant the published Base Number or the previous
+series' realignment output.
+
+**Decision.** `HandicapProgression.RESET` starts every boat on its
+`base_number`; `CARRY_OVER` starts every boat on its `current_tcf`. Progression
+picks the starting point for race one and nothing else - after that, both
+follow the same chain.
+
+**Consequence.** The ambiguity dissolves rather than being resolved: the engine
+never needs to know whether a carried-over handicap is last season's drift or a
+realigned club number, because whoever sets `current_tcf` decides. Running
+realignment (spec section 5) and storing its output as `current_tcf` is how a
+club gets realigned carry-over.
+
+---
+
+## Open questions
+
+Carried from the slice 0 planning pass. These need answers before the affected
+step, not before any code is written.
+
+- **DNF in a club race.** Spec section 3 step 1 computes AS "for every boat that
+  finished"; step 2 says the sums run over "every boat that started". A DNF boat
+  started but has no elapsed time, so the two sentences disagree. Implemented
+  and tested as: excluded from both sums, handicap carried forward unchanged.
+  Still worth confirming with the club. See also the next question, which is
+  the brief's per-series "adjusted / not adjusted" switch.
+- **"Adjusted" non-finishers.** The brief makes handicap adjustment for boats
+  that do not finish configurable per series: "adjusted / not adjusted". Only
+  "not adjusted" is implemented, because it is the only behaviour the RYA spec
+  defines for a club series - section 3 has non-starters carry forward and be
+  excluded from the sums. The reference docs contain exactly one mechanism for
+  giving a non-finisher a usable elapsed time, the regatta back-calculation in
+  section 4 step 1, so "adjusted" would mean borrowing that into a club series.
+  Coherent, but a rule decision for the club rather than an implementation
+  detail, so it is not guessed at.
+- **Regatta scoring in slice 0?** All five user journeys in the brief are club
+  series; the spec devotes a full section to regattas. Sequenced last.
+- **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
+  brief's glossary adds OCS, RET and DSQ; RRS A10 lists fourteen. Which subset
+  for v1? This now gates two things. RRS A6.1 (boats moving up when one ahead
+  is disqualified or retires after finishing) cannot fire without DSQ/RET/NSC.
+  And those codes break an invariant the domain types currently hold: a boat
+  disqualified after finishing *does* have an elapsed time, whereas today only
+  a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
+  not addressed by the RYA spec at all.
+- **Elapsed time vs start/finish clock times.** Slice 0's scope says the input
+  is "races with start times, finishes", but every formula takes elapsed
+  seconds. Does the engine derive elapsed from start + finish, or does the
+  caller? Shapes the public interface.
+
+---

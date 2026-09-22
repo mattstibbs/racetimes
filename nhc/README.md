@@ -33,6 +33,11 @@ So far, importable from `nhc`:
 | `adjustment_scale(elapsed)` | `AS = 100 / E` on its own |
 | `score_points(results, *, series_entry_count, apply_a5_3=False)` | RRS Appendix A race points |
 | `points_for_place(place, boats_tied=1)` | A4 points for a place, shared across an A7 tie |
+| `Finish` | What a race officer records: a boat, and a time or a code |
+| `SeriesRace` / `Series` | A race's finishes; a series' boats, races and rules |
+| `HandicapProgression` | Whether a series starts on carried-over handicaps or base numbers |
+| `score_series(series)` | Replays a series, scoring each race on the previous race's handicaps |
+| `SeriesOutcome` / `RaceOutcome` | The replayed series, and each race within it |
 
 Every type is a frozen dataclass that validates itself, so an invalid race
 cannot be built. `InvalidInput` subclasses `ValueError`.
