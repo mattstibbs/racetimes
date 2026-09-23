@@ -21,6 +21,10 @@ Ask before changing the data model. Don't install new dependencies without askin
   code is wrong, or the fixture's provenance needs checking with me first.
 - Do not generate new fixtures from the engine's own output.
 
+## Testing
+- pytest. Fixtures in tests/fixtures/ are the specification for the scoring
+  engine — see Guardrails.
+
 
 ## Commands (run, test, lint, migrate)
 
