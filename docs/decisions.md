@@ -821,6 +821,30 @@ way the committee would.
 
 ---
 
+## 2026-09-23 - The test site is hosted on Render, deploying main
+
+**Context.** The project owner wanted a hosted copy that updates itself, to
+test changes without running the app locally.
+
+**Decision.** Render, described in `render.yaml` so the setup lives in the
+repository: a web service deploying `main` on every push, and a managed
+PostgreSQL database. Two dependencies were approved for it: `gunicorn` to serve
+the site, and `whitenoise` to serve its static files without a separate file
+server. `build.sh` runs `migrate` on every deploy, so schema changes ship with
+the code that needs them.
+
+**Consequence.** Every merge to `main` goes live, so `main` is what testers
+see. Testing a pull request before merging it would need Render's preview
+environments, a paid feature when this was written. The first staff login is
+created from two environment variables by `ensure_superuser`, because a free
+Render service may have no shell to run `createsuperuser` in; it only ever
+creates the account, so a password changed later in the admin stays changed.
+Production settings are keyed off `DJANGO_DEBUG=0`, so development and the test
+suite are unchanged. HSTS and Django's own HTTPS redirect are deliberately off:
+Render redirects to HTTPS already, and HSTS is hard to undo on a test site.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# collectstatic output (see STATIC_ROOT)
+staticfiles/

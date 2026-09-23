@@ -1,0 +1,35 @@
+# Render Blueprint: the hosted test site and its database.
+# Set up once from the Render dashboard (New > Blueprint, pick this repo); after
+# that, every push to main redeploys. See docs/deploying.md.
+
+databases:
+  - name: racetimes-db
+    databaseName: racetimes
+    user: racetimes
+    plan: free
+
+services:
+  - type: web
+    name: racetimes
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: racetimes-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      # Your first staff login. Render asks for these when the Blueprint is
+      # created; build.sh creates the account once and never changes it.
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
