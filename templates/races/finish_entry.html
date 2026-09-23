@@ -5,9 +5,11 @@
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
   <a href="{% url 'races:series_results' race.series.pk %}#race-{{ race.number }}">Results</a>
+  &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">Correction history</a>
 </p>
+{% include "races/_race_note.html" %}
 <p>Enter each boat's finish time as the clock showed it, or choose a code, and save the row.
-  A boat with nothing saved is scored DNC.</p>
+  A boat with nothing saved is scored DNC. Changing a saved row is a correction and needs a reason.</p>
 {% for row in rows %}
   {% include "races/_finish_row.html" %}
 {% empty %}

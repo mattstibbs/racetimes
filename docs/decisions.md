@@ -686,6 +686,141 @@ free. The cost is a replay per request, which is microseconds of arithmetic.
 
 ---
 
+## 2026-09-23 - Slice 2: audit everything that changes a score, in our own table
+
+**Context.** The plan's line is "a history of what changed and who changed
+it". A finish is the obvious thing to correct, but a race's start time, a
+series' discards or a boat's base number move results just as far. Django
+admin's built-in log records who and when, but not old and new values.
+
+**Decision.** Every field that changes a score is audited, with its old and new
+values. The fields are listed in one place in the code. History goes in a
+hand-rolled `ScoringChange` table, not in django-simple-history, so there is
+no new dependency and we store only what a committee will look at. Changes are
+recorded by the code that saves them, not by signals, because a signal can't
+see who made the change or why. The history has no foreign key to the rows it
+describes, so it outlives them. It is deleted only with its series.
+
+**Consequence.** Every place a score-affecting value is saved (the finish view
+and each admin hook) has to call the recording helper. A place that doesn't
+call it is a gap in the audit, so the tests go through every audited field.
+Details that don't affect a score, such as a boat's name, are covered only by
+the admin's own History button.
+
+---
+
+## 2026-09-23 - Slice 2: a correction needs a reason; a first entry does not
+
+**Decision.** A change is a correction if it alters something that has already
+fed into a result, and a correction must have a reason. Entering a finish for
+the first time, and setting up a series before any race has been sailed, need
+none. A save that changes nothing records nothing.
+
+**Consequence.** Race night stays quick, because the reason box only matters
+when fixing something. The public results page labels an amended race using
+the same flag, so "amended" means the same thing everywhere. Who made the
+change, and why, are shown only to staff.
+
+---
+
+## 2026-09-23 - Slice 2: what a correction changed is judged on what people see
+
+**Context.** After a correction the committee is told which places, handicaps
+and standings moved. The comparison scores the series before and after the
+save, and nothing about it is stored.
+
+**Decision.** Handicaps are compared at 3 d.p. and places on position and
+points, which is what the results page shows. A start time that moves every
+boat by the same amount leaves the handicaps unchanged at 3 d.p., and the
+message says so: "No places, handicaps, or standings were affected by this change."
+
+**Consequence.** The message never claims a change that nobody could see on
+the results page. The engine still works in full precision; only this summary
+rounds. The same rule is behind a finding from the sweep test: a correction can
+reorder places in several races and still leave every boat's total the same,
+so "standings changed" is reported only when a position or total actually
+moved.
+
+---
+
+## 2026-09-23 - Slice 2: how the recording is wired
+
+**Decision.** Each form works out what its save would record during validation:
+by then the instance holds the new values while the database still holds the
+old ones. A correction without a reason is added as a form error, so the admin
+and the finish row show it the way they show any other validation message.
+Rows in the series form read the series form's reason box, because every
+formset on the page is bound to the same POST. The finish view writes the
+finish and its history inside one `transaction.atomic()`. The admin already
+wraps each save in a transaction.
+
+**Consequence.** Adding a new audited field means one line in
+`AUDITED_FIELDS` and one test. A new *place* that saves an audited field, such
+as a future API, must call `audit.changes_to_save` and `audit.record` itself.
+Anything that bypasses forms, like `QuerySet.update()` or the Django shell, is
+not recorded; the committee has no route to either.
+
+---
+
+## 2026-09-23 - A race with nothing recorded is not scored yet
+
+**Context.** Scheduling races ahead of time, as user journey 1 does, left
+every unsailed race scored with every boat DNC on entries + 1 points. In a club
+series that race then became every boat's discard, which is wrong mid-season.
+In a regatta it crashed the results and finish-entry pages, because the engine
+refuses a regatta race with no finisher (spec section 4 back-calculates the
+others from the finishers).
+
+**Decision.** Agreed with the project owner. A race with no result saved - no
+time and no code - is left out of scoring and shown as "No results recorded
+yet". It counts as sailed as soon as any result is saved, a code included. In
+a regatta, a race with results but no finish time is held back with an
+explanation, and so is every race after it, because each race sails on the
+handicaps the one before produces. The results shown are the ones up to the
+race that is waiting.
+
+**Consequence.** The engine is unchanged: `races/scoring.py` chooses which
+races to hand it. Slice 1's rule that a boat with nothing recorded scores DNC
+still holds, but only in a race that is being scored. Two slice 1 tests
+assumed an empty race was scored and now record a result in it. The committee
+can save a regatta race's codes in any order; the page explains the wait until
+a time goes in, rather than refusing the save.
+
+---
+
+## 2026-09-23 - No user action should crash a page
+
+**Context.** The project owner's rule, after the regatta crash above. Probing
+every edit the committee can make found two more: moving a race's start time
+to after finishes already saved (negative elapsed times, which the engine
+refuses), and swapping two race numbers in the admin (Django saves the rows
+one at a time, so for a moment two races share a number and the database's
+unique rule fails).
+
+**Decision.** Each is stopped where it enters, with a message that says what
+to do:
+
+- A race's start time must be earlier than every finish already saved for it
+  (`Race.clean`).
+- Renumbered and removed races are parked on spare numbers before the real
+  numbers are saved (`RaceInlineFormSet`), so any renumbering that is valid
+  once saved also saves.
+- Removing an entry that has results explains why it is refused and what to do
+  instead, in place of Django's "protected related objects" wording. This one
+  never crashed; the message was just unhelpful.
+
+Two backstops for anything not yet found: `score_series` catches input the
+engine refuses, logs it, and the pages say the results cannot be calculated
+rather than failing; and `templates/500.html` replaces Django's bare "Server
+Error (500)" with a plain page in production.
+
+**Consequence.** The backstops only hide a crash from the person using the
+site. The logged error still needs looking at, so validation stays the first
+line: each route found so far has its own check and a test that drives it the
+way the committee would.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

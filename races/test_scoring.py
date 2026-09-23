@@ -103,6 +103,7 @@ def test_correcting_a_finish_changes_later_races():
     race_1, race_2 = make_race(series, 1), make_race(series, 2)
     finish = record(race_1, a, "19:00:00")
     record(race_1, b, "19:10:00")
+    record(race_2, a, "19:05:00")
 
     before = score_series(series).for_race(race_2).for_entry(a).result.tcf_used
     finish.finish_time = datetime(2026, 1, 1, 19, 20).time()
@@ -120,6 +121,7 @@ def test_races_are_scored_in_number_order_not_the_order_created():
     race_1 = make_race(series, 1)
     record(race_1, a, "19:00:00")
     record(race_1, b, "19:10:00")
+    record(race_2, a, "19:05:00")
 
     results = score_series(series)
     assert [r.race.number for r in results.races] == [1, 2]
@@ -185,3 +187,98 @@ def test_a_series_with_no_entries_has_no_results():
 def test_a_series_with_no_races_has_no_standings(three_boats):
     series, _ = three_boats
     assert score_series(series).standings == ()
+
+
+# --- Races that are not scored ---------------------------------------------
+
+
+def test_a_race_with_nothing_recorded_is_not_scored(three_boats):
+    series, (a, b, c) = three_boats
+    race_1, race_2 = make_race(series, 1), make_race(series, 2)
+    record(race_1, a, "19:00:00")
+    record(race_1, b, "19:10:00")
+
+    results = score_series(series)
+    assert results.for_race(race_2) is None
+    assert results.note_for(race_2) == "No results recorded yet."
+    assert [cell.race for cell in results.standings[0].scores] == [race_1]
+
+
+def test_an_unsailed_race_does_not_use_up_the_discard(three_boats):
+    """Before this rule, a scheduled race scored everyone DNC and became their discard."""
+    series, (a, b, c) = three_boats
+    race_1, race_2 = make_race(series, 1), make_race(series, 2)
+    make_race(series, 3)  # scheduled, not sailed
+    record(race_1, a, "19:00:00")
+    record(race_1, b, "19:10:00")
+    record(race_2, a, "19:30:00")
+    record(race_2, b, "19:05:00")
+
+    standing = {row.entry.pk: row for row in score_series(series).standings}
+    # One discard over two sailed races: each boat drops its worse result.
+    assert standing[a.pk].total == 1
+    assert standing[b.pk].total == 1
+
+
+def test_a_code_alone_makes_a_race_sailed(three_boats):
+    series, (a, b, c) = three_boats
+    race = make_race(series)
+    record(race, a, status=Finish.Status.DNF)
+    assert score_series(series).for_race(race) is not None
+
+
+@pytest.fixture
+def regatta(three_boats):
+    series, entries = three_boats
+    series.series_type = Series.SeriesType.REGATTA
+    series.save()
+    race_1 = make_race(series, 1)
+    record(race_1, entries[0], "19:00:00")
+    record(race_1, entries[1], "19:05:00")
+    return series, entries, race_1
+
+
+def test_a_scheduled_regatta_race_does_not_stop_scoring(regatta):
+    series, entries, race_1 = regatta
+    race_2 = make_race(series, 2)
+    results = score_series(series)
+    assert results.for_race(race_1) is not None
+    assert results.for_race(race_2) is None
+    assert results.note_for(race_2) == "No results recorded yet."
+
+
+def test_a_regatta_race_with_only_codes_waits_for_a_finish_time(regatta):
+    series, entries, race_1 = regatta
+    race_2, race_3 = make_race(series, 2), make_race(series, 3)
+    record(race_2, entries[0], status=Finish.Status.DNF)
+    record(race_3, entries[0], "19:00:00")
+
+    results = score_series(series)
+    assert [r.race for r in results.races] == [race_1]
+    assert "at least one boat has a finish time" in results.note_for(race_2)
+    # Race 3 sails on race 2's handicaps, so it cannot be scored either.
+    assert "race 2 is not scored yet" in results.note_for(race_3)
+    assert len(results.standings) == 3
+
+
+def test_a_regatta_race_is_scored_once_a_time_is_saved(regatta):
+    series, entries, _ = regatta
+    race_2 = make_race(series, 2)
+    record(race_2, entries[0], status=Finish.Status.DNF)
+    record(race_2, entries[1], "19:10:00")
+    assert score_series(series).for_race(race_2) is not None
+
+
+def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
+    """A backstop: validation should stop this, but if it does not, no crash."""
+    series, (a, b, c) = three_boats
+    race = make_race(series, start="18:00:00")
+    record(race, a, "19:00:00")
+    # Bypass validation, as a bug or a direct database edit might.
+    Finish.objects.filter(race=race).update(finish_time=datetime(2026, 1, 1, 17, 0).time())
+
+    results = score_series(series)
+    assert results.races == () and results.standings == ()
+    assert "cannot be calculated" in results.error
+    assert results.note_for(race) == results.error
+    assert "could not be scored" in caplog.text

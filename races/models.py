@@ -9,11 +9,13 @@ behind. The brief's rule is that handicaps are never edited directly.
 from datetime import datetime
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.functions import Replace, Upper
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Boat(models.Model):
@@ -183,6 +185,21 @@ class Race(models.Model):
 
     def clean(self):
         _whole_seconds(self.start_time, "start_time")
+        if self.pk and self.start_time is not None:
+            # Correcting a start time must not leave a finish at or before it:
+            # that would be a zero or negative elapsed time, which no formula
+            # can score.
+            earliest = self.finishes.aggregate(earliest=models.Min("finish_time"))["earliest"]
+            if earliest is not None and earliest <= self.start_time:
+                raise ValidationError(
+                    {
+                        "start_time": (
+                            f"Finishes are already saved from {earliest:%H:%M:%S}, so the "
+                            "start must be earlier than that. Correct those finishes first "
+                            "if the start really was later."
+                        )
+                    }
+                )
 
 
 class Finish(models.Model):
@@ -255,3 +272,63 @@ class Finish(models.Model):
             return None
         start = datetime.combine(self.race.date, self.race.start_time)
         return int((datetime.combine(self.race.date, self.finish_time) - start).total_seconds())
+
+
+class ScoringChange(models.Model):
+    """One recorded change to something that feeds a score: who, when, what, why.
+
+    Rows are written by ``races/audit.py`` in the same transaction as the change
+    they describe, and never edited afterwards. There is deliberately no foreign
+    key to the Finish, entry or boat described: the history has to outlive the
+    rows it describes, so ``description`` and ``changes`` are kept as text.
+    """
+
+    class Kind(models.TextChoices):
+        FINISH = "FINISH", "Finish"
+        RACE = "RACE", "Race"
+        SERIES = "SERIES", "Series settings"
+        ENTRY = "ENTRY", "Entry"
+        BOAT = "BOAT", "Boat"
+
+    class Action(models.TextChoices):
+        ADDED = "ADDED", "Added"
+        CHANGED = "CHANGED", "Changed"
+        REMOVED = "REMOVED", "Removed"
+
+    timestamp = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    # A copy of the username, so the record still says who after the account goes.
+    user_name = models.CharField(max_length=150, blank=True)
+    # Null only for a boat's base number change when the boat is in no series.
+    series = models.ForeignKey(
+        Series, on_delete=models.CASCADE, null=True, blank=True, related_name="scoring_changes"
+    )
+    race = models.ForeignKey(
+        Race, on_delete=models.SET_NULL, null=True, blank=True, related_name="scoring_changes"
+    )
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    action = models.CharField(max_length=10, choices=Action.choices)
+    description = models.CharField(max_length=200)
+    # {"Finish time": ["19:00:00", "19:05:30"]}: old and new, formatted for display.
+    changes = models.JSONField(default=dict, blank=True)
+    is_correction = models.BooleanField(default=False)
+    reason = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-timestamp", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(is_correction=False) | ~models.Q(reason=""),
+                name="scoring_change_correction_has_reason",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} {self.description}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValueError("A recorded change is never edited.")
+        super().save(*args, **kwargs)

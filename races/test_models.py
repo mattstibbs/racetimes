@@ -201,3 +201,21 @@ def test_a_finish_needs_the_boat_entered_in_the_race_series(race_and_entry):
     with pytest.raises(ValidationError) as caught:
         finish.full_clean()
     assert "not entered" in str(caught.value)
+
+
+def test_a_start_cannot_move_to_or_past_a_saved_finish(race_and_entry):
+    race, entry = race_and_entry
+    record(race, entry, "19:00:00")
+    for start in [time(19, 0), time(19, 30)]:
+        race.start_time = start
+        with pytest.raises(ValidationError) as caught:
+            race.full_clean()
+        assert "Finishes are already saved from 19:00:00" in str(caught.value)
+    race.start_time = time(18, 59, 59)
+    race.full_clean()
+
+
+def test_a_start_can_move_freely_before_any_finish(race_and_entry):
+    race, _ = race_and_entry
+    race.start_time = time(23, 0)
+    race.full_clean()

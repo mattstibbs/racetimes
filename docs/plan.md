@@ -66,7 +66,40 @@ always 24-hour, so this is a display question, not a data one.
 
 A Django app with Boat, Series, Race and Finish models, admin-style forms for the race committee to enter finish times, and a results page that calls the engine. Django with HTMX would suit this well; it's server-rendered and form-heavy, with no real need for a JavaScript framework.
 
-## Slice 2: corrections and audit. 
+## Slice 2: corrections and audit. **Status: complete (2026-09-23)**
+
+Acceptance criteria, from `docs/slices/02-corrections-and-audit.md`:
+
+- [x] Every audited change is recorded with old and new values, who and when;
+      nothing outside the audited fields is. `races/test_audit.py` changes each
+      audited field through the finish-entry page or the admin, and pins the
+      field list so a new one comes with a test.
+- [x] A correction without a reason is rejected with a message and nothing is
+      saved - finish rows, series settings, race rows, entries and base
+      numbers. First entries and setup before any race is sailed need none.
+      The database also refuses a correction row with no reason.
+- [x] A save that changes nothing records nothing.
+- [x] History survives deleting the finish, race or user it describes, and is
+      deleted only with its series.
+- [x] After a correction the finish row (and the admin) says which places,
+      handicaps and standings moved. Tested as a sweep over all twelve
+      finishes in a three-boat, four-race series.
+- [x] The history page needs a staff login. Public results label amended races
+      and standings, without who or why.
+- [x] A change and its history rows are saved together or not at all, tested
+      by making the recording fail after the change was written.
+- [x] Migrations use nothing database-specific. The app's tests were also run
+      against PostgreSQL 16 by hand; CI runs SQLite only.
+
+Manual check: seeded a three-race series, then in headless Chromium corrected a
+finish without and then with a reason, corrected a race start time in the
+admin the same way, and read the history page and the public results back.
+
+Follow-up, the same day: races with nothing recorded are no longer scored, a
+regatta race waits for its first finish time instead of crashing the pages,
+and the admin refuses start times after saved finishes and renumbers races
+without colliding. See the two newest entries in `docs/decisions.md`.
+
 Editing a finish and seeing everything downstream recalculate, with a history of what changed and who changed it. Race committees will need this on day one of real use, so it's worth doing early.
 
 ## Slice 3: member self-service. 
