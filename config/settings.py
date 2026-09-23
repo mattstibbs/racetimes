@@ -110,9 +110,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 
-TIME_ZONE = 'UTC'
+# Club time. Start and finish clock times are stored as typed, with no timezone
+# (see races/models.py); this governs everything else, such as admin timestamps.
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 
