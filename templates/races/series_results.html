@@ -12,6 +12,7 @@
 </p>
 
 <h2>Standings</h2>
+{% if standings_amended %}<p class="amended">Amended {{ standings_amended|date:"j F Y" }}</p>{% endif %}
 {% if results.standings %}
 <div class="table-scroll">
 <table>
@@ -43,12 +44,14 @@
 <p class="muted">No races yet.</p>
 {% endif %}
 
-{% for race_results in results.races %}
+{% for race_results, amended_on in races %}
 {% with race=race_results.race %}
 <h2 id="race-{{ race.number }}">Race {{ race.number }}</h2>
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
-  {% if user.is_staff %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>{% endif %}
+  {% if amended_on %}<span class="amended">Amended {{ amended_on|date:"j F Y" }}.</span>{% endif %}
+  {% if user.is_staff %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
+  &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">History</a>{% endif %}
 </p>
 <div class="table-scroll">
 <table>

@@ -31,9 +31,13 @@ def save_url(race, entry):
     return reverse("races:save_finish", args=[race.pk, entry.pk])
 
 
-def row_data(entry, finish_time="", status="FINISHED"):
+def row_data(entry, finish_time="", status="FINISHED", reason=""):
     prefix = f"entry-{entry.pk}"
-    return {f"{prefix}-finish_time": finish_time, f"{prefix}-status": status}
+    return {
+        f"{prefix}-finish_time": finish_time,
+        f"{prefix}-status": status,
+        f"{prefix}-reason": reason,
+    }
 
 
 # --- Home and results ------------------------------------------------------
@@ -141,7 +145,9 @@ def test_saving_a_code(staff_client, race_night):
 
 def test_correcting_a_saved_finish_updates_it(staff_client, race_night):
     _, race, a, _ = race_night
-    staff_client.post(save_url(race, a), row_data(a, "19:05:30"), HTTP_HX_REQUEST="true")
+    staff_client.post(
+        save_url(race, a), row_data(a, "19:05:30", reason="Misread"), HTTP_HX_REQUEST="true"
+    )
     assert Finish.objects.get(entry=a).finish_time.isoformat() == "19:05:30"
     assert Finish.objects.filter(entry=a).count() == 1
 

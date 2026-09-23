@@ -11,8 +11,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .discarded { color: #888; }
 .errorlist { color: #b00020; margin: 0.2rem 0; padding-left: 1rem; }
 
-.finish-row { display: grid; grid-template-columns: 11rem 9rem 12rem 5rem 1fr; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e3e3e3; }
+.finish-row { display: grid; grid-template-columns: 11rem 9rem 12rem 1fr 5rem; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e3e3e3; }
 .finish-row.has-errors { background: #fff4f4; }
 .finish-row.saved { background: #f2faf2; }
-.finish-row .figures { font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+.finish-row .figures { grid-column: 1 / -1; font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+.finish-row select, .finish-row input[name$="-reason"] { max-width: 100%; box-sizing: border-box; }
+.finish-row input[name$="-reason"] { width: 100%; }
+.amended { color: #8a5a00; }
 @media (max-width: 40rem) { .finish-row { grid-template-columns: 1fr 1fr; } }

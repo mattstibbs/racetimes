@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}History: {{ series.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ series.name }}: scoring history{% if race %}, Race {{ race.number }}{% endif %}</h1>
+<p class="muted">
+  Every change to something that feeds a score, newest first.
+  {% if race %}<a href="{% url 'races:series_history' series.pk %}">Whole series</a> &middot;
+  <a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a> &middot;{% endif %}
+  <a href="{% url 'races:series_results' series.pk %}">Results</a>
+</p>
+{% if changes %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>When</th><th>Who</th><th>What</th><th>Change</th><th>Reason</th></tr>
+  </thead>
+  <tbody>
+    {% for change in changes %}
+    <tr>
+      <td>{{ change.timestamp|date:"j M Y H:i" }}</td>
+      <td>{{ change.user_name }}</td>
+      <td>
+        {{ change.get_kind_display }}: {{ change.description }}
+        {% if change.is_correction %}<br><span class="amended">Correction</span>{% endif %}
+      </td>
+      <td>
+        {{ change.get_action_display }}
+        {% for field, values in change.changes.items %}
+          <br>{{ field }}:
+          {% if change.action == "CHANGED" %}{{ values.0|default:"none" }} &rarr; {{ values.1|default:"none" }}
+          {% elif change.action == "ADDED" %}{{ values.1|default:"none" }}
+          {% else %}{{ values.0|default:"none" }}{% endif %}
+        {% endfor %}
+      </td>
+      <td>{{ change.reason }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">Nothing recorded yet.</p>
+{% endif %}
+{% endblock %}
