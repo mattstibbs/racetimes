@@ -16,6 +16,11 @@ New behaviour has tests. No linter errors. All tests pass. Migrations created. M
 ## Guardrails (never / ask first)
 Ask before changing the data model. Don't install new dependencies without asking.
 
+- Fixtures in tests/fixtures/ are the specification. Never edit a fixture's
+  expected values to make a test pass — if they disagree with the code, the
+  code is wrong, or the fixture's provenance needs checking with me first.
+- Do not generate new fixtures from the engine's own output.
+
 
 ## Commands (run, test, lint, migrate)
 
