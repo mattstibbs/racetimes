@@ -686,6 +686,43 @@ free. The cost is a replay per request, which is microseconds of arithmetic.
 
 ---
 
+## 2026-09-23 - Slice 2: audit everything that changes a score, in our own table
+
+**Context.** The plan's line is "a history of what changed and who changed
+it". A finish is the obvious thing to correct, but a race's start time, a
+series' discards or a boat's base number move results just as far. Django
+admin's built-in log records who and when, but not old and new values.
+
+**Decision.** Every field that changes a score is audited, with its old and new
+values. The fields are listed in one place in the code. History goes in a
+hand-rolled `ScoringChange` table, not in django-simple-history, so there is
+no new dependency and we store only what a committee will look at. Changes are
+recorded by the code that saves them, not by signals, because a signal can't
+see who made the change or why. The history has no foreign key to the rows it
+describes, so it outlives them. It is deleted only with its series.
+
+**Consequence.** Every place a score-affecting value is saved (the finish view
+and each admin hook) has to call the recording helper. A place that doesn't
+call it is a gap in the audit, so the tests go through every audited field.
+Details that don't affect a score, such as a boat's name, are covered only by
+the admin's own History button.
+
+---
+
+## 2026-09-23 - Slice 2: a correction needs a reason; a first entry does not
+
+**Decision.** A change is a correction if it alters something that has already
+fed into a result, and a correction must have a reason. Entering a finish for
+the first time, and setting up a series before any race has been sailed, need
+none. A save that changes nothing records nothing.
+
+**Consequence.** Race night stays quick, because the reason box only matters
+when fixing something. The public results page labels an amended race using
+the same flag, so "amended" means the same thing everywhere. Who made the
+change, and why, are shown only to staff.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

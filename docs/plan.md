@@ -66,7 +66,7 @@ always 24-hour, so this is a display question, not a data one.
 
 A Django app with Boat, Series, Race and Finish models, admin-style forms for the race committee to enter finish times, and a results page that calls the engine. Django with HTMX would suit this well; it's server-rendered and form-heavy, with no real need for a JavaScript framework.
 
-## Slice 2: corrections and audit. 
+## Slice 2: corrections and audit. **Status: planned (2026-09-23)** - spec in `docs/slices/02-corrections-and-audit.md`, awaiting approval of its data model.
 Editing a finish and seeing everything downstream recalculate, with a history of what changed and who changed it. Race committees will need this on day one of real use, so it's worth doing early.
 
 ## Slice 3: member self-service. 
