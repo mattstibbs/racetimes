@@ -40,7 +40,7 @@ the series has any finishes.
   the first time and setting up a series before any race has been sailed.
 - Saving a form without changing anything records nothing and needs no reason.
 
-### Data model (needs your approval; see Guardrails in CLAUDE.md)
+### Data model (approved by the project owner, 2026-09-23)
 One new model, `ScoringChange`, which is added to only and never edited:
 
 - `timestamp`, which is set automatically.
@@ -82,8 +82,9 @@ other.
   is not stored.
 - **Admin.** The Boat and Series forms, including the entry and race rows on
   the Series form, get a "Reason for change" box. It is required only when the
-  save is a correction. Removing a race, entry or series from the admin's
-  change list goes through the same recording code. After a correction, a
+  save is a correction. Races and entries can only be removed from within the
+  Series form, so every removal goes through the same recording code. Deleting
+  a whole series deletes its history with it. After a correction, a
   message on the admin page says which results changed, using the same
   comparison.
 - **History (staff only).** One page per series, newest first. Each change
@@ -91,9 +92,11 @@ other.
   values, and the reason. It can be filtered to a single race. It's linked from
   the finish-entry page and from the series in the admin.
 - **Results (public).** A race with a correction is labelled "Amended" with the
-  date of its latest correction. If the series' settings, entries or a boat's
-  base number have been corrected, the standings are labelled the same way.
-  The public page never shows who made a change or why.
+  date of its latest correction. The standings are labelled with the date of
+  the latest correction of any kind, since a corrected finish can move them as
+  much as a settings change. The public page never shows who made a change or
+  why. *(Revised during implementation; the plan labelled the standings only
+  for settings, entries and base numbers.)*
 
 ## Acceptance criteria
 - Every change listed in the table above is recorded, with its old and new

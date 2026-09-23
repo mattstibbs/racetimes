@@ -723,6 +723,45 @@ change, and why, are shown only to staff.
 
 ---
 
+## 2026-09-23 - Slice 2: what a correction changed is judged on what people see
+
+**Context.** After a correction the committee is told which places, handicaps
+and standings moved. The comparison scores the series before and after the
+save, and nothing about it is stored.
+
+**Decision.** Handicaps are compared at 3 d.p. and places on position and
+points, which is what the results page shows. A start time that moves every
+boat by the same amount leaves the handicaps unchanged at 3 d.p., and the
+message says so: "No places, handicaps or standings changed."
+
+**Consequence.** The message never claims a change that nobody could see on
+the results page. The engine still works in full precision; only this summary
+rounds. The same rule is behind a finding from the sweep test: a correction can
+reorder places in several races and still leave every boat's total the same,
+so "standings changed" is reported only when a position or total actually
+moved.
+
+---
+
+## 2026-09-23 - Slice 2: how the recording is wired
+
+**Decision.** Each form works out what its save would record during validation:
+by then the instance holds the new values while the database still holds the
+old ones. A correction without a reason is added as a form error, so the admin
+and the finish row show it the way they show any other validation message.
+Rows in the series form read the series form's reason box, because every
+formset on the page is bound to the same POST. The finish view writes the
+finish and its history inside one `transaction.atomic()`. The admin already
+wraps each save in a transaction.
+
+**Consequence.** Adding a new audited field means one line in
+`AUDITED_FIELDS` and one test. A new *place* that saves an audited field, such
+as a future API, must call `audit.changes_to_save` and `audit.record` itself.
+Anything that bypasses forms, like `QuerySet.update()` or the Django shell, is
+not recorded; the committee has no route to either.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
