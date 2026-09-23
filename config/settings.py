@@ -122,6 +122,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# Tests run under pytest (see pytest.ini). This runner makes `manage.py test`
+# fail with a pointer rather than collect 0 tests and report success.
+TEST_RUNNER = 'config.test_runner.PytestRedirectRunner'
+
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 

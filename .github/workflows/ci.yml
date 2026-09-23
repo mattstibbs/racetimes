@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to a branch makes the run in flight pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # nhc/README.md claims Python 3.11 or later, so more than one version
+        # is tested to keep that claim honest. 3.11 is what the project pins.
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        # requirements-dev.txt pulls in requirements.txt itself.
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Django system checks
+        run: python manage.py check
+
+      - name: Check for missing migrations
+        # CLAUDE.md's definition of done includes "migrations created". There
+        # are no models yet, so this passes trivially today and starts earning
+        # its keep in slice 1.
+        run: python manage.py makemigrations --check --dry-run
+
+  vendorable:
+    # The nhc package promises to be standard-library only, so that anyone can
+    # copy it into another project. tests/test_package_purity.py checks that by
+    # scanning imports; this checks it the other way round, by importing the
+    # package on a machine where nothing has been installed at all.
+    name: nhc imports with nothing installed
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Import nhc with no dependencies present
+        run: |
+          python - <<'PY'
+          import importlib
+          import sys
+
+          # Measure what importing nhc *adds*, rather than inspecting the whole
+          # of sys.modules: the interpreter has already loaded a handful of its
+          # own modules before this runs, and they are not nhc's doing.
+          before = set(sys.modules)
+          nhc = importlib.import_module("nhc")
+          added = set(sys.modules) - before
+
+          assert "django" not in added, "importing nhc pulled in django"
+          third_party = sorted(
+              name for name in added
+              if name.split(".")[0] not in sys.stdlib_module_names
+              and name.split(".")[0] != "nhc"
+          )
+          assert not third_party, f"nhc pulled in third-party modules: {third_party}"
+          print(
+              f"nhc imported cleanly on {sys.version.split()[0]}: "
+              f"{len(nhc.__all__)} public names, {len(added)} modules loaded, "
+              f"all standard library"
+          )
+          PY

@@ -1,4 +1,36 @@
-## Slice 0 - the scoring engine as a pure Python package. 
+## Slice 0 - the scoring engine as a pure Python package. **Status: complete (2026-09-23)**
+
+Acceptance criteria, from `docs/slices/00-scoring-engine.md`:
+
+- [x] All fixtures in `tests/fixtures/` produce the expected results exactly.
+      Includes the RYA's own published worked examples, SCEN-005 (club
+      adjustment) and SCEN-006 (realignment), both reproducing to 3 d.p.
+- [x] Changing any finish and re-scoring gives correct downstream handicaps.
+      Tested as a sweep over all fourteen timed finishes in a four-race series,
+      not a single worked example - see `tests/test_recalculation.py`.
+- [x] Non-finishers are scored per RRS Appendix A and do not have their
+      handicap adjusted. In a club series. A regatta *does* adjust them, by
+      back-calculating an elapsed time, which is what spec section 4 requires.
+- [x] Public interface documented in the package README. `tests/test_readme.py`
+      runs the documented example and checks its output, and asserts every
+      exported name appears in the text.
+
+`nhc/` is 1,573 lines across ten modules, with 569 tests. It imports nothing
+outside the standard library and does no I/O, enforced by
+`tests/test_package_purity.py`.
+
+**One partial gap against the stated scope.** The scope line reads "races with
+start times", but the engine takes elapsed seconds and leaves deriving those
+from a start and a finish to the caller. Every formula in the RYA spec works in
+elapsed time, and the moment a race has more than one start - explicitly out of
+scope here - the caller has to decide which start applies anyway. It is the
+open question on clock times in `docs/decisions.md`, and it lands naturally in
+slice 1 where races gain real start times.
+
+Known gaps, all recorded in `docs/decisions.md`: RRS A6.1 and the scoring codes
+beyond FINISHED/DNC/DNS/DNF that would let it fire; A2.1's discard schedule;
+and the brief's "adjusted" option for non-finishers in a club series.
+
 No Django, no database. Plain functions that take a series' race history (boats, base handicaps, starts, finishes) and return race handicaps, corrected times, results and standings. Build it test-first against your worked examples. This is where Claude Code shines: give it the reference docs and the fixtures, tell it the tests are the spec, and let it iterate until they pass. You review the logic, not the plumbing.
 
 ## Slice 1: walking skeleton. 
