@@ -560,6 +560,120 @@ once a second boat is missing.
 
 ---
 
+## 2026-09-23 - Slice 1: the committee enters clock times, not elapsed times
+
+**Context.** Left open from slice 0: the engine takes elapsed seconds, and
+deriving them was deferred to where races gain real start times.
+
+**Decision.** A Race stores a date and a start time; a Finish stores the clock
+time the boat crossed the line. The app computes elapsed time; the engine is
+unchanged. Both are plain times of day in whole seconds, with no timezone.
+
+**Consequence.** The race officer types what is on the finish sheet, with no
+mental arithmetic on the water. One start time is shared by the whole race, so
+a wrong start shifts every boat - but it is one field to fix, not thirty.
+A finish earlier than the start is rejected rather than read as the next day,
+so races past midnight are not supported. Direct elapsed-time entry, for sheets
+that only record elapsed, is deferred.
+
+---
+
+## 2026-09-23 - Slice 1: only the engine's four statuses
+
+**Decision.** FINISHED, DNC, DNS and DNF. OCS, RET and DSQ are deferred.
+
+**Consequence.** No engine change in slice 1. A boat disqualified after
+finishing has to be recorded as DNF for now. Adding codes later is a change to
+the field's choices and a migration, but the open question on scoring codes
+still stands: DSQ needs the engine to accept a time on a non-finisher, and a
+club decision on whether that boat's handicap is adjusted.
+
+---
+
+## 2026-09-23 - Slice 1: series entry only, no race entry
+
+**Context.** RRS A5.2 scores non-finishers on the number of boats entered in
+the *series*, and A2.2 scores an absent entrant DNC. Both need series
+membership recorded; neither needs race membership.
+
+**Decision.** A `SeriesEntry` model links a boat to a series. A Finish belongs
+to a SeriesEntry and a Race, not to a Boat directly. A boat with no finish in a
+race is simply absent and the engine scores it DNC.
+
+**Consequence.** A finish cannot exist for a boat outside the series, and an
+entry with finishes cannot be removed. User journey 3 (entering boats per race)
+is not built; its only effect beyond scoring is a confirmation email, which is
+slice 4. If race entry returns, it must answer whether an entered boat with no
+finish is DNC or DNS.
+
+---
+
+## 2026-09-23 - Slice 1: every series starts on base numbers
+
+**Context.** The brief's "carries over / resets" setting. Carry-over needs a
+source for each boat's starting handicap, and the brief forbids editing
+handicaps directly.
+
+**Decision.** Reset only. Series has no progression field yet; the adapter
+always passes `HandicapProgression.RESET`.
+
+**Consequence.** Matches user journey 1. Carry-over needs club answers first:
+what counts as the previous series, whether to realign before carrying over,
+and who "took part" for realignment. Adding the field later is one migration
+defaulting existing series to reset. A typed-in starting handicap was rejected:
+it is direct editing, and one typo would skew every other boat through the
+fleet-wide sums.
+
+---
+
+## 2026-09-23 - Slice 1: admin for setup, a custom HTMX page for finishes
+
+**Decision.** Boats, series, entries and races are managed in the Django admin.
+Finish entry is its own HTMX page where each row saves independently. Both need
+a staff login; results are public.
+
+**Consequence.** Setup costs a few lines per model, and the effort goes on the
+screen used every race night. Proper roles wait for slice 3.
+
+---
+
+## 2026-09-23 - Slice 1: boat fields, and sail numbers unique ignoring case
+
+**Decision.** Boat has sail number (required), name, make, model, owner name,
+length overall and waterline length (metres, 2 d.p., optional), and base number
+(exact decimal, 3 d.p., required, above zero). Uniqueness sits on a normalised
+copy of the sail number - upper-case, spaces removed.
+
+**Consequence.** "GBR 1234" and "gbr1234" cannot both be registered, which is
+how "unique sail number" usually fails in practice. The normalised copy is a
+plain column with a plain unique constraint, so it behaves the same on SQLite
+and PostgreSQL. The base number is a decimal so the value shown is the value
+typed; it becomes a float only at the engine boundary.
+
+---
+
+## 2026-09-23 - Slice 1: all four engine series settings are stored
+
+**Decision.** Series stores series type (default club), discards (default 1),
+minimum finishers (default 0) and A5.3 (default off) - the engine's defaults.
+
+**Consequence.** Minimum finishers with a regatta is refused by the engine, so
+it is validated on the form instead, where it can be fixed, rather than
+surfacing as an error on the results page.
+
+---
+
+## 2026-09-23 - Slice 1: results are computed on request, never stored
+
+**Decision.** Every results view replays the series through the engine from
+the stored finishes. There are no result or handicap tables.
+
+**Consequence.** There is nothing to go stale, so a corrected finish shows its
+full downstream effect on the next page load - slice 2 gets recalculation for
+free. The cost is a replay per request, which is microseconds of arithmetic.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
@@ -593,15 +707,10 @@ step, not before any code is written.
   And those codes break an invariant the domain types currently hold: a boat
   disqualified after finishing *does* have an elapsed time, whereas today only
   a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
-  not addressed by the RYA spec at all.
-- **Elapsed time vs start/finish clock times.** Slice 0's scope says the input
-  is "races with start times, finishes", but every formula in the RYA spec
-  takes elapsed seconds, and that is what the engine takes: deriving elapsed
-  from a start and a finish is left to the caller. The reasoning is that once a
-  race has more than one start - out of scope for slice 0 - the caller has to
-  choose which start applies anyway, so the conversion belongs where the starts
-  are modelled. This is the one partial gap against slice 0's stated scope, and
-  it is worth settling in slice 1, where races gain real start times and the
-  answer shapes the Django model rather than the engine.
+  not addressed by the RYA spec at all. Slice 1 uses only the engine's four;
+  see "Slice 1: only the engine's four statuses" above.
+- **Elapsed time vs start/finish clock times.** Resolved 2026-09-23: the
+  committee enters clock times and the app derives elapsed. See "Slice 1: the
+  committee enters clock times" above.
 
 ---
