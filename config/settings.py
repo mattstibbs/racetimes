@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,36 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-only-key')
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
 ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
+
+# Origins trusted to POST forms (the admin login included), comma-separated,
+# e.g. https://racetimes.example.org.
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o
+]
+
+# Render sets this to the site's own hostname (e.g. racetimes.onrender.com), so
+# a deploy there needs no host settings of its own. Trusting its https origin is
+# what lets form posts, the admin login among them, pass Django's CSRF check.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+
+if not DEBUG:
+    if SECRET_KEY.startswith('django-insecure'):
+        # Refuse to start rather than run in public on a key everyone can read.
+        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY when DJANGO_DEBUG is off.')
+    # The host terminates HTTPS and passes requests on over plain HTTP, saying
+    # so in this header. Without trusting it, Django would treat every request
+    # as plain HTTP: links it builds would start http://, and its HTTPS-only
+    # checks would be skipped.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # `check --deploy` also suggests SECURE_SSL_REDIRECT and HSTS. Both are
+    # left off on purpose: the host already redirects HTTP to HTTPS, and HSTS
+    # makes browsers refuse plain HTTP for months, which is hard to undo on a
+    # test site.
 
 
 # Application definition
@@ -46,6 +77,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves the CSS and HTMX files in production, straight after security as
+    # WhiteNoise's docs require. With DEBUG on, runserver serves them instead.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -130,6 +164,29 @@ TEST_RUNNER = 'config.test_runner.PytestRedirectRunner'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+if not DEBUG:
+    # Where `collectstatic` gathers files for WhiteNoise to serve. Build
+    # output, so it is gitignored. Only set in production, the one place
+    # `collectstatic` runs; in development runserver serves from `static/`.
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    # Compressed, with a content hash in each file name so browsers can cache
+    # them for ever. It needs `collectstatic` to have run, which the deploy's
+    # build step does.
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+
+# Errors go to the console, which is where a host like Render collects logs.
+# Django's default only prints them with DEBUG on, so a failure in production
+# would otherwise leave no trace.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'root': {'handlers': ['console'], 'level': 'WARNING'},
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
