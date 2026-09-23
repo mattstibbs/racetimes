@@ -732,7 +732,7 @@ save, and nothing about it is stored.
 **Decision.** Handicaps are compared at 3 d.p. and places on position and
 points, which is what the results page shows. A start time that moves every
 boat by the same amount leaves the handicaps unchanged at 3 d.p., and the
-message says so: "No places, handicaps or standings changed."
+message says so: "No places, handicaps, or standings were affected by this change."
 
 **Consequence.** The message never claims a change that nobody could see on
 the results page. The engine still works in full precision; only this summary

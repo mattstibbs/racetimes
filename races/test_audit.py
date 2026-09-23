@@ -500,7 +500,7 @@ def test_a_series_correction_reports_in_the_admin(staff_client, sailed):
     )
     messages = [str(m) for m in response.context["messages"]]
     # The whole fleet shifts together, so nothing visible moves - and it says so.
-    assert "Correction recorded. No places, handicaps or standings changed." in messages
+    assert "Correction recorded. No places, handicaps, or standings were affected by this change." in messages
 
 
 @pytest.mark.parametrize(

@@ -191,7 +191,7 @@ def describe_effect(before, after):
         parts.append(f"Handicaps changed in {_races(effect.handicaps)}.")
     if effect.standings:
         parts.append("Standings changed.")
-    return " ".join(parts) or "No places, handicaps or standings changed."
+    return " ".join(parts) or "No places, handicaps, or standings were affected by this change."
 
 
 def _places(race_results):
