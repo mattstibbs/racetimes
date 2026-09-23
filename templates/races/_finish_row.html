@@ -1,0 +1,23 @@
+{% load racing %}{% url 'races:save_finish' race.pk row.entry.pk as save_url %}
+<form class="finish-row{% if row.form.errors %} has-errors{% elif saved %} saved{% endif %}"
+      id="finish-{{ row.entry.pk }}" method="post" action="{{ save_url }}"
+      hx-post="{{ save_url }}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
+  <div>{{ row.form.finish_time }}</div>
+  <div>{{ row.form.status }}</div>
+  <div><button type="submit">Save</button></div>
+  <div class="figures">
+    {% if row.form.errors %}
+      {{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}
+    {% elif not row.scored.finish %}
+      <span class="muted">Nothing saved: scored DNC</span>
+    {% elif row.scored.result.elapsed_seconds %}
+      Elapsed {{ row.scored.result.elapsed_seconds|hms }} &times; {{ row.scored.result.tcf_used|tcf }}
+      = <strong>{{ row.scored.result.corrected_time|hms }}</strong>
+      {% if saved %}<span class="muted">Saved</span>{% endif %}
+    {% else %}
+      {{ row.scored.result.status }}{% if saved %} <span class="muted">Saved</span>{% endif %}
+    {% endif %}
+  </div>
+</form>

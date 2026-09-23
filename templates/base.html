@@ -4,9 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Race Times{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header>
+    <p><a href="{% url 'races:home' %}"><strong>Race Times</strong></a></p>
+    {% if user.is_staff %}<p><a href="{% url 'admin:index' %}">Setup (admin)</a></p>{% endif %}
+  </header>
   {% block content %}{% endblock %}
 </body>
 </html>

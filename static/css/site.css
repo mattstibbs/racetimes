@@ -1,0 +1,18 @@
+/* Deliberately plain: a walking skeleton, readable on a phone. */
+body { font-family: system-ui, sans-serif; margin: 0 auto; max-width: 60rem; padding: 0 1rem 3rem; color: #1a1a1a; }
+header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #ccc; margin-bottom: 1rem; }
+header a { color: inherit; }
+a { color: #0b5cad; }
+table { border-collapse: collapse; margin: 0.5rem 0 1.5rem; width: 100%; }
+th, td { padding: 0.3rem 0.6rem; text-align: left; border-bottom: 1px solid #e3e3e3; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; }
+.muted { color: #666; }
+.discarded { color: #888; }
+.errorlist { color: #b00020; margin: 0.2rem 0; padding-left: 1rem; }
+
+.finish-row { display: grid; grid-template-columns: 11rem 9rem 12rem 5rem 1fr; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e3e3e3; }
+.finish-row.has-errors { background: #fff4f4; }
+.finish-row.saved { background: #f2faf2; }
+.finish-row .figures { font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+@media (max-width: 40rem) { .finish-row { grid-template-columns: 1fr 1fr; } }
