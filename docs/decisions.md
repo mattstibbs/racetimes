@@ -23,6 +23,12 @@ scoring. The RYA's own published worked examples now live in the fixtures as
 SCEN-005 (section 8) and SCEN-006 (section 5), and both reproduce to 3 d.p. A
 failure in those two is a defect in the engine, never a fixture to adjust.
 
+**Update 2026-09-23.** This regeneration would not happen unilaterally today.
+The guardrails in `CLAUDE.md` now make the fixtures the specification: a
+disagreement with the reference docs goes to the project owner to check the
+fixture's provenance before any expected value changes, and fixtures are never
+generated from the engine's own output.
+
 ---
 
 ## 2026-09-22 - Tests are written against stdlib unittest (SUPERSEDED)
