@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Race Times</h1>
-<button hx-get="{% url 'races:ping' %}" hx-target="#ping" hx-swap="innerHTML">Ping</button>
-<p id="ping"></p>
+<h1>Results</h1>
+{% if series_list %}
+<ul>
+  {% for series in series_list %}
+  <li><a href="{% url 'races:series_results' series.pk %}">{{ series.name }}</a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">No series yet.</p>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Finishes: {{ race }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ race.series.name }}: Race {{ race.number }}</h1>
+<p class="muted">
+  {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
+  <a href="{% url 'races:series_results' race.series.pk %}#race-{{ race.number }}">Results</a>
+</p>
+<p>Enter each boat's finish time as the clock showed it, or choose a code, and save the row.
+  A boat with nothing saved is scored DNC.</p>
+{% for row in rows %}
+  {% include "races/_finish_row.html" %}
+{% empty %}
+  <p class="muted">No boats are entered in this series yet. Enter them in the admin.</p>
+{% endfor %}
+{% endblock %}

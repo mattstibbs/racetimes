@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import Boat, Race, Series, SeriesEntry
 
@@ -18,6 +20,15 @@ class SeriesEntryInline(admin.TabularInline):
 class RaceInline(admin.TabularInline):
     model = Race
     extra = 0
+    readonly_fields = ["finishes_link"]
+
+    @admin.display(description="Finishes")
+    def finishes_link(self, race):
+        if not race.pk:
+            return ""
+        return format_html(
+            '<a href="{}">Enter finishes</a>', reverse("races:finish_entry", args=[race.pk])
+        )
 
 
 @admin.register(Series)

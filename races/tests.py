@@ -1,13 +1,15 @@
 """Smoke tests for the HTMX wiring in the races app.
 
 Written against pytest-django's `client` fixture rather than
-`django.test.TestCase`. Neither view touches the database, so no `django_db`
-marker is needed and these run without a test database being created.
+`django.test.TestCase`. The home page lists series, so it needs the database;
+the ping view does not.
 """
 
+import pytest
 from django.urls import reverse
 
 
+@pytest.mark.django_db
 def test_home_includes_htmx(client):
     response = client.get(reverse("races:home"))
     assert "js/htmx.min.js" in response.content.decode()

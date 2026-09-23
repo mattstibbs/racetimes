@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.functions import Replace, Upper
+from django.urls import reverse
 
 
 class Boat(models.Model):
@@ -112,6 +113,10 @@ class Series(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        # Also gives the admin its "View on site" button.
+        return reverse("races:series_results", args=[self.pk])
 
     def clean(self):
         # The engine refuses this combination outright. Catching it here puts

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block title %}{{ results.series.name }} - Race Times{% endblock %}
+{% block content %}
+{% with series=results.series %}
+<h1>{{ series.name }}</h1>
+<p class="muted">
+  {{ series.get_series_type_display }}.
+  {{ series.discards }} discard{{ series.discards|pluralize }}.
+  {% if series.apply_a5_3 %}Scored under RRS A5.3.{% endif %}
+  {% if series.minimum_finishers %}No handicap changes with fewer than {{ series.minimum_finishers }} finishers.{% endif %}
+</p>
+
+<h2>Standings</h2>
+{% if results.standings %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th class="num">Pos</th><th>Boat</th>
+      {% for race_results in results.races %}<th class="num">R{{ race_results.race.number }}</th>{% endfor %}
+      <th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in results.standings %}
+    <tr>
+      <td class="num">{{ row.position }}</td>
+      <td>{{ row.entry.boat }}</td>
+      {% for cell in row.scores %}
+      <td class="num{% if cell.discarded %} discarded{% endif %}">{% if cell.discarded %}({{ cell.points|points }}){% else %}{{ cell.points|points }}{% endif %}</td>
+      {% endfor %}
+      <td class="num"><strong>{{ row.total|points }}</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted">Discarded scores are in brackets.</p>
+{% elif not series.entries.exists %}
+<p class="muted">No boats are entered in this series yet.</p>
+{% else %}
+<p class="muted">No races yet.</p>
+{% endif %}
+
+{% for race_results in results.races %}
+{% with race=race_results.race %}
+<h2 id="race-{{ race.number }}">Race {{ race.number }}</h2>
+<p class="muted">
+  {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
+  {% if user.is_staff %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>{% endif %}
+</p>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th class="num">Pos</th><th>Boat</th><th class="num">Finish</th><th class="num">Elapsed</th>
+      <th class="num">Handicap</th><th class="num">Corrected</th><th class="num">Points</th>
+      <th class="num">Next handicap</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in race_results.rows %}
+    <tr>
+      <td class="num">{% if row.result.position %}{{ row.result.position }}{% else %}{{ row.result.status }}{% endif %}</td>
+      <td>{{ row.entry.boat }}</td>
+      <td class="num">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }}{% endif %}</td>
+      <td class="num">{{ row.result.elapsed_seconds|hms }}</td>
+      <td class="num">{{ row.result.tcf_used|tcf }}</td>
+      <td class="num">{{ row.result.corrected_time|hms }}</td>
+      <td class="num">{{ row.result.points|points }}</td>
+      <td class="num">{{ row.result.effective_next_tcf|tcf }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endwith %}
+{% endfor %}
+{% endwith %}
+{% endblock %}
