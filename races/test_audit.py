@@ -621,3 +621,36 @@ def test_renumbering_into_a_removed_race_number_saves(staff_client, sailed):
     races[0].refresh_from_db()
     assert races[0].number == 4
     assert sorted(series.races.values_list("number", flat=True)) == [2, 3, 4]
+
+
+# --- The admin's own History button shows the reason too ---------------------
+
+
+def admin_log_message(obj):
+    from django.contrib.admin.models import LogEntry
+    entry = LogEntry.objects.filter(object_id=str(obj.pk)).latest("action_time")
+    return entry.get_change_message()
+
+
+def test_admin_history_shows_the_reason_for_a_series_change(staff_client, sailed):
+    series, _, _ = sailed
+    post_series(staff_client, series, reason="Notice of race amended", discards="2")
+    message = admin_log_message(series)
+    assert "Discards" in message
+    assert "Reason: Notice of race amended" in message
+    assert "Reason for change" not in message  # the box is not a field of the series
+
+
+def test_admin_history_shows_the_reason_for_a_boat_change(staff_client, sailed):
+    _, _, entries = sailed
+    boat = entries[0].boat
+    post_boat(staff_client, boat, base_number="0.960", reason="New certificate")
+    assert "Reason: New certificate" in admin_log_message(boat)
+
+
+def test_admin_history_without_a_reason_says_nothing_about_one(staff_client, unsailed):
+    series, _, _ = unsailed
+    post_series(staff_client, series, discards="2")
+    message = admin_log_message(series)
+    assert "Discards" in message
+    assert "Reason" not in message

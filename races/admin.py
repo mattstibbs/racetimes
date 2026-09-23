@@ -1,4 +1,7 @@
+import json
+
 from django.contrib import admin, messages
+from django.contrib.admin.models import LogEntry
 from django.core.exceptions import ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
@@ -19,8 +22,34 @@ from .scoring import score_series
 # are saved together or not at all.
 
 
+class ReasonInAdminHistoryMixin:
+    """Puts the reason for a change into the admin's own History page.
+
+    Django's log lists which form fields changed, not their values, so it
+    showed "Changed Discards and Reason for change." - naming the reason box as
+    if it were a field of the record, and losing what was typed in it. Here the
+    box is taken out of the field list and its text added at the end.
+    """
+
+    def construct_change_message(self, request, form, formsets, add=False):
+        message = super().construct_change_message(request, form, formsets, add)
+        reason = form.cleaned_data.get("reason", "").strip()
+        label = str(form.fields["reason"].label)
+        for part in message:
+            fields = part.get("changed", {}).get("fields")
+            if fields and label in fields:
+                fields.remove(label)
+        message = [part for part in message if part.get("changed", {}).get("fields", True)]
+        if not reason or not message:
+            return message
+        # Rendered to text here, because the log's structured format has no
+        # place for a free-text note.
+        text = LogEntry(change_message=json.dumps(message)).get_change_message()
+        return f"{text} Reason: {reason}"
+
+
 @admin.register(Boat)
-class BoatAdmin(admin.ModelAdmin):
+class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
     list_display = ["sail_number", "name", "make", "model", "base_number", "owner_name"]
     search_fields = ["sail_number", "name", "owner_name"]
@@ -85,7 +114,7 @@ class RaceInline(admin.TabularInline):
 
 
 @admin.register(Series)
-class SeriesAdmin(admin.ModelAdmin):
+class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = SeriesAdminForm
     list_display = ["name", "series_type", "discards"]
     fieldsets = [
