@@ -43,6 +43,11 @@ Tests:
 
 No linter is configured yet.
 
+CI runs on every pull request (`.github/workflows/ci.yml`): the test suite on
+Python 3.11 and 3.12, `manage.py check`, a check for missing migrations, and a
+job that imports `nhc` with nothing installed, to prove the package really is
+standard-library only.
+
 Do not use `manage.py test`. pytest-style tests are plain functions, so Django's
 runner collects none of them and exits 0 with "Ran 0 tests ... OK" - a false
 green. `config/test_runner.py` is wired in as `TEST_RUNNER` to fail loudly with
