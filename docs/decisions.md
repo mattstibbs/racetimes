@@ -525,6 +525,41 @@ regardless.
 
 ---
 
+## 2026-09-23 - The recalculation criterion is tested as a sweep, not an example
+
+**Context.** Slice 0's acceptance criteria include "changing any finish and
+re-scoring gives correct downstream handicaps". One worked example would
+satisfy the letter of it and prove very little.
+
+**Decision.** `tests/test_recalculation.py` takes "any finish" literally and
+sweeps all fourteen timed finishes in a four-boat, four-race series, one at a
+time. For each, it asserts that earlier races are byte-identical, the corrected
+race changes, every later race changes, and the handicap chain still holds -
+each race scored on exactly what the previous one produced.
+
+**Consequence.** What this really guards is a future optimisation. Replaying a
+series is cheap now, so the temptation to cache or to update in place will come
+later, and its failure mode is a handicap that is *stale* rather than wrong:
+invisible in any single-race test, and surfacing weeks afterwards in the
+standings. Three tests exist only to catch that class of bug - putting a
+corrected finish back restores the original results exactly, scoring an
+unrelated series in between changes nothing, and scoring does not write back to
+the boats it was given.
+
+One test asserts the opposite of a ripple, deliberately. In a club series DNC
+and DNS are scored alike - both excluded from the sums, both carrying their
+handicap forward, both scoring entries plus one under A5.2 - so swapping one
+for the other changes the recorded code and not a single number. Under A5.3 it
+does change the points, which is the rule that distinguishes them.
+
+A5.3 has a quiet arithmetic coincidence worth recording, because it made a
+test of mine fail for the right reason: when a boat is the *only* absentee, it
+scores the same either way. As a DNC it scores entries + 1; as a DNS it scores
+"everyone came" + 1, and those are the same number. The scores only diverge
+once a second boat is missing.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
