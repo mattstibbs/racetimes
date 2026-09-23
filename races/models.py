@@ -97,9 +97,13 @@ class Series(models.Model):
         ),
     )
     apply_a5_3 = models.BooleanField(
-        "score DNC below DNS and DNF (RRS A5.3)",
+        "use RRS A5.3",
         default=False,
-        help_text="Leave off for the default RRS A5.2 scoring.",
+        help_text=(
+            "DNS and DNF score one more than the boats that came to the start, "
+            "instead of one more than the series entries. DNC is unchanged. "
+            "Only if the notice of race says so; off is RRS A5.2."
+        ),
     )
 
     class Meta:
