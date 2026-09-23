@@ -43,9 +43,7 @@ jobs:
         run: python manage.py check
 
       - name: Check for missing migrations
-        # CLAUDE.md's definition of done includes "migrations created". There
-        # are no models yet, so this passes trivially today and starts earning
-        # its keep in slice 1.
+        # CLAUDE.md's definition of done includes "migrations created".
         run: python manage.py makemigrations --check --dry-run
 
   vendorable:

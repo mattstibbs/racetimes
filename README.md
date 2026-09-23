@@ -22,15 +22,16 @@ It is being built for two groups:
 | Slice | | |
 | --- | --- | --- |
 | 0 | Scoring engine | **Complete** |
-| 1 | Walking skeleton: Django models, forms, results page | Not started |
+| 1 | Walking skeleton: Django models, forms, results page | **Complete** |
 | 2 | Corrections and audit trail | Not started |
 | 3 | Member self-service and accounts | Not started |
 | 4 | Emailing results | Not started |
 | 5 | Results web app | Not started |
 
-The scoring engine is finished and tested. **The Django side is still a
-scaffold** — there are no models yet, and the only views are an HTMX example.
-Slice 1 is where the web application starts.
+The scoring engine is finished and tested. The Django app is a walking
+skeleton: the race committee sets up boats and series in the Django admin,
+enters finish times on an HTMX page, and anyone can read the results, which are
+recalculated through the engine on every request.
 
 See [`docs/plan.md`](docs/plan.md) for what each slice covers.
 
@@ -89,7 +90,7 @@ collected nothing and reported success, which is worse than failing.
 | --- | --- |
 | `nhc/` | The scoring engine. Standard library only, no Django, no I/O |
 | `tests/` | The engine's tests, and the scenario fixtures they run against |
-| `races/` | The Django app. No models yet |
+| `races/` | The Django app: models, admin, results and finish-entry pages |
 | `config/` | Django project settings, URLs, WSGI/ASGI |
 | `templates/`, `static/` | Server-rendered templates; HTMX is vendored, not from a CDN |
 | `docs/` | Brief, plan, slice specs, decisions, and the reference rules |

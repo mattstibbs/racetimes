@@ -647,14 +647,20 @@ screen used every race night. Proper roles wait for slice 3.
 
 **Decision.** Boat has sail number (required), name, make, model, owner name,
 length overall and waterline length (metres, 2 d.p., optional), and base number
-(exact decimal, 3 d.p., required, above zero). Uniqueness sits on a normalised
-copy of the sail number - upper-case, spaces removed.
+(exact decimal, 3 d.p., required, above zero). Uniqueness is a unique
+constraint on an expression: the sail number upper-cased with spaces removed.
 
 **Consequence.** "GBR 1234" and "gbr1234" cannot both be registered, which is
-how "unique sail number" usually fails in practice. The normalised copy is a
-plain column with a plain unique constraint, so it behaves the same on SQLite
-and PostgreSQL. The base number is a decimal so the value shown is the value
-typed; it becomes a float only at the engine boundary.
+how "unique sail number" usually fails in practice. The base number is a
+decimal so the value shown is the value typed; it becomes a float only at the
+engine boundary.
+
+*Revised during implementation.* The plan was a stored normalised copy with a
+plain unique constraint. An expression constraint does the same job without
+the extra column, and Django's form validation checks expression constraints,
+so a duplicate is reported against the sail number box in the admin rather than
+failing on save. Both SQLite and PostgreSQL support it; the app's tests pass on
+both.
 
 ---
 

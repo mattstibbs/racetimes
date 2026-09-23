@@ -11,9 +11,9 @@ results - with every number coming from the `nhc` engine built in slice 0.
 Decided in the slice 1 planning pass; reasoning in `docs/decisions.md`.
 
 - **Boat**
-  - `sail_number` - text, required. Unique ignoring case and spaces: a
-    normalised copy (upper-case, spaces removed) is stored alongside and
-    carries the unique constraint, so "gbr 1234" and "GBR1234" collide.
+  - `sail_number` - text, required. Unique ignoring case and spaces, via a
+    unique constraint on the upper-cased, space-stripped value, so
+    "gbr 1234" and "GBR1234" collide.
   - `name`, `make`, `model`, `owner_name` - text, optional.
   - `length_overall_m`, `waterline_length_m` - metres to 2 d.p., optional.
     Recorded only; nothing calculates with them.
@@ -83,9 +83,9 @@ as typed.
   through the database as clock times, reproduces its published handicaps.
 - Changing a saved finish changes that race and every later race on the next
   page load.
-- Enforced by the database: normalised sail numbers are unique; a finish is a
-  time or a code, never both; one finish per entry per race; race numbers are
-  unique within a series.
+- Enforced by the database: sail numbers are unique ignoring case and spaces;
+  a finish is a time or a code, never both; one finish per entry per race; race
+  numbers are unique within a series.
 - Finish entry and setup require a staff login; results do not.
 - Migrations use nothing specific to SQLite or PostgreSQL.
 
