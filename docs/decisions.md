@@ -595,8 +595,13 @@ step, not before any code is written.
   a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
   not addressed by the RYA spec at all.
 - **Elapsed time vs start/finish clock times.** Slice 0's scope says the input
-  is "races with start times, finishes", but every formula takes elapsed
-  seconds. Does the engine derive elapsed from start + finish, or does the
-  caller? Shapes the public interface.
+  is "races with start times, finishes", but every formula in the RYA spec
+  takes elapsed seconds, and that is what the engine takes: deriving elapsed
+  from a start and a finish is left to the caller. The reasoning is that once a
+  race has more than one start - out of scope for slice 0 - the caller has to
+  choose which start applies anyway, so the conversion belongs where the starts
+  are modelled. This is the one partial gap against slice 0's stated scope, and
+  it is worth settling in slice 1, where races gain real start times and the
+  answer shapes the Django model rather than the engine.
 
 ---
