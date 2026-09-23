@@ -12,14 +12,19 @@
   <div class="figures">
     {% if row.form.errors %}
       {{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}{{ row.form.reason.errors }}
-    {% elif not row.scored.finish %}
-      <span class="muted">Nothing saved: scored DNC</span>
-    {% elif row.scored.result.elapsed_seconds %}
-      Elapsed {{ row.scored.result.elapsed_seconds|hms }} &times; {{ row.scored.result.tcf_used|tcf }}
-      = <strong>{{ row.scored.result.corrected_time|hms }}</strong>
+    {% elif not row.finish %}
+      <span class="muted">Nothing saved{% if row.result %}: scored DNC{% endif %}</span>
+    {% elif row.result.elapsed_seconds %}
+      Elapsed {{ row.result.elapsed_seconds|hms }} &times; {{ row.result.tcf_used|tcf }}
+      = <strong>{{ row.result.corrected_time|hms }}</strong>
+    {% elif row.result %}
+      {{ row.result.status }}
     {% else %}
-      {{ row.scored.result.status }}
+      {# Saved, but the race is not scored yet: show what was recorded. #}
+      {% if row.finish.elapsed_seconds %}Elapsed {{ row.finish.elapsed_seconds|hms }}{% else %}{{ row.finish.status }}{% endif %}
+      <span class="muted">(not scored yet)</span>
     {% endif %}
     {% if saved %}<span class="muted">{{ message }}</span>{% endif %}
   </div>
 </form>
+{% if update_note %}{% include "races/_race_note.html" with oob=True %}{% endif %}

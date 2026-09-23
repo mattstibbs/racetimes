@@ -28,12 +28,21 @@ def series_results(request, pk):
     amended = dict(
         corrections.exclude(race=None).order_by().values_list("race").annotate(Max("timestamp"))
     )
+    sections = [
+        {
+            "race": race,
+            "results": results.for_race(race),
+            "note": results.note_for(race),
+            "amended_on": amended.get(race.pk),
+        }
+        for race in series.races.order_by("number")
+    ]
     return render(
         request,
         "races/series_results.html",
         {
             "results": results,
-            "races": [(r, amended.get(r.race.pk)) for r in results.races],
+            "sections": sections,
             # Any correction can move the standings, so the latest of them all.
             "standings_amended": corrections.aggregate(Max("timestamp"))["timestamp__max"],
         },
@@ -88,11 +97,20 @@ def save_finish(request, race_pk, entry_pk):
         # Without HTMX, redisplay the whole page with this row's errors.
         return render(request, "races/finish_entry.html", _finish_entry_context(race, form, entry))
 
-    scored = score_series(race.series).for_race(race).for_entry(entry)
+    results = score_series(race.series)
     return render(
         request,
         "races/_finish_row.html",
-        {"race": race, "row": _row(entry, form, scored), "saved": saved, "message": message},
+        {
+            "race": race,
+            "row": _row(entry, form, results.for_race(race), _saved_finish(race, entry)),
+            "saved": saved,
+            "message": message,
+            # Saving a row can change whether the race is scored at all, so the
+            # page's note is sent back too, and HTMX swaps it in by id.
+            "note": results.note_for(race),
+            "update_note": True,
+        },
     )
 
 
@@ -108,21 +126,32 @@ def _prefix(entry):
     return f"entry-{entry.pk}"
 
 
-def _row(entry, form, scored):
-    return {"entry": entry, "form": form, "scored": scored}
+def _saved_finish(race, entry):
+    return Finish.objects.select_related("race").filter(race=race, entry=entry).first()
+
+
+def _row(entry, form, race_results, finish):
+    """One row of the finish-entry page.
+
+    ``result`` is the engine's view of this boat in this race, or None when the
+    race is not scored yet; ``finish`` is what is saved, whether scored or not.
+    """
+    result = race_results.for_entry(entry).result if race_results else None
+    return {"entry": entry, "form": form, "finish": finish, "result": result}
 
 
 def _finish_entry_context(race, bound_form=None, bound_entry=None):
     results = score_series(race.series)
-    race_results = results.for_race(race) if results.races else None
+    race_results = results.for_race(race)
+    finishes = {finish.entry_id: finish for finish in race.finishes.select_related("race")}
     rows = []
     # Sail-number order rather than finishing order, so a row stays put while
     # the committee works down the sheet.
     for entry in race.series.entries.select_related("boat"):
-        scored = race_results.for_entry(entry)
+        finish = finishes.get(entry.pk)
         if bound_entry is not None and entry.pk == bound_entry.pk:
             form = bound_form
         else:
-            form = FinishForm(instance=scored.finish, prefix=_prefix(entry))
-        rows.append(_row(entry, form, scored))
-    return {"race": race, "rows": rows}
+            form = FinishForm(instance=finish, prefix=_prefix(entry))
+        rows.append(_row(entry, form, race_results, finish))
+    return {"race": race, "rows": rows, "note": results.note_for(race)}

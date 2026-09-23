@@ -508,7 +508,7 @@ def test_a_series_correction_reports_in_the_admin(staff_client, sailed):
     [([3], "race 3"), ([4, 5, 6], "races 4-6"), ([2, 4, 5, 6], "races 2, 4-6"), ([1, 3], "races 1, 3")],
 )
 def test_race_numbers_read_as_ranges(numbers, text):
-    assert audit._races(numbers) == text
+    assert audit.race_list(numbers) == text
 
 
 # --- Who sees what ----------------------------------------------------------
@@ -564,3 +564,60 @@ def test_a_settings_correction_marks_only_the_standings(staff_client, client, sa
     post_series(staff_client, series, discards="0", reason="Per the NoR")
     page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
     assert page.count("Amended") == 1
+
+
+# --- The admin explains what it refuses, rather than crashing ----------------
+
+
+def test_removing_an_entry_with_results_is_explained_and_refused(staff_client, sailed):
+    series, _, entries = sailed
+    response = post_series(staff_client, series, reason="Withdrew", **{"entries-0-DELETE": "on"})
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "GBR1 Serendipity cannot be removed from this series" in html
+    assert "results in races 1-4" in html
+    assert "protected related objects" not in html
+    assert series.entries.filter(pk=entries[0].pk).exists()
+    assert not ScoringChange.objects.exists()
+
+
+def test_moving_a_start_past_saved_finishes_is_explained_and_refused(staff_client, sailed):
+    series, races, _ = sailed
+    response = post_series(
+        staff_client, series, reason="Wrong gun time", **{"races-0-start_time": "19:30:00"}
+    )
+    assert response.status_code == 200
+    assert "Finishes are already saved from 18:58:00" in response.content.decode()
+    races[0].refresh_from_db()
+    assert races[0].start_time == time(18, 0)
+    assert not ScoringChange.objects.exists()
+    # And the results page still works.
+    assert staff_client.get(reverse("races:series_results", args=[series.pk])).status_code == 200
+
+
+def test_swapping_two_race_numbers_saves(staff_client, sailed):
+    """Saved row by row, a swap briefly gives two races one number."""
+    series, races, _ = sailed
+    response = post_series(
+        staff_client, series, reason="Sailed in the other order",
+        **{"races-0-number": "2", "races-1-number": "1"},
+    )
+    assert response.status_code == 302
+    races[0].refresh_from_db()
+    races[1].refresh_from_db()
+    assert (races[0].number, races[1].number) == (2, 1)
+    assert sorted(series.races.values_list("number", flat=True)) == [1, 2, 3, 4]
+    assert ScoringChange.objects.filter(kind="RACE", action="CHANGED").count() == 2
+
+
+def test_renumbering_into_a_removed_race_number_saves(staff_client, sailed):
+    """Race 1 is saved before race 4 is removed, so this collides without parking."""
+    series, races, _ = sailed
+    response = post_series(
+        staff_client, series, reason="Race 4 was really race 1",
+        **{"races-0-number": "4", "races-3-DELETE": "on"},
+    )
+    assert response.status_code == 302
+    races[0].refresh_from_db()
+    assert races[0].number == 4
+    assert sorted(series.races.values_list("number", flat=True)) == [2, 3, 4]

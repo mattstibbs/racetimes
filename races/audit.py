@@ -186,9 +186,9 @@ def describe_effect(before, after):
     effect = compare(before, after)
     parts = []
     if effect.places:
-        parts.append(f"Places changed in {_races(effect.places)}.")
+        parts.append(f"Places changed in {race_list(effect.places)}.")
     if effect.handicaps:
-        parts.append(f"Handicaps changed in {_races(effect.handicaps)}.")
+        parts.append(f"Handicaps changed in {race_list(effect.handicaps)}.")
     if effect.standings:
         parts.append("Standings changed.")
     return " ".join(parts) or "No places, handicaps, or standings were affected by this change."
@@ -206,7 +206,7 @@ def _standings(results):
     return {row.entry.pk: (row.position, row.total) for row in results.standings}
 
 
-def _races(numbers):
+def race_list(numbers):
     """[3] -> "race 3"; [2, 4, 5, 6] -> "races 2, 4-6"."""
     numbers = sorted(numbers)
     if len(numbers) == 1:

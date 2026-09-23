@@ -1,9 +1,12 @@
 """The results page and the finish-entry page."""
 
+from datetime import time
+
 import pytest
+from django.template.loader import render_to_string
 from django.urls import reverse
 
-from races.models import Finish
+from races.models import Finish, Series
 from races.testing import enter, make_boat, make_race, make_series, record
 
 pytestmark = pytest.mark.django_db
@@ -204,3 +207,65 @@ def test_a_boat_outside_the_series_is_404(staff_client, race_night):
 def test_saving_needs_post(staff_client, race_night):
     _, race, a, _ = race_night
     assert staff_client.get(save_url(race, a)).status_code == 405
+
+
+# --- Races that are not scored: the pages explain instead of crashing ------
+
+
+@pytest.fixture
+def regatta_night(race_night):
+    series, race, a, b = race_night
+    series.series_type = Series.SeriesType.REGATTA
+    series.save()
+    record(race, b, "19:05:00")
+    return series, race, a, b
+
+
+def test_results_show_a_scheduled_race_as_not_sailed(client, race_night):
+    series, *_ = race_night
+    make_race(series, 2)
+    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    assert "Race 2" in page
+    assert "No results recorded yet." in page
+
+
+def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta_night):
+    series, _, a, _ = regatta_night
+    race_2 = make_race(series, 2)
+    assert staff_client.get(reverse("races:series_results", args=[series.pk])).status_code == 200
+    page = staff_client.get(reverse("races:finish_entry", args=[race_2.pk]))
+    assert page.status_code == 200
+    assert "Nothing saved" in page.content.decode()
+
+
+def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(staff_client, regatta_night):
+    series, _, a, _ = regatta_night
+    race_2 = make_race(series, 2)
+    response = staff_client.post(
+        save_url(race_2, a), row_data(a, status="DNF"), HTTP_HX_REQUEST="true"
+    )
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "(not scored yet)" in html
+    # The page's note is updated in place, alongside the row.
+    assert 'id="race-note" hx-swap-oob="true"' in html
+    assert "at least one boat has a finish time" in html
+    assert Finish.objects.get(race=race_2, entry=a).status == "DNF"
+
+    page = staff_client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    assert "at least one boat has a finish time" in page
+
+
+def test_results_that_cannot_be_calculated_show_a_message(client, race_night):
+    series, race, *_ = race_night
+    # Bypass validation, as a bug or a direct database edit might.
+    Finish.objects.filter(race=race).update(finish_time=time(17, 0))
+    response = client.get(reverse("races:series_results", args=[series.pk]))
+    assert response.status_code == 200
+    assert "cannot be calculated" in response.content.decode()
+
+
+def test_the_error_page_is_plain_and_standalone():
+    html = render_to_string("500.html")
+    assert "Something went wrong" in html
+    assert "nothing was saved" in html

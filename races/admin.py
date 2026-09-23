@@ -1,9 +1,17 @@
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
 from django.utils.html import format_html
 
 from . import audit
-from .forms import AuditedInlineForm, AuditedInlineFormSet, BoatAdminForm, SeriesAdminForm
+from .forms import (
+    AuditedInlineForm,
+    AuditedInlineFormSet,
+    BoatAdminForm,
+    RaceInlineFormSet,
+    SeriesAdminForm,
+)
 from .models import Boat, Race, Series, SeriesEntry
 from .scoring import score_series
 
@@ -35,11 +43,35 @@ class SeriesEntryInline(admin.TabularInline):
     extra = 0
     autocomplete_fields = ["boat"]
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+
+        class Form(formset.form):
+            def hand_clean_DELETE(self):
+                # The admin's own message here lists "protected related
+                # objects"; say what it means for a race committee instead.
+                if self.cleaned_data.get(DELETION_FIELD_NAME) and self.instance.pk:
+                    numbers = sorted(
+                        self.instance.finishes.values_list("race__number", flat=True)
+                    )
+                    if numbers:
+                        raise ValidationError(
+                            f"{self.instance} cannot be removed from this series: it has "
+                            f"results in {audit.race_list(numbers)}, and removing it would "
+                            "lose them. A boat that has entered is scored for the whole "
+                            "series (RRS A2.2), so leave it entered: races it misses are "
+                            "scored DNC."
+                        )
+                super().hand_clean_DELETE()
+
+        formset.form = Form
+        return formset
+
 
 class RaceInline(admin.TabularInline):
     model = Race
     form = AuditedInlineForm
-    formset = AuditedInlineFormSet
+    formset = RaceInlineFormSet
     extra = 0
     readonly_fields = ["finishes_link"]
 

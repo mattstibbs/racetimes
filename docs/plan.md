@@ -95,6 +95,11 @@ Manual check: seeded a three-race series, then in headless Chromium corrected a
 finish without and then with a reason, corrected a race start time in the
 admin the same way, and read the history page and the public results back.
 
+Follow-up, the same day: races with nothing recorded are no longer scored, a
+regatta race waits for its first finish time instead of crashing the pages,
+and the admin refuses start times after saved finishes and renumbers races
+without colliding. See the two newest entries in `docs/decisions.md`.
+
 Editing a finish and seeing everything downstream recalculate, with a history of what changed and who changed it. Race committees will need this on day one of real use, so it's worth doing early.
 
 ## Slice 3: member self-service. 

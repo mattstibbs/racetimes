@@ -18,4 +18,5 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .finish-row select, .finish-row input[name$="-reason"] { max-width: 100%; box-sizing: border-box; }
 .finish-row input[name$="-reason"] { width: 100%; }
 .amended { color: #8a5a00; }
+.note { background: #fff8e5; border-left: 3px solid #d9a400; padding: 0.5rem 0.75rem; }
 @media (max-width: 40rem) { .finish-row { grid-template-columns: 1fr 1fr; } }

@@ -762,6 +762,65 @@ not recorded; the committee has no route to either.
 
 ---
 
+## 2026-09-23 - A race with nothing recorded is not scored yet
+
+**Context.** Scheduling races ahead of time, as user journey 1 does, left
+every unsailed race scored with every boat DNC on entries + 1 points. In a club
+series that race then became every boat's discard, which is wrong mid-season.
+In a regatta it crashed the results and finish-entry pages, because the engine
+refuses a regatta race with no finisher (spec section 4 back-calculates the
+others from the finishers).
+
+**Decision.** Agreed with the project owner. A race with no result saved - no
+time and no code - is left out of scoring and shown as "No results recorded
+yet". It counts as sailed as soon as any result is saved, a code included. In
+a regatta, a race with results but no finish time is held back with an
+explanation, and so is every race after it, because each race sails on the
+handicaps the one before produces. The results shown are the ones up to the
+race that is waiting.
+
+**Consequence.** The engine is unchanged: `races/scoring.py` chooses which
+races to hand it. Slice 1's rule that a boat with nothing recorded scores DNC
+still holds, but only in a race that is being scored. Two slice 1 tests
+assumed an empty race was scored and now record a result in it. The committee
+can save a regatta race's codes in any order; the page explains the wait until
+a time goes in, rather than refusing the save.
+
+---
+
+## 2026-09-23 - No user action should crash a page
+
+**Context.** The project owner's rule, after the regatta crash above. Probing
+every edit the committee can make found two more: moving a race's start time
+to after finishes already saved (negative elapsed times, which the engine
+refuses), and swapping two race numbers in the admin (Django saves the rows
+one at a time, so for a moment two races share a number and the database's
+unique rule fails).
+
+**Decision.** Each is stopped where it enters, with a message that says what
+to do:
+
+- A race's start time must be earlier than every finish already saved for it
+  (`Race.clean`).
+- Renumbered and removed races are parked on spare numbers before the real
+  numbers are saved (`RaceInlineFormSet`), so any renumbering that is valid
+  once saved also saves.
+- Removing an entry that has results explains why it is refused and what to do
+  instead, in place of Django's "protected related objects" wording. This one
+  never crashed; the message was just unhelpful.
+
+Two backstops for anything not yet found: `score_series` catches input the
+engine refuses, logs it, and the pages say the results cannot be calculated
+rather than failing; and `templates/500.html` replaces Django's bare "Server
+Error (500)" with a plain page in production.
+
+**Consequence.** The backstops only hide a crash from the person using the
+site. The logged error still needs looking at, so validation stays the first
+line: each route found so far has its own check and a test that drives it the
+way the committee would.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

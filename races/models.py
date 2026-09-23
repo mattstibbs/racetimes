@@ -185,6 +185,21 @@ class Race(models.Model):
 
     def clean(self):
         _whole_seconds(self.start_time, "start_time")
+        if self.pk and self.start_time is not None:
+            # Correcting a start time must not leave a finish at or before it:
+            # that would be a zero or negative elapsed time, which no formula
+            # can score.
+            earliest = self.finishes.aggregate(earliest=models.Min("finish_time"))["earliest"]
+            if earliest is not None and earliest <= self.start_time:
+                raise ValidationError(
+                    {
+                        "start_time": (
+                            f"Finishes are already saved from {earliest:%H:%M:%S}, so the "
+                            "start must be earlier than that. Correct those finishes first "
+                            "if the start really was later."
+                        )
+                    }
+                )
 
 
 class Finish(models.Model):

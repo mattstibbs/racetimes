@@ -40,19 +40,22 @@
 <p class="muted">Discarded scores are in brackets.</p>
 {% elif not series.entries.exists %}
 <p class="muted">No boats are entered in this series yet.</p>
-{% else %}
-<p class="muted">No races yet.</p>
+{% elif not results.error %}
+<p class="muted">No races sailed yet.</p>
 {% endif %}
 
-{% for race_results, amended_on in races %}
-{% with race=race_results.race %}
+{% if results.error %}<p class="note">{{ results.error }}</p>{% endif %}
+
+{% for section in sections %}
+{% with race=section.race race_results=section.results %}
 <h2 id="race-{{ race.number }}">Race {{ race.number }}</h2>
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
-  {% if amended_on %}<span class="amended">Amended {{ amended_on|date:"j F Y" }}.</span>{% endif %}
+  {% if section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}
   {% if user.is_staff %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">History</a>{% endif %}
 </p>
+{% if race_results %}
 <div class="table-scroll">
 <table>
   <thead>
@@ -78,6 +81,9 @@
   </tbody>
 </table>
 </div>
+{% else %}
+<p class="muted">{{ section.note }}</p>
+{% endif %}
 {% endwith %}
 {% endfor %}
 {% endwith %}
