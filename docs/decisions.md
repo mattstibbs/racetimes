@@ -1015,6 +1015,18 @@ the same trade-off as "results are computed on request, never stored".
 
 ---
 
+## 2026-09-24 - Slice 5: the new pages replace the old, and show no owners
+
+**Decision.** Agreed with the project owner:
+- The `results` app replaces today's public home and series pages rather than
+  sitting beside them, and serves the same URLs (`/`, `/series/<pk>/`), so
+  there is one public results page and no redirect.
+- Public pages show boats by sail number, name, make and model, never the
+  owner's name. A member finds their own boats through "My boats".
+- No race-day auto-refresh for now.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

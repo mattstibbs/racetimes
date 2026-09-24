@@ -60,8 +60,9 @@ with the committee's pages.
   date, amended since published, amended on a date.
 
 **Boat** (`/boats/<pk>/`)
-- The page a racer bookmarks. Name, sail number, make and model; the owner
-  shown as today (`owner_display`).
+- The page a racer bookmarks. Name, sail number, make and model. **No owner
+  name**, typed or from an account, as on today's public page. *(Agreed with
+  the project owner.)*
 - For each series the boat is entered in, newest first: its standing
   (position and points), then one row per race: place or code, points,
   corrected time, the handicap it sailed on and the handicap it takes into
@@ -72,7 +73,7 @@ with the committee's pages.
   table.
 - A boat entered in no series says so, and still has a page.
 
-### Replacing today's public page *(proposed, awaiting approval)*
+### Replacing today's public page *(agreed with the project owner)*
 - Today's home page and series results page (their views in `races/views.py`
   and their templates) are removed, so there is one public results page to
   keep correct, not two.
@@ -108,6 +109,8 @@ None. No new fields, no migrations. "Latest race", "current series" and
 - An unknown series, boat or race number is a 404.
 - Every page is tested as each of the four roles (`races/test_roles.py`), and
   only the committee sees committee links.
+- No public page shows an owner's name, tested with a boat that has an owning
+  account and one with only a typed owner name.
 - `/` and `/series/<pk>/` are served by `results`, and nothing in the
   project still refers to `races:home` or `races:series_results`.
 - The pages are usable at phone width: checked in headless Chromium at
@@ -120,19 +123,9 @@ None. No new fields, no migrations. "Latest race", "current series" and
 - The brief's API and file export (user journey 5): a later slice.
 - Charts of a boat's handicap over time. A table first; a chart would want
   JavaScript or a charting dependency, which needs asking about.
-- Refreshing a page on its own on race day (HTMX polling). Easy to add later
-  if the committee enters finishes live; not asked for yet.
+- Refreshing a page on its own on race day (HTMX polling). Left out by the
+  project owner; easy to add later if the committee enters finishes live.
 - Comparing two boats side by side, and results across series combined
   (e.g. a club championship).
 - Anything that changes data, including members correcting their own boats'
   details from the boat page: that stays a request, through "My boats".
-
-## Questions for the project owner
-1. **Replace or add?** The plan says "another app". This spec proposes it
-   *replaces* today's public pages at the same URLs, rather than the site
-   having two public results pages that can drift apart. Agreed?
-2. **Owner names on the public boat page.** Today's page shows boats by sail
-   number and name only. The boat page proposes adding the owner's name.
-   Fine for a club site, or keep owners off the public pages?
-3. **Race-day refresh.** Worth including now (the open race page re-fetches
-   its table every minute or so), or leave it out as above?

@@ -161,5 +161,5 @@ provider and set it up on Render (`docs/deploying.md`, "Sending email").
 
 Emailing results after a race is published.
 
-## Slice 5: results webapp. **Status: specced (2026-09-24), awaiting answers to the spec's questions.** Spec: `docs/slices/05-results-webapp.md`
+## Slice 5: results webapp. **Status: specced and agreed (2026-09-24).** Spec: `docs/slices/05-results-webapp.md`
 Another Django app (in the same project) with an HTMX page that allows a racer to easily view race results.
