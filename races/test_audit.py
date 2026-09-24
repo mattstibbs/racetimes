@@ -544,25 +544,27 @@ def test_the_history_page_filters_to_one_race(staff_client, sailed):
 def test_results_mark_amended_races_without_saying_who_or_why(staff_client, client, sailed):
     series, races, entries = sailed
     save_finish(staff_client, races[1], entries[0], "19:10:00", reason="Protest upheld")
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    url = reverse("results:series", args=[series.pk])
+    # The results page shows one race at a time.
+    page = client.get(url, {"race": 2}).content.decode()
     assert page.count("Amended") == 2  # race 2 and the standings
-    assert page.index("Amended") < page.index('id="race-1"')  # the standings one
-    race_2 = page[page.index('id="race-2"'):page.index('id="race-3"')]
-    assert "Amended" in race_2
+    assert page.index("Amended") < page.index('id="race-2"')  # the standings one
     assert "Protest upheld" not in page and "officer" not in page
+    # Race 3 is not marked, but the standings still are.
+    assert client.get(url, {"race": 3}).content.decode().count("Amended") == 1
 
 
 def test_first_entries_do_not_mark_results_amended(staff_client, client, unsailed):
     series, race, entry = unsailed
     save_finish(staff_client, race, entry, "19:00:00")
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    page = client.get(reverse("results:series", args=[series.pk])).content.decode()
     assert "Amended" not in page
 
 
 def test_a_settings_correction_marks_only_the_standings(staff_client, client, sailed):
     series, *_ = sailed
     post_series(staff_client, series, discards="0", reason="Per the NoR")
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    page = client.get(reverse("results:series", args=[series.pk])).content.decode()
     assert page.count("Amended") == 1
 
 
@@ -592,7 +594,7 @@ def test_moving_a_start_past_saved_finishes_is_explained_and_refused(staff_clien
     assert races[0].start_time == time(18, 0)
     assert not ScoringChange.objects.exists()
     # And the results page still works.
-    assert staff_client.get(reverse("races:series_results", args=[series.pk])).status_code == 200
+    assert staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
 
 
 def test_swapping_two_race_numbers_saves(staff_client, sailed):

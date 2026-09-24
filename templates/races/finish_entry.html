@@ -4,7 +4,7 @@
 <h1>{{ race.series.name }}: Race {{ race.number }}</h1>
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
-  <a href="{% url 'races:series_results' race.series.pk %}#race-{{ race.number }}">Results</a>
+  <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">Correction history</a>
 </p>
 {% include "races/_race_note.html" %}

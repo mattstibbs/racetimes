@@ -40,7 +40,8 @@ with the committee's pages.
   form without JavaScript. Sail numbers match ignoring case and spaces, as the
   database already treats them, so "gbr1234" finds "GBR 1234".
 - **Latest results**: the most recently sailed race of each series with
-  results, newest first, each with its top three and a link to the race.
+  results, newest first, each with its top three and a link to the race. At
+  most five series, since each one is scored to show it.
 - **All series**, newest first by their latest race date, so this season's
   series come before last year's without adding a date to Series.
 - A logged-in member also sees **My boats**, linking to their own boats'
@@ -72,15 +73,21 @@ with the committee's pages.
   committee for most, and until now it was the last column of the last
   table.
 - A boat entered in no series says so, and still has a page.
+- On a phone the corrected time is left out of the boat page's table to make
+  room, as it is on the series page a tap away, and a provisional race is
+  marked with an asterisk and a footnote rather than the wider label.
+  *(Found when checking the page at 375 px.)*
 
 ### Replacing today's public page *(agreed with the project owner)*
 - Today's home page and series results page (their views in `races/views.py`
   and their templates) are removed, so there is one public results page to
   keep correct, not two.
 - The new app serves the same URLs they did, so nothing needs redirecting:
-  a link to `/series/<pk>/` or `/series/<pk>/#race-N` keeps working, and
-  simply opens the new page. The race anchors (`id="race-N"`) stay on the
-  new series page for that reason.
+  a link to `/series/<pk>/` keeps working, and simply opens the new page.
+  An older `#race-N` link opens the series on its latest race: the browser
+  never sends the part after `#` to the server, so it cannot pick the race.
+  Emails link with `?race=N` from now on. *(No emails have gone to real
+  members yet, so no such link is in anyone's inbox.)*
 - Every reference to `races:home` and `races:series_results` moves to the
   `results` namespace: `Series.get_absolute_url`, the emails, the header's
   site link, and the finish-entry, history and "My boats" pages.

@@ -161,5 +161,39 @@ provider and set it up on Render (`docs/deploying.md`, "Sending email").
 
 Emailing results after a race is published.
 
-## Slice 5: results webapp. **Status: specced and agreed (2026-09-24).** Spec: `docs/slices/05-results-webapp.md`
+## Slice 5: results webapp. **Status: complete (2026-09-24)**
+
+Acceptance criteria, from `docs/slices/05-results-webapp.md`:
+
+- [x] `results/` has no models, no migrations and only GET views, every page
+      runs only SELECT queries, and `races` imports nothing from it;
+      `results/test_read_only.py`.
+- [x] Every page shows what `score_series` computes. SCEN-005, loaded through
+      the database, reads back from the series page and every boat's page,
+      including the next handicap; `results/test_scen_005.py`.
+- [x] Search, choosing a race, following a boat and "More detail" each return
+      a fragment over HTMX and the whole page without it, at the same URL,
+      and the whole page holds the same fragment. A history restore gets the
+      whole page.
+- [x] Search matches sail numbers ignoring case and spaces and names ignoring
+      case; an empty or unmatched search says so.
+- [x] Series with no entries, no races, unscored races, or that the engine
+      refuses show a message on every page instead of crashing.
+- [x] An unknown series, boat, race number or followed boat is a 404.
+- [x] Every page tested as each of the four roles; only the committee sees
+      committee links.
+- [x] No public page shows an owner's name, typed or from an account.
+- [x] `/` and `/series/<pk>/` are served by `results`; nothing refers to
+      `races:home` or `races:series_results`.
+- [x] Usable at 375 px wide, checked in headless Chromium, with screenshots
+      in the manual.
+- [x] The manual gains "Finding your results"; the publishing page is updated
+      for the new series page.
+
+Manual check: in headless Chromium at 375 px, searched as I typed, opened a
+boat, chose races and followed a boat on the series page (the URL kept both),
+went back twice through the browser's history, opened "More detail", and did
+the same with JavaScript off. No page scrolls sideways and no JavaScript
+errors were logged.
+
 Another Django app (in the same project) with an HTMX page that allows a racer to easily view race results.

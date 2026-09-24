@@ -1027,6 +1027,32 @@ the same trade-off as "results are computed on request, never stored".
 
 ---
 
+## 2026-09-24 - Slice 5: how the results pages behave
+
+**Decision.**
+- The series page shows one race at a time, opening on the latest with
+  results. Choosing a race, following a boat and "More detail" all swap the
+  same part of the page (`#series-body`), so the choices it carries can never
+  disagree with each other; the URL records them all.
+- A view returns a fragment only when HTMX names that fragment as its target
+  and it is not a history restore, so the back button always gets a whole
+  page. Responses vary on `HX-Request` and `HX-Target`, so a cache never
+  serves a fragment as a page.
+- "All pages only read" is tested by running every page and fragment and
+  checking every query is a SELECT, rather than by listing allowed imports.
+- The home page's latest results cover at most five series, since showing
+  one means scoring it.
+- The boat page states the next handicap from the last scored race's
+  `effective_next_tcf`, and names the next race only when one is scheduled.
+  Before any race is scored it is the base number, as every series starts on
+  base numbers.
+
+**Consequence.** An older `/series/<pk>/#race-N` link opens on the latest race,
+not race N, because the part after `#` never reaches the server. Emails link
+with `?race=N` from now on; no emails had gone to real members yet.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

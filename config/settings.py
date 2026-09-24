@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_htmx',
     'races',
+    'results',
 ]
 
 MIDDLEWARE = [
@@ -143,7 +144,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Race Times <noreply@e
 # One login page for everyone; see races/member_views.py.
 LOGIN_URL = 'races:login'
 LOGIN_REDIRECT_URL = 'races:my_boats'
-LOGOUT_REDIRECT_URL = 'races:home'
+LOGOUT_REDIRECT_URL = 'results:home'
 
 
 # Password validation

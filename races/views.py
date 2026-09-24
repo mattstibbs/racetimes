@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -13,46 +12,9 @@ from .roles import committee_required
 from .scoring import score_series
 
 
-def home(request):
-    return render(request, "home.html", {"series_list": Series.objects.all()})
-
-
 def ping(request):
     """Example HTMX endpoint: returns an HTML fragment, not a full page."""
     return HttpResponse('pong (htmx)' if request.htmx else 'pong')
-
-
-def series_results(request, pk):
-    series = get_object_or_404(Series, pk=pk)
-    results = score_series(series)
-    # The public sees that a result was corrected, and when, but not who or why.
-    corrections = series.scoring_changes.filter(is_correction=True)
-    amended = dict(
-        corrections.exclude(race=None).order_by().values_list("race").annotate(Max("timestamp"))
-    )
-    sections = [
-        {
-            "race": race,
-            "results": results.for_race(race),
-            "note": results.note_for(race),
-            "amended_on": amended.get(race.pk),
-            # Corrected since the owners were emailed: the version they have
-            # is out of date until the committee sends the update.
-            "changed_since_sent": race.published_at is not None
-            and publishing.amended_since_sent(race),
-        }
-        for race in series.races.order_by("number")
-    ]
-    return render(
-        request,
-        "races/series_results.html",
-        {
-            "results": results,
-            "sections": sections,
-            # Any correction can move the standings, so the latest of them all.
-            "standings_amended": corrections.aggregate(Max("timestamp"))["timestamp__max"],
-        },
-    )
 
 
 @committee_required

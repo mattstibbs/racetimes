@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block title %}{{ boat }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ boat }}</h1>
+<p class="muted">
+  {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
+  Base number {{ boat.base_number|tcf }}.
+</p>
+
+{% if not histories %}
+<p class="muted">This boat is not entered in any series.</p>
+{% endif %}
+
+{% for history in histories %}{% if history.next %}{% with next=history.next %}
+<p class="next-handicap">
+  <strong>{{ history.series }}:</strong>
+  {% if next.race %}sails race {{ next.race.number }} on <strong>{{ next.tcf|tcf }}</strong>{% if next.base %}, its base number{% endif %}.
+  {% elif next.base %}no races scheduled yet.
+  {% else %}handicap after race {{ next.after.number }}, the last race so far: <strong>{{ next.tcf|tcf }}</strong>.
+  {% endif %}
+</p>
+{% endwith %}{% endif %}{% endfor %}
+
+{% for history in histories %}
+<section class="boat-series">
+  <h2><a href="{% url 'results:series' history.series.pk %}?boat={{ boat.pk }}">{{ history.series }}</a></h2>
+  {% if history.standing %}
+  <p><strong>{{ history.standing.position|ordinal }} of {{ history.fleet }}</strong>, {{ history.standing.total|points }} point{{ history.standing.total|pluralize }}.</p>
+  {% endif %}
+  {% if history.error %}<p class="note">{{ history.error }}</p>{% endif %}
+  {% if history.lines %}
+  <div class="table-scroll">
+  <table class="boat-races">
+    <thead>
+      <tr>
+        <th>Race</th><th class="num">Pos</th><th class="num">Points</th><th class="num detail">Corrected</th>
+        <th class="num">Handicap</th><th class="num">Next</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in history.lines %}
+      <tr>
+        <td><a href="{% url 'results:series' history.series.pk %}?race={{ line.race.number }}&amp;boat={{ boat.pk }}">Race {{ line.race.number }}</a>{% if line.row and not line.race.published_at %}<abbr title="Provisional">*</abbr>{% endif %}<br><span class="muted">{{ line.race.date|date:"j M" }}</span></td>
+        {% if line.row %}{% with result=line.row.result %}
+        <td class="num">{% if result.position %}{{ result.position }}{% else %}{{ result.status }}{% endif %}</td>
+        <td class="num{% if line.points_discarded %} discarded{% endif %}">{% if line.points_discarded %}({{ result.points|points }}){% else %}{{ result.points|points }}{% endif %}</td>
+        <td class="num detail">{{ result.corrected_time|hms }}</td>
+        <td class="num">{{ result.tcf_used|tcf }}</td>
+        <td class="num">{{ result.effective_next_tcf|tcf }}</td>
+        {% endwith %}{% else %}
+        <td colspan="5" class="muted">{% if not history.error %}{{ line.note }}{% endif %}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if history.standing %}<p class="muted">Discarded scores are in brackets.</p>{% endif %}
+  {% if history.has_provisional %}<p class="muted">* Provisional: may still change until the race committee publishes it.</p>{% endif %}
+  {% else %}
+  <p class="muted">No races scheduled yet.</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

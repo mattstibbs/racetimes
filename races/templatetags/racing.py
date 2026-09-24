@@ -34,3 +34,15 @@ def points(value):
     if value is None:
         return ""
     return f"{value:g}"
+
+
+@register.filter
+def ordinal(number):
+    """1st, 2nd, 3rd, 4th ... 11th, 12th, 13th ... 21st, 22nd."""
+    if number is None:
+        return ""
+    if 10 <= number % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+    return f"{number}{suffix}"

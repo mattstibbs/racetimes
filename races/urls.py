@@ -7,7 +7,6 @@ from . import member_views, views
 app_name = 'races'
 
 urlpatterns = [
-    path('', views.home, name='home'),
     path('ping/', views.ping, name='ping'),
     path('accounts/signup/', member_views.signup, name='signup'),
     path('accounts/login/', member_views.LoginView.as_view(), name='login'),
@@ -34,7 +33,6 @@ urlpatterns = [
     path('races/<int:pk>/publish/', views.publish_results, name='publish_results'),
     path('requests/', views.requests_page, name='requests'),
     path('requests/<str:kind>/<int:pk>/', views.decide_request, name='decide_request'),
-    path('series/<int:pk>/', views.series_results, name='series_results'),
     path('series/<int:pk>/history/', views.series_history, name='series_history'),
     path('races/<int:pk>/finishes/', views.finish_entry, name='finish_entry'),
     path(

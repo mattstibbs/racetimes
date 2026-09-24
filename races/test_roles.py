@@ -148,8 +148,9 @@ def pages():
     boat = make_boat()
     enter(series, boat)
     return {
-        "home": (reverse("races:home"), [SEES] * 4),
-        "results": (reverse("races:series_results", args=[series.pk]), [SEES] * 4),
+        "home": (reverse("results:home"), [SEES] * 4),
+        "results": (reverse("results:series", args=[series.pk]), [SEES] * 4),
+        "a boat's results": (reverse("results:boat", args=[boat.pk]), [SEES] * 4),
         "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES]),
         "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES]),
         "requests": (reverse("races:requests"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
@@ -178,13 +179,13 @@ def test_every_page_as_each_role(as_role, pages, role):
 
 
 def test_the_header_offers_log_in_and_sign_up_to_the_public(as_role):
-    page = as_role("public").get(reverse("races:home")).content.decode()
+    page = as_role("public").get(reverse("results:home")).content.decode()
     assert "Sign up" in page and "Log in" in page and "My boats" not in page
 
 
 @pytest.mark.parametrize("role, sees_requests", [("member", False), ("committee", True)])
 def test_the_header_offers_requests_only_to_the_committee(as_role, role, sees_requests):
-    page = as_role(role).get(reverse("races:home")).content.decode()
+    page = as_role(role).get(reverse("results:home")).content.decode()
     assert "My boats" in page and "Log out" in page
     assert (reverse("races:requests") in page) is sees_requests
 

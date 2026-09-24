@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block content %}
+<h1>Results</h1>
+
+<section aria-labelledby="find-a-boat">
+  <h2 id="find-a-boat">Find a boat</h2>
+  <form method="get" action="{% url 'results:home' %}" role="search" class="search">
+    <label for="boat-search">Sail number or boat name</label>
+    <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
+           hx-get="{% url 'results:home' %}" hx-trigger="input changed delay:300ms, search"
+           hx-target="#boat-matches" hx-swap="outerHTML" hx-replace-url="true">
+    <button type="submit">Find</button>
+  </form>
+  {% include "results/_boat_matches.html" %}
+</section>
+
+{% if my_boats %}
+<section aria-labelledby="my-boats">
+  <h2 id="my-boats">My boats</h2>
+  <ul>
+    {% for boat in my_boats %}<li><a href="{% url 'results:boat' boat.pk %}">{{ boat }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if latest %}
+<section aria-labelledby="latest-results">
+  <h2 id="latest-results">Latest results</h2>
+  {% for item in latest %}
+  {% with race=item.race %}
+  <div class="card">
+    <h3><a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">{{ race.series }}, race {{ race.number }}</a>{% if not race.published_at %} <span class="provisional">Provisional</span>{% endif %}</h3>
+    <p class="muted">{{ race.date|date:"l j F Y" }}</p>
+    <ol class="podium">
+      {% for row in item.podium %}{% if row.result.position %}<li value="{{ row.result.position }}"><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat }}</a> <span class="muted">{{ row.result.corrected_time|hms }}</span></li>{% endif %}{% endfor %}
+    </ol>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</section>
+{% endif %}
+
+<section aria-labelledby="all-series">
+  <h2 id="all-series">All series</h2>
+  {% if series_list %}
+  <ul>
+    {% for series in series_list %}
+    <li><a href="{% url 'results:series' series.pk %}">{{ series.name }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No series yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% load racing %}
+<div id="series-body">
+{% if boats %}
+<form method="get" class="follow" hx-get="{% url 'results:series' series.pk %}" hx-trigger="change"
+      hx-target="#series-body" hx-swap="outerHTML" hx-push-url="true">
+  {% if section %}<input type="hidden" name="race" value="{{ section.race.number }}">{% endif %}
+  {% if detail %}<input type="hidden" name="detail" value="1">{% endif %}
+  <label for="follow-boat">Follow a boat</label>
+  <select id="follow-boat" name="boat">
+    <option value="">Nobody</option>
+    {% for boat in boats %}<option value="{{ boat.pk }}"{% if boat == followed %} selected{% endif %}>{{ boat }}</option>{% endfor %}
+  </select>
+  <noscript><button type="submit">Show</button></noscript>
+  {% if followed %}<a href="{% url 'results:boat' followed.pk %}">All results for {{ followed }}</a>{% endif %}
+</form>
+{% endif %}
+
+<h2>Standings</h2>
+{% if standings_amended %}<p class="amended">Amended {{ standings_amended|date:"j F Y" }}</p>{% endif %}
+{% if results.standings %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th class="num">Pos</th><th>Boat</th>
+      {% for race_results in results.races %}<th class="num">R{{ race_results.race.number }}</th>{% endfor %}
+      <th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in results.standings %}
+    <tr{% if row.entry.boat == followed %} class="followed"{% endif %}>
+      <td class="num">{{ row.position }}</td>
+      <td><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat }}</a></td>
+      {% for cell in row.scores %}
+      <td class="num{% if cell.discarded %} discarded{% endif %}">{% if cell.discarded %}({{ cell.points|points }}){% else %}{{ cell.points|points }}{% endif %}</td>
+      {% endfor %}
+      <td class="num"><strong>{{ row.total|points }}</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted">Discarded scores are in brackets.</p>
+{% elif not boats %}
+<p class="muted">No boats are entered in this series yet.</p>
+{% elif not results.error %}
+<p class="muted">No races sailed yet.</p>
+{% endif %}
+
+{% if results.error %}<p class="note">{{ results.error }}</p>{% endif %}
+
+{% include "results/_race.html" %}
+</div>

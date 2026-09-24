@@ -1,4 +1,4 @@
-"""The results page and the finish-entry page."""
+"""The finish-entry page. The public results pages are tested in results/."""
 
 from datetime import time
 
@@ -41,56 +41,6 @@ def row_data(entry, finish_time="", status="FINISHED", reason=""):
         f"{prefix}-status": status,
         f"{prefix}-reason": reason,
     }
-
-
-# --- Home and results ------------------------------------------------------
-
-
-def test_home_lists_series(client, race_night):
-    series, *_ = race_night
-    page = client.get(reverse("races:home")).content.decode()
-    assert reverse("races:series_results", args=[series.pk]) in page
-    assert "Wednesday Evenings" in page
-
-
-def test_results_are_public(client, race_night):
-    series, *_ = race_night
-    assert client.get(reverse("races:series_results", args=[series.pk])).status_code == 200
-
-
-def test_results_show_race_results_and_standings(client, race_night):
-    series, race, a, b = race_night
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
-    assert "Serendipity" in page and "Blue Moon" in page
-    # GBR1: elapsed 1:00:00 on 0.950, corrected 3420 s.
-    assert "1:00:00" in page
-    assert "0.950" in page
-    assert "0:57:00" in page
-    # GBR2 has nothing recorded, so it is scored DNC.
-    assert "DNC" in page
-
-
-def test_results_hide_finish_entry_link_from_the_public(client, race_night):
-    series, race, *_ = race_night
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
-    assert reverse("races:finish_entry", args=[race.pk]) not in page
-
-
-def test_results_show_finish_entry_link_to_staff(staff_client, race_night):
-    series, race, *_ = race_night
-    page = staff_client.get(reverse("races:series_results", args=[series.pk])).content.decode()
-    assert reverse("races:finish_entry", args=[race.pk]) in page
-
-
-def test_results_for_a_series_with_no_entries(client):
-    series = make_series()
-    make_race(series)
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
-    assert "No boats are entered" in page
-
-
-def test_results_for_an_unknown_series_is_404(client):
-    assert client.get(reverse("races:series_results", args=[999])).status_code == 404
 
 
 # --- Finish entry: access --------------------------------------------------
@@ -221,18 +171,10 @@ def regatta_night(race_night):
     return series, race, a, b
 
 
-def test_results_show_a_scheduled_race_as_not_sailed(client, race_night):
-    series, *_ = race_night
-    make_race(series, 2)
-    page = client.get(reverse("races:series_results", args=[series.pk])).content.decode()
-    assert "Race 2" in page
-    assert "No results recorded yet." in page
-
-
 def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta_night):
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
-    assert staff_client.get(reverse("races:series_results", args=[series.pk])).status_code == 200
+    assert staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
     page = staff_client.get(reverse("races:finish_entry", args=[race_2.pk]))
     assert page.status_code == 200
     assert "Nothing saved" in page.content.decode()
@@ -252,17 +194,8 @@ def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(staff_client, re
     assert "at least one boat has a finish time" in html
     assert Finish.objects.get(race=race_2, entry=a).status == "DNF"
 
-    page = staff_client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    page = staff_client.get(reverse("results:series", args=[series.pk]), {"race": 2}).content.decode()
     assert "at least one boat has a finish time" in page
-
-
-def test_results_that_cannot_be_calculated_show_a_message(client, race_night):
-    series, race, *_ = race_night
-    # Bypass validation, as a bug or a direct database edit might.
-    Finish.objects.filter(race=race).update(finish_time=time(17, 0))
-    response = client.get(reverse("races:series_results", args=[series.pk]))
-    assert response.status_code == 200
-    assert "cannot be calculated" in response.content.decode()
 
 
 def test_the_error_page_is_plain_and_standalone():
