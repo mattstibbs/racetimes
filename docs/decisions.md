@@ -1088,6 +1088,29 @@ rule change: the committee has to say what happened.
 
 ---
 
+## 2026-09-24 - Slice 7: a hand-written stylesheet on design tokens
+
+**Context.** The site still has the walking skeleton's deliberately plain
+styling. The project owner asked for a clean, simple, modern look.
+
+**Decision.** Agreed with the project owner:
+- Neutral nautical colours (navy header, one sea-blue accent, white cards on
+  light grey), light only, the device's own font, and the Django admin left
+  with its standard look.
+- One hand-written stylesheet whose colours all come from CSS custom
+  properties (tokens) at its top. No CSS framework, web font, icon set or
+  JavaScript, so nothing new to install, vendor or keep up to date, and
+  nothing loaded from another site.
+- Templates change only where layout needs it, and keep every class, id and
+  HTMX attribute that behaviour, tests or the screenshot script rely on.
+- Colour contrast is tested against WCAG AA, so a later change to the
+  tokens (a club's own colours, say) can't quietly make text unreadable.
+
+**Consequence.** A club wanting its own colours changes a few tokens. Every
+manual screenshot changes, so the whole manual is regenerated in this slice.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

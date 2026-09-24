@@ -234,6 +234,16 @@ def test_following_a_boat_highlights_it_in_the_standings_and_the_race(client, th
     assert f'<option value="{entries[1].boat.pk}" selected>' in page
 
 
+def test_follow_a_boat_comes_after_the_results(client, three_races):
+    """The standings and the race come first; choosing a boat to follow is below them."""
+    page = series_page(client, three_races[0], race=2)
+    follow = page.index('class="follow"')
+    assert page.index("<h2>Standings</h2>") < page.index('class="race-results') < follow
+    # Still inside the part HTMX swaps, so following a boat updates the tables above it.
+    assert follow < page.index("</div>", page.rindex('id="follow-boat"'))
+    assert page.index('id="series-body"') < follow
+
+
 def test_following_nobody_highlights_nothing(client, three_races):
     page = series_page(client, three_races[0], boat="")
     assert 'class="followed"' not in page
@@ -418,3 +428,11 @@ def test_no_page_shows_an_owner_s_name(client):
     ]
     for page in pages:
         assert "Jones" not in page and "Visitor" not in page
+
+
+def test_find_a_boat_comes_last_on_the_home_page(client, three_races):
+    """The latest results and every series come first; the search is at the bottom."""
+    page = client.get(reverse("results:home")).content.decode()
+    assert page.index('id="latest-results"') < page.index('id="all-series"') < page.index('id="find-a-boat"')
+    # Without JavaScript a search reloads the page; the fragment brings it back down to the matches.
+    assert 'action="/#find-a-boat"' in page

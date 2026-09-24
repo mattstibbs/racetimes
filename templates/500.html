@@ -5,12 +5,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Something went wrong - Race Times</title>
-  <style>body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #1a1a1a; }</style>
+  {# The site's look, copied in: this page loads nothing, not even site.css. #}
+  <style>
+    body { margin: 0; background: #f2f5f8; color: #1b2733; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
+    header { background: #0f2a44; color: #ffffff; }
+    header p, main { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
+    header p { min-height: 3.5rem; display: flex; align-items: center; font-weight: 700; font-size: 1.15rem; }
+    main { padding-top: 2rem; }
+    h1 { color: #0f2a44; font-size: 1.6rem; line-height: 1.25; }
+    a { color: #0a6194; }
+  </style>
 </head>
 <body>
+  <header><p>Race Times</p></header>
+  <main>
   <h1>Something went wrong</h1>
   <p>Race Times hit a problem it did not expect, and nothing was saved from this request.</p>
   <p>Go back and try again. If it happens again, please tell the race committee what you were doing, so it can be fixed.</p>
   <p><a href="/">Back to results</a></p>
+  </main>
 </body>
 </html>

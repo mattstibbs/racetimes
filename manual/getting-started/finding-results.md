@@ -5,11 +5,12 @@
 The site's front page is the results page. It is built to be read on a
 phone, so you can check how you did straight after the race.
 
-![The front page: a box to find a boat, the latest results, and every series](../images/results-home.png)
+![The front page: the latest results, every series, and a box to find a boat](../images/results-home.png)
 
 ## Finding your boat
 
-Type your sail number or your boat's name in **Find a boat**. Matching boats
+Type your sail number or your boat's name in **Find a boat**, at the bottom
+of the front page. Matching boats
 appear as you type. Spaces and capital letters in sail numbers do not matter:
 "gbr1234" finds "GBR 1234".
 
@@ -51,8 +52,8 @@ results; press a race's button to see another.
 
 ![A series' standings, the race buttons, and race 3 with one boat highlighted](../images/results-series.png)
 
-- **Follow a boat** highlights one boat in the standings and in every race you
-  look at, so you can find it quickly in a big fleet.
+- **Follow a boat**, below the results, highlights one boat in the standings
+  and in every race you look at, so you can find it quickly in a big fleet.
 - On a phone, each race shows place, boat, corrected time and points. Press
   **More detail** for the finish time, elapsed time, and the handicap each
   boat sailed on and takes into the next race.

@@ -3,22 +3,10 @@
 {% block content %}
 <h1>Results</h1>
 
-<section aria-labelledby="find-a-boat">
-  <h2 id="find-a-boat">Find a boat</h2>
-  <form method="get" action="{% url 'results:home' %}" role="search" class="search">
-    <label for="boat-search">Sail number or boat name</label>
-    <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
-           hx-get="{% url 'results:home' %}" hx-trigger="input changed delay:300ms, search"
-           hx-target="#boat-matches" hx-swap="outerHTML" hx-replace-url="true">
-    <button type="submit">Find</button>
-  </form>
-  {% include "results/_boat_matches.html" %}
-</section>
-
 {% if my_boats %}
 <section aria-labelledby="my-boats">
   <h2 id="my-boats">My boats</h2>
-  <ul>
+  <ul class="link-list">
     {% for boat in my_boats %}<li><a href="{% url 'results:boat' boat.pk %}">{{ boat }}</a></li>{% endfor %}
   </ul>
 </section>
@@ -44,7 +32,7 @@
 <section aria-labelledby="all-series">
   <h2 id="all-series">All series</h2>
   {% if series_list %}
-  <ul>
+  <ul class="link-list">
     {% for series in series_list %}
     <li><a href="{% url 'results:series' series.pk %}">{{ series.name }}</a></li>
     {% endfor %}
@@ -52,5 +40,19 @@
   {% else %}
   <p class="muted">No series yet.</p>
   {% endif %}
+</section>
+
+{# At the bottom, so the latest results come first (the project owner's choice). #}
+<section aria-labelledby="find-a-boat">
+  <h2 id="find-a-boat">Find a boat</h2>
+  {# The #find-a-boat fragment brings a search without JavaScript back down here. #}
+  <form method="get" action="{% url 'results:home' %}#find-a-boat" role="search" class="search">
+    <label for="boat-search">Sail number or boat name</label>
+    <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
+           hx-get="{% url 'results:home' %}" hx-trigger="input changed delay:300ms, search"
+           hx-target="#boat-matches" hx-swap="outerHTML" hx-replace-url="true">
+    <button type="submit">Find</button>
+  </form>
+  {% include "results/_boat_matches.html" %}
 </section>
 {% endblock %}

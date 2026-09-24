@@ -4,31 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Race Times{% endblock %}</title>
+  <link rel="icon" href="{% static 'img/sail.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <header>
-    <p><a href="{% url 'results:home' %}"><strong>Race Times</strong></a></p>
-    <nav>
-      {% if user.is_authenticated %}
-        <a href="{% url 'races:my_boats' %}">My boats</a>
-        {% if is_committee %}
-          &middot; <a href="{% url 'races:requests' %}">Requests</a>
-          &middot; <a href="{% url 'admin:index' %}">Setup (admin)</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="{% url 'results:home' %}"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</a>
+      <nav aria-label="Site">
+        {% if user.is_authenticated %}
+          <a href="{% url 'races:my_boats' %}">My boats</a>
+          {% if is_committee %}
+            <a href="{% url 'races:requests' %}">Requests</a>
+            <a href="{% url 'admin:index' %}">Setup (admin)</a>
+          {% endif %}
+          <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
+            <button type="submit" class="link">Log out</button>
+          </form>
+        {% else %}
+          <a href="{% url 'races:login' %}">Log in</a>
+          <a href="{% url 'races:signup' %}">Sign up</a>
         {% endif %}
-        &middot;
-        <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
-          <button type="submit" class="link">Log out</button>
-        </form>
-      {% else %}
-        <a href="{% url 'races:login' %}">Log in</a> &middot; <a href="{% url 'races:signup' %}">Sign up</a>
-      {% endif %}
-    </nav>
+      </nav>
+    </div>
   </header>
-  {% if messages %}
-  <ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
-  {% endif %}
-  {% block content %}{% endblock %}
+  <main class="wrap">
+    {% if messages %}
+    <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

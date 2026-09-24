@@ -1,20 +1,5 @@
 {% load racing %}
 <div id="series-body">
-{% if boats %}
-<form method="get" class="follow" hx-get="{% url 'results:series' series.pk %}" hx-trigger="change"
-      hx-target="#series-body" hx-swap="outerHTML" hx-push-url="true">
-  {% if section %}<input type="hidden" name="race" value="{{ section.race.number }}">{% endif %}
-  {% if detail %}<input type="hidden" name="detail" value="1">{% endif %}
-  <label for="follow-boat">Follow a boat</label>
-  <select id="follow-boat" name="boat">
-    <option value="">Nobody</option>
-    {% for boat in boats %}<option value="{{ boat.pk }}"{% if boat == followed %} selected{% endif %}>{{ boat }}</option>{% endfor %}
-  </select>
-  <noscript><button type="submit">Show</button></noscript>
-  {% if followed %}<a href="{% url 'results:boat' followed.pk %}">All results for {{ followed }}</a>{% endif %}
-</form>
-{% endif %}
-
 <h2>Standings</h2>
 {% if standings_amended %}<p class="amended">Amended {{ standings_amended|date:"j F Y" }}</p>{% endif %}
 {% if results.standings %}
@@ -51,4 +36,20 @@
 {% if results.error %}<p class="note">{{ results.error }}</p>{% endif %}
 
 {% include "results/_race.html" %}
+
+{# Below the tables, so the results come first, on a phone especially (the project owner's choice). #}
+{% if boats %}
+<form method="get" class="follow" hx-get="{% url 'results:series' series.pk %}" hx-trigger="change"
+      hx-target="#series-body" hx-swap="outerHTML" hx-push-url="true">
+  {% if section %}<input type="hidden" name="race" value="{{ section.race.number }}">{% endif %}
+  {% if detail %}<input type="hidden" name="detail" value="1">{% endif %}
+  <label for="follow-boat">Follow a boat</label>
+  <select id="follow-boat" name="boat">
+    <option value="">Nobody</option>
+    {% for boat in boats %}<option value="{{ boat.pk }}"{% if boat == followed %} selected{% endif %}>{{ boat }}</option>{% endfor %}
+  </select>
+  <noscript><button type="submit" class="secondary">Show</button></noscript>
+  {% if followed %}<a href="{% url 'results:boat' followed.pk %}">All results for {{ followed }}</a>{% endif %}
+</form>
+{% endif %}
 </div>
