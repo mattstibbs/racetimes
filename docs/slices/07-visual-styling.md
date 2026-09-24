@@ -61,6 +61,11 @@ point its members at. How pages behave stays exactly as it is.
   - Labels: `.provisional`, `.published`, `.amended`.
   - Page messages: `ul.messages`. Errors show in red here, not in the same
     green as successes.
+- **"Follow a boat" moves below the results** on the series page, after the
+  standings and the chosen race, so the results come first, on a phone
+  especially. It is still part of the section HTMX swaps, so choosing a
+  boat highlights it in the tables above. *(Asked for by the project owner
+  while building.)*
 - **The race picker** on the series page becomes a row of pill-shaped
   buttons, with the chosen race filled in.
 - **The finish-entry and start sheet rows** keep their grid, tidied up so the

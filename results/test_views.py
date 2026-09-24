@@ -234,6 +234,16 @@ def test_following_a_boat_highlights_it_in_the_standings_and_the_race(client, th
     assert f'<option value="{entries[1].boat.pk}" selected>' in page
 
 
+def test_follow_a_boat_comes_after_the_results(client, three_races):
+    """The standings and the race come first; choosing a boat to follow is below them."""
+    page = series_page(client, three_races[0], race=2)
+    follow = page.index('class="follow"')
+    assert page.index("<h2>Standings</h2>") < page.index('class="race-results') < follow
+    # Still inside the part HTMX swaps, so following a boat updates the tables above it.
+    assert follow < page.index("</div>", page.rindex('id="follow-boat"'))
+    assert page.index('id="series-body"') < follow
+
+
 def test_following_nobody_highlights_nothing(client, three_races):
     page = series_page(client, three_races[0], boat="")
     assert 'class="followed"' not in page

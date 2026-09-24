@@ -220,7 +220,10 @@ ul.link-list a:hover { background: var(--accent-soft); }
 ol.podium { margin: 0.25rem 0 0; padding-left: 1.5rem; }
 ol.podium li { padding: 0.1rem 0; }
 .card h3 .provisional { margin-left: 0.3rem; }
-form.follow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0 1rem; }
+form.follow {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 1.5rem 0 0.5rem; padding: 0.8rem 1rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
 form.follow select { max-width: 100%; }
 nav.race-picker { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.75rem 0 0.5rem; }
 nav.race-picker a {

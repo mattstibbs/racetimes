@@ -51,8 +51,8 @@ results; press a race's button to see another.
 
 ![A series' standings, the race buttons, and race 3 with one boat highlighted](../images/results-series.png)
 
-- **Follow a boat** highlights one boat in the standings and in every race you
-  look at, so you can find it quickly in a big fleet.
+- **Follow a boat**, below the results, highlights one boat in the standings
+  and in every race you look at, so you can find it quickly in a big fleet.
 - On a phone, each race shows place, boat, corrected time and points. Press
   **More detail** for the finish time, elapsed time, and the handicap each
   boat sailed on and takes into the next race.
