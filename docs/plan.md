@@ -295,3 +295,15 @@ approved, and lists the open questions to answer before building.
 A series chooses its handicap system: NHC as today, Portsmouth Yardstick or
 RYA YTC. PY and YTC are fixed numbers, so nothing moves after a race. Places,
 points and standings are RRS Appendix A under all three.
+
+## Slice 9: the race day page. **Status: planned (2026-09-24)**
+
+Spec: `docs/slices/09-race-day-page.md`. It proposes one new field,
+`Finish.recorded_at`, which needs the project owner's approval before any
+migration is written.
+
+One page per race replaces the start sheet and finish-entry pages: tick who
+is racing, then tap **Finished** as each boat crosses the line. Boats move
+from "still racing" to "finished", a wrong tap can be undone for two minutes,
+the page refreshes itself so two devices see each other's taps, and a small
+script runs the race clock. Scoring and publishing don't change.
