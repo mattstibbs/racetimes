@@ -994,6 +994,27 @@ uses Django's real deferral because that is what it checks.
 
 ---
 
+## 2026-09-24 - Slice 5: the results app reads, and never writes
+
+**Context.** The plan asks for "another Django app" for racers to view
+results. Two apps that both know how to score a series could drift apart.
+
+**Decision.**
+- `results/` has no models and no views that save. It shows what
+  `races.scoring.score_series` computes and nothing else, so it cannot
+  disagree with the committee's pages.
+- The dependency runs one way: `results` imports from `races`, never the
+  reverse, checked by a test.
+- Each HTMX interaction uses the same URL as its full page, returning a
+  fragment only when `request.htmx` is set, so every view works without
+  JavaScript and every state has a link that can be shared.
+
+**Consequence.** The boat page scores every series the boat is entered in,
+once each, per request. For a club's handful of series that is cheap; it is
+the same trade-off as "results are computed on request, never stored".
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
