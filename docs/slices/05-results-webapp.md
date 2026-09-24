@@ -17,7 +17,9 @@ with the committee's pages.
 
 ### A separate app that reads, never writes
 - A new app, `results/`, in the same project, added to `INSTALLED_APPS` and
-  included in `config/urls.py`.
+  included in `config/urls.py` at the site root, with the URL namespace
+  `results`. It owns the public URLs: `/`, `/series/<pk>/` and
+  `/boats/<pk>/`.
 - It imports from `races` (the models, `scoring.score_series`,
   `publishing.amended_since_sent`) and `races` never imports from it. It has
   no models, no forms that save, and no POST views.
@@ -32,7 +34,7 @@ with the committee's pages.
 
 ### The pages
 
-**Results home** (`/results/`)
+**Results home** (`/`)
 - **Find a boat**: one box that searches sail number and boat name as you
   type (HTMX, a short delay after typing stops), and is an ordinary search
   form without JavaScript. Sail numbers match ignoring case and spaces, as the
@@ -44,7 +46,7 @@ with the committee's pages.
 - A logged-in member also sees **My boats**, linking to their own boats'
   pages.
 
-**Series** (`/results/series/<pk>/`)
+**Series** (`/series/<pk>/`)
 - The standings, with a row of race buttons above the race results. Choosing
   a race swaps in that race's results without reloading the page (HTMX); the
   URL becomes `?race=<number>`. It opens on the latest race with results.
@@ -57,7 +59,7 @@ with the committee's pages.
 - The same labels as today: provisional until published, published with the
   date, amended since published, amended on a date.
 
-**Boat** (`/results/boats/<pk>/`)
+**Boat** (`/boats/<pk>/`)
 - The page a racer bookmarks. Name, sail number, make and model; the owner
   shown as today (`owner_display`).
 - For each series the boat is entered in, newest first: its standing
@@ -71,13 +73,16 @@ with the committee's pages.
 - A boat entered in no series says so, and still has a page.
 
 ### Replacing today's public page *(proposed, awaiting approval)*
-- The site's home page shows the results home, and `/series/<pk>/`
-  redirects permanently to `/results/series/<pk>/` (keeping `#race-N` as
-  `?race=N`), so every link already sent in an email keeps working.
-- `Series.get_absolute_url` and the emails point at the new page from now on.
-- The committee's finish-entry and history pages link to the new page.
-- Today's `races/series_results.html` and its view are removed, so there is
-  one public results page to keep correct, not two.
+- Today's home page and series results page (their views in `races/views.py`
+  and their templates) are removed, so there is one public results page to
+  keep correct, not two.
+- The new app serves the same URLs they did, so nothing needs redirecting:
+  a link to `/series/<pk>/` or `/series/<pk>/#race-N` keeps working, and
+  simply opens the new page. The race anchors (`id="race-N"`) stay on the
+  new series page for that reason.
+- Every reference to `races:home` and `races:series_results` moves to the
+  `results` namespace: `Series.get_absolute_url`, the emails, the header's
+  site link, and the finish-entry, history and "My boats" pages.
 
 ### Data model
 None. No new fields, no migrations. "Latest race", "current series" and
@@ -103,8 +108,8 @@ None. No new fields, no migrations. "Latest race", "current series" and
 - An unknown series, boat or race number is a 404.
 - Every page is tested as each of the four roles (`races/test_roles.py`), and
   only the committee sees committee links.
-- Old `/series/<pk>/` links, with and without `#race-N`, reach the same
-  results on the new page.
+- `/` and `/series/<pk>/` are served by `results`, and nothing in the
+  project still refers to `races:home` or `races:series_results`.
 - The pages are usable at phone width: checked in headless Chromium at
   375 px wide, with screenshots in the manual.
 - The user manual gains a "Finding your results" page for members and the
@@ -124,12 +129,10 @@ None. No new fields, no migrations. "Latest race", "current series" and
 
 ## Questions for the project owner
 1. **Replace or add?** The plan says "another app". This spec proposes it
-   *replaces* today's public page (with redirects), rather than the site
+   *replaces* today's public pages at the same URLs, rather than the site
    having two public results pages that can drift apart. Agreed?
-2. **Home page.** Should `/` show the results home, as proposed, or stay as
-   it is with a link to `/results/`?
-3. **Owner names on the public boat page.** Today's page shows boats by sail
+2. **Owner names on the public boat page.** Today's page shows boats by sail
    number and name only. The boat page proposes adding the owner's name.
    Fine for a club site, or keep owners off the public pages?
-4. **Race-day refresh.** Worth including now (the open race page re-fetches
+3. **Race-day refresh.** Worth including now (the open race page re-fetches
    its table every minute or so), or leave it out as above?
