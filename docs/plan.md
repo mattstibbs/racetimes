@@ -199,11 +199,12 @@ errors were logged.
 Another Django app (in the same project) with an HTMX page that allows a racer to easily view race results.
 ## Slice 6: race-level entry. **Status: planned (2026-09-24)**
 
-Spec: `docs/slices/06-race-entry.md`. The new `RaceEntry` model is proposed
-there and waits for the project owner's approval before any migration.
+Spec: `docs/slices/06-race-entry.md`. The new `RaceEntry` model was
+approved by the project owner on 2026-09-24.
 
 A start sheet for every race: the committee records which boats in the
 series are racing, and each owner gets a confirmation email (the brief's user
-journey 3). Only a boat on the start sheet can have a finish, and each one
+journey 3); owners are also emailed when a boat is taken off a start
+sheet or removed from a series. Only a boat on the start sheet can have a finish, and each one
 must have a time or a code before the results can be published. A boat not on
 it scores DNC, as today.

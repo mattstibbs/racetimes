@@ -85,13 +85,31 @@ scores DNC, as today.
   commits. A failure shows as a warning on the page and the boat stays on the
   start sheet.
 - One email per boat, sent when the box is ticked. Changing the persons on
-  board or saving the row again sends nothing more. Taking a boat off sends
-  nothing (see Out of scope). If a boat is taken off and then put back on, it
-  gets a second email. That is rare, and a correct email is better than
-  storing extra data to prevent it.
+  board or saving the row again sends nothing more. If a boat is taken off
+  and then put back on, it gets a second email *(agreed with the project
+  owner)*.
+- It is sent whenever the boat is added, including after the race has been
+  sailed or published *(agreed with the project owner)*.
 - A boat with no owning account, or whose account is inactive, gets no email.
   The row says "no email: no owner account" so the committee knows to tell
-  them.
+  them. This applies to the removal emails below too.
+
+### Removal emails *(agreed with the project owner)*
+- **Taken off a start sheet:** "GBR 42 Kittiwake is no longer entered in
+  race 3 of Autumn 2026 on Wednesday 1 October". It links to the series
+  page. One email each time the box is unticked, so a boat taken off and put
+  back on gets both emails.
+- **Removed from a series:** "GBR 42 Kittiwake is no longer entered in
+  Autumn 2026". This is sent when the committee deletes a series entry in the
+  admin (the series' entries inline), the only place an entry can be
+  removed. It is the counterpart of today's "entered in series" email. The
+  boat's start sheet rows go with the entry, and that sends no separate
+  race emails: the one series email covers them. An entry with finishes
+  still can't be removed.
+- Both go through `races/notifications.send`, after the change commits, with
+  the same failure handling as the confirmation email. The email names the
+  boat and series as they were when it was removed, because the entry itself
+  no longer exists when the email is sent.
 
 ### Change history
 - Putting a boat on the start sheet, taking it off, and changing persons on
@@ -103,8 +121,7 @@ scores DNC, as today.
 - Recording a finish for a boat added after publishing is audited as it
   already is.
 
-### Data model *(proposed; needs the project owner's approval before any
-migration is written)*
+### Data model *(approved by the project owner, 2026-09-24)*
 - A new model, `RaceEntry`:
   - `race`, a foreign key to `Race`. Deleted with its race.
   - `entry`, a foreign key to `SeriesEntry`. Deleted with its series entry
@@ -152,9 +169,12 @@ migration is written)*
   while any boat on the start sheet has nothing recorded, including a boat
   added after publishing.
 - The confirmation email is sent when, and only when, a boat is put on a
-  race's start sheet, and not when its row is saved again: only to an active owning
-  account, never on a rolled-back change. A sending failure keeps the boat
-  on the start sheet and says so. Each case is tested, as in slice 4.
+  race's start sheet, and not when its row is saved again. The two removal
+  emails are sent when, and only when, a boat is taken off a start sheet or
+  removed from a series, and removing it from a series sends no race
+  emails. Each email goes only to an active owning account and never on a
+  rolled-back change. A sending failure keeps the change and says so. Each
+  case is tested, as in slice 4.
 - Persons on board appears on no public page, tested on every public page.
 - Start sheet changes add nothing to the change history, and a published race
   is not marked amended by them.
@@ -167,14 +187,11 @@ migration is written)*
   series.
 - The migration uses nothing database-specific.
 - The user manual gains a committee page, "Race day: the start sheet and
-  finishes", with screenshots, and the members' email page lists the new
-  email.
+  finishes", with screenshots, and the members' email page lists the three
+  new emails.
 
 ## Out of scope
 - Members entering, or asking to enter, a race themselves.
-- An email when a boat is taken off a start sheet. It would be sent on
-  race day, often by mistake, and a boat taken off by mistake is usually
-  put straight back on.
 - Copying the previous race's start sheet. Easy to add later if the committee
   finds ticking boats slow.
 - Scoring a boat on the start sheet with nothing recorded as anything but DNC

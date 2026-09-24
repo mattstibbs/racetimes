@@ -1075,13 +1075,15 @@ DNS.
   migration: the boats that have a finish.
 - Persons on board is recorded on the start sheet, shown to the committee
   only, and not used in scoring.
-- An email confirms each boat put on a start sheet. Nothing is sent when a
-  boat is taken off.
+- Emails go to the owner when a boat is put on a start sheet, taken off
+  one, or removed from a series. Putting a boat back on sends a second
+  confirmation, and a boat added after the race still gets one. Removing a
+  boat from a series sends only the series email, not one per race.
+- The data model was approved by the project owner on 2026-09-24.
 - Start sheet changes are not in the change history, because none of them can
   move a score.
 
-**Consequence.** A new `RaceEntry` model (proposed in the slice spec, for
-approval) and a data migration to fill it for races already sailed. The open question on DNC/DNS for race entrants is closed without a
+**Consequence.** A new `RaceEntry` model and a data migration to fill it for races already sailed. The open question on DNC/DNS for race entrants is closed without a
 rule change: the committee has to say what happened.
 
 ---
