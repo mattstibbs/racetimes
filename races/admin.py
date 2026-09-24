@@ -18,6 +18,7 @@ from .forms import (
     SeriesAdminForm,
 )
 from .models import Boat, BoatRequest, EntryRequest, Race, Series, SeriesEntry
+from .roles import waiting_for_approval
 from .scoring import score_series
 
 # The admin wraps each save in a transaction, so a change and its history rows
@@ -209,6 +210,22 @@ User = get_user_model()
 admin.site.unregister(User)
 
 
+class ApprovalFilter(admin.SimpleListFilter):
+    """New sign-ups, as distinct from accounts switched off later."""
+
+    title = "approval"
+    parameter_name = "approval"
+    WAITING = "waiting"
+
+    def lookups(self, request, model_admin):
+        return [(self.WAITING, "Waiting for approval")]
+
+    def queryset(self, request, queryset):
+        if self.value() == self.WAITING:
+            return waiting_for_approval(queryset)
+        return queryset
+
+
 @admin.register(User)
 class MemberAccountAdmin(UserAdmin):
     """Django's own account admin, plus approving sign-ups in one step.
@@ -218,7 +235,7 @@ class MemberAccountAdmin(UserAdmin):
     """
 
     list_display = ["username", "first_name", "last_name", "is_active", "is_staff", "date_joined"]
-    list_filter = ["is_active", "is_staff", "is_superuser", "groups"]
+    list_filter = [ApprovalFilter, "is_active", "is_staff", "is_superuser", "groups"]
     actions = ["approve_accounts"]
 
     @admin.action(description="Approve selected accounts")

@@ -1,0 +1,24 @@
+# The user manual: for club members, the race committee and the
+# administrator. Developer documentation is in docs/ and is not part of it.
+site_name: Race Times user manual
+docs_dir: manual
+# Built into MkDocs, so no extra theme package is needed.
+theme: readthedocs
+# Plain CommonMark and tables only, so the pages also read properly on GitHub
+# and would move to another tool unchanged.
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+# A broken link or a page missing from the contents fails the build.
+strict: true
+validation:
+  links:
+    not_found: warn
+    anchors: warn
+  omitted_files: warn
+
+nav:
+  - Introduction: index.md
+  - Race committee:
+      - Reviewing waiting requests: committee/reviewing-requests.md
