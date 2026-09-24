@@ -1,0 +1,19 @@
+<div id="race-day-body">
+<nav class="view-tabs" aria-label="Race day">
+  <a href="{{ start_url }}" hx-get="{{ start_url }}" hx-target="#race-day-body" hx-swap="outerHTML" hx-push-url="true"{% if view == "start" %} aria-current="page"{% endif %}>Start sheet</a>
+  <a href="{{ finish_url }}" hx-get="{{ finish_url }}" hx-target="#race-day-body" hx-swap="outerHTML" hx-push-url="true"{% if view == "finish" %} aria-current="page"{% endif %}>Finishing</a>
+</nav>
+{% if view == "start" %}
+  {% include "races/_start_sheet_count.html" %}
+  <p>Tick each boat that is racing. It saves as you tick; the owner is emailed when a boat is put on or taken off.
+    Only boats on the start sheet can have a finish recorded, and each one needs a time or a code before the results are published.
+    A boat left off stayed at home and scores DNC.</p>
+  {% for row in rows %}
+    {% include "races/_start_sheet_row.html" %}
+  {% empty %}
+    <p class="muted">No boats are entered in this series yet. Enter them in the admin.</p>
+  {% endfor %}
+{% else %}
+  {% include "races/_finish_panel.html" %}
+{% endif %}
+</div>

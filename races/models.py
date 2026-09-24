@@ -291,6 +291,10 @@ class Finish(models.Model):
     entry = models.ForeignKey(SeriesEntry, on_delete=models.RESTRICT, related_name="finishes")
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.FINISHED)
     finish_time = models.TimeField(null=True, blank=True)
+    # Slice 9: when this finish was first saved, tapped or typed. The race day
+    # page's two-minute Undo is measured from it. Empty for finishes saved
+    # before slice 9, which therefore never offer Undo.
+    recorded_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name_plural = "finishes"
@@ -336,6 +340,11 @@ class Finish(models.Model):
             raise ValidationError(
                 {"finish_time": f"The finish must be after the start ({start:%H:%M:%S})."}
             )
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.recorded_at is None:
+            self.recorded_at = timezone.now()
+        super().save(*args, **kwargs)
 
     @property
     def elapsed_seconds(self):

@@ -1,0 +1,65 @@
+{% load racing %}
+{% url 'races:race_day' race.pk as page_url %}
+{# Refreshes itself every 5 seconds so two devices see each other's finishes. The site answers 204 when #}
+{# nothing changed, and the refresh pauses while a row's form is open, so it never wipes what is being typed. #}
+<div id="finish-panel" hx-get="{{ page_url }}?view=finish&amp;since={{ version }}"
+     hx-trigger="every 5s [!document.querySelector('#finish-panel details[open]')]" hx-swap="outerHTML">
+{% include "races/_race_note.html" %}
+{% include "races/_publishing.html" %}
+{% if panel_error %}<p class="panel-message error" role="alert">{{ panel_error }}</p>
+{% elif panel_message %}<p class="panel-message" role="status">{{ panel_message }}</p>{% endif %}
+
+<section aria-labelledby="still-racing">
+  <h2 id="still-racing">Still racing ({{ still_racing|length }})</h2>
+  {% if not can_tap and still_racing %}
+  <p class="muted">The Finished button appears on {{ race.date|date:"j F" }} from {{ race.start_time|time:"H:i" }}.
+    Until then, or afterwards from a paper sheet, open a boat's &hellip; to type its time or code.</p>
+  {% endif %}
+  {% for row in still_racing %}
+  <div class="racing-row{% if row.open %} has-errors{% endif %}" id="racing-{{ row.entry.pk }}">
+    <div class="boat"><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}
+      {% if row.race_entry.persons_on_board %}<span class="muted">{{ row.race_entry.persons_on_board }} on board</span>{% endif %}</div>
+    {% if can_tap %}
+    {% url 'races:tap_finish' race.pk row.entry.pk as tap_url %}
+    <form method="post" action="{{ tap_url }}" hx-post="{{ tap_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
+          hx-sync="#finish-panel:replace" class="tap">{% csrf_token %}
+      <button type="submit" class="finished">Finished</button>
+    </form>
+    {% endif %}
+    {% include "races/_finish_form.html" with summary="&hellip;" label="Type a time or a code" %}
+  </div>
+  {% empty %}
+  <p class="muted">{% if finished %}Every boat on the start sheet has a result.{% else %}No boats are on the <a href="{{ start_url }}">start sheet</a> yet.{% endif %}</p>
+  {% endfor %}
+</section>
+
+<section aria-labelledby="finished">
+  <h2 id="finished">Finished ({{ finished|length }})</h2>
+  <p class="muted">In the order they crossed the line. Corrected times and places are on the <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">results page</a>.</p>
+  {% for row in finished %}
+  <div class="finished-row{% if row.open %} has-errors{% elif row.touched %} saved{% endif %}" id="finished-{{ row.entry.pk }}">
+    <div class="order">{% if row.order %}{{ row.order }}.{% endif %}</div>
+    <div class="boat"><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
+    <div class="time">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }} <span class="muted">elapsed {{ row.finish.elapsed_seconds|hms }}</span>{% else %}<strong>{{ row.finish.status }}</strong>{% endif %}</div>
+    {% if row.can_undo %}
+    {% url 'races:undo_finish' race.pk row.entry.pk as undo_url %}
+    <form method="post" action="{{ undo_url }}" hx-post="{{ undo_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
+          hx-sync="#finish-panel:replace" class="undo">{% csrf_token %}
+      <button type="submit" class="secondary">Undo</button>
+    </form>
+    {% endif %}
+    {% include "races/_finish_form.html" with summary="Edit" label="Correct this finish" %}
+  </div>
+  {% empty %}
+  <p class="muted">No boat has finished yet.</p>
+  {% endfor %}
+</section>
+
+{% if not_racing %}
+<details class="not-racing">
+  <summary>Not racing (scored DNC): {{ not_racing|length }} boat{{ not_racing|length|pluralize }}</summary>
+  <ul>{% for entry in not_racing %}<li>{{ entry.boat }}</li>{% endfor %}</ul>
+  <p class="muted">A boat that did race is added on the <a href="{{ start_url }}">start sheet</a> first.</p>
+</details>
+{% endif %}
+</div>

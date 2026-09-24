@@ -22,7 +22,7 @@ def test_series_page_links_each_race_to_finish_entry(admin_client):
     enter(series, make_boat())
     race = make_race(series)
     page = admin_client.get(reverse("admin:races_series_change", args=[series.pk])).content.decode()
-    assert reverse("races:finish_entry", args=[race.pk]) in page
+    assert f'href="{reverse("races:race_day", args=[race.pk])}"' in page  # the race day page (slice 9)
     assert reverse("results:series", args=[series.pk]) in page  # "View on site"
 
 

@@ -21,7 +21,7 @@
   {% if race.published_at %}<span class="published">Published {{ race.published_at|date:"j F Y" }}.</span>{% endif %}
   {% if section.changed_since_sent %}<span class="amended">Amended since published; the race committee has not yet sent the updated results.</span>
   {% elif section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}
-  {% if is_committee %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
+  {% if is_committee %}<a href="{% url 'races:race_day' race.pk %}">Race day page</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">History</a>{% endif %}
 </p>
 {% if race_results %}

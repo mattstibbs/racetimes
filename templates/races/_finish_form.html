@@ -1,0 +1,17 @@
+{% comment %}The typed form for one boat: a finish time or a code. A plain <details>, so it needs no
+JavaScript; it opens by itself when the save was refused, to show why.{% endcomment %}
+{% url 'races:save_finish' race.pk row.entry.pk as save_url %}
+<details class="finish-form"{% if row.open %} open{% endif %}>
+  <summary aria-label="{{ label }}: {{ row.entry.boat }}">{{ summary|safe }}</summary>
+  <form method="post" action="{{ save_url }}" hx-post="{{ save_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
+        hx-sync="#finish-panel:replace" id="finish-{{ row.entry.pk }}">{% csrf_token %}
+    <label>Finish time {{ row.form.finish_time }}</label>
+    <label>Result {{ row.form.status }}</label>
+    {# Only a saved finish can be corrected, so only it asks for a reason. #}
+    {% if row.form.instance.pk %}<label>Reason {{ row.form.reason }}</label>{% endif %}
+    <button type="submit">Save</button>
+    {% if row.form.errors %}
+    <div class="figures">{{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}{{ row.form.reason.errors }}</div>
+    {% endif %}
+  </form>
+</details>

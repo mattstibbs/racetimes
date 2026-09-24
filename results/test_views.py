@@ -292,7 +292,7 @@ def test_caches_are_told_the_fragment_and_the_page_differ(client, three_races):
 def test_series_hides_committee_links_from_the_public(client, race_night):
     series, race, *_ = race_night
     page = series_page(client, series)
-    assert reverse("races:finish_entry", args=[race.pk]) not in page
+    assert (reverse("races:race_day", args=[race.pk]) + "?view=finish") not in page
     assert reverse("races:series_history", args=[series.pk]) not in page
 
 
@@ -300,7 +300,7 @@ def test_series_shows_committee_links_to_the_committee(client, race_night):
     series, race, *_ = race_night
     client.force_login(make_committee())
     page = series_page(client, series)
-    assert reverse("races:finish_entry", args=[race.pk]) in page
+    assert f'href="{reverse("races:race_day", args=[race.pk])}"' in page  # the race day page (slice 9)
     assert reverse("races:series_history", args=[series.pk]) in page
 
 

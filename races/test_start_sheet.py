@@ -132,7 +132,7 @@ def test_without_htmx_a_row_saves_and_returns_to_the_page(client, committee, rac
     race, tern = race_day["race"], race_day["tern"]
     response = tick(client, race, tern, htmx=False)
     assert response.status_code == 302
-    assert response["Location"] == reverse("races:start_sheet", args=[race.pk])
+    assert response["Location"] == (reverse("races:race_day", args=[race.pk]) + "?view=start")
     assert on_sheet(race) == ["GBR7"]
     page = client.get(response["Location"]).content.decode()
     assert "GBR7 Tern: Added to the start sheet. No email: the boat has no owner account." in page
@@ -149,7 +149,7 @@ def test_without_htmx_an_invalid_row_redisplays_the_page(client, committee, race
 def test_the_page_lists_every_boat_in_the_series(client, committee, race_day):
     race = race_day["race"]
     start(race, race_day["puffin"], persons_on_board=6)
-    page = client.get(reverse("races:start_sheet", args=[race.pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race.pk]) + "?view=start")).content.decode()
     for entry in ("kittiwake", "puffin", "tern"):
         assert row_url(race, race_day[entry]) in page
     assert "1 of 3 boats racing" in page
@@ -191,16 +191,16 @@ def test_the_finish_page_refuses_a_boat_not_racing(client, committee, race_day):
 def test_the_finish_page_only_offers_boats_on_the_start_sheet(client, committee, race_day):
     race = race_day["race"]
     start(race, race_day["kittiwake"], persons_on_board=4)
-    page = client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
     assert reverse("races:save_finish", args=[race.pk, race_day["kittiwake"].pk]) in page
     assert reverse("races:save_finish", args=[race.pk, race_day["tern"].pk]) not in page
     assert "Not racing (scored DNC): 2 boats" in page
     assert "4 on board" in page
-    assert reverse("races:start_sheet", args=[race.pk]) in page
+    assert (reverse("races:race_day", args=[race.pk]) + "?view=start") in page
 
 
 def test_an_empty_start_sheet_says_where_to_start(client, committee, race_day):
-    page = client.get(reverse("races:finish_entry", args=[race_day["race"].pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race_day["race"].pk]) + "?view=finish")).content.decode()
     assert "No boats are on the" in page
 
 
@@ -296,8 +296,10 @@ def test_public_pages_show_not_recorded(client, sailed, page):
 
 
 def test_the_finish_page_says_not_recorded_yet(client, committee, sailed):
-    page = client.get(reverse("races:finish_entry", args=[sailed["race"].pk])).content.decode()
-    assert "Not recorded yet." in page
+    # Slice 9: a boat with nothing recorded is listed under "Still racing".
+    page = client.get((reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish")).content.decode()
+    still_racing = page[page.index('id="still-racing"'):page.index('id="finished"')]
+    assert "Still racing (1)" in still_racing and "GBR7" in still_racing
 
 
 # --- Publishing waits for every boat on the start sheet -----------------------------
@@ -310,7 +312,7 @@ def publish(client, race, send=None):
 
 def test_publishing_is_refused_while_a_boat_is_not_recorded(client, committee, sailed, run_on_commit):
     race = sailed["race"]
-    page = client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
     assert "Still to record: GBR7 Tern." in page
     assert "Publish results</button>" not in page
     with run_on_commit():
@@ -344,7 +346,7 @@ def test_a_boat_added_after_publishing_blocks_updated_results(client, committee,
     url = reverse("races:save_finish", args=[race.pk, visitor.pk])
     client.post(url, finish_row(visitor, "19:35:00"), HTTP_HX_REQUEST="true")
     assert Finish.objects.filter(entry=visitor).exists()
-    page = client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
     assert "Amended since results were sent" in page
     with run_on_commit():
         html = publish(client, race, send="updated").content.decode()
@@ -483,7 +485,7 @@ def test_persons_on_board_is_on_no_public_page(client, sailed):
         html = client.get(url).content.decode()
         assert marker not in html and "on board" not in html, url
     client.force_login(make_administrator())
-    committee_page = client.get(reverse("races:finish_entry", args=[sailed["race"].pk])).content.decode()
+    committee_page = client.get((reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish")).content.decode()
     assert marker in committee_page
 
 
@@ -501,7 +503,7 @@ def test_start_sheet_changes_are_not_in_the_history(client, committee, sailed, r
     tick(client, race, visitor, persons="2")
     tick(client, race, visitor, racing=False)
     assert ScoringChange.objects.count() == changes
-    page = client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
+    page = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
     assert "Amended since results were sent" not in page
 
 
