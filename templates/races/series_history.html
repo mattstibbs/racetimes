@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load racing %}
 {% block title %}History: {{ series.name }} - Race Times{% endblock %}
 {% block content %}
 <h1>{{ series.name }}: scoring history{% if race %}, Race {{ race.number }}{% endif %}</h1>
@@ -26,7 +25,7 @@
       </td>
       <td>
         {{ change.get_action_display }}
-        {% for field, values in change|history_changes %}
+        {% for field, values in change.changes.items %}
           <br>{{ field }}:
           {% if change.action == "CHANGED" %}{{ values.0|default:"none" }} &rarr; {{ values.1|default:"none" }}
           {% elif change.action == "ADDED" %}{{ values.1|default:"none" }}

@@ -660,21 +660,9 @@ def test_admin_history_without_a_reason_says_nothing_about_one(staff_client, uns
 # --- Labels ------------------------------------------------------------------
 
 
-def test_labels_keep_their_capitals():
-    assert audit.LEGACY_LABELS == {
-        "Nhc base number": "NHC base number",
-        "Use rrs a5.3": "Use RRS A5.3",
-    }
-
-
-def test_the_history_page_shows_old_rows_with_todays_labels(staff_client, sailed):
-    """Rows recorded before the label fix are shown corrected, and left as stored."""
-    series, _, _ = sailed
-    old = ScoringChange.objects.create(
-        series=series, kind="BOAT", action="CHANGED", description="GBR1 Serendipity",
-        changes={"Nhc base number": ["0.950", "0.960"]}, user_name="officer",
-    )
-    page = staff_client.get(reverse("races:series_history", args=[series.pk])).content.decode()
-    assert "NHC base number" in page and "Nhc base number" not in page
-    old.refresh_from_db()
-    assert old.changes == {"Nhc base number": ["0.950", "0.960"]}
+def test_history_labels_keep_their_capitals(staff_client, sailed):
+    series, _, entries = sailed
+    post_boat(staff_client, entries[0].boat, base_number="0.960", reason="New certificate")
+    post_series(staff_client, series, reason="Notice of race", apply_a5_3="on")
+    labels = {label for change in ScoringChange.objects.all() for label in change.changes}
+    assert labels == {"NHC base number", "Use RRS A5.3"}

@@ -140,21 +140,6 @@ def _label(obj, name):
     return capfirst(str(obj._meta.get_field(name).verbose_name))
 
 
-# Rows recorded before the fix above spelled some labels differently. History
-# is never edited, so they are translated when shown instead of rewritten.
-LEGACY_LABELS = {
-    str(model._meta.get_field(name).verbose_name).capitalize(): _label(model, name)
-    for model, names in AUDITED_FIELDS.items()
-    for name in names
-    if str(model._meta.get_field(name).verbose_name).capitalize() != _label(model, name)
-}
-
-
-def display_changes(change):
-    """A recorded change's field-by-field old and new values, labelled as today."""
-    return [(LEGACY_LABELS.get(label, label), values) for label, values in change.changes.items()]
-
-
 def _display(obj, name):
     field = obj._meta.get_field(name)
     value = getattr(obj, name)
