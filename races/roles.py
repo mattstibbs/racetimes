@@ -34,3 +34,12 @@ def committee_required(view):
 
 def member_required(view):
     return wraps(view)(user_passes_test(is_member)(view))
+
+
+def waiting_for_approval(accounts):
+    """New sign-ups: switched off and never logged in.
+
+    Never having logged in is what separates a new account from one the
+    administrator switched off later.
+    """
+    return accounts.filter(is_active=False, last_login__isnull=True)

@@ -227,3 +227,45 @@ def test_requests_are_read_only_in_the_admin(as_role):
     assert response.status_code == 403
     request.refresh_from_db()
     assert request.status == "PENDING"
+
+
+# --- The administrator is told about new sign-ups ------------------------------
+
+
+def test_the_admin_front_page_counts_accounts_waiting_for_approval(as_role):
+    make_member("new1@example.com", is_active=False)
+    make_member("new2@example.com", is_active=False)
+    page = as_role("administrator").get(reverse("admin:index")).content.decode()
+    assert "2 new accounts are waiting for approval" in page
+    assert f'{reverse("admin:auth_user_changelist")}?approval=waiting' in page
+
+
+def test_no_notice_when_nobody_is_waiting(as_role):
+    page = as_role("administrator").get(reverse("admin:index")).content.decode()
+    assert "waiting for approval" not in page
+
+
+def test_an_account_switched_off_later_is_not_a_new_sign_up(as_role):
+    from django.utils import timezone
+    make_member("left@example.com", is_active=False, last_login=timezone.now())
+    make_member("new@example.com", is_active=False)
+    page = as_role("administrator").get(reverse("admin:index")).content.decode()
+    assert "1 new account is waiting for approval" in page
+
+
+def test_the_committee_is_not_told_about_sign_ups(as_role):
+    make_member("new@example.com", is_active=False)
+    page = as_role("committee").get(reverse("admin:index")).content.decode()
+    assert "waiting for approval" not in page
+
+
+def test_the_waiting_filter_lists_only_new_sign_ups(as_role):
+    from django.utils import timezone
+    make_member("left@example.com", is_active=False, last_login=timezone.now())
+    make_member("new@example.com", is_active=False)
+    make_member("active@example.com")
+    page = as_role("administrator").get(
+        reverse("admin:auth_user_changelist") + "?approval=waiting"
+    ).content.decode()
+    assert "new@example.com" in page
+    assert "left@example.com" not in page and "active@example.com" not in page

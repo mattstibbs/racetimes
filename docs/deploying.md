@@ -31,8 +31,9 @@ the same steps are in Render's own guide to deploying Django.
 ## Day to day
 
 - **Accounts.** Members sign up on the site and wait for approval. As the
-  administrator, approve them in the admin under **Users**: filter by
-  "Active: No", tick them, and choose "Approve selected accounts".
+  administrator, the admin's front page tells you how many are waiting; follow
+  its "Review and approve" link (or filter **Users** by "Waiting for
+  approval"), tick them, and choose "Approve selected accounts".
 - **Making someone race committee.** In the admin, open their account, tick
   "Staff status", and add them to the **Race committee** group. Staff status
   alone is not enough: the committee pages check the group, which is what

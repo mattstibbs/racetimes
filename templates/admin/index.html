@@ -1,0 +1,16 @@
+{% extends "admin/index.html" %}
+{% comment %}
+  Django's own admin front page, with a notice for the administrator when
+  members have signed up and are waiting for their accounts to be approved.
+{% endcomment %}
+{% block content %}
+{% with waiting=accounts_waiting %}{% if waiting %}
+<ul class="messagelist">
+  <li class="warning">
+    {{ waiting }} new account{{ waiting|pluralize:" is,s are" }} waiting for approval.
+    <a href="{% url 'admin:auth_user_changelist' %}?approval=waiting">Review and approve</a>
+  </li>
+</ul>
+{% endif %}{% endwith %}
+{{ block.super }}
+{% endblock %}
