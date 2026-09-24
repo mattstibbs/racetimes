@@ -302,6 +302,8 @@ class StartSheetRowForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
-        if not cleaned.get("racing") and cleaned.get("persons_on_board") is not None:
-            self.add_error("persons_on_board", "Tick Racing to record who is on board.")
+        if not cleaned.get("racing"):
+            # Unticking a boat takes it off, whatever is still in the box.
+            cleaned["persons_on_board"] = None
+            self.errors.pop("persons_on_board", None)
         return cleaned

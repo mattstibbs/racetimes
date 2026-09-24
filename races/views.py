@@ -166,7 +166,7 @@ def save_start_sheet_row(request, race_pk, entry_pk):
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat__owner"), pk=entry_pk)
     form = StartSheetRowForm(request.POST, prefix=_prefix(entry))
-    message = ""
+    message = refused = ""
     if form.is_valid():
         try:
             message = start_sheet.save_row(
@@ -176,29 +176,35 @@ def save_start_sheet_row(request, race_pk, entry_pk):
                 persons_on_board=form.cleaned_data["persons_on_board"],
                 request=request,
             )
-        except ValidationError as refused:
-            form.add_error(None, refused)
+        except ValidationError as error:
+            # The row shows the boat as it really is, still on the sheet.
+            refused = " ".join(error.messages)
+            form = None
+    failed = bool(refused) or (form is not None and form.errors)
     if not request.htmx:
-        if not form.errors:
+        if not failed:
             messages.success(request, f"{entry.boat}: {message}")
             return redirect("races:start_sheet", race.pk)
-        return render(request, "races/start_sheet.html", _start_sheet_context(race, form, entry))
-    context = _start_sheet_context(race, form, entry)
+        return render(
+            request, "races/start_sheet.html", _start_sheet_context(race, form, entry, refused)
+        )
+    context = _start_sheet_context(race, form, entry, refused)
     row = next(row for row in context["rows"] if row["entry"].pk == entry.pk)
     return render(
         request,
         "races/_start_sheet_row.html",
-        {**context, "row": row, "saved": not form.errors, "message": message, "update_count": True},
+        {**context, "row": row, "saved": not failed, "message": message, "update_count": True},
     )
 
 
-def _start_sheet_context(race, bound_form=None, bound_entry=None):
+def _start_sheet_context(race, bound_form=None, bound_entry=None, refused=""):
     racing = {race_entry.entry_id: race_entry for race_entry in race.race_entries.all()}
     recorded = set(race.finishes.values_list("entry_id", flat=True))
     rows = []
     for entry in race.series.entries.select_related("boat__owner"):
         race_entry = racing.get(entry.pk)
-        if bound_entry is not None and entry.pk == bound_entry.pk and bound_form.errors:
+        this_row = bound_entry is not None and entry.pk == bound_entry.pk
+        if this_row and bound_form is not None and bound_form.errors:
             form = bound_form
         else:
             form = StartSheetRowForm(
@@ -214,6 +220,7 @@ def _start_sheet_context(race, bound_form=None, bound_entry=None):
             "racing": race_entry is not None,
             "has_result": entry.pk in recorded,
             "can_email": notifications.has_owner_to_email(entry.boat),
+            "refused": refused if this_row else "",
         })
     return {"race": race, "rows": rows, "racing_count": len(racing), "entry_count": len(rows)}
 

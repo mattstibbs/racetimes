@@ -60,7 +60,10 @@ scores DNC, as today.
     show that boat as **Not recorded** instead of DNC. This applies to the
     committee's pages and the public ones (the series page, the boat page
     and the latest results on the home page). The race is already labelled
-    provisional there, because it can't be published yet.
+    provisional there, because it can't be published yet. On the public
+    tables it is shown as **NR**, with "NR: Not recorded" in a note under
+    the table, so the column fits a phone. *(Found when checking the pages
+    at 375 px.)*
   - **Publish results** and **Send updated results** are refused while any
     boat on the start sheet has nothing recorded. The page names the boats.
     A boat added after the race was published (one that was forgotten)

@@ -92,6 +92,14 @@ def test_unticking_a_boat_takes_it_off(client, committee, race_day, run_on_commi
     assert on_sheet(race) == []
 
 
+def test_unticking_ignores_whatever_is_left_in_persons_on_board(client, committee, race_day):
+    race, tern = race_day["race"], race_day["tern"]
+    start(race, tern, persons_on_board=3)
+    assert "Taken off" in tick(client, race, tern, racing=False, persons="3").content.decode()
+    assert "Saved; nothing changed." in tick(client, race, tern, racing=False, persons="0").content.decode()
+    assert on_sheet(race) == []
+
+
 def test_persons_on_board_can_be_changed_and_cleared(client, committee, race_day):
     race, tern = race_day["race"], race_day["tern"]
     start(race, tern, persons_on_board=3)
@@ -107,7 +115,6 @@ def test_persons_on_board_can_be_changed_and_cleared(client, committee, race_day
         (True, "0", "greater than or equal to 1"),
         (True, "100", "less than or equal to 99"),
         (True, "two", "Enter a whole number"),
-        (False, "3", "Tick Racing to record who is on board."),
     ],
 )
 def test_an_invalid_row_is_refused_and_saves_nothing(client, committee, race_day, racing, persons, error):
@@ -199,11 +206,15 @@ def test_an_empty_start_sheet_says_where_to_start(client, committee, race_day):
 
 def test_a_boat_with_a_result_cannot_be_taken_off(client, committee, race_day):
     race, tern = race_day["race"], race_day["tern"]
+    start(race, tern, persons_on_board=2)
     record(race, tern, "19:30:00")
-    html = tick(client, race, tern, racing=False).content.decode()
+    html = tick(client, race, tern, racing=False, persons="2").content.decode()
     assert "GBR7 Tern has a result recorded in this race" in html
     assert "correct its result to DNC" in html
+    assert "checked" in html and 'value="2"' in html  # shown as it really is
     assert on_sheet(race) == ["GBR7"]
+    page = client.post(row_url(race, tern), {}, follow=False)  # without HTMX: the page, with the error
+    assert "has a result recorded" in page.content.decode()
     # Saving the row without unticking it is still fine.
     assert "has-errors" not in tick(client, race, tern).content.decode()
 
@@ -278,7 +289,10 @@ def test_public_pages_show_not_recorded(client, sailed, page):
         url = reverse("results:series", args=[sailed["series"].pk]) + "?race=1"
     else:
         url = reverse("results:boat", args=[sailed["tern"].boat_id])
-    assert "Not recorded" in client.get(url).content.decode()
+    html = client.get(url).content.decode()
+    # Short in the table, to fit a phone, and spelled out underneath.
+    assert '<abbr title="Not recorded">NR</abbr>' in html
+    assert "NR: Not recorded." in html
 
 
 def test_the_finish_page_says_not_recorded_yet(client, committee, sailed):

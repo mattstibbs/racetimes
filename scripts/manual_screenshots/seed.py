@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import Group
 
-from races.models import Boat, BoatRequest, EntryRequest, Finish, Race, Series, SeriesEntry
+from races.models import Boat, BoatRequest, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
 from races.roles import COMMITTEE_GROUP
 from races.testing import make_member
 
@@ -58,11 +58,15 @@ entries = [SeriesEntry.objects.create(series=autumn, boat=boat)
 for number, day in [(1, 16), (2, 23), (3, 30)]:
     race = Race.objects.create(series=autumn, number=number, date=date(2026, 9, day), start_time=time(18, 30))
     for entry, finish in zip(entries, finishes[number]):
+        RaceEntry.objects.create(race=race, entry=entry)  # only a boat on the start sheet has a finish
         if finish:
             Finish.objects.create(race=race, entry=entry, finish_time=finish)
         else:
             Finish.objects.create(race=race, entry=entry, status="DNF")
-Race.objects.create(series=autumn, number=4, date=date(2026, 10, 7), start_time=time(18, 30))
+race_4 = Race.objects.create(series=autumn, number=4, date=date(2026, 10, 7), start_time=time(18, 30))
+# Race day for race 4: two boats ticked so far. The screenshots add a third.
+RaceEntry.objects.create(race=race_4, entry=entries[0], persons_on_board=3)
+RaceEntry.objects.create(race=race_4, entry=entries[2], persons_on_board=4)
 wednesdays = Series.objects.create(name="Wednesday Evenings")
 
 # One request of each kind, waiting.

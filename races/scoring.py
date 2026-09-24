@@ -64,6 +64,10 @@ class RaceResults:
     def for_entry(self, entry):
         return next(row for row in self.rows if row.entry.pk == entry.pk)
 
+    @property
+    def has_not_recorded(self):
+        return any(row.not_recorded for row in self.rows)
+
 
 @dataclass(frozen=True)
 class ScoreCell:
