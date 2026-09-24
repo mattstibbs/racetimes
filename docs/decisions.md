@@ -968,6 +968,32 @@ tracking changes a second time.
 
 ---
 
+## 2026-09-24 - Slice 4: how email is sent
+
+**Decision.**
+- Every email goes through `races/notifications.send`, which sends once the
+  database transaction commits, so a change that is rolled back emails
+  nobody. A sending failure is logged and shown as a warning on the page; the
+  change itself stands.
+- Publishing records `results_sent_at` only once every email has gone. A
+  failed send therefore leaves the race "published but not sent", and the
+  finish-entry page offers to send again.
+- Each owner gets their own message rather than one message to everyone, so
+  owners never see each other's addresses.
+- Emails are plain-text templates in `templates/emails/`, first line the
+  subject, with autoescaping off so names like "Wind & Water" arrive as
+  typed.
+- A request's email names the boat as it was when the member asked, so an
+  approved rename is reported as a change to the old name.
+
+**Consequence.** Emails are sent while the page request is handled, not by a
+background worker. For a club's series (tens of owners) that is a second or
+two; a much larger fleet would want a queue. The tests make "after commit"
+run immediately, as it does on the live site, except the rollback test, which
+uses Django's real deferral because that is what it checks.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

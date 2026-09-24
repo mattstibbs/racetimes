@@ -72,8 +72,8 @@ race of it from then on.
 ### Approving a request
 
 Press **Approve**. The change is made straight away, exactly as the member
-asked, and the request shows who approved it and when. The member sees that
-it was approved next time they look at their boats.
+asked, and the request shows who approved it and when. The member is emailed
+to say it was approved, with what changed, and sees it on their boats page too.
 
 Anything that affects results, such as a new NHC base number or a new entry
 in a series, is also recorded in the series' change history under your name.
@@ -104,7 +104,8 @@ required: the member sees it, and it tells them what to do next.
 
 ![A rejected request, showing who rejected it and the note to the member](../images/request-rejected.png)
 
-The member sees the decision and your note alongside their request:
+The member is emailed the decision with your note, and sees both alongside
+their request:
 
 ![The member's view of their rejected request and the committee's note](../images/member-request-status.png)
 
@@ -146,7 +147,7 @@ To approve them:
 2. Choose **Approve selected accounts** from the **Action** list.
 3. Press **Go**.
 
-They can log in straight away. There is no email yet, so let them know.
+They can log in straight away, and each is emailed to say their account is approved.
 
 To turn someone away, open their account and delete it.
 

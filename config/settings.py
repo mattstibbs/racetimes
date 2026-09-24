@@ -123,6 +123,23 @@ DATABASES = {
 }
 
 
+# Email (slice 4). With no EMAIL_HOST set, emails are printed to the console
+# instead of sent, which is what development wants; the tests use Django's
+# in-memory outbox whatever this says. Set EMAIL_HOST and friends to send
+# through a real mail server. See docs/deploying.md.
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+if EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '1') == '1'
+    EMAIL_TIMEOUT = 20  # seconds: a stuck mail server must not hang a page
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Race Times <noreply@example.com>')
+
+
 # One login page for everyone; see races/member_views.py.
 LOGIN_URL = 'races:login'
 LOGIN_REDIRECT_URL = 'races:my_boats'

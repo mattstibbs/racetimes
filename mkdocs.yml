@@ -20,5 +20,10 @@ validation:
 
 nav:
   - Introduction: index.md
+  - Getting started:
+      - Forgotten your password?: getting-started/forgotten-password.md
+  - Members:
+      - Emails you will receive: members/emails.md
   - Race committee:
+      - Publishing results: committee/publishing-results.md
       - Reviewing waiting requests: committee/reviewing-requests.md

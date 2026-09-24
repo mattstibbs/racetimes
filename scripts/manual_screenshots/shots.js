@@ -46,6 +46,29 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await rejected.waitFor();
   await shot(rejected, 'request-rejected.png');
 
+  // Publishing results: provisional, then published, then amended by a correction.
+  const publicPage = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
+  await publicPage.goto(`${BASE}/series/1/`);
+  await shot(publicPage.locator('#race-1'), 'results-provisional.png');
+  await officer.goto(`${BASE}/series/1/`);
+  await officer.click('#race-1 + p >> text=Enter finishes');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('#publishing'), 'publish-provisional.png');
+  await officer.click('#publishing button');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('.messages'), 'publish-sent.png');
+  const row = officer.locator('form.finish-row', { hasText: 'GBR 42' });
+  await row.locator('input[type=time]').fill('19:32:10');
+  await row.locator('input[name$="-reason"]').fill('Misread the finish sheet');
+  await row.locator('button').click();
+  const amended = officer.locator('#publishing', { hasText: 'Amended since results were sent' });
+  await amended.waitFor();
+  await shot(amended, 'publish-amended.png');
+
+  // Forgotten passwords.
+  await publicPage.goto(`${BASE}/accounts/password-reset/`);
+  await shot(publicPage.locator('body'), 'password-reset.png');
+
   // What the member sees.
   const sam = await logIn(browser, 'sam@example.com');
   await sam.goto(`${BASE}/my/boats/`);

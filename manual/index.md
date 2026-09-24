@@ -26,8 +26,20 @@ way every boat, entry and result has been checked by someone on the committee.
 
 ## Contents
 
+**Getting started**
+
+- [Forgotten your password?](getting-started/forgotten-password.md)
+
+**Members**
+
+- [Emails you will receive](members/emails.md): what the site emails you, and
+  when.
+
 **Race committee**
 
+- [Publishing results](committee/publishing-results.md): marking a race's
+  results final, emailing them to owners, and sending updated results after
+  corrections.
 - [Reviewing waiting requests](committee/reviewing-requests.md): finding out
   what is waiting for you, and approving or rejecting members' requests and
   new accounts.

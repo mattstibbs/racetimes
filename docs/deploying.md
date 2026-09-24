@@ -51,6 +51,37 @@ the same steps are in Render's own guide to deploying Django.
 - **The data** on the hosted site is separate from your laptop's. Nothing is
   copied either way.
 
+## Sending email
+
+The site emails results, account approvals, request decisions, boat changes
+and password resets (slice 4). Until email is set up, it prints them to the
+service's **Logs** instead of sending them, so nothing breaks, but nobody
+receives anything.
+
+To send real email, choose a provider and set these on the `racetimes`
+service, under **Environment**:
+
+| Variable | What it is |
+|---|---|
+| `EMAIL_HOST` | The provider's SMTP server, e.g. `smtp.example.com`. Setting this is what switches sending on. |
+| `EMAIL_PORT` | Usually `587`. |
+| `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | The login the provider gives you for SMTP. |
+| `EMAIL_USE_TLS` | `1` (the default) for port 587. |
+| `DEFAULT_FROM_EMAIL` | Who the emails come from, e.g. `Race Times <results@yourclub.org>`. It must be an address or domain the provider lets you send from. |
+
+Before choosing, check two things:
+
+- **Whether Render lets your plan send over SMTP.** Some hosts block outgoing
+  SMTP on free plans to stop spam. If yours does, choose a provider that
+  offers SMTP on a port Render allows, or ask to have an HTTP-API email
+  library added (a new dependency).
+- **The provider's free allowance.** A club series emails every owner after
+  each race, so 30 boats and 20 races is about 600 emails a season, plus
+  updates and account emails.
+
+After saving the variables, Render redeploys. To test, use **Forgotten your
+password?** on the login page with your own account's email address.
+
 ## Things to know about the free plans
 
 Free tiers change, so check Render's pricing page. When this was written:

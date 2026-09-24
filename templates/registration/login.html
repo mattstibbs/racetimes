@@ -10,5 +10,5 @@
   <button type="submit">Log in</button>
 </form>
 <p class="muted">No account yet? <a href="{% url 'races:signup' %}">Sign up</a>.
-  Forgotten your password? Ask the club's administrator to reset it.</p>
+  <a href="{% url 'races:password_reset' %}">Forgotten your password?</a></p>
 {% endblock %}

@@ -1,0 +1,14 @@
+{% autoescape off %}{% if approved %}Approved{% else %}Not approved{% endif %}: your request {{ what }}
+Hello {{ user.first_name|default:user.get_username }},
+
+{% if approved %}The race committee has approved your request {{ what }}.{% else %}The race committee has not approved your request {{ what }}.{% endif %}
+{% if details %}
+{% if approved %}{% if member_request.kind == "CHANGE" %}What changed:{% else %}The details recorded:{% endif %}{% else %}What you asked for:{% endif %}
+{% for row in details %}  {{ row.label }}: {% if member_request.kind == "CHANGE" %}{{ row.current|default:"(none)" }} -> {{ row.proposed|default:"(none)" }}{% else %}{{ row.proposed|default:"(none)" }}{% endif %}
+{% endfor %}{% endif %}{% if member_request.committee_note %}
+The race committee's note:
+  {{ member_request.committee_note }}
+{% endif %}
+You can see all your boats and requests here:
+{{ boats_url }}
+{% endautoescape %}

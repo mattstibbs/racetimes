@@ -48,7 +48,7 @@
 
 {% for section in sections %}
 {% with race=section.race race_results=section.results %}
-<h2 id="race-{{ race.number }}">Race {{ race.number }}</h2>
+<h2 id="race-{{ race.number }}">Race {{ race.number }}{% if race_results and not race.published_at %} <span class="provisional">Provisional</span>{% endif %}</h2>
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
   {% if section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}

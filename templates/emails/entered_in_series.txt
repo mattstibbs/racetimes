@@ -1,0 +1,8 @@
+{% autoescape off %}{{ entry.boat }} is entered in {{ entry.series }}
+Hello {{ user.first_name|default:user.get_username }},
+
+The race committee has entered your boat, {{ entry.boat }}, in {{ entry.series }}. It is scored in every race of the series from now on.
+
+The series' results:
+{{ results_url }}
+{% endautoescape %}
