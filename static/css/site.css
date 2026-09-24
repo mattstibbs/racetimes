@@ -159,6 +159,7 @@ ul.messages li.info { background: var(--accent-soft); border-left-color: var(--a
 .card.saved { background: var(--ok-bg); border-color: var(--ok); }
 .card.publishing { border-left: 4px solid var(--accent); }
 .card.publishing p { margin-top: 0; }
+.card.publishing form > :last-child { margin-bottom: 0; }
 table.proposed { width: auto; box-shadow: none; }
 tr.changed td { font-weight: 600; background: var(--warn-bg); }
 form.decision input { width: 100%; max-width: 30rem; margin-top: 0.25rem; }
@@ -317,7 +318,9 @@ details.finish-form .figures { flex-basis: 100%; }
   .racing-row { grid-template-columns: 1fr auto; }
   .racing-row .boat { grid-column: 1 / -1; }
   .racing-row form.tap button.finished { width: 100%; }
-  .finished-row { grid-template-columns: 1.75rem 1fr auto; }
+  /* Boat on the first line; time, Undo and Edit on the second. */
+  .finished-row { grid-template-columns: 1.75rem 1fr auto auto; }
+  .finished-row .boat { grid-column: 2 / -1; }
   .finished-row .time { grid-column: 2 / 3; }
   .race-clock strong { font-size: 1.25rem; }
 }
