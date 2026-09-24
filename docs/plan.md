@@ -246,3 +246,12 @@ fits a phone.
 A start sheet for every race: the committee records which boats in the
 series are racing (the brief's user journey 3). Owners are emailed when their
 boat is put on or taken off a start sheet, or removed from a series.
+
+## Slice 7: visual styling. **Status: planned (2026-09-24)**
+
+Spec: `docs/slices/07-visual-styling.md`. No data model changes.
+
+A clean, simple, modern look for every page of the site: neutral nautical
+colours, the device's own font, light only, and the Django admin left as it
+is. Pure CSS from one stylesheet built on design tokens, with no framework,
+JavaScript or new dependency. How pages behave doesn't change.
