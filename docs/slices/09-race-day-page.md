@@ -126,6 +126,10 @@ exception)*
     clock is wrong.
 - **Without JavaScript,** the clock shows the time the page was loaded and
   doesn't tick. Everything else works the same.
+- **Only on the race's own date.** On any other day, the page shows no clock
+  and doesn't load the script. If the page is left open past midnight, the
+  script hides the clock once the site's date moves on. *(Asked for by the
+  project owner after the slice was merged.)*
 - **Recorded in `docs/decisions.md`** as the project owner's approved
   exception to "avoid JavaScript".
 
