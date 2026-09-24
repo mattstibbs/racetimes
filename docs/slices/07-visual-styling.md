@@ -36,8 +36,9 @@ point its members at. How pages behave stays exactly as it is.
   - Every class, id and `hx-` attribute that HTMX, the tests or the
     screenshot script relies on stays as it is.
 - **A small favicon**: an SVG sail in the accent colour, stored in `static/`.
-  It gives the browser tab something better than a blank page. *(My
-  suggestion; a one-file asset, not a dependency. Easy to drop.)*
+  It gives the browser tab something better than a blank page, and doubles
+  as the mark beside the site's name. *(My suggestion, which the project
+  owner went ahead with; a one-file asset, not a dependency.)*
 
 ### What changes on screen
 - **Header:** the site name ("Race Times") on the navy band, with the

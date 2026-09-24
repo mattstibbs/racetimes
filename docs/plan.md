@@ -247,11 +247,41 @@ A start sheet for every race: the committee records which boats in the
 series are racing (the brief's user journey 3). Owners are emailed when their
 boat is put on or taken off a start sheet, or removed from a series.
 
-## Slice 7: visual styling. **Status: planned (2026-09-24)**
+## Slice 7: visual styling. **Status: complete (2026-09-24)**
 
-Spec: `docs/slices/07-visual-styling.md`. No data model changes.
+Acceptance criteria, from `docs/slices/07-visual-styling.md`:
+
+- [x] Every page uses the new styles, checked in headless Chromium at
+      1000 px and 375 px as the role that sees it. No page scrolls
+      sideways at 375 px, and the boat page's results table now fits its
+      box.
+- [x] Behaviour is unchanged: every existing test passes with no change to
+      what it asserts, and the same page checks pass with JavaScript off.
+- [x] Every colour is a token. `races/test_styles.py` checks 38 text and
+      background pairs against WCAG AA, and that no colour is written
+      outside `:root`.
+- [x] Every link, button and field reached with the keyboard shows a focus
+      outline, checked by tabbing through each role's first page.
+- [x] Buttons, race buttons and header links are at least 44 px tall at
+      375 px.
+- [x] Pages load only the site's own files, and the error page loads
+      nothing; tested.
+- [x] The Django admin and the emails are unchanged.
+- [x] Every manual screenshot is regenerated. The manual's descriptions of
+      how things look (the blue next-handicap box, a saved row turning
+      green) still hold.
+
+Manual check: screenshots of every page at both widths, as the public, a
+member and the committee, with JavaScript on and off.
+
+Found while checking: the base input style sat above each form's own
+sizes, so it now lives in `:where()`. The finish time box was widened for
+browsers that show a 12-hour clock with seconds.
+
+Still true on a phone: the "My requests" table on My boats has five text
+columns, so it scrolls sideways inside its own box, as wide tables are
+designed to. The page itself does not.
 
 A clean, simple, modern look for every page of the site: neutral nautical
 colours, the device's own font, light only, and the Django admin left as it
-is. Pure CSS from one stylesheet built on design tokens, with no framework,
-JavaScript or new dependency. How pages behave doesn't change.
+is.
