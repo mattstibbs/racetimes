@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Enter {{ boat }} in a series - Race Times{% endblock %}
+{% block content %}
+<h1>Enter {{ boat }} in a series</h1>
+{% if form.fields.series.queryset.exists %}
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Send to the race committee</button>
+</form>
+{% else %}
+<p class="muted">There are no series this boat isn't already in or waiting to join.</p>
+{% endif %}
+<p><a href="{% url 'races:my_boats' %}">Back to my boats</a></p>
+{% endblock %}

@@ -1,0 +1,10 @@
+<tr>
+  <td>{{ r.created_at|date:"j M Y" }}</td>
+  <td>{{ label }}</td>
+  <td>{{ r.get_status_display }}</td>
+  <td>{{ r.committee_note }}</td>
+  <td>{% if r.is_pending %}
+    <form method="post" action="{% url 'races:withdraw_request' kind r.pk %}">{% csrf_token %}
+      <button type="submit" class="link">Withdraw</button>
+    </form>{% endif %}</td>
+</tr>

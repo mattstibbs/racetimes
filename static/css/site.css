@@ -20,3 +20,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .amended { color: #8a5a00; }
 .note { background: #fff8e5; border-left: 3px solid #d9a400; padding: 0.5rem 0.75rem; }
 @media (max-width: 40rem) { .finish-row { grid-template-columns: 1fr 1fr; } }
+nav form.inline { display: inline; }
+button.link { background: none; border: none; padding: 0; color: #0b5cad; text-decoration: underline; cursor: pointer; font: inherit; }
+ul.messages { list-style: none; padding: 0.5rem 0.75rem; background: #eef6ee; border-left: 3px solid #3a8a3a; }
+form.stacked input:not([type=checkbox]), form.stacked select, form.stacked textarea { width: 100%; max-width: 24rem; box-sizing: border-box; }
+form.stacked .helptext { display: block; color: #666; font-size: 0.85rem; }
+.card { border: 1px solid #e3e3e3; border-radius: 4px; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+.card h2, .card h3 { margin: 0.25rem 0; }
+.card.has-errors { background: #fff4f4; }
+.card.saved { background: #f2faf2; }
+table.proposed { width: auto; }
+tr.changed td { font-weight: 600; background: #fff8e5; }
+form.decision input { width: 100%; max-width: 30rem; box-sizing: border-box; }

@@ -845,6 +845,82 @@ Render redirects to HTTPS already, and HSTS is hard to undo on a test site.
 
 ---
 
+## 2026-09-24 - Slice 3: four roles, and members change nothing directly
+
+**Context.** Slice 3 brings accounts. The plan asked for the role rules to be
+written into the brief first; six questions were settled with the project
+owner before any code.
+
+**Decision.**
+- Four roles: the public, members, race committee and administrator. Only the
+  administrator (a superuser) manages accounts, approves them included; the
+  committee is staff in a "Race committee" group granted the racing models and
+  nothing about users, so it cannot give itself more access.
+- Members sign themselves up with their email as the login, and the account is
+  inactive until the administrator approves it. No email is needed for this,
+  which matters because email arrives in slice 4.
+- A boat has at most one owning account, set only by the committee.
+  `owner_name` stays for boats with none.
+- Every member action is a request the committee approves or rejects: boat
+  registration, any change to a boat (details included, not only the base
+  number), a claim to own a boat already on record, and series entry.
+
+**Consequence.** Nothing a member types reaches a boat, an entry or a result
+without a committee member's approval, and approvals go through the same
+audited code as the admin, so slice 2's change history stays complete and
+every change in it has a committee member's name on it. The cost is committee
+workload, including approving harmless detail changes such as a boat's name;
+that was chosen deliberately over letting members edit details directly.
+Co-owners cannot act for a boat; moving from one owner to several later is a
+small migration.
+
+---
+
+## 2026-09-24 - Slice 3: how the roles are enforced
+
+**Decision.**
+- The committee is staff *in the "Race committee" group*, checked by
+  `races/roles.py`. Staff status alone no longer opens the committee pages:
+  the group is what grants the racing parts of the admin, so without it a
+  staff account would reach pages whose admin it cannot use.
+- The login says an account is waiting for approval only when the password is
+  right, so it never reveals which emails have signed up. It does this in the
+  form rather than with Django's backend that lets inactive accounts log in,
+  because that backend would also keep a *deactivated* person's existing
+  session alive.
+- A boat's owner is chosen in the admin from a plain list of active accounts,
+  not Django's search box, which needs permission to browse accounts - a
+  permission the committee deliberately does not have.
+- Requests are read-only in the admin. Changing a request's status there would
+  not apply it; only the Requests page does.
+- Approving claims the request with a conditional update inside the same
+  transaction, so a double click or two committee members cannot both apply
+  it, and a failed approval leaves it pending. Everything is validated again
+  at approval, in case the boat or series changed since the member asked.
+- A member trying another member's boat or request gets a 404, not a 403, so
+  the site does not confirm it exists.
+
+**Consequence.** Any existing committee login that is staff but not a
+superuser must be added to the Race committee group after this deploys, or it
+loses the finish-entry and history pages. `docs/deploying.md` says how.
+
+---
+
+## 2026-09-24 - History labels keep their capitals from now on
+
+**Context.** The change history labelled fields with Python's
+`str.capitalize()`, which lowercases everything after the first letter, so rows
+read "Nhc base number" and "Use rrs a5.3" while the rest of the site says
+"NHC base number" and "Use RRS A5.3".
+
+**Decision.** New rows use Django's `capfirst`, which changes only the first
+letter. Rows already recorded are shown as stored; the project owner chose not
+to translate the old spellings.
+
+**Consequence.** History recorded before this change keeps the old spelling.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

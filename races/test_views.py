@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from races.models import Finish, Series
-from races.testing import enter, make_boat, make_race, make_series, record
+from races.testing import enter, make_boat, make_committee, make_race, make_series, record
 
 pytestmark = pytest.mark.django_db
 
@@ -24,9 +24,9 @@ def race_night():
 
 
 @pytest.fixture
-def staff_client(client, django_user_model):
-    user = django_user_model.objects.create_user("officer", is_staff=True)
-    client.force_login(user)
+def staff_client(client):
+    """Logged in as the race committee: staff, in the Race committee group."""
+    client.force_login(make_committee())
     return client
 
 
@@ -100,7 +100,7 @@ def test_finish_entry_needs_staff(client, race_night):
     _, race, a, _ = race_night
     response = client.get(reverse("races:finish_entry", args=[race.pk]))
     assert response.status_code == 302
-    assert "/admin/login/" in response["Location"]
+    assert response["Location"].startswith(reverse("races:login"))
     response = client.post(save_url(race, a), row_data(a, "19:10:00"))
     assert response.status_code == 302
     assert Finish.objects.get(entry=a).finish_time.isoformat() == "19:00:00"

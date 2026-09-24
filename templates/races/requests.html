@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Requests - Race Times{% endblock %}
+{% block content %}
+<h1>Requests from members</h1>
+<p class="muted">Oldest first. Approving applies exactly what was asked and records
+  it in the change history under your name.</p>
+{% for row in pending %}
+  {% include "races/_request_row.html" %}
+{% empty %}
+  <p class="muted">Nothing waiting.</p>
+{% endfor %}
+
+{% if decided %}
+<h2>Recently decided</h2>
+{% for row in decided %}
+  {% include "races/_request_row.html" %}
+{% endfor %}
+{% endif %}
+{% endblock %}

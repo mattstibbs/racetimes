@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import time
 
 from django.utils import timezone
+from django.utils.text import capfirst
 
 from .models import Boat, Finish, Race, ScoringChange, Series, SeriesEntry
 
@@ -134,7 +135,9 @@ def _describe(obj):
 
 
 def _label(obj, name):
-    return str(obj._meta.get_field(name).verbose_name).capitalize()
+    # capfirst, not str.capitalize: only the first letter changes, so
+    # "NHC base number" and "use RRS A5.3" keep their capitals.
+    return capfirst(str(obj._meta.get_field(name).verbose_name))
 
 
 def _display(obj, name):

@@ -102,7 +102,33 @@ without colliding. See the two newest entries in `docs/decisions.md`.
 
 Editing a finish and seeing everything downstream recalculate, with a history of what changed and who changed it. Race committees will need this on day one of real use, so it's worth doing early.
 
-## Slice 3: member self-service. 
+## Slice 3: member self-service. **Status: complete (2026-09-24)**
+
+Acceptance criteria, from `docs/slices/03-member-self-service.md`:
+
+- [x] Someone can sign up and cannot log in until the administrator approves
+      the account, and is told why - but only if they give the right
+      password, so the login never reveals which emails have signed up.
+- [x] A member can register a boat, request a change, claim a boat on record
+      and request a series entry, and see each request's status and note.
+      None of these changes anything until approved.
+- [x] The committee approves or rejects each kind. Approving applies exactly
+      what was asked, records it in the change history under the committee
+      member's name, and needs a reason where it is a correction. A request is
+      decided once, and is validated again at approval time.
+- [x] A member sees and acts on only their own boats and requests, tested by
+      trying another member's by URL (a 404, not a 403).
+- [x] The committee cannot see or change accounts or groups; the
+      administrator can.
+- [x] Every page is tested as each of the four roles (`races/test_roles.py`).
+- [x] Migrations use nothing database-specific. The app's tests were also run
+      against PostgreSQL 16 by hand; CI runs SQLite only.
+
+Manual check: in headless Chromium, signed up, was told to wait, approved the
+account as the administrator, registered a boat and asked to enter a series as
+the member, approved both as the committee, and checked the committee's admin
+has no accounts section.
+
 Accounts for members, boat registration requests, and series entry. This is where auth and permissions appear, so write the role rules into the brief before starting it.
 
 ## Slice 4: notifications. 

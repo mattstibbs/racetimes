@@ -2,6 +2,8 @@ import json
 
 from django.contrib import admin, messages
 from django.contrib.admin.models import LogEntry
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
@@ -15,7 +17,7 @@ from .forms import (
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, Race, Series, SeriesEntry
+from .models import Boat, BoatRequest, EntryRequest, Race, Series, SeriesEntry
 from .scoring import score_series
 
 # The admin wraps each save in a transaction, so a change and its history rows
@@ -51,8 +53,21 @@ class ReasonInAdminHistoryMixin:
 @admin.register(Boat)
 class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
-    list_display = ["sail_number", "name", "make", "model", "base_number", "owner_name"]
-    search_fields = ["sail_number", "name", "owner_name"]
+    list_display = ["sail_number", "name", "make", "model", "base_number", "owner_display"]
+    search_fields = ["sail_number", "name", "owner_name", "owner__first_name", "owner__last_name"]
+
+    @admin.display(description="Owner")
+    def owner_display(self, boat):
+        return boat.owner_display
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # A plain list of active accounts. Django's search box would need
+        # permission to browse accounts, which the committee does not have.
+        if db_field.name == "owner":
+            kwargs["queryset"] = get_user_model().objects.filter(is_active=True).order_by(
+                "first_name", "last_name"
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         series_list = list(Series.objects.filter(entries__boat=obj).distinct()) if change else []
@@ -154,3 +169,59 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
         if form.scoring_before is not None and audit.needs_reason(form.recorded):
             effect = audit.describe_effect(form.scoring_before, score_series(form.instance))
             messages.info(request, f"Correction recorded. {effect}")
+
+
+# --- Members' requests: read-only here, decided on the Requests page ----------
+
+
+class RequestAdmin(admin.ModelAdmin):
+    list_filter = ["status"]
+    readonly_fields = ["decided_by"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # Deciding a request applies it; changing its status here would not.
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        messages.info(request, format_html(
+            'Requests are approved or rejected on the <a href="{}">Requests page</a>.',
+            reverse("races:requests"),
+        ))
+        return super().changelist_view(request, extra_context)
+
+
+@admin.register(BoatRequest)
+class BoatRequestAdmin(RequestAdmin):
+    list_display = ["created_at", "kind", "boat", "sail_number", "requested_by", "status", "decided_by_name"]
+
+
+@admin.register(EntryRequest)
+class EntryRequestAdmin(RequestAdmin):
+    list_display = ["created_at", "boat", "series", "requested_by", "status", "decided_by_name"]
+
+
+# --- Accounts: the administrator's alone -------------------------------------
+
+User = get_user_model()
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class MemberAccountAdmin(UserAdmin):
+    """Django's own account admin, plus approving sign-ups in one step.
+
+    Only the administrator (a superuser) reaches it: the Race committee group
+    has no permissions on accounts.
+    """
+
+    list_display = ["username", "first_name", "last_name", "is_active", "is_staff", "date_joined"]
+    list_filter = ["is_active", "is_staff", "is_superuser", "groups"]
+    actions = ["approve_accounts"]
+
+    @admin.action(description="Approve selected accounts")
+    def approve_accounts(self, request, queryset):
+        count = queryset.filter(is_active=False).update(is_active=True)
+        self.message_user(request, f"{count} account{'s' if count != 1 else ''} approved.")

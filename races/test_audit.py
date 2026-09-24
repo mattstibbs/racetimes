@@ -173,7 +173,7 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
         ("series_type", "REGATTA", "Series type", "Club series", "Regatta"),
         ("discards", "0", "Discards", "1", "0"),
         ("minimum_finishers", "3", "Minimum finishers", "0", "3"),
-        ("apply_a5_3", "on", "Use rrs a5.3", "No", "Yes"),
+        ("apply_a5_3", "on", "Use RRS A5.3", "No", "Yes"),
     ],
 )
 def test_series_settings_are_recorded(staff_client, sailed, field, value, label, old, new):
@@ -244,7 +244,7 @@ def test_a_base_number_is_recorded_in_every_series_the_boat_is_in(staff_client, 
     post_boat(staff_client, boat, base_number="0.960", reason="New certificate")
     changes = ScoringChange.objects.all()
     assert {c.series for c in changes} == {series, other}
-    assert all(c.changes == {"Nhc base number": ["0.950", "0.960"]} for c in changes)
+    assert all(c.changes == {"NHC base number": ["0.950", "0.960"]} for c in changes)
     # Only the series that has results is being corrected.
     assert {c.series: c.is_correction for c in changes} == {series: True, other: False}
 
@@ -654,3 +654,15 @@ def test_admin_history_without_a_reason_says_nothing_about_one(staff_client, uns
     message = admin_log_message(series)
     assert "Discards" in message
     assert "Reason" not in message
+
+
+
+# --- Labels ------------------------------------------------------------------
+
+
+def test_history_labels_keep_their_capitals(staff_client, sailed):
+    series, _, entries = sailed
+    post_boat(staff_client, entries[0].boat, base_number="0.960", reason="New certificate")
+    post_series(staff_client, series, reason="Notice of race", apply_a5_3="on")
+    labels = {label for change in ScoringChange.objects.all() for label in change.changes}
+    assert labels == {"NHC base number", "Use RRS A5.3"}

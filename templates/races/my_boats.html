@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}My boats - Race Times{% endblock %}
+{% block content %}
+<h1>My boats</h1>
+<p class="muted">Changes to your boats and entries go to the race committee, who
+  approve or reject them. Nothing changes until they do.</p>
+
+{% for boat in boats %}
+<section class="card">
+  <h2>{{ boat }}</h2>
+  <p class="muted">
+    {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
+    NHC base number {{ boat.base_number }}.
+  </p>
+  <p>
+    {% for entry in boat.series_entries.all %}{% if forloop.first %}Entered in: {% endif %}<a href="{% url 'races:series_results' entry.series.pk %}">{{ entry.series }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="muted">Not entered in any series.</span>{% endfor %}
+  </p>
+  <p>
+    {% if boat.pk in pending_boats %}
+      <span class="muted">A request for this boat is waiting for the race committee.</span>
+    {% else %}
+      <a href="{% url 'races:change_boat' boat.pk %}">Request a change</a> &middot;
+    {% endif %}
+    <a href="{% url 'races:enter_series' boat.pk %}">Enter a series</a>
+  </p>
+</section>
+{% empty %}
+<p class="muted">You have no boats recorded yet.</p>
+{% endfor %}
+<p><a href="{% url 'races:register_boat' %}">Register a boat</a></p>
+
+<h2>My requests</h2>
+{% if boat_requests or entry_requests %}
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Asked</th><th>Request</th><th>Status</th><th>Race committee's note</th><th></th></tr></thead>
+  <tbody>
+    {% for r in boat_requests %}
+      {% include "races/_my_request_row.html" with kind="boat" label=r %}
+    {% endfor %}
+    {% for r in entry_requests %}
+      {% include "races/_my_request_row.html" with kind="entry" label=r %}
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">None yet.</p>
+{% endif %}
+{% endblock %}

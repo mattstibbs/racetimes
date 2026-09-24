@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Sign up - Race Times{% endblock %}
+{% block content %}
+<h1>Sign up</h1>
+<p>Club members can register their boats and enter series here. Your account
+  is checked by the club's administrator before you can log in.</p>
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Sign up</button>
+</form>
+{% endblock %}
