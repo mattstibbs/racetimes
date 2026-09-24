@@ -50,6 +50,32 @@ It will also expose all of the race and yacht data via a very simple to use API.
 - Handicap adjustment for boats that don't finish is configurable per series: adjusted / not adjusted.
 
 
+### Roles and permissions
+Agreed with the project owner on 2026-09-24, before slice 3.
+
+| Can… | Public | Member | Race committee | Administrator |
+|---|:-:|:-:|:-:|:-:|
+| See results and standings | ✓ | ✓ | ✓ | ✓ |
+| Sign up for an account | ✓ | | | |
+| Request a boat registration, a change to their own boat, ownership of a boat already on record, or a series entry; see and withdraw their own requests | | ✓ | ✓ | ✓ |
+| Approve or reject those requests; set up boats, series and races; enter finishes; see the change history | | | ✓ | ✓ |
+| Approve new member accounts; make someone race committee; reset passwords | | | | ✓ |
+
+- **Accounts are people, not boats.** A member signs up with their email
+  address, which is also their login. A new account cannot log in until the
+  administrator approves it.
+- **A boat has at most one owning account.** Only the race committee sets or
+  changes it. A boat with no owning account (a visitor, say) shows its typed
+  owner name.
+- **Members change nothing directly.** Every registration, change to a boat,
+  claim of ownership and series entry is a request that the race committee
+  approves or rejects, so nothing a member types reaches a boat or a result
+  without a committee member's say-so.
+- **The race committee cannot manage people**, including giving themselves
+  more access. That is the administrator's alone.
+- Until email exists (slice 4), a forgotten password is reset by the
+  administrator.
+
 ### Source of truth
 - NHC calculation: docs/reference/RYA_nhc_calculation_spec.md. Where Claude's
   understanding conflicts with these documents, the documents win.

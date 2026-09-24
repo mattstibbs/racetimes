@@ -845,6 +845,37 @@ Render redirects to HTTPS already, and HSTS is hard to undo on a test site.
 
 ---
 
+## 2026-09-24 - Slice 3: four roles, and members change nothing directly
+
+**Context.** Slice 3 brings accounts. The plan asked for the role rules to be
+written into the brief first; six questions were settled with the project
+owner before any code.
+
+**Decision.**
+- Four roles: the public, members, race committee and administrator. Only the
+  administrator (a superuser) manages accounts, approves them included; the
+  committee is staff in a "Race committee" group granted the racing models and
+  nothing about users, so it cannot give itself more access.
+- Members sign themselves up with their email as the login, and the account is
+  inactive until the administrator approves it. No email is needed for this,
+  which matters because email arrives in slice 4.
+- A boat has at most one owning account, set only by the committee.
+  `owner_name` stays for boats with none.
+- Every member action is a request the committee approves or rejects: boat
+  registration, any change to a boat (details included, not only the base
+  number), a claim to own a boat already on record, and series entry.
+
+**Consequence.** Nothing a member types reaches a boat, an entry or a result
+without a committee member's approval, and approvals go through the same
+audited code as the admin, so slice 2's change history stays complete and
+every change in it has a committee member's name on it. The cost is committee
+workload, including approving harmless detail changes such as a boat's name;
+that was chosen deliberately over letting members edit details directly.
+Co-owners cannot act for a boat; moving from one owner to several later is a
+small migration.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

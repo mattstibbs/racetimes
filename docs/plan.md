@@ -102,7 +102,7 @@ without colliding. See the two newest entries in `docs/decisions.md`.
 
 Editing a finish and seeing everything downstream recalculate, with a history of what changed and who changed it. Race committees will need this on day one of real use, so it's worth doing early.
 
-## Slice 3: member self-service. 
+## Slice 3: member self-service. **Status: specced (2026-09-24), awaiting data model approval.** Spec: `docs/slices/03-member-self-service.md`
 Accounts for members, boat registration requests, and series entry. This is where auth and permissions appear, so write the role rules into the brief before starting it.
 
 ## Slice 4: notifications. 
