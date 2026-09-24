@@ -1111,6 +1111,27 @@ manual screenshot changes, so the whole manual is regenerated in this slice.
 
 ---
 
+## 2026-09-24 - Slice 8: other handicap systems, worked out by hand
+
+**Context.** The project owner chose "support for other scoring systems" as
+slice 8, meaning other handicap systems, not other points systems.
+
+**Decision.** Agreed with the project owner:
+- A series chooses one handicap system: NHC (the default, and every
+  existing series), Portsmouth Yardstick or RYA YTC. RRS Appendix A scoring
+  is shared by all three.
+- No reference documents or worked examples exist in the repo for PY or YTC.
+  The spec is written from the published rules, and its worked examples are
+  worked by hand and checked by the project owner before they become
+  fixtures. The engine is never used to produce them.
+
+Proposed, and waiting for the project owner (see the spec's open
+questions): the data model, the YTC formula and number format, whether
+corrected times are rounded before ranking, and the default for new series.
+The engine keeps the name `nhc` rather than being renamed.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

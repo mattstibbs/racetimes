@@ -285,3 +285,13 @@ designed to. The page itself does not.
 A clean, simple, modern look for every page of the site: neutral nautical
 colours, the device's own font, light only, and the Django admin left as it
 is.
+
+## Slice 8: other handicap systems. **Status: planning (2026-09-24)**
+
+Spec: `docs/slices/08-handicap-systems.md`. Proposes data model changes,
+pending the project owner's approval, and has open questions to answer
+before building.
+
+A series chooses its handicap system: NHC as today, Portsmouth Yardstick or
+RYA YTC. PY and YTC are fixed numbers, so nothing moves after a race. Places,
+points and standings are RRS Appendix A under all three.
