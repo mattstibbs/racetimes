@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import time
 
 from django.utils import timezone
+from django.utils.text import capfirst
 
 from .models import Boat, Finish, Race, ScoringChange, Series, SeriesEntry
 
@@ -134,7 +135,24 @@ def _describe(obj):
 
 
 def _label(obj, name):
-    return str(obj._meta.get_field(name).verbose_name).capitalize()
+    # capfirst, not str.capitalize: only the first letter changes, so
+    # "NHC base number" and "use RRS A5.3" keep their capitals.
+    return capfirst(str(obj._meta.get_field(name).verbose_name))
+
+
+# Rows recorded before the fix above spelled some labels differently. History
+# is never edited, so they are translated when shown instead of rewritten.
+LEGACY_LABELS = {
+    str(model._meta.get_field(name).verbose_name).capitalize(): _label(model, name)
+    for model, names in AUDITED_FIELDS.items()
+    for name in names
+    if str(model._meta.get_field(name).verbose_name).capitalize() != _label(model, name)
+}
+
+
+def display_changes(change):
+    """A recorded change's field-by-field old and new values, labelled as today."""
+    return [(LEGACY_LABELS.get(label, label), values) for label, values in change.changes.items()]
 
 
 def _display(obj, name):

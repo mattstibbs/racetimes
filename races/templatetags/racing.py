@@ -10,6 +10,14 @@ register = template.Library()
 
 
 @register.filter
+def history_changes(change):
+    """A ScoringChange's fields and values, with any old label spellings fixed."""
+    from races.audit import display_changes
+
+    return display_changes(change)
+
+
+@register.filter
 def hms(seconds):
     """Seconds as h:mm:ss, rounded to the whole second. Blank for None."""
     if seconds is None:

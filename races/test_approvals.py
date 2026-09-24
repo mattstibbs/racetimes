@@ -129,7 +129,7 @@ def test_a_base_number_change_in_a_sailed_series_needs_a_reason(client, committe
     assert (change_row.is_correction, change_row.reason, change_row.user, change_row.series) == (
         True, "New RYA certificate", committee, series,
     )
-    assert change_row.changes == {"Nhc base number": ["0.805", "0.812"]}
+    assert change_row.changes == {"NHC base number": ["0.805", "0.812"]}
     assert "Autumn 2026:" in response.content.decode()  # says what moved
 
 

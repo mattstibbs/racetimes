@@ -906,6 +906,23 @@ loses the finish-entry and history pages. `docs/deploying.md` says how.
 
 ---
 
+## 2026-09-24 - Old history labels are corrected on display, not rewritten
+
+**Context.** The change history labelled fields with Python's
+`str.capitalize()`, which lowercases everything after the first letter, so rows
+read "Nhc base number" and "Use rrs a5.3" while the rest of the site says
+"NHC base number" and "Use RRS A5.3".
+
+**Decision.** New rows use Django's `capfirst`, which changes only the first
+letter. Rows already recorded keep what they stored; the history page maps
+the two old spellings to today's when it shows them (`audit.LEGACY_LABELS`).
+
+**Consequence.** The history stays as it was written, in keeping with its
+never-edited rule, and reads consistently. Anything reading the stored
+`changes` directly (none today) would still see the old spellings on old rows.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

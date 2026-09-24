@@ -173,7 +173,7 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
         ("series_type", "REGATTA", "Series type", "Club series", "Regatta"),
         ("discards", "0", "Discards", "1", "0"),
         ("minimum_finishers", "3", "Minimum finishers", "0", "3"),
-        ("apply_a5_3", "on", "Use rrs a5.3", "No", "Yes"),
+        ("apply_a5_3", "on", "Use RRS A5.3", "No", "Yes"),
     ],
 )
 def test_series_settings_are_recorded(staff_client, sailed, field, value, label, old, new):
@@ -244,7 +244,7 @@ def test_a_base_number_is_recorded_in_every_series_the_boat_is_in(staff_client, 
     post_boat(staff_client, boat, base_number="0.960", reason="New certificate")
     changes = ScoringChange.objects.all()
     assert {c.series for c in changes} == {series, other}
-    assert all(c.changes == {"Nhc base number": ["0.950", "0.960"]} for c in changes)
+    assert all(c.changes == {"NHC base number": ["0.950", "0.960"]} for c in changes)
     # Only the series that has results is being corrected.
     assert {c.series: c.is_correction for c in changes} == {series: True, other: False}
 
@@ -654,3 +654,27 @@ def test_admin_history_without_a_reason_says_nothing_about_one(staff_client, uns
     message = admin_log_message(series)
     assert "Discards" in message
     assert "Reason" not in message
+
+
+
+# --- Labels ------------------------------------------------------------------
+
+
+def test_labels_keep_their_capitals():
+    assert audit.LEGACY_LABELS == {
+        "Nhc base number": "NHC base number",
+        "Use rrs a5.3": "Use RRS A5.3",
+    }
+
+
+def test_the_history_page_shows_old_rows_with_todays_labels(staff_client, sailed):
+    """Rows recorded before the label fix are shown corrected, and left as stored."""
+    series, _, _ = sailed
+    old = ScoringChange.objects.create(
+        series=series, kind="BOAT", action="CHANGED", description="GBR1 Serendipity",
+        changes={"Nhc base number": ["0.950", "0.960"]}, user_name="officer",
+    )
+    page = staff_client.get(reverse("races:series_history", args=[series.pk])).content.decode()
+    assert "NHC base number" in page and "Nhc base number" not in page
+    old.refresh_from_db()
+    assert old.changes == {"Nhc base number": ["0.950", "0.960"]}
