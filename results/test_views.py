@@ -428,3 +428,11 @@ def test_no_page_shows_an_owner_s_name(client):
     ]
     for page in pages:
         assert "Jones" not in page and "Visitor" not in page
+
+
+def test_find_a_boat_comes_last_on_the_home_page(client, three_races):
+    """The latest results and every series come first; the search is at the bottom."""
+    page = client.get(reverse("results:home")).content.decode()
+    assert page.index('id="latest-results"') < page.index('id="all-series"') < page.index('id="find-a-boat"')
+    # Without JavaScript a search reloads the page; the fragment brings it back down to the matches.
+    assert 'action="/#find-a-boat"' in page

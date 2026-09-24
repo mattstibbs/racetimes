@@ -66,6 +66,11 @@ point its members at. How pages behave stays exactly as it is.
   especially. It is still part of the section HTMX swaps, so choosing a
   boat highlights it in the tables above. *(Asked for by the project owner
   while building.)*
+- **"Find a boat" moves to the bottom of the home page**, after the latest
+  results and every series, so the results come first. A search without
+  JavaScript reloads the page, so the form's address ends in `#find-a-boat`
+  to bring the browser back down to the matches. *(Asked for by the
+  project owner while building.)*
 - **The race picker** on the series page becomes a row of pill-shaped
   buttons, with the chosen race filled in.
 - **The finish-entry and start sheet rows** keep their grid, tidied up so the
