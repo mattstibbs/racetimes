@@ -81,6 +81,45 @@ def test_an_unpublished_race_is_labelled_provisional(client, club):
     assert "Provisional" not in page
 
 
+def results_page(client, series):
+    return client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+
+
+def test_a_provisional_race_explains_what_that_means(client, club):
+    assert "may still change until the race committee publishes them" in results_page(client, club["series"])
+
+
+def test_a_published_race_says_when(client, club):
+    Race.objects.update(published_at=timezone.now(), results_sent_at=timezone.now())
+    page = results_page(client, club["series"])
+    assert f"Published {timezone.localdate():%-d %B %Y}." in page
+    assert "may still change" not in page
+    assert "Amended since published" not in page
+
+
+def test_a_published_race_corrected_since_says_the_update_is_unsent(client, published):
+    correct(client, published["race"], published["entries"][0], "19:32:00")
+    page = results_page(client, published["series"])
+    assert "Published " in page
+    assert "Amended since published; the race committee has not yet sent the updated results." in page
+
+
+def test_the_amended_since_published_note_goes_once_the_update_is_sent(client, published):
+    correct(client, published["race"], published["entries"][0], "19:32:00")
+    publish(client, published["race"], send="updated")
+    page = results_page(client, published["series"])
+    assert "Amended since published" not in page
+    assert "Amended " in page  # the slice 2 note, with its date, still says it changed
+
+
+def test_an_unpublished_correction_keeps_the_plain_amended_note(client, club):
+    client.force_login(make_committee())
+    correct(client, club["race"], club["entries"][0], "19:32:00")
+    page = results_page(client, club["series"])
+    assert "Amended since published" not in page
+    assert "Amended " in page
+
+
 def test_a_race_with_nothing_recorded_is_not_labelled_provisional(client, club):
     make_race(club["series"], 2)
     page = client.get(reverse("races:series_results", args=[club["series"].pk])).content.decode()

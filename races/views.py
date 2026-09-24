@@ -36,6 +36,10 @@ def series_results(request, pk):
             "results": results.for_race(race),
             "note": results.note_for(race),
             "amended_on": amended.get(race.pk),
+            # Corrected since the owners were emailed: the version they have
+            # is out of date until the committee sends the update.
+            "changed_since_sent": race.published_at is not None
+            and publishing.amended_since_sent(race),
         }
         for race in series.races.order_by("number")
     ]

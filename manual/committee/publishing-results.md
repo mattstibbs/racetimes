@@ -7,10 +7,13 @@ so boat owners can see them straight away. Until you **publish** a race,
 though, its results are marked **provisional**: they may still change while
 you check the finish sheet.
 
-![A race heading on the results page, labelled Provisional](../images/results-provisional.png)
+![A race on the results page, labelled Provisional, explaining its results may still change](../images/results-provisional.png)
 
-Publishing does two things: it removes the "Provisional" label, and it emails
-the race's results to the owner of every boat entered in the series.
+Publishing does two things: it replaces the "Provisional" label with the date
+the race was published, and it emails the race's results to the owner of
+every boat entered in the series.
+
+![A published race on the results page, showing the date it was published](../images/results-published.png)
 
 ## Publishing a race
 
@@ -43,7 +46,15 @@ publishing box tells you the results have changed since they were sent:
 
 ![The publishing box after a correction: amended since results were sent, with a Send updated results button](../images/publish-amended.png)
 
-When you have finished correcting, press **Send updated results**. Everyone who
+Until you send them, the public results page also warns that the results have
+changed since they were published, so anyone comparing them with their email
+knows which is current:
+
+![A published race on the results page, amended since published, with the updated results not yet sent](../images/results-amended-since-published.png)
+
+When you have finished correcting, press **Send updated results**. The warning
+then goes, and the race shows the usual "Amended" note with the date it was
+corrected. Everyone who
 got the results before gets them again, as they now stand, marked "Updated
 results". If you are still correcting, wait: nothing is sent until you press
 the button.

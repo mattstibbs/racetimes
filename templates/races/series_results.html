@@ -49,9 +49,14 @@
 {% for section in sections %}
 {% with race=section.race race_results=section.results %}
 <h2 id="race-{{ race.number }}">Race {{ race.number }}{% if race_results and not race.published_at %} <span class="provisional">Provisional</span>{% endif %}</h2>
+{% if race_results and not race.published_at %}
+<p class="note">These results may still change until the race committee publishes them.</p>
+{% endif %}
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
-  {% if section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}
+  {% if race.published_at %}<span class="published">Published {{ race.published_at|date:"j F Y" }}.</span>{% endif %}
+  {% if section.changed_since_sent %}<span class="amended">Amended since published; the race committee has not yet sent the updated results.</span>
+  {% elif section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}
   {% if is_committee %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">History</a>{% endif %}
 </p>
