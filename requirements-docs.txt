@@ -1,0 +1,7 @@
+# Building the user manual (manual/, configured by mkdocs.yml). Only needed to
+# build or preview the manual, and by Read the Docs; never installed with the
+# app itself.
+#
+#   .venv/bin/pip install -r requirements-docs.txt
+#   .venv/bin/mkdocs serve        # preview at http://127.0.0.1:8000
+mkdocs==1.6.1

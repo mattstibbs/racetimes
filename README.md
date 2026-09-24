@@ -105,6 +105,8 @@ collected nothing and reported success, which is worse than failing.
 | [`docs/plan.md`](docs/plan.md) | The slices, and which are done |
 | [`docs/slices/`](docs/slices/) | What each slice covers and how it is judged complete |
 | [`docs/decisions.md`](docs/decisions.md) | Decisions taken and why, plus the questions still open |
+| [`manual/`](manual/index.md) | The user manual, for members, the race committee and the administrator |
+| [`docs/deploying-manual.md`](docs/deploying-manual.md) | Publishing the user manual on Read the Docs |
 | [`docs/deploying.md`](docs/deploying.md) | Hosting the test site on Render, which redeploys on every push to `main` |
 | [`docs/reference/`](docs/reference/) | The RYA NHC calculation spec and the Racing Rules of Sailing |
 
