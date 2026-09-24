@@ -34,7 +34,7 @@
     <p><label>Note to the member (required if rejecting)
       <input name="note" maxlength="500"></label></p>
     <button type="submit" name="decision" value="approve">Approve</button>
-    <button type="submit" name="decision" value="reject">Reject</button>
+    <button type="submit" name="decision" value="reject" class="secondary">Reject</button>
   </form>
   {% else %}
   <p><strong>{{ r.get_status_display }}</strong>{% if r.decided_at %} by {{ r.decided_by_name }}, {{ r.decided_at|date:"j M Y H:i" }}{% endif %}.

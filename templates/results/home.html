@@ -18,7 +18,7 @@
 {% if my_boats %}
 <section aria-labelledby="my-boats">
   <h2 id="my-boats">My boats</h2>
-  <ul>
+  <ul class="link-list">
     {% for boat in my_boats %}<li><a href="{% url 'results:boat' boat.pk %}">{{ boat }}</a></li>{% endfor %}
   </ul>
 </section>
@@ -44,7 +44,7 @@
 <section aria-labelledby="all-series">
   <h2 id="all-series">All series</h2>
   {% if series_list %}
-  <ul>
+  <ul class="link-list">
     {% for series in series_list %}
     <li><a href="{% url 'results:series' series.pk %}">{{ series.name }}</a></li>
     {% endfor %}

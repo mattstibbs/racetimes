@@ -10,7 +10,7 @@
     <option value="">Nobody</option>
     {% for boat in boats %}<option value="{{ boat.pk }}"{% if boat == followed %} selected{% endif %}>{{ boat }}</option>{% endfor %}
   </select>
-  <noscript><button type="submit">Show</button></noscript>
+  <noscript><button type="submit" class="secondary">Show</button></noscript>
   {% if followed %}<a href="{% url 'results:boat' followed.pk %}">All results for {{ followed }}</a>{% endif %}
 </form>
 {% endif %}
