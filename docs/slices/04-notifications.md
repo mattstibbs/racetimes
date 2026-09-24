@@ -23,6 +23,9 @@ change: the public page keeps showing them, but a race is labelled
   a **Send updated results** button. Nothing is sent until the committee
   presses it; the committee decides when correcting is finished. *(Agreed with
   the project owner: the committee sends updates, never the site on its own.)*
+- The public page says "Published" with the date once published, explains
+  what "provisional" means, and warns "Amended since published" while an
+  update is waiting to be sent. *(Added at the project owner's request.)*
 - "Amended since results were sent" is worked out from the change history
   (slice 2): any correction recorded for the race, or for its whole series,
   since the results were last sent. Nothing extra is stored for it.
