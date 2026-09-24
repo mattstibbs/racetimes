@@ -23,7 +23,7 @@ def test_series_page_links_each_race_to_finish_entry(admin_client):
     race = make_race(series)
     page = admin_client.get(reverse("admin:races_series_change", args=[series.pk])).content.decode()
     assert reverse("races:finish_entry", args=[race.pk]) in page
-    assert reverse("races:series_results", args=[series.pk]) in page  # "View on site"
+    assert reverse("results:series", args=[series.pk]) in page  # "View on site"
 
 
 def test_regatta_with_a_finisher_threshold_is_refused_on_the_form(admin_client):

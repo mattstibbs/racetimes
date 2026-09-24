@@ -994,6 +994,65 @@ uses Django's real deferral because that is what it checks.
 
 ---
 
+## 2026-09-24 - Slice 5: the results app reads, and never writes
+
+**Context.** The plan asks for "another Django app" for racers to view
+results. Two apps that both know how to score a series could drift apart.
+
+**Decision.**
+- `results/` has no models and no views that save. It shows what
+  `races.scoring.score_series` computes and nothing else, so it cannot
+  disagree with the committee's pages.
+- The dependency runs one way: `results` imports from `races`, never the
+  reverse, checked by a test.
+- Each HTMX interaction uses the same URL as its full page, returning a
+  fragment only when `request.htmx` is set, so every view works without
+  JavaScript and every state has a link that can be shared.
+
+**Consequence.** The boat page scores every series the boat is entered in,
+once each, per request. For a club's handful of series that is cheap; it is
+the same trade-off as "results are computed on request, never stored".
+
+---
+
+## 2026-09-24 - Slice 5: the new pages replace the old, and show no owners
+
+**Decision.** Agreed with the project owner:
+- The `results` app replaces today's public home and series pages rather than
+  sitting beside them, and serves the same URLs (`/`, `/series/<pk>/`), so
+  there is one public results page and no redirect.
+- Public pages show boats by sail number, name, make and model, never the
+  owner's name. A member finds their own boats through "My boats".
+- No race-day auto-refresh for now.
+
+---
+
+## 2026-09-24 - Slice 5: how the results pages behave
+
+**Decision.**
+- The series page shows one race at a time, opening on the latest with
+  results. Choosing a race, following a boat and "More detail" all swap the
+  same part of the page (`#series-body`), so the choices it carries can never
+  disagree with each other; the URL records them all.
+- A view returns a fragment only when HTMX names that fragment as its target
+  and it is not a history restore, so the back button always gets a whole
+  page. Responses vary on `HX-Request` and `HX-Target`, so a cache never
+  serves a fragment as a page.
+- "All pages only read" is tested by running every page and fragment and
+  checking every query is a SELECT, rather than by listing allowed imports.
+- The home page's latest results cover at most five series, since showing
+  one means scoring it.
+- The boat page states the next handicap from the last scored race's
+  `effective_next_tcf`, and names the next race only when one is scheduled.
+  Before any race is scored it is the base number, as every series starts on
+  base numbers.
+
+**Consequence.** An older `/series/<pk>/#race-N` link opens on the latest race,
+not race N, because the part after `#` never reaches the server. Emails link
+with `?race=N` from now on; no emails had gone to real members yet.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

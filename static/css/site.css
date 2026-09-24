@@ -35,3 +35,30 @@ form.decision input { width: 100%; max-width: 30rem; box-sizing: border-box; }
 .provisional { font-size: 0.8rem; font-weight: normal; vertical-align: middle; padding: 0.1rem 0.4rem; border: 1px solid #d9a400; color: #8a5a00; border-radius: 3px; }
 .card.publishing { background: #f7f9fc; }
 .published { color: #2e6b30; }
+
+/* Results pages (slice 5). */
+form.search { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+form.search label { flex-basis: 100%; }
+form.search input { flex: 1; min-width: 0; max-width: 24rem; font-size: 1rem; padding: 0.4rem; }
+ul.matches { list-style: none; padding: 0; }
+ul.matches li { padding: 0.35rem 0; border-bottom: 1px solid #e3e3e3; }
+ol.podium { margin: 0.25rem 0 0.5rem; padding-left: 1.5rem; }
+form.follow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+form.follow select { font-size: 1rem; max-width: 100%; }
+tr.followed td { background: #e8f1fb; }
+nav.race-picker { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.5rem 0 0.5rem; }
+nav.race-picker a { padding: 0.35rem 0.7rem; border: 1px solid #0b5cad; border-radius: 4px; text-decoration: none; }
+nav.race-picker a[aria-current=page] { background: #0b5cad; color: #fff; }
+.detail-toggle { display: none; margin: 0.25rem 0; }
+.next-handicap { background: #f7f9fc; border-left: 3px solid #0b5cad; padding: 0.5rem 0.75rem; }
+/* On a phone a race shows place, boat, corrected time and points; the rest is
+   one tap away under "More detail", a plain link that adds ?detail=1. The
+   boat page's corrected times are on the series page, a tap away. */
+@media (max-width: 40rem) {
+  .detail-toggle { display: block; }
+  th, td { padding: 0.3rem 0.4rem; }
+  table.race-results:not(.all-columns) .detail { display: none; }
+  table.boat-races .detail { display: none; }
+}
+table.boat-races abbr { text-decoration: none; }
+table.boat-races td:first-child { white-space: nowrap; }

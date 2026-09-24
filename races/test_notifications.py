@@ -74,15 +74,15 @@ def recipients():
 
 
 def test_an_unpublished_race_is_labelled_provisional(client, club):
-    page = client.get(reverse("races:series_results", args=[club["series"].pk])).content.decode()
+    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
     assert "Provisional" in page
     Race.objects.update(published_at=timezone.now())
-    page = client.get(reverse("races:series_results", args=[club["series"].pk])).content.decode()
+    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
     assert "Provisional" not in page
 
 
 def results_page(client, series):
-    return client.get(reverse("races:series_results", args=[series.pk])).content.decode()
+    return client.get(reverse("results:series", args=[series.pk])).content.decode()
 
 
 def test_a_provisional_race_explains_what_that_means(client, club):
@@ -122,7 +122,7 @@ def test_an_unpublished_correction_keeps_the_plain_amended_note(client, club):
 
 def test_a_race_with_nothing_recorded_is_not_labelled_provisional(client, club):
     make_race(club["series"], 2)
-    page = client.get(reverse("races:series_results", args=[club["series"].pk])).content.decode()
+    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
     assert page.count("Provisional") == 1  # race 1 only
 
 
@@ -152,7 +152,7 @@ def test_the_results_email_has_the_results_and_a_link(client, committee, club, r
     assert message.subject == "Results: Autumn 2026 Series, race 1"
     assert "Hello Pat" in message.body
     for text in ["GBR42 Kittiwake", "GBR77 Puffin", "GBR7 Tern", "Series standings",
-                 reverse("races:series_results", args=[club["series"].pk])]:
+                 reverse("results:series", args=[club["series"].pk])]:
         assert text in message.body
     assert "&amp;" not in message.body and "&#x27;" not in message.body
 

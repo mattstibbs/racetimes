@@ -1,0 +1,14 @@
+<div id="boat-matches" aria-live="polite">
+{% if matches is None %}
+  {% if searched %}<p class="muted">Type a sail number or a boat's name.</p>{% endif %}
+{% elif matches %}
+  <ul class="matches">
+    {% for boat in matches|slice:max_matches %}
+    <li><a href="{% url 'results:boat' boat.pk %}">{{ boat }}</a>{% if boat.make or boat.model %} <span class="muted">{{ boat.make }} {{ boat.model }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% if matches|length > max_matches %}<p class="muted">Showing the first {{ max_matches }}. Type more to narrow it down.</p>{% endif %}
+{% else %}
+  <p class="muted">No boats match &ldquo;{{ query }}&rdquo;.</p>
+{% endif %}
+</div>

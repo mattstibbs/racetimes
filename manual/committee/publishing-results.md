@@ -17,8 +17,9 @@ every boat entered in the series.
 
 ## Publishing a race
 
-1. Open the race's finish-entry page: **Enter finishes** next to the race on
-   the results page, or from the series in the admin.
+1. Open the race's finish-entry page: on the series' results page, press the
+   race's button and then **Enter finishes** under its heading, or go from the
+   series in the admin.
 2. Check every boat's result.
 3. Press **Publish results** in the box at the top of the page.
 
@@ -26,7 +27,7 @@ every boat entered in the series.
 
 The page then tells you how many boat owners were emailed:
 
-![The message after publishing: results published and sent to one boat owner](../images/publish-sent.png)
+![The message after publishing: results published and sent to two boat owners](../images/publish-sent.png)
 
 Who gets the email:
 

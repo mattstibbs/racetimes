@@ -207,6 +207,16 @@ def test_my_boats_shows_boats_entries_and_requests(client, member):
         assert text in page
 
 
+def test_my_boats_links_to_each_boat_s_results(client, member):
+    boat = make_boat("GBR42", owner=member, name="Kittiwake")
+    series = make_series("Autumn 2026")
+    enter(series, boat)
+    page = client.get(reverse("races:my_boats")).content.decode()
+    assert reverse("results:boat", args=[boat.pk]) in page
+    # The series opens with the boat followed.
+    assert f'{reverse("results:series", args=[series.pk])}?boat={boat.pk}"' in page
+
+
 # --- A member sees and acts on only their own boats and requests --------------
 
 

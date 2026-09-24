@@ -9,7 +9,7 @@
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header>
-    <p><a href="{% url 'races:home' %}"><strong>Race Times</strong></a></p>
+    <p><a href="{% url 'results:home' %}"><strong>Race Times</strong></a></p>
     <nav>
       {% if user.is_authenticated %}
         <a href="{% url 'races:my_boats' %}">My boats</a>

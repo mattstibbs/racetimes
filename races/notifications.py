@@ -90,7 +90,7 @@ def race_results(race, request, *, updated, on_sent=None):
         "note": results.note_for(race),
         "standings": results.standings,
         "updated": updated,
-        "results_url": _link(request, "races:series_results", race.series.pk) + f"#race-{race.number}",
+        "results_url": _link(request, "results:series", race.series.pk) + f"?race={race.number}",
     }
     send([email(owner, "race_results", request, **context) for owner in owners], request, on_sent)
     return len(owners)
@@ -151,7 +151,7 @@ def entered_in_series(entries, request):
                 "entered_in_series",
                 request,
                 entry=entry,
-                results_url=_link(request, "races:series_results", entry.series.pk),
+                results_url=_link(request, "results:series", entry.series.pk),
             )
             for entry in entries
             if entry.boat.owner is not None and entry.boat.owner.is_active

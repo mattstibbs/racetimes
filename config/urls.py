@@ -19,5 +19,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # The public results pages, including the home page and /series/<pk>/.
+    path('', include('results.urls')),
     path('', include('races.urls')),
 ]

@@ -28,6 +28,8 @@ way every boat, entry and result has been checked by someone on the committee.
 
 **Getting started**
 
+- [Finding your results](getting-started/finding-results.md): your boat's
+  results and next handicap, and a series' standings.
 - [Forgotten your password?](getting-started/forgotten-password.md)
 
 **Members**

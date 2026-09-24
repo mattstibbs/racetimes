@@ -41,11 +41,28 @@ kittiwake = Boat.objects.create(
 )
 tern = Boat.objects.create(sail_number="GBR 7", name="Tern", base_number=Decimal("0.900"),
                            owner_name="M. Visitor")
+serendipity = Boat.objects.create(sail_number="GBR 1234", name="Serendipity", make="Sadler",
+                                  model="26", base_number=Decimal("0.857"), owner=sam)
+blue_moon = Boat.objects.create(sail_number="GBR 88", name="Blue Moon", make="Contessa",
+                                model="32", base_number=Decimal("0.921"), owner_name="R. Blue")
 autumn = Series.objects.create(name="Autumn 2026 Series")
-race = Race.objects.create(series=autumn, number=1, date=date(2026, 9, 16), start_time=time(18, 30))
-for boat, finish in [(kittiwake, time(19, 31, 12)), (tern, time(19, 28, 40))]:
-    entry = SeriesEntry.objects.create(series=autumn, boat=boat)
-    Finish.objects.create(race=race, entry=entry, finish_time=finish)
+# Three races sailed and a fourth to come. None is published yet: the
+# screenshots below publish race 1.
+finishes = {
+    1: [time(19, 31, 12), time(19, 28, 40), time(19, 30, 5), time(19, 27, 55)],
+    2: [time(19, 24, 30), time(19, 26, 2), time(19, 22, 48), None],
+    3: [time(19, 40, 16), time(19, 38, 9), time(19, 41, 30), time(19, 36, 44)],
+}
+entries = [SeriesEntry.objects.create(series=autumn, boat=boat)
+           for boat in (kittiwake, tern, serendipity, blue_moon)]
+for number, day in [(1, 16), (2, 23), (3, 30)]:
+    race = Race.objects.create(series=autumn, number=number, date=date(2026, 9, day), start_time=time(18, 30))
+    for entry, finish in zip(entries, finishes[number]):
+        if finish:
+            Finish.objects.create(race=race, entry=entry, finish_time=finish)
+        else:
+            Finish.objects.create(race=race, entry=entry, status="DNF")
+Race.objects.create(series=autumn, number=4, date=date(2026, 10, 7), start_time=time(18, 30))
 wednesdays = Series.objects.create(name="Wednesday Evenings")
 
 # One request of each kind, waiting.

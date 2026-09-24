@@ -134,7 +134,7 @@ class Series(models.Model):
 
     def get_absolute_url(self):
         # Also gives the admin its "View on site" button.
-        return reverse("races:series_results", args=[self.pk])
+        return reverse("results:series", args=[self.pk])
 
     def clean(self):
         # The engine refuses this combination outright. Catching it here puts
