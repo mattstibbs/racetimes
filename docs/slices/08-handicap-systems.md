@@ -1,6 +1,9 @@
 # Slice 8: Other handicap systems
 
-**Status: draft. Open questions below must be answered before building.**
+**Status: on hold (2026-09-24).** Parked by the project owner before any
+code was written. To pick it up: answer the open questions at the end (the
+reference documents for YTC and PY rounding come first), check worked
+example PY-1, then write PY-2 and the YTC examples.
 
 ## Goal
 Every series today is scored under the RYA's National Handicap for Cruisers

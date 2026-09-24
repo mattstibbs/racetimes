@@ -1130,6 +1130,8 @@ questions): the data model, the YTC formula and number format, whether
 corrected times are rounded before ranking, and the default for new series.
 The engine keeps the name `nhc` rather than being renamed.
 
+Parked on 2026-09-24 at the project owner's request, with nothing built.
+
 ---
 
 ## Open questions
