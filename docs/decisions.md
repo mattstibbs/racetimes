@@ -1053,6 +1053,35 @@ with `?race=N` from now on; no emails had gone to real members yet.
 
 ---
 
+## 2026-09-24 - Slice 6: race entry is a committee start sheet, and a gate on publishing
+
+**Context.** The brief's user journey 3 has the committee enter boats per race,
+and its owners told. Slice 1 left race entry out and noted that, if it came
+back, it must say whether a boat entered in a race with no finish is DNC or
+DNS.
+
+**Decision.** Agreed with the project owner:
+- Only the race committee records who is racing, on a start sheet per race.
+  Members don't enter races, not even by request.
+- A boat on the start sheet with nothing recorded is neither DNC nor DNS. It
+  is "not recorded", and the race can't be published, or updated results
+  sent, until the committee records a time or a code. Until then it is passed
+  to the engine as DNC, as a missing finish is today, so nothing about
+  scoring changes.
+- A start sheet is optional. A race without one behaves exactly as before.
+- Persons on board is recorded on the start sheet, shown to the committee
+  only, and not used in scoring.
+- An email confirms each boat put on a start sheet. Nothing is sent when a
+  boat is taken off.
+- Start sheet changes are not in the change history, because none of them can
+  move a score.
+
+**Consequence.** A new `RaceEntry` model (proposed in the slice spec, for
+approval). The open question on DNC/DNS for race entrants is closed without a
+rule change: the committee has to say what happened.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

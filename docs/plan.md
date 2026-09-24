@@ -197,3 +197,12 @@ the same with JavaScript off. No page scrolls sideways and no JavaScript
 errors were logged.
 
 Another Django app (in the same project) with an HTMX page that allows a racer to easily view race results.
+## Slice 6: race-level entry. **Status: planned (2026-09-24)**
+
+Spec: `docs/slices/06-race-entry.md`. The new `RaceEntry` model is proposed
+there and waits for the project owner's approval before any migration.
+
+A start sheet per race: the committee records which boats in the series are
+racing, and each owner gets a confirmation email (the brief's user journey 3).
+A boat on the start sheet must have a time or a code before the results can
+be published; a boat not on it scores DNC, as today.
