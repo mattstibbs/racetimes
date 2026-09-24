@@ -131,7 +131,7 @@ has no accounts section.
 
 Accounts for members, boat registration requests, and series entry. This is where auth and permissions appear, so write the role rules into the brief before starting it.
 
-## Slice 4: notifications. 
+## Slice 4: notifications. **Status: specced (2026-09-24), awaiting data model approval.** Spec: `docs/slices/04-notifications.md`
 Emailing results after a race is published.
 
 ## Slice 5: results webapp.

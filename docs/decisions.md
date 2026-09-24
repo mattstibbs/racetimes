@@ -943,6 +943,31 @@ is now part of every user-facing change.
 
 ---
 
+## 2026-09-24 - Slice 4: what gets emailed, and who decides when
+
+**Context.** The plan's line was "emailing results after a race is
+published", but nothing was ever "published": results are public the moment a
+finish is saved. Slice 3 also deferred account emails to this slice.
+
+**Decision.** Agreed with the project owner:
+- A **Publish results** button, which emails the race's results. The public
+  page keeps showing results before that, labelled provisional.
+- After corrections, the committee sends a "results updated" email with a
+  button, when they have finished correcting. The site never sends on its own,
+  so a run of corrections cannot flood every owner's inbox.
+- Emails also for account approval, request decisions, series entry, any
+  change to a boat, and password reset. A change the owner asked for is
+  reported once, in the "request approved" email, not again as "boat
+  updated".
+- Django's built-in SMTP email, no new dependency; the provider is chosen
+  before deploying.
+
+**Consequence.** Two new fields on Race (published and last sent), proposed
+for approval. "Amended since sent" reuses the change history rather than
+tracking changes a second time.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
