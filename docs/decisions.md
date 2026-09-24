@@ -1068,7 +1068,11 @@ DNS.
   sent, until the committee records a time or a code. Until then it is passed
   to the engine as DNC, as a missing finish is today, so nothing about
   scoring changes.
-- A start sheet is optional. A race without one behaves exactly as before.
+- Every race has a start sheet, and only boats on it can have a finish
+  recorded. At first a start sheet was optional, with races without one
+  working as before. The project owner dropped that option so there is one
+  way of working. Races already sailed get their start sheet from a data
+  migration: the boats that have a finish.
 - Persons on board is recorded on the start sheet, shown to the committee
   only, and not used in scoring.
 - An email confirms each boat put on a start sheet. Nothing is sent when a
@@ -1077,7 +1081,7 @@ DNS.
   move a score.
 
 **Consequence.** A new `RaceEntry` model (proposed in the slice spec, for
-approval). The open question on DNC/DNS for race entrants is closed without a
+approval) and a data migration to fill it for races already sailed. The open question on DNC/DNS for race entrants is closed without a
 rule change: the committee has to say what happened.
 
 ---

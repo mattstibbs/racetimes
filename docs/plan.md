@@ -202,7 +202,8 @@ Another Django app (in the same project) with an HTMX page that allows a racer t
 Spec: `docs/slices/06-race-entry.md`. The new `RaceEntry` model is proposed
 there and waits for the project owner's approval before any migration.
 
-A start sheet per race: the committee records which boats in the series are
-racing, and each owner gets a confirmation email (the brief's user journey 3).
-A boat on the start sheet must have a time or a code before the results can
-be published; a boat not on it scores DNC, as today.
+A start sheet for every race: the committee records which boats in the
+series are racing, and each owner gets a confirmation email (the brief's user
+journey 3). Only a boat on the start sheet can have a finish, and each one
+must have a time or a code before the results can be published. A boat not on
+it scores DNC, as today.

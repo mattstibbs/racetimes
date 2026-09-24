@@ -8,9 +8,10 @@ lists every boat in the series and any boat without a finish silently scores
 DNC. Nobody can tell "stayed at home" from "raced, and we forgot to write it
 down", so a missing finish can be published without anyone noticing.
 
-This slice adds a start sheet per race. Once a race has one, every boat on it
-must have a finish time or a code before the results can be published. A boat
-not on it stays at home and scores DNC, as today.
+This slice gives every race a start sheet. Only boats on it can have a
+finish recorded, and every boat on it must have a finish time or a code
+before the results can be published. A boat not on it stayed at home and
+scores DNC, as today.
 
 ## Scope
 
@@ -19,10 +20,9 @@ not on it stays at home and scores DNC, as today.
   race, not even by request: it happens on race day, at the club, and
   approving requests would slow it down. A member who wants to race tells the
   committee, as they do now.
-- **A start sheet is optional.** A race whose start sheet is empty works
-  exactly as it does today, so races already sailed need nothing migrated and
-  nothing is scored differently. A club that doesn't want start sheets can
-  ignore them.
+- **Every race has a start sheet.** There is one way of working, not two.
+  Races already sailed are given theirs by a data migration (see Data
+  model).
 
 ### The start sheet page (`/races/<pk>/entries/`, committee only)
 - Lists every boat entered in the series, sorted by sail number. Each row has
@@ -37,16 +37,16 @@ not on it stays at home and scores DNC, as today.
   first, which is already a recorded correction. This matches the rule that a
   series entry with finishes can't be removed.
 
-### Entering finishes when a race has a start sheet
-- The finish-entry page lists the boats on the start sheet first. Each boat
-  with nothing saved shows **Not recorded yet**. The other boats in the
-  series are listed below them, collapsed under "Not racing (scored DNC)",
-  and have no input boxes.
+### Entering finishes
+- The finish-entry page has a row with input boxes only for boats on the
+  start sheet. Each boat with nothing saved shows **Not recorded yet**. The
+  other boats in the series are listed below them, collapsed under "Not
+  racing (scored DNC)", and have no input boxes. A race with an empty start
+  sheet says so and links to it.
 - A finish or code can only be saved for a boat on the start sheet. If the
   committee tries any other boat (through the plain-POST fallback or a stale
   page), the page refuses and links to the start sheet. A boat that turns out
   to have raced is added to the start sheet first, which takes one click.
-- A race without a start sheet works as it does today.
 
 ### Scoring and publishing *(agreed with the project owner: "must be recorded")*
 - The engine's input doesn't change. A boat with no finish is passed to it as
@@ -66,8 +66,8 @@ not on it stays at home and scores DNC, as today.
     recorded. That finish is a correction, so the race shows as amended
     since it was sent, as it does today.
 - `races/scoring.py` still decides which races are scored the same way: a
-  race with a start sheet but no finishes yet is "not sailed yet", like
-  today. A start sheet on its own records nothing.
+  race with boats on its start sheet but no finishes yet is "not sailed
+  yet", as today. A start sheet on its own records nothing.
 
 ### Persons on board *(agreed with the project owner)*
 - Recorded per boat per race on the start sheet. It's optional, and it has
@@ -118,25 +118,36 @@ migration is written)*
 - **Why not a flag on `Finish`?** A `Finish` is a time or a code, and the
   database enforces that. A row meaning "racing, nothing recorded yet" would
   break that rule and every query that relies on it.
-- `Finish` itself does not change. "A finish for a boat not on the start
-  sheet is refused" is checked in the finish form, not the database, because
-  a race without a start sheet must still accept any boat in the series.
-- No other fields change. The migration uses nothing database-specific.
+- `Finish` itself does not change. "A finish needs its boat on the start
+  sheet" is checked in the finish form and in `Finish.clean()`. The database
+  can't check it without `Finish` pointing at a `RaceEntry` instead of a race
+  and an entry, which would rewrite every query and the change history for
+  no gain visible to anyone.
+- **A data migration** puts every boat that has a finish in a race on that
+  race's start sheet, with persons on board left empty and no emails sent.
+  Boats with no finish stay off, so they score DNC as they do now. Every
+  existing race therefore scores exactly as before, and every existing
+  finish meets the new rule. Undoing the migration deletes those rows.
+- No other fields change. The migrations use nothing database-specific.
 
 ## Acceptance criteria
 - The committee can put boats on a race's start sheet, take them off, and
   record persons on board. Each row saves on its own over HTMX, and saves
   with JavaScript off. An invalid row is refused with a message and doesn't
   affect the other rows.
-- A race with an empty start sheet behaves exactly as it does today: the same
-  finish-entry page, the same scores, the same publishing. This is tested by
-  re-running the existing finish-entry and publishing tests unchanged.
-- On a race with a start sheet, a finish for a boat not on it is refused, and
-  a boat with a finish recorded can't be taken off it.
+- A finish for a boat not on the start sheet is refused, by the finish-entry
+  page and by `Finish.clean()`, and a boat with a finish recorded can't be
+  taken off it. The test builders in `races/testing.py` put a boat on the
+  start sheet when they record a finish for it, so existing tests keep
+  describing races that could really happen.
+- The data migration gives an existing series a start sheet for every race.
+  Every race then scores the same positions, points and handicaps as it did
+  before the migration, and no email is sent.
 - A boat on the start sheet with nothing recorded shows as "Not recorded" on
   the committee's pages and every public page, and scores exactly as DNC
-  does. This is tested against the same series with and without a start
-  sheet, which must give identical positions, points and handicaps.
+  does. This is tested by comparing a race where a boat is on the start
+  sheet with nothing recorded against the same race with that boat left off,
+  which must give identical positions, points and handicaps.
 - Publishing and sending updated results are refused, with the boats named,
   while any boat on the start sheet has nothing recorded, including a boat
   added after publishing.
