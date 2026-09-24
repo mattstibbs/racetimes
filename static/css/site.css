@@ -62,3 +62,9 @@ nav.race-picker a[aria-current=page] { background: #0b5cad; color: #fff; }
 }
 table.boat-races abbr { text-decoration: none; }
 table.boat-races td:first-child { white-space: nowrap; }
+.start-row { display: grid; grid-template-columns: 11rem 6rem 9rem 5rem; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e3e3e3; }
+.start-row.has-errors { background: #fff4f4; }
+.start-row.saved { background: #f2faf2; }
+.start-row .figures { grid-column: 1 / -1; font-size: 0.9rem; }
+.start-row input[type=number] { width: 3.5rem; }
+@media (max-width: 40rem) { .start-row { grid-template-columns: 1fr 1fr; } }

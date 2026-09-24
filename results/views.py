@@ -224,6 +224,7 @@ def _history(entry):
         "fleet": len(results.standings),
         "lines": lines,
         "has_provisional": any(line.row and not line.race.published_at for line in lines),
+        "has_not_recorded": any(line.row and line.row.not_recorded for line in lines),
         "next": _next_handicap(entry, results, races),
         "last_date": races[-1].date if races else None,
     }

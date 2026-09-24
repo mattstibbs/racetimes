@@ -20,7 +20,10 @@ every boat entered in the series.
 1. Open the race's finish-entry page: on the series' results page, press the
    race's button and then **Enter finishes** under its heading, or go from the
    series in the admin.
-2. Check every boat's result.
+2. Check every boat's result. Every boat on the race's
+   [start sheet](race-day.md) needs a finish time or a code first; until
+   then, the box at the top lists the boats still to record instead of the
+   button.
 3. Press **Publish results** in the box at the top of the page.
 
 ![The publishing box for a race that has not been published yet](../images/publish-provisional.png)
@@ -38,6 +41,11 @@ Who gets the email:
 
 A race with no results recorded yet cannot be published: there is nothing to
 send.
+
+If a boat is added to the start sheet after the race is published, for
+example because it was missed on the night, updated results cannot be sent
+until its finish is recorded. Recording it marks the race as amended, as
+below.
 
 ## Correcting results after publishing
 

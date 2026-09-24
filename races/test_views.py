@@ -7,19 +7,20 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from races.models import Finish, Series
-from races.testing import enter, make_boat, make_committee, make_race, make_series, record
+from races.testing import enter, make_boat, make_committee, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
 def race_night():
-    """A two-boat series with one race: GBR1 finished, GBR2 not yet recorded."""
+    """A two-boat series with one race: GBR1 finished, GBR2 racing but not yet recorded."""
     series = make_series("Wednesday Evenings")
     a = enter(series, make_boat("GBR1", name="Serendipity", base_number="0.950"))
     b = enter(series, make_boat("GBR2", name="Blue Moon", base_number="0.900"))
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
+    start(race, b)
     return series, race, a, b
 
 
@@ -65,13 +66,13 @@ def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_n
 # --- Finish entry: the page ------------------------------------------------
 
 
-def test_finish_entry_lists_every_entered_boat(staff_client, race_night):
+def test_finish_entry_lists_every_boat_on_the_start_sheet(staff_client, race_night):
     _, race, a, b = race_night
     page = staff_client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
     assert save_url(race, a) in page
     assert save_url(race, b) in page
     assert 'value="19:00:00"' in page
-    assert "Nothing saved: scored DNC" in page
+    assert "Not recorded yet." in page
 
 
 # --- Finish entry: saving a row --------------------------------------------
@@ -177,12 +178,13 @@ def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta
     assert staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
     page = staff_client.get(reverse("races:finish_entry", args=[race_2.pk]))
     assert page.status_code == 200
-    assert "Nothing saved" in page.content.decode()
+    assert "No boats are on the" in page.content.decode()
 
 
 def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(staff_client, regatta_night):
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
+    start(race_2, a)
     response = staff_client.post(
         save_url(race_2, a), row_data(a, status="DNF"), HTTP_HX_REQUEST="true"
     )

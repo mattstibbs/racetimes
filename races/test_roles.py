@@ -154,6 +154,7 @@ def pages():
         "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES]),
         "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES]),
         "requests": (reverse("races:requests"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
+        "start sheet": (reverse("races:start_sheet", args=[race.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "finish entry": (reverse("races:finish_entry", args=[race.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "history": (reverse("races:series_history", args=[series.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "admin: boats": (reverse("admin:races_boat_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),

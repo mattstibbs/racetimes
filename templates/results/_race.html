@@ -38,7 +38,7 @@
   <tbody>
     {% for row in race_results.rows %}
     <tr{% if row.entry.boat == followed %} class="followed"{% endif %}>
-      <td class="num">{% if row.result.position %}{{ row.result.position }}{% else %}{{ row.result.status }}{% endif %}</td>
+      <td class="num">{% if row.not_recorded %}<abbr title="Not recorded">NR</abbr>{% else %}{{ row.place }}{% endif %}</td>
       <td><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat }}</a></td>
       <td class="num detail">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }}{% endif %}</td>
       <td class="num detail">{{ row.result.elapsed_seconds|hms }}</td>
@@ -51,6 +51,7 @@
   </tbody>
 </table>
 </div>
+{% if race_results.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
 {% else %}
 <p class="muted">{{ section.note }}</p>
 {% endif %}

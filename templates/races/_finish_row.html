@@ -3,7 +3,7 @@
       id="finish-{{ row.entry.pk }}" method="post" action="{{ save_url }}"
       hx-post="{{ save_url }}" hx-target="this" hx-swap="outerHTML">
   {% csrf_token %}
-  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
+  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}{% if row.race_entry.persons_on_board %}<br><span class="muted">{{ row.race_entry.persons_on_board }} on board</span>{% endif %}</div>
   <div>{{ row.form.finish_time }}</div>
   <div>{{ row.form.status }}</div>
   {# Only a saved finish can be corrected, so only its row asks for a reason. #}
@@ -13,7 +13,7 @@
     {% if row.form.errors %}
       {{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}{{ row.form.reason.errors }}
     {% elif not row.finish %}
-      <span class="muted">Nothing saved{% if row.result %}: scored DNC{% endif %}</span>
+      <strong>Not recorded yet.</strong> <span class="muted">Needs a time or a code before the results are published.</span>
     {% elif row.result.elapsed_seconds %}
       Elapsed {{ row.result.elapsed_seconds|hms }} &times; {{ row.result.tcf_used|tcf }}
       = <strong>{{ row.result.corrected_time|hms }}</strong>

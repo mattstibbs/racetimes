@@ -1,0 +1,10 @@
+{% autoescape off %}{{ boat }} is entered in race {{ race.number }} of {{ race.series }}
+Hello {{ user.first_name|default:user.get_username }},
+
+The race committee has put your boat, {{ boat }}, on the start sheet for race {{ race.number }} of {{ race.series }} on {{ race.date|date:"l j F Y" }}, starting at {{ race.start_time|time:"H:i" }}.
+
+If this is a mistake, please tell the race committee.
+
+The race's results:
+{{ results_url }}
+{% endautoescape %}

@@ -1,0 +1,24 @@
+{% url 'races:save_start_sheet_row' race.pk row.entry.pk as save_url %}
+{# Saves when a box changes, so ticking a boat is one tap; the button is for browsers without JavaScript. #}
+<form class="start-row{% if row.form.errors or row.refused %} has-errors{% elif saved %} saved{% endif %}"
+      id="start-{{ row.entry.pk }}" method="post" action="{{ save_url }}"
+      hx-post="{{ save_url }}" hx-trigger="change, submit" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
+  <label>{{ row.form.racing }} Racing</label>
+  <label>{{ row.form.persons_on_board }} on board</label>
+  <div><button type="submit">Save</button></div>
+  <div class="figures">
+    {% if row.refused %}
+      <ul class="errorlist"><li>{{ row.refused }}</li></ul>
+    {% elif row.form.errors %}
+      {{ row.form.non_field_errors }}{{ row.form.persons_on_board.errors }}
+    {% elif saved %}
+      <span>{{ message }}</span>
+    {% else %}
+      {% if row.has_result %}<span class="muted">Result recorded.</span>{% endif %}
+      {% if not row.can_email %}<span class="muted">No email: no owner account.</span>{% endif %}
+    {% endif %}
+  </div>
+</form>
+{% if update_count %}{% include "races/_start_sheet_count.html" with oob=True %}{% endif %}

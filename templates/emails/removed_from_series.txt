@@ -1,0 +1,10 @@
+{% autoescape off %}{{ boat }} is no longer entered in {{ series }}
+Hello {{ user.first_name|default:user.get_username }},
+
+The race committee has removed your boat, {{ boat }}, from {{ series }}. It is no longer scored in the series, and is off the start sheet of any of its races.
+
+If this is a mistake, please tell the race committee.
+
+The series' results:
+{{ results_url }}
+{% endautoescape %}

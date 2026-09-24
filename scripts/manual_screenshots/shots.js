@@ -90,6 +90,24 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await publicPage.goto(`${BASE}/series/1/?race=1`);
   await raceHeader(publicPage, 1, 'results-amended-since-published.png');
 
+  // Race day: the start sheet for race 4, then its finishes.
+  await officer.goto(`${BASE}/races/4/entries/`);
+  const ternRow = officer.locator('form.start-row', { hasText: 'GBR 7' });
+  await ternRow.locator('input[type=checkbox]').check();
+  await officer.locator('form.start-row.saved', { hasText: 'GBR 7' }).waitFor();
+  await shot(officer.locator('body'), 'start-sheet.png');
+  await officer.goto(`${BASE}/races/4/finishes/`);
+  const first = officer.locator('form.finish-row', { hasText: 'GBR 42' });
+  await first.locator('input[type=time]').fill('19:29:31');
+  await first.locator('button').click();
+  await officer.locator('form.finish-row.saved', { hasText: 'GBR 42' }).waitFor();
+  await shot(officer.locator('body'), 'finish-entry-not-recorded.png');
+  await officer.goto(`${BASE}/races/4/entries/`);
+  await officer.locator('form.start-row', { hasText: 'GBR 42' }).locator('input[type=checkbox]').uncheck();
+  const refused = officer.locator('form.start-row.has-errors', { hasText: 'GBR 42' });
+  await refused.waitFor();
+  await shot(refused, 'start-sheet-has-result.png');
+
   // Forgotten passwords.
   await publicPage.goto(`${BASE}/accounts/password-reset/`);
   await shot(publicPage.locator('body'), 'password-reset.png');

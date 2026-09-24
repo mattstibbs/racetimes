@@ -197,3 +197,52 @@ the same with JavaScript off. No page scrolls sideways and no JavaScript
 errors were logged.
 
 Another Django app (in the same project) with an HTMX page that allows a racer to easily view race results.
+## Slice 6: race-level entry. **Status: complete (2026-09-24)**
+
+Acceptance criteria, from `docs/slices/06-race-entry.md`:
+
+- [x] The committee puts boats on a race's start sheet, takes them off and
+      records persons on board. Each row saves on its own over HTMX and with
+      JavaScript off, and an invalid row changes nothing;
+      `races/test_start_sheet.py`.
+- [x] A finish for a boat not on the start sheet is refused, by the page and
+      by `Finish.clean()`, and a boat with a result can't be taken off (the
+      row says to correct it to DNC).
+- [x] The data migration gives every past race a start sheet, and every
+      race scores the same as before it.
+- [x] A boat on the start sheet with nothing recorded shows as "Not
+      recorded" (NR on the public tables) and scores exactly as a boat left
+      off does.
+- [x] Publishing and sending updated results are refused, naming the boats,
+      while any boat on the start sheet has nothing recorded, including one
+      added after publishing.
+- [x] Emails on being put on and taken off a start sheet, and on removal
+      from a series (one email, not one per race), each tested for when it
+      is and isn't sent, rollback and sending failure.
+- [x] Persons on board appears on no public page.
+- [x] Start sheet changes add nothing to the change history and don't mark
+      a race amended.
+- [x] The start sheet page is tested as each of the four roles.
+- [x] The database refuses a boat twice in one race and persons on board
+      outside 1-99. The model refuses a boat from another series.
+- [x] Migrations use nothing database-specific. The app's tests, including
+      both migrations, were also run against PostgreSQL 16 by hand; CI runs
+      SQLite only.
+- [x] The manual gains "Race day: the start sheet and finishes", with
+      screenshots, and the members' email page lists the three new emails.
+
+Manual check: in headless Chromium at 375 px, ticked a boat and set persons
+on board with JavaScript on, took it off again with JavaScript off, saved a
+finish and read the publishing box's "Still to record" list, and read race 4
+on the public series page. No page scrolls sideways and no JavaScript errors
+were logged.
+
+Found while building, and recorded in the spec: a saved finish can't be
+cleared, so a boat with a result is corrected to DNC rather than taken off;
+a late boat's first finish needs no reason (slice 2's rule), though it still
+marks the race amended; and "Not recorded" is NR on the public tables so it
+fits a phone.
+
+A start sheet for every race: the committee records which boats in the
+series are racing (the brief's user journey 3). Owners are emailed when their
+boat is put on or taken off a start sheet, or removed from a series.

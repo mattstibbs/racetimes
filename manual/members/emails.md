@@ -13,6 +13,9 @@ with.
 | **Updated results** | The race committee has corrected a race's results after sending them, and is sending them again as they now stand. |
 | **Approved** / **Not approved**: your request… | The race committee has decided one of your requests: registering a boat, changing a boat's details, being recorded as a boat's owner, or entering a series. It says what changed, or, if your request was not approved, the committee's note explaining why. |
 | **Your boat is entered in a series** | The race committee entered your boat in a series themselves. (If you asked to enter it, the "Approved" email is your confirmation instead.) |
+| **Your boat is no longer entered in a series** | The race committee removed your boat from a series. It is no longer scored in it. |
+| **Your boat is entered in a race** | The race committee put your boat on a race's start sheet: it is racing that day. It gives the race's date and start time. |
+| **Your boat is no longer entered in a race** | The race committee took your boat off a race's start sheet. It is scored DNC (did not come to the start) in that race. If it was a mistake, tell the committee. |
 | **Your boat's details have been updated** | The race committee changed your boat's details, showing each change old and new. (If you asked for the change, the "Approved" email tells you instead.) You also get this if your boat is recorded as belonging to someone else. |
 | **Reset your Race Times password** | You asked for a password reset. See [Forgotten your password?](../getting-started/forgotten-password.md) |
 

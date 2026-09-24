@@ -43,7 +43,7 @@
       <tr>
         <td><a href="{% url 'results:series' history.series.pk %}?race={{ line.race.number }}&amp;boat={{ boat.pk }}">Race {{ line.race.number }}</a>{% if line.row and not line.race.published_at %}<abbr title="Provisional">*</abbr>{% endif %}<br><span class="muted">{{ line.race.date|date:"j M" }}</span></td>
         {% if line.row %}{% with result=line.row.result %}
-        <td class="num">{% if result.position %}{{ result.position }}{% else %}{{ result.status }}{% endif %}</td>
+        <td class="num">{% if line.row.not_recorded %}<abbr title="Not recorded">NR</abbr>{% else %}{{ line.row.place }}{% endif %}</td>
         <td class="num{% if line.points_discarded %} discarded{% endif %}">{% if line.points_discarded %}({{ result.points|points }}){% else %}{{ result.points|points }}{% endif %}</td>
         <td class="num detail">{{ result.corrected_time|hms }}</td>
         <td class="num">{{ result.tcf_used|tcf }}</td>
@@ -57,6 +57,7 @@
   </table>
   </div>
   {% if history.standing %}<p class="muted">Discarded scores are in brackets.</p>{% endif %}
+  {% if history.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
   {% if history.has_provisional %}<p class="muted">* Provisional: may still change until the race committee publishes it.</p>{% endif %}
   {% else %}
   <p class="muted">No races scheduled yet.</p>

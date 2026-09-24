@@ -286,3 +286,24 @@ class DecisionForm(forms.Form):
     decision = forms.ChoiceField(choices=[("approve", "Approve"), ("reject", "Reject")])
     reason = forms.CharField(required=False, max_length=500)
     note = forms.CharField(required=False, max_length=500)
+
+
+class StartSheetRowForm(forms.Form):
+    """One boat's row on a race's start sheet: racing or not, and who is aboard."""
+
+    racing = forms.BooleanField(required=False, label="Racing")
+    persons_on_board = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=99,
+        label="Persons on board",
+        widget=forms.NumberInput(attrs={"inputmode": "numeric", "size": 3}),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("racing"):
+            # Unticking a boat takes it off, whatever is still in the box.
+            cleaned["persons_on_board"] = None
+            self.errors.pop("persons_on_board", None)
+        return cleaned

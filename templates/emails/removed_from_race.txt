@@ -1,0 +1,10 @@
+{% autoescape off %}{{ boat }} is no longer entered in race {{ race.number }} of {{ race.series }}
+Hello {{ user.first_name|default:user.get_username }},
+
+The race committee has taken your boat, {{ boat }}, off the start sheet for race {{ race.number }} of {{ race.series }} on {{ race.date|date:"l j F Y" }}. It is scored DNC (did not come to the start) in that race.
+
+If this is a mistake, please tell the race committee.
+
+The race's results:
+{{ results_url }}
+{% endautoescape %}

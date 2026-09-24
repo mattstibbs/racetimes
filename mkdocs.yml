@@ -26,5 +26,6 @@ nav:
   - Members:
       - Emails you will receive: members/emails.md
   - Race committee:
+      - "Race day: the start sheet and finishes": committee/race-day.md
       - Publishing results: committee/publishing-results.md
       - Reviewing waiting requests: committee/reviewing-requests.md
