@@ -1,3 +1,5 @@
+from datetime import datetime, time
+
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -5,6 +7,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from . import approvals, audit, notifications, publishing, race_day, start_sheet
@@ -134,7 +137,15 @@ def _finishing_context(race, at, bound_form=None, bound_entry=None, message="", 
         # no row to show the error in, so the panel shows it at the top.
         error = " ".join(message for messages_ in bound_form.errors.values() for message in messages_)
     # Across the line in time order; boats with a code after them, by sail number.
-    finished.sort(key=lambda row: (row["finish"].finish_time is None, row["finish"].finish_time or 0))
+    # Two boats tapped within the same second share a time, so the one saved
+    # first - tapped first - comes first. (The list starts in sail-number order,
+    # and sort() keeps it for everything else that ties.)
+    epoch = timezone.make_aware(datetime.min.replace(year=2000))
+    finished.sort(key=lambda row: (
+        row["finish"].finish_time is None,
+        row["finish"].finish_time or time.min,
+        row["finish"].recorded_at or epoch,
+    ))
     for number, row in enumerate(r for r in finished if r["finish"].finish_time is not None):
         row["order"] = number + 1
     return {

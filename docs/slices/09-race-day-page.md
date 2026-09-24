@@ -49,7 +49,9 @@ what they mean.
     or a code (DNF, DNS, DNC). It's a plain `<details>`, so no JavaScript
     is needed.
 - **Finished:** each boat with a time, in the order it crossed the line
-  (by finish time), numbered 1, 2, 3.
+  (by finish time), numbered 1, 2, 3. Two boats tapped within the same
+  second share a time, so they are kept in the order they were tapped.
+  *(Found while building.)*
   - Boats with a code come after, in sail-number order.
   - Each row shows the finish time and the elapsed time.
   - It's labelled as the order across the line, not the results: corrected

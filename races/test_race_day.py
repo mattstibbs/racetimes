@@ -194,6 +194,16 @@ def test_finished_boats_are_in_order_across_the_line_then_codes(client, committe
     assert "Still racing (0)" in html and "Every boat on the start sheet has a result." in html
 
 
+def test_boats_tapped_in_the_same_second_stay_in_tap_order(client, committee, racing, clock):
+    first = clock(19, 5, 31, 100000)
+    tap(client, racing["race"], racing["puffin"])      # GBR77, tapped first
+    clock(when=first + timedelta(milliseconds=600))
+    tap(client, racing["race"], racing["kittiwake"])   # GBR42: same second, lower sail number
+    html = client.get(page_url(racing["race"], "finish")).content.decode()
+    finished = html[html.index('id="finished"'):]
+    assert finished.index("GBR77") < finished.index("GBR42")
+
+
 def test_a_typed_time_works_from_either_list(client, committee, racing, clock):
     clock(when=local(20, 0, on=date(2026, 9, 30)))
     race, kittiwake = racing["race"], racing["kittiwake"]

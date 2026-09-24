@@ -296,14 +296,45 @@ A series chooses its handicap system: NHC as today, Portsmouth Yardstick or
 RYA YTC. PY and YTC are fixed numbers, so nothing moves after a race. Places,
 points and standings are RRS Appendix A under all three.
 
-## Slice 9: the race day page. **Status: planned (2026-09-24)**
+## Slice 9: the race day page. **Status: complete (2026-09-24)**
 
-Spec: `docs/slices/09-race-day-page.md`. It proposes one new field,
-`Finish.recorded_at`, which needs the project owner's approval before any
-migration is written.
+Acceptance criteria, from `docs/slices/09-race-day-page.md`:
+
+- [x] One page per race, `/races/<pk>/`, with Start sheet and Finishing
+      views, committee only. The two old addresses redirect to it, no link
+      points at the old pages, and it's tested as each of the four roles.
+- [x] The start sheet view passes every slice 6 test at its new address.
+- [x] Tapping Finished records the site's local time in whole seconds
+      (tested with a fixed clock) as an ADDED change with no reason. It's
+      offered only on the race's date from its start time.
+- [x] A tap before the start, on another day, or for a boat not racing is
+      refused. A second tap changes nothing and says when the boat finished.
+- [x] Finished boats are in order across the line, then codes. Two boats
+      tapped in the same second stay in tap order.
+- [x] Undo is offered for two minutes (tested at 1:59 and 2:01), needs no
+      reason, and records a REMOVED change marked as an undo. It's refused on
+      a published race, after two minutes, and for finishes saved before
+      this slice.
+- [x] Typed times and codes work from both lists, with and without
+      JavaScript, under the usual correction rules.
+- [x] Refreshing: 204 when nothing changed, the lists after a change, and
+      no refresh while a form is open, checked with two browsers.
+- [x] The race clock shows the site's time with the device clock 37 minutes
+      fast. The page works fully with JavaScript off.
+- [x] Scoring, publishing, "not recorded" and the emails are unchanged.
+- [x] Usable at 768 px and 375 px, with no page scrolling sideways.
+- [x] Migrations use nothing database-specific. The app's tests were also
+      run against PostgreSQL 16 by hand; CI runs SQLite only.
+- [x] The manual's race day page is rewritten, with new screenshots,
+      including checking the clock against the officer's watch and Undo.
+
+Manual check: in headless Chromium on a race dated today, a tablet tapped
+boats while a phone saw them arrive by polling. The phone held a typed time
+while its form was open for seven seconds, and refreshed once it closed. An
+Undo put a boat back, and the page did the same with JavaScript off.
+
+Existing tests moved to the new address. Six assertions tied to the old
+pages' layout were updated to the new one; the commit message lists them.
 
 One page per race replaces the start sheet and finish-entry pages: tick who
-is racing, then tap **Finished** as each boat crosses the line. Boats move
-from "still racing" to "finished", a wrong tap can be undone for two minutes,
-the page refreshes itself so two devices see each other's taps, and a small
-script runs the race clock. Scoring and publishing don't change.
+is racing, then tap **Finished** as each boat crosses the line.

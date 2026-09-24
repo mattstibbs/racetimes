@@ -17,9 +17,9 @@ every boat entered in the series.
 
 ## Publishing a race
 
-1. Open the race's finish-entry page: on the series' results page, press the
-   race's button and then **Enter finishes** under its heading, or go from the
-   series in the admin.
+1. Open the race's [race day page](race-day.md), in its **Finishing** view:
+   on the series' results page, press the race's button and then **Race day
+   page** under its heading, or go from the series in the admin.
 2. Check every boat's result. Every boat on the race's
    [start sheet](race-day.md) needs a finish time or a code first; until
    then, the box at the top lists the boats still to record instead of the
