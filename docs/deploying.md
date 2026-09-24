@@ -30,6 +30,9 @@ the same steps are in Render's own guide to deploying Django.
 
 ## Day to day
 
+- **What's waiting.** The admin's front page lists what is waiting for you:
+  members' boat and entry requests for the race committee (linking to the
+  Requests page), and, for the administrator, new accounts.
 - **Accounts.** Members sign up on the site and wait for approval. As the
   administrator, the admin's front page tells you how many are waiting; follow
   its "Review and approve" link (or filter **Users** by "Waiting for

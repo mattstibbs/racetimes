@@ -1,15 +1,15 @@
 {% extends "admin/index.html" %}
 {% comment %}
-  Django's own admin front page, with a notice for the administrator when
-  members have signed up and are waiting for their accounts to be approved.
+  Django's own admin front page, with a notice for anything waiting for this
+  person to act on: members' requests for the race committee, and new
+  accounts for the administrator. See races/context_processors.py.
 {% endcomment %}
 {% block content %}
-{% with waiting=accounts_waiting %}{% if waiting %}
+{% with notices=waiting_notices %}{% if notices %}
 <ul class="messagelist">
-  <li class="warning">
-    {{ waiting }} new account{{ waiting|pluralize:" is,s are" }} waiting for approval.
-    <a href="{% url 'admin:auth_user_changelist' %}?approval=waiting">Review and approve</a>
-  </li>
+  {% for notice in notices %}
+  <li class="warning">{{ notice.text }} <a href="{{ notice.link }}">{{ notice.link_text }}</a></li>
+  {% endfor %}
 </ul>
 {% endif %}{% endwith %}
 {{ block.super }}

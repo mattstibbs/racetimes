@@ -269,3 +269,44 @@ def test_the_waiting_filter_lists_only_new_sign_ups(as_role):
     ).content.decode()
     assert "new@example.com" in page
     assert "left@example.com" not in page and "active@example.com" not in page
+
+
+# --- Members' requests waiting for the committee -------------------------------
+
+
+def front_page(as_role, role):
+    return as_role(role).get(reverse("admin:index")).content.decode()
+
+
+@pytest.fixture
+def waiting_requests():
+    member = make_member("pat@example.com")
+    for sail in ("GBR1", "GBR2"):
+        BoatRequest.objects.create(kind="REGISTER", sail_number=sail, requested_by=member)
+    EntryRequest.objects.create(series=make_series(), boat=make_boat(owner=member), requested_by=member)
+    # Decided requests wait for nobody.
+    BoatRequest.objects.create(kind="REGISTER", sail_number="GBR3", requested_by=member,
+                               status="REJECTED", committee_note="No")
+
+
+@pytest.mark.parametrize("role", ["committee", "administrator"])
+def test_the_committee_is_told_about_waiting_requests(as_role, waiting_requests, role):
+    page = front_page(as_role, role)
+    assert "2 boat requests and 1 entry request are waiting for the race committee." in page
+    assert reverse("races:requests") in page
+
+
+def test_one_request_reads_in_the_singular(as_role):
+    BoatRequest.objects.create(kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
+    assert "1 boat request is waiting for the race committee." in front_page(as_role, "committee")
+
+
+def test_no_request_notice_when_none_are_pending(as_role):
+    assert "waiting for the race committee" not in front_page(as_role, "committee")
+
+
+def test_the_administrator_sees_requests_and_accounts_together(as_role, waiting_requests):
+    make_member("new@example.com", is_active=False)
+    page = front_page(as_role, "administrator")
+    assert "waiting for the race committee" in page
+    assert "1 new account is waiting for approval." in page
