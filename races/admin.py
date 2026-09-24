@@ -151,9 +151,7 @@ class RaceInline(admin.TabularInline):
         if not race.pk:
             return ""
         return format_html(
-            '<a href="{}">Start sheet</a> &middot; <a href="{}">Enter finishes</a>',
-            reverse("races:start_sheet", args=[race.pk]),
-            reverse("races:finish_entry", args=[race.pk]),
+            '<a href="{}">Race day page</a>', reverse("races:race_day", args=[race.pk])
         )
 
 

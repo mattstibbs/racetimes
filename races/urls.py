@@ -34,16 +34,20 @@ urlpatterns = [
     path('requests/', views.requests_page, name='requests'),
     path('requests/<str:kind>/<int:pk>/', views.decide_request, name='decide_request'),
     path('series/<int:pk>/history/', views.series_history, name='series_history'),
+    path('races/<int:pk>/', views.race_day_page, name='race_day'),
+    # The slice 6 and slice 1 addresses, redirecting to the race day page.
     path('races/<int:pk>/entries/', views.start_sheet_page, name='start_sheet'),
+    path('races/<int:pk>/finishes/', views.finish_entry, name='finish_entry'),
     path(
         'races/<int:race_pk>/entries/<int:entry_pk>/',
         views.save_start_sheet_row,
         name='save_start_sheet_row',
     ),
-    path('races/<int:pk>/finishes/', views.finish_entry, name='finish_entry'),
     path(
         'races/<int:race_pk>/finishes/<int:entry_pk>/',
         views.save_finish,
         name='save_finish',
     ),
+    path('races/<int:race_pk>/finishes/<int:entry_pk>/tap/', views.tap_finish, name='tap_finish'),
+    path('races/<int:race_pk>/finishes/<int:entry_pk>/undo/', views.undo_finish, name='undo_finish'),
 ]

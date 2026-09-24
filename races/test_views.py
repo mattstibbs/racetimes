@@ -49,7 +49,7 @@ def row_data(entry, finish_time="", status="FINISHED", reason=""):
 
 def test_finish_entry_needs_staff(client, race_night):
     _, race, a, _ = race_night
-    response = client.get(reverse("races:finish_entry", args=[race.pk]))
+    response = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish"))
     assert response.status_code == 302
     assert response["Location"].startswith(reverse("races:login"))
     response = client.post(save_url(race, a), row_data(a, "19:10:00"))
@@ -60,7 +60,7 @@ def test_finish_entry_needs_staff(client, race_night):
 def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_night):
     _, race, *_ = race_night
     client.force_login(django_user_model.objects.create_user("member"))
-    assert client.get(reverse("races:finish_entry", args=[race.pk])).status_code == 302
+    assert client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).status_code == 302
 
 
 # --- Finish entry: the page ------------------------------------------------
@@ -68,11 +68,12 @@ def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_n
 
 def test_finish_entry_lists_every_boat_on_the_start_sheet(staff_client, race_night):
     _, race, a, b = race_night
-    page = staff_client.get(reverse("races:finish_entry", args=[race.pk])).content.decode()
+    page = staff_client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
     assert save_url(race, a) in page
     assert save_url(race, b) in page
     assert 'value="19:00:00"' in page
-    assert "Not recorded yet." in page
+    # Slice 9: a boat with nothing recorded is listed under "Still racing".
+    assert "Still racing (1)" in page
 
 
 # --- Finish entry: saving a row --------------------------------------------
@@ -84,8 +85,9 @@ def test_saving_a_time_over_htmx_returns_the_row(staff_client, race_night):
     assert response.status_code == 200
     html = response.content.decode()
     assert f'id="finish-{b.pk}"' in html
-    # Elapsed 1:10:00 x 0.900 = 1:03:00 corrected.
-    assert "1:10:00" in html and "1:03:00" in html
+    # Slice 9: the Finished list shows the finish and elapsed times; corrected
+    # times are on the results page.
+    assert "19:10:00" in html and "elapsed 1:10:00" in html
     assert "Saved" in html
     assert Finish.objects.get(entry=b).finish_time.isoformat() == "19:10:00"
 
@@ -137,7 +139,7 @@ def test_without_htmx_a_save_redirects_back_to_the_page(staff_client, race_night
     _, race, _, b = race_night
     response = staff_client.post(save_url(race, b), row_data(b, "19:10:00"))
     assert response.status_code == 302
-    assert response["Location"] == reverse("races:finish_entry", args=[race.pk])
+    assert response["Location"] == (reverse("races:race_day", args=[race.pk]) + "?view=finish")
 
 
 def test_without_htmx_an_error_redisplays_the_page(staff_client, race_night):
@@ -176,7 +178,7 @@ def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
     assert staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
-    page = staff_client.get(reverse("races:finish_entry", args=[race_2.pk]))
+    page = staff_client.get((reverse("races:race_day", args=[race_2.pk]) + "?view=finish"))
     assert page.status_code == 200
     assert "No boats are on the" in page.content.decode()
 
@@ -190,9 +192,8 @@ def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(staff_client, re
     )
     assert response.status_code == 200
     html = response.content.decode()
-    assert "(not scored yet)" in html
-    # The page's note is updated in place, alongside the row.
-    assert 'id="race-note" hx-swap-oob="true"' in html
+    # Slice 9: the whole Finishing panel comes back, the race's note included.
+    assert 'id="finish-panel"' in html and 'id="race-note"' in html
     assert "at least one boat has a finish time" in html
     assert Finish.objects.get(race=race_2, entry=a).status == "DNF"
 

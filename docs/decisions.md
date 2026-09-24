@@ -1134,6 +1134,35 @@ Parked on 2026-09-24 at the project owner's request, with nothing built.
 
 ---
 
+## 2026-09-24 - Slice 9: one race day page, finishes by tap
+
+**Context.** Entering finishes means reading a watch and typing each time, on
+a separate page from the start sheet. On the water, boats cross seconds
+apart.
+
+**Decision.** Agreed with the project owner:
+- One race day page per race replaces the start sheet and finish-entry pages;
+  the old addresses redirect to it.
+- A **Finished** button stamps the site's local time, in whole seconds, on the
+  race's own date from its start time. Every time can still be typed or
+  corrected.
+- Boats are shown as "still racing" (sail-number order, so nothing moves under
+  a finger) and "finished" (in order across the line).
+- **Undo** within two minutes of saving a finish, on an unpublished race, with
+  no reason. This relaxes slice 2's "a saved finish can't be cleared" for
+  that one case; both the finish and its removal stay in the history.
+- The Finishing view refreshes every 5 seconds (HTMX polling, a 204 when
+  nothing changed, paused while a form is open), for two devices at once.
+- **The one JavaScript exception**, approved by the project owner:
+  `static/js/race-clock.js`, a small hand-written script with no library,
+  ticks the race clock in the site's time. The page works without it.
+
+**Consequence.** One proposed field, `Finish.recorded_at`, for Undo (awaiting
+approval). The change history can't provide it: its rows don't name the boat
+except in text.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

@@ -4,10 +4,11 @@ Run only by run.sh, against a throwaway SQLite database it creates, never
 against a real one. Every account's password is PASSWORD.
 """
 
-from datetime import date, time
+from datetime import date, time, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 from races.models import Boat, BoatRequest, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
 from races.roles import COMMITTEE_GROUP
@@ -63,7 +64,11 @@ for number, day in [(1, 16), (2, 23), (3, 30)]:
             Finish.objects.create(race=race, entry=entry, finish_time=finish)
         else:
             Finish.objects.create(race=race, entry=entry, status="DNF")
-race_4 = Race.objects.create(series=autumn, number=4, date=date(2026, 10, 7), start_time=time(18, 30))
+# Race 4 is today, started 40 minutes ago, so the race day page offers its
+# Finished buttons whenever the screenshots are taken (from 00:00 just after midnight).
+started = max(timezone.localtime() - timedelta(minutes=40), timezone.localtime().replace(hour=0, minute=0, second=0))
+race_4 = Race.objects.create(series=autumn, number=4, date=started.date(),
+                             start_time=started.time().replace(microsecond=0))
 # Race day for race 4: two boats ticked so far. The screenshots add a third.
 RaceEntry.objects.create(race=race_4, entry=entries[0], persons_on_board=3)
 RaceEntry.objects.create(race=race_4, entry=entries[2], persons_on_board=4)

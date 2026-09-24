@@ -159,6 +159,7 @@ ul.messages li.info { background: var(--accent-soft); border-left-color: var(--a
 .card.saved { background: var(--ok-bg); border-color: var(--ok); }
 .card.publishing { border-left: 4px solid var(--accent); }
 .card.publishing p { margin-top: 0; }
+.card.publishing form > :last-child { margin-bottom: 0; }
 table.proposed { width: auto; box-shadow: none; }
 tr.changed td { font-weight: 600; background: var(--warn-bg); }
 form.decision input { width: 100%; max-width: 30rem; margin-top: 0.25rem; }
@@ -259,4 +260,67 @@ table.boat-races td:first-child { white-space: nowrap; }
   table.boat-races .detail { display: none; }
   .finish-row, .start-row { grid-template-columns: 1fr 1fr; }
   .card { padding: 0.8rem 0.9rem; }
+}
+
+/* --- The race day page (slice 9) ------------------------------------------------------ */
+
+.race-clock {
+  display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; align-items: baseline;
+  background: var(--navy); color: var(--surface); border-radius: var(--radius);
+  padding: 0.6rem 1rem; font-variant-numeric: tabular-nums;
+}
+.race-clock strong { font-size: 1.5rem; margin-left: 0.35rem; }
+nav.view-tabs { display: flex; gap: 0.5rem; margin: 1rem 0; }
+nav.view-tabs a {
+  display: inline-flex; align-items: center; min-height: var(--tap); padding: 0.3rem 1.1rem;
+  border: 1px solid var(--accent); border-radius: 999px; background: var(--surface);
+  text-decoration: none; font-weight: 600;
+}
+nav.view-tabs a[aria-current=page] { background: var(--accent); color: var(--surface); }
+.panel-message {
+  padding: 0.65rem 0.9rem; border-radius: var(--radius-small);
+  background: var(--ok-bg); border-left: 4px solid var(--ok);
+}
+.panel-message.error { background: var(--err-bg); border-left-color: var(--err); }
+
+.racing-row, .finished-row {
+  display: grid; gap: 0.5rem 0.75rem; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-small);
+  padding: 0.6rem 0.8rem; margin-bottom: 0.5rem;
+}
+.racing-row { grid-template-columns: 1fr auto auto; }
+.finished-row { grid-template-columns: 2rem 1fr auto auto auto; }
+.racing-row.has-errors, .finished-row.has-errors { background: var(--err-bg); border-color: var(--err); }
+.finished-row.saved { background: var(--ok-bg); border-color: var(--ok); }
+.racing-row .boat, .finished-row .boat { font-size: 1.1rem; }
+.finished-row .order { font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+.finished-row .time { font-variant-numeric: tabular-nums; }
+.racing-row form.tap, .finished-row form.undo { margin: 0; }
+/* Big enough to hit on a moving boat. */
+button.finished { min-height: 3.25rem; min-width: 8.5rem; font-size: 1.1rem; }
+
+details.finish-form { grid-column: auto; }
+details.finish-form summary {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--tap); min-width: var(--tap); padding: 0 0.8rem; cursor: pointer; list-style: none;
+  border: 1px solid var(--accent); border-radius: var(--radius-small); color: var(--accent); font-weight: 600;
+}
+details.finish-form summary::-webkit-details-marker { display: none; }
+details.finish-form[open] { grid-column: 1 / -1; }
+details.finish-form[open] summary { background: var(--accent-soft); }
+details.finish-form form {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: flex-end; margin-top: 0.6rem;
+}
+details.finish-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.9rem; }
+details.finish-form .figures { flex-basis: 100%; }
+
+@media (max-width: 40rem) {
+  .racing-row { grid-template-columns: 1fr auto; }
+  .racing-row .boat { grid-column: 1 / -1; }
+  .racing-row form.tap button.finished { width: 100%; }
+  /* Boat on the first line; time, Undo and Edit on the second. */
+  .finished-row { grid-template-columns: 1.75rem 1fr auto auto; }
+  .finished-row .boat { grid-column: 2 / -1; }
+  .finished-row .time { grid-column: 2 / 3; }
+  .race-clock strong { font-size: 1.25rem; }
 }

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Race day: {{ race }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ race.series.name }}: Race {{ race.number }}</h1>
+<p class="muted">
+  {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
+  <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>
+  &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">Correction history</a>
+</p>
+{# The site's time, which a tap records. race-clock.js ticks it; without it, it shows the time the page loaded. #}
+<p class="race-clock" id="race-clock" data-now="{{ now_ms }}" data-start="{{ start_ms }}" data-tz="{{ time_zone }}">
+  <span>Clock <strong class="clock-time">{{ now|time:"H:i:s" }}</strong></span>
+  <span>Elapsed <strong class="clock-elapsed">&ndash;</strong></span>
+</p>
+{% include "races/_race_day_body.html" %}
+<script src="{% static 'js/race-clock.js' %}" defer></script>
+{% endblock %}

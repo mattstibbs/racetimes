@@ -1,11 +1,16 @@
+from datetime import datetime, time
+
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import approvals, audit, notifications, publishing, start_sheet
+from . import approvals, audit, notifications, publishing, race_day, start_sheet
 from .forms import DecisionForm, FinishForm, StartSheetRowForm
 from .models import NOT_ON_START_SHEET, Boat, BoatRequest, EntryRequest, Finish, Race, Series
 from .roles import committee_required
@@ -32,67 +37,196 @@ def series_history(request, pk):
     )
 
 
+# --- The race day page (slice 9) -----------------------------------------------
+# One page per race, with two views: the start sheet, and finishing. It
+# replaces the slice 1 finish-entry page and the slice 6 start sheet page,
+# whose addresses now redirect here.
+
+VIEWS = ("start", "finish")
+
+
+@committee_required
+def race_day_page(request, pk):
+    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
+    view = request.GET.get("view")
+    if view not in VIEWS:
+        # Before anyone is racing there is nothing to finish, so open on the start sheet.
+        view = "finish" if race.race_entries.exists() else "start"
+    since = request.GET.get("since")
+    if view == "finish" and since and request.htmx and since == race_day.version(race):
+        # The page refreshes itself every few seconds; 204 tells HTMX nothing changed.
+        return HttpResponse(status=204)
+    return _render_race_day(request, race, view)
+
+
+def _render_race_day(request, race, view, **extra):
+    context = _race_day_context(race, view, **extra)
+    target = request.htmx.target if request.htmx else None
+    if target == "finish-panel" and view == "finish":
+        return render(request, "races/_finish_panel.html", context)
+    if target in ("race-day-body", "finish-panel"):
+        return render(request, "races/_race_day_body.html", context)
+    return render(request, "races/race_day.html", context)
+
+
+def _race_day_url(race, view):
+    return f"{reverse('races:race_day', args=[race.pk])}?view={view}"
+
+
+@committee_required
+def start_sheet_page(request, pk):
+    """The slice 6 address: kept working for bookmarks."""
+    return redirect(_race_day_url(get_object_or_404(Race, pk=pk), "start"))
+
+
 @committee_required
 def finish_entry(request, pk):
-    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
-    return render(request, "races/finish_entry.html", _finish_entry_context(race))
+    """The slice 1 address: kept working for bookmarks and old links."""
+    return redirect(_race_day_url(get_object_or_404(Race, pk=pk), "finish"))
+
+
+def _race_day_context(race, view, **extra):
+    at = race_day.now()
+    context = {
+        "race": race,
+        "view": view,
+        "start_url": _race_day_url(race, "start"),
+        "finish_url": _race_day_url(race, "finish"),
+        # For the race clock: the site's time now and the start, in epoch ms,
+        # so the script can show the site's time whatever the device's clock says.
+        "now_ms": int(at.timestamp() * 1000),
+        "start_ms": int(race_day.start_moment(race).timestamp() * 1000),
+        "now": at,
+        "time_zone": settings.TIME_ZONE,
+    }
+    if view == "start":
+        context.update(_start_sheet_context(race, extra.get("bound_form"), extra.get("bound_entry"),
+                                            extra.get("refused", "")))
+    else:
+        context.update(_finishing_context(race, at, **extra))
+    return context
+
+
+def _finishing_context(race, at, bound_form=None, bound_entry=None, message="", error="", touched=None):
+    """Still racing (sail-number order), finished (order across the line), not racing."""
+    results = score_series(race.series)
+    finishes = {finish.entry_id: finish for finish in race.finishes.select_related("race")}
+    racing = {race_entry.entry_id: race_entry for race_entry in race.race_entries.all()}
+    still_racing, finished, not_racing = [], [], []
+    for entry in race.series.entries.select_related("boat"):
+        if entry.pk not in racing:
+            not_racing.append(entry)
+            continue
+        finish = finishes.get(entry.pk)
+        bound = bound_entry is not None and entry.pk == bound_entry.pk
+        row = {
+            "entry": entry,
+            "race_entry": racing[entry.pk],
+            "finish": finish,
+            "form": bound_form if bound else FinishForm(instance=finish, prefix=_prefix(entry)),
+            "open": bound and bound_form is not None and bool(bound_form.errors),
+            "touched": touched is not None and entry.pk == touched.pk,
+        }
+        if finish is None:
+            still_racing.append(row)
+        else:
+            row["can_undo"] = race_day.can_undo(finish, race)
+            finished.append(row)
+    if bound_form is not None and bound_form.errors and bound_entry.pk not in racing:
+        # A stale page or hand-made request for a boat that isn't racing: it has
+        # no row to show the error in, so the panel shows it at the top.
+        error = " ".join(message for messages_ in bound_form.errors.values() for message in messages_)
+    # Across the line in time order; boats with a code after them, by sail number.
+    # Two boats tapped within the same second share a time, so the one saved
+    # first - tapped first - comes first. (The list starts in sail-number order,
+    # and sort() keeps it for everything else that ties.)
+    epoch = timezone.make_aware(datetime.min.replace(year=2000))
+    finished.sort(key=lambda row: (
+        row["finish"].finish_time is None,
+        row["finish"].finish_time or time.min,
+        row["finish"].recorded_at or epoch,
+    ))
+    for number, row in enumerate(r for r in finished if r["finish"].finish_time is not None):
+        row["order"] = number + 1
+    return {
+        "still_racing": still_racing,
+        "finished": finished,
+        "not_racing": not_racing,
+        "can_tap": race_day.can_tap(race, at),
+        "note": results.note_for(race),
+        "version": race_day.version(race),
+        "panel_message": message,
+        "panel_error": error,
+        **_publishing_context(race),
+    }
+
+
+def _finish_or_page(request, race, **extra):
+    """After a change on the Finishing view: the panel over HTMX, else back to the page."""
+    if request.htmx:
+        return render(request, "races/_finish_panel.html", _race_day_context(race, "finish", **extra))
+    if extra.get("error"):
+        messages.error(request, extra["error"])
+    elif extra.get("message"):
+        messages.success(request, extra["message"])
+    return redirect(_race_day_url(race, "finish"))
+
+
+@committee_required
+@require_POST
+def tap_finish(request, race_pk, entry_pk):
+    """The Finished button: record this boat as finishing now."""
+    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    try:
+        finish = race_day.tap(race, entry, request.user)
+    except ValidationError as refused:
+        return _finish_or_page(request, race, error=" ".join(refused.messages))
+    return _finish_or_page(
+        request, race, touched=entry, message=f"{entry.boat} {race_day.describe(finish)}."
+    )
+
+
+@committee_required
+@require_POST
+def undo_finish(request, race_pk, entry_pk):
+    """Undo a finish saved in the last two minutes: the boat is racing again."""
+    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    try:
+        race_day.undo(race, entry, request.user)
+    except ValidationError as refused:
+        return _finish_or_page(request, race, error=" ".join(refused.messages))
+    return _finish_or_page(request, race, touched=entry, message=f"Undone: {entry.boat} is racing again.")
 
 
 @committee_required
 @require_POST
 def save_finish(request, race_pk, entry_pk):
-    """Save one boat's row. Each row saves alone, so one bad time loses nothing else."""
+    """A typed finish time or code, from either list. Each row saves alone."""
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
     if not request.htmx and not race.race_entries.filter(entry=entry).exists():
-        # The page offers no row for a boat that is not racing, so this is a
+        # The page offers no form for a boat that is not racing, so this is a
         # stale page or a hand-made request. With HTMX, the row shows the
         # form's own error, which says the same.
         messages.error(request, NOT_ON_START_SHEET)
-        return redirect("races:finish_entry", race.pk)
+        return redirect(_race_day_url(race, "finish"))
     finish = Finish.objects.filter(race=race, entry=entry).first() or Finish(race=race, entry=entry)
     form = FinishForm(request.POST, instance=finish, prefix=_prefix(entry))
-
-    saved = form.is_valid()
-    message = ""
-    if saved:
-        before = score_series(race.series)
-        # The finish and its history are saved together or not at all.
-        with transaction.atomic():
-            form.save()
-            recorded = audit.record(
-                form.scoring_changes, request.user, form.cleaned_data["reason"]
-            )
-        if not request.htmx:
-            return redirect("races:finish_entry", race.pk)
-        message = _saved_message(recorded, before, score_series(race.series))
-        form = FinishForm(instance=finish, prefix=_prefix(entry))
-    elif not request.htmx:
-        # Without HTMX, redisplay the whole page with this row's errors.
-        return render(request, "races/finish_entry.html", _finish_entry_context(race, form, entry))
-
-    results = score_series(race.series)
-    return render(
-        request,
-        "races/_finish_row.html",
-        {
-            "race": race,
-            "row": _row(
-                entry,
-                form,
-                results.for_race(race),
-                _saved_finish(race, entry),
-                race.race_entries.filter(entry=entry).first(),
-            ),
-            "saved": saved,
-            "message": message,
-            # Saving a row can change whether the race is scored at all, so the
-            # page's note is sent back too, and HTMX swaps it in by id.
-            "note": results.note_for(race),
-            "update_note": True,
-            **_publishing_context(race),
-        },
-    )
+    if not form.is_valid():
+        if request.htmx:
+            return _finish_or_page(request, race, bound_form=form, bound_entry=entry)
+        # Without HTMX, redisplay the whole page with this row's form open.
+        return render(request, "races/race_day.html",
+                      _race_day_context(race, "finish", bound_form=form, bound_entry=entry))
+    before = score_series(race.series)
+    # The finish and its history are saved together or not at all.
+    with transaction.atomic():
+        form.save()
+        recorded = audit.record(form.scoring_changes, request.user, form.cleaned_data["reason"])
+    message = f"{entry.boat}: {_saved_message(recorded, before, score_series(race.series))}"
+    return _finish_or_page(request, race, touched=entry, message=message)
 
 
 def _saved_message(recorded, before, after):
@@ -107,56 +241,7 @@ def _prefix(entry):
     return f"entry-{entry.pk}"
 
 
-def _saved_finish(race, entry):
-    return Finish.objects.select_related("race").filter(race=race, entry=entry).first()
-
-
-def _row(entry, form, race_results, finish, race_entry):
-    """One row of the finish-entry page.
-
-    ``result`` is the engine's view of this boat in this race, or None when the
-    race is not scored yet; ``finish`` is what is saved, whether scored or not;
-    ``race_entry`` is its start sheet row, which holds persons on board.
-    """
-    result = race_results.for_entry(entry).result if race_results else None
-    return {"entry": entry, "form": form, "finish": finish, "result": result, "race_entry": race_entry}
-
-
-def _finish_entry_context(race, bound_form=None, bound_entry=None):
-    results = score_series(race.series)
-    race_results = results.for_race(race)
-    finishes = {finish.entry_id: finish for finish in race.finishes.select_related("race")}
-    racing = {race_entry.entry_id: race_entry for race_entry in race.race_entries.all()}
-    rows, not_racing = [], []
-    # Sail-number order rather than finishing order, so a row stays put while
-    # the committee works down the sheet. Only boats on the start sheet get a
-    # row to fill in; the rest stayed at home and score DNC.
-    for entry in race.series.entries.select_related("boat"):
-        if entry.pk not in racing:
-            not_racing.append(entry)
-            continue
-        finish = finishes.get(entry.pk)
-        if bound_entry is not None and entry.pk == bound_entry.pk:
-            form = bound_form
-        else:
-            form = FinishForm(instance=finish, prefix=_prefix(entry))
-        rows.append(_row(entry, form, race_results, finish, racing[entry.pk]))
-    return {
-        "race": race,
-        "rows": rows,
-        "not_racing": not_racing,
-        "note": results.note_for(race),
-        **_publishing_context(race),
-    }
-
-
-# --- The start sheet ---------------------------------------------------------
-
-
-@committee_required
-def start_sheet_page(request, pk):
-    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
-    return render(request, "races/start_sheet.html", _start_sheet_context(race))
+# --- The start sheet view ------------------------------------------------------
 
 
 @committee_required
@@ -184,10 +269,9 @@ def save_start_sheet_row(request, race_pk, entry_pk):
     if not request.htmx:
         if not failed:
             messages.success(request, f"{entry.boat}: {message}")
-            return redirect("races:start_sheet", race.pk)
-        return render(
-            request, "races/start_sheet.html", _start_sheet_context(race, form, entry, refused)
-        )
+            return redirect(_race_day_url(race, "start"))
+        return render(request, "races/race_day.html", _race_day_context(
+            race, "start", bound_form=form, bound_entry=entry, refused=refused))
     context = _start_sheet_context(race, form, entry, refused)
     row = next(row for row in context["rows"] if row["entry"].pk == entry.pk)
     return render(
@@ -315,7 +399,7 @@ def publish_results(request, pk):
         if race.results_sent_at != sent_before:
             first = "Updated results sent" if updated else "Results published and sent"
             messages.success(request, f"{first} to {_owners(count)}.")
-    return redirect("races:finish_entry", race.pk)
+    return redirect(_race_day_url(race, "finish"))
 
 
 def _owners(count):

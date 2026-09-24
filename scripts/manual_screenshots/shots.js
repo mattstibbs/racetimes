@@ -7,8 +7,8 @@ const BASE = process.env.BASE_URL;
 const OUT = process.env.OUT_DIR;
 const PASSWORD = 'manual-screenshots-only';
 
-async function logIn(browser, email) {
-  const page = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
+async function logIn(browser, email, viewport = { width: 1000, height: 700 }) {
+  const page = await (await browser.newContext({ viewport, locale: 'en-GB' })).newPage();
   await page.goto(`${BASE}/accounts/login/`);
   await page.fill('#id_username', email);
   await page.fill('#id_password', PASSWORD);
@@ -72,7 +72,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await publicPage.goto(`${BASE}/series/1/?race=1`);
   await raceHeader(publicPage, 1, 'results-provisional.png');
   await officer.goto(`${BASE}/series/1/?race=1`);
-  await officer.click('#race-1 ~ p.muted >> text=Enter finishes');
+  await officer.click('#race-1 ~ p.muted >> text=Race day page');
   await officer.waitForLoadState('networkidle');
   await shot(officer.locator('#publishing'), 'publish-provisional.png');
   await officer.click('#publishing button');
@@ -80,31 +80,38 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(officer.locator('.messages'), 'publish-sent.png');
   await publicPage.goto(`${BASE}/series/1/?race=1`);
   await raceHeader(publicPage, 1, 'results-published.png');
-  const row = officer.locator('form.finish-row', { hasText: 'GBR 42' });
+  const row = officer.locator('.finished-row', { hasText: 'GBR 42' });
+  await row.locator('summary', { hasText: 'Edit' }).click();
   await row.locator('input[type=time]').fill('19:32:10');
   await row.locator('input[name$="-reason"]').fill('Misread the finish sheet');
-  await row.locator('button').click();
+  await row.locator('button', { hasText: 'Save' }).click();
   const amended = officer.locator('#publishing', { hasText: 'Amended since results were sent' });
   await amended.waitFor();
   await shot(amended, 'publish-amended.png');
   await publicPage.goto(`${BASE}/series/1/?race=1`);
   await raceHeader(publicPage, 1, 'results-amended-since-published.png');
 
-  // Race day: the start sheet for race 4, then its finishes.
-  await officer.goto(`${BASE}/races/4/entries/`);
-  const ternRow = officer.locator('form.start-row', { hasText: 'GBR 7' });
-  await ternRow.locator('input[type=checkbox]').check();
-  await officer.locator('form.start-row.saved', { hasText: 'GBR 7' }).waitFor();
-  await shot(officer.locator('body'), 'start-sheet.png');
-  await officer.goto(`${BASE}/races/4/finishes/`);
-  const first = officer.locator('form.finish-row', { hasText: 'GBR 42' });
-  await first.locator('input[type=time]').fill('19:29:31');
-  await first.locator('button').click();
-  await officer.locator('form.finish-row.saved', { hasText: 'GBR 42' }).waitFor();
-  await shot(officer.locator('body'), 'finish-entry-not-recorded.png');
-  await officer.goto(`${BASE}/races/4/entries/`);
-  await officer.locator('form.start-row', { hasText: 'GBR 42' }).locator('input[type=checkbox]').uncheck();
-  const refused = officer.locator('form.start-row.has-errors', { hasText: 'GBR 42' });
+  // Race day for race 4, which seed.py dates today, on a tablet: the start
+  // sheet, then tapping Finished, a typed code, and a refused take-off.
+  const tablet = await logIn(browser, 'officer@example.com', { width: 768, height: 1024 });
+  await tablet.goto(`${BASE}/races/4/?view=start`);
+  await tablet.locator('form.start-row', { hasText: 'GBR 7' }).locator('input[type=checkbox]').check();
+  await tablet.locator('form.start-row.saved', { hasText: 'GBR 7' }).waitFor();
+  await shot(tablet.locator('body'), 'race-day-start-sheet.png');
+  await tablet.goto(`${BASE}/races/4/?view=finish`);
+  for (const boat of ['GBR 42', 'GBR 1234']) {
+    await tablet.locator('.racing-row', { hasText: boat }).locator('button.finished').click();
+    await tablet.locator('.finished-row.saved', { hasText: boat }).waitFor();
+    await tablet.waitForTimeout(3000);  // boats seconds apart, as on the water
+  }
+  await shot(tablet.locator('body'), 'race-day-finishing.png');
+  const tern = tablet.locator('.racing-row', { hasText: 'GBR 7' });
+  await tern.locator('summary').click();
+  await tern.locator('select').selectOption('DNF');
+  await shot(tern, 'race-day-typed.png');
+  await tablet.goto(`${BASE}/races/4/?view=start`);
+  await tablet.locator('form.start-row', { hasText: 'GBR 42' }).locator('input[type=checkbox]').uncheck();
+  const refused = tablet.locator('form.start-row.has-errors', { hasText: 'GBR 42' });
   await refused.waitFor();
   await shot(refused, 'start-sheet-has-result.png');
 

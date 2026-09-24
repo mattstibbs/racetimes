@@ -5,7 +5,7 @@
 <p class="muted">
   Every change to something that feeds a score, newest first.
   {% if race %}<a href="{% url 'races:series_history' series.pk %}">Whole series</a> &middot;
-  <a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a> &middot;{% endif %}
+  <a href="{% url 'races:race_day' race.pk %}">Race day page</a> &middot;{% endif %}
   <a href="{% url 'results:series' series.pk %}">Results</a>
 </p>
 {% if changes %}
