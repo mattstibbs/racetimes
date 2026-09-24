@@ -98,6 +98,8 @@ def _race_day_context(race, view, **extra):
         "start_ms": int(race_day.start_moment(race).timestamp() * 1000),
         "now": at,
         "time_zone": settings.TIME_ZONE,
+        # The race clock is shown only on the race's own date.
+        "is_race_date": at.date() == race.date,
     }
     if view == "start":
         context.update(_start_sheet_context(race, extra.get("bound_form"), extra.get("bound_entry"),

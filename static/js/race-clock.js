@@ -4,6 +4,8 @@
 // The page is served with the site's time. The difference between that and
 // this device's clock is worked out once, so the clock shows the site's time -
 // the time a tap on Finished records - even if the tablet's own clock is out.
+// The clock is only on the page on the race's own date; if the page is left
+// open past midnight, the clock hides itself once the site's date moves on.
 // Without this script the page still works; the clock just doesn't tick.
 // This is the project's one hand-written script; see docs/decisions.md.
 (function () {
@@ -14,6 +16,10 @@
   var timeOfDay = new Intl.DateTimeFormat("en-GB", {
     timeZone: clock.dataset.tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
   });
+  // en-CA formats a date as YYYY-MM-DD, the same as data-date.
+  var dateOf = new Intl.DateTimeFormat("en-CA", {
+    timeZone: clock.dataset.tz, year: "numeric", month: "2-digit", day: "2-digit",
+  });
   var shown = clock.querySelector(".clock-time");
   var elapsed = clock.querySelector(".clock-elapsed");
 
@@ -23,12 +29,19 @@
     return Math.floor(s / 3600) + ":" + two(Math.floor(s / 60) % 60) + ":" + two(s % 60);
   }
 
+  var timer;
+
   function tick() {
     var now = Date.now() + offset;
+    if (dateOf.format(now) !== clock.dataset.date) {
+      clock.hidden = true;
+      clearInterval(timer);
+      return;
+    }
     shown.textContent = timeOfDay.format(now);
     elapsed.textContent = now < start ? "starts in " + hms(start - now + 999) : hms(now - start);
   }
 
+  timer = setInterval(tick, 1000);
   tick();
-  setInterval(tick, 1000);
 })();

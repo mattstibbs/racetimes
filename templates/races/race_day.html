@@ -8,11 +8,15 @@
   <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">Correction history</a>
 </p>
-{# The site's time, which a tap records. race-clock.js ticks it; without it, it shows the time the page loaded. #}
-<p class="race-clock" id="race-clock" data-now="{{ now_ms }}" data-start="{{ start_ms }}" data-tz="{{ time_zone }}">
+{% if is_race_date %}
+{# The site's time, which a tap records, shown only on the race's own date. race-clock.js ticks it, #}
+{# and hides it if the page is left open past midnight; without the script it shows the time the page loaded. #}
+<p class="race-clock" id="race-clock" data-now="{{ now_ms }}" data-start="{{ start_ms }}" data-tz="{{ time_zone }}"
+   data-date="{{ race.date|date:"Y-m-d" }}">
   <span>Clock <strong class="clock-time">{{ now|time:"H:i:s" }}</strong></span>
   <span>Elapsed <strong class="clock-elapsed">&ndash;</strong></span>
 </p>
+{% endif %}
 {% include "races/_race_day_body.html" %}
-<script src="{% static 'js/race-clock.js' %}" defer></script>
+{% if is_race_date %}<script src="{% static 'js/race-clock.js' %}" defer></script>{% endif %}
 {% endblock %}

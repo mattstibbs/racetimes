@@ -332,3 +332,13 @@ def test_the_page_carries_the_sites_time_for_the_clock(client, committee, racing
     assert 'data-tz="Europe/London"' in html
     assert "Clock <strong class=\"clock-time\">19:05:31</strong>" in html  # before the script runs
     assert '<script src="/static/js/race-clock.js" defer></script>' in html
+
+
+@pytest.mark.parametrize("on", [date(2026, 9, 22), date(2026, 9, 24)])
+def test_the_clock_is_shown_only_on_the_race_date(client, committee, racing, clock, on):
+    clock(when=local(19, 0, on=on))
+    html = client.get(page_url(racing["race"])).content.decode()
+    assert 'id="race-clock"' not in html and "race-clock.js" not in html
+    clock(19, 0)  # the race's own date
+    html = client.get(page_url(racing["race"])).content.decode()
+    assert 'id="race-clock"' in html and 'data-date="2026-09-23"' in html

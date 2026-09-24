@@ -46,8 +46,9 @@ scores exactly as a boat left off the start sheet does.
 
 ## Finishing
 
-At the top are the **clock** and the time **elapsed** since the start. Below
-them are two lists:
+On the day of the race, the **clock** and the time **elapsed** since the
+start are at the top. They aren't shown on any other day. Below them are two
+lists:
 
 - **Still racing**: every boat on the start sheet with nothing recorded yet,
   in sail-number order, so the rows don't move while you aim at them.
