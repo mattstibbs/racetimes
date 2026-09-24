@@ -9,7 +9,7 @@ from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
 from django.utils.html import format_html
 
-from . import audit
+from . import audit, notifications
 from .forms import (
     AuditedInlineForm,
     AuditedInlineFormSet,
@@ -51,6 +51,24 @@ class ReasonInAdminHistoryMixin:
         return f"{text} Reason: {reason}"
 
 
+def boat_changes(before, after):
+    """(label, old, new) for every field that differs between two versions of a boat."""
+    changes = []
+    for field in Boat._meta.concrete_fields:
+        if field.primary_key:
+            continue
+        name = field.attname
+        if getattr(before, name) == getattr(after, name):
+            continue
+        if field.name == "owner":
+            old, new = before.owner_display or "", after.owner_display or ""
+        else:
+            old, new = getattr(before, field.name), getattr(after, field.name)
+        label = field.verbose_name[:1].upper() + field.verbose_name[1:]
+        changes.append((label, "" if old is None else str(old), "" if new is None else str(new)))
+    return changes
+
+
 @admin.register(Boat)
 class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
@@ -73,7 +91,15 @@ class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         series_list = list(Series.objects.filter(entries__boat=obj).distinct()) if change else []
         before = {series.pk: score_series(series) for series in series_list}
+        stored = Boat.objects.select_related("owner").get(pk=obj.pk) if change else None
         super().save_model(request, obj, form, change)
+        if stored is not None:
+            # The owner hears about any change the committee makes to their
+            # boat; if the owner itself changed, the previous owner hears too.
+            owners = [obj.owner]
+            if stored.owner_id != obj.owner_id:
+                owners.append(stored.owner)
+            notifications.boat_updated(obj, boat_changes(stored, obj), owners, request)
         recorded = audit.record(form.scoring_changes, request.user, form.cleaned_data["reason"])
         if audit.needs_reason(recorded):
             for series in series_list:
@@ -164,6 +190,8 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
         form.recorded += audit.record(formset.removal_changes, request.user, reason)
         super().save_formset(request, form, formset, change)
         form.recorded += audit.record(formset.changes_to_record(), request.user, reason)
+        if formset.model is SeriesEntry:
+            notifications.entered_in_series(formset.new_objects, request)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -226,6 +254,10 @@ class ApprovalFilter(admin.SimpleListFilter):
         return queryset
 
 
+def waiting_now_active(users):
+    return [user for user in users if user.last_login is None]
+
+
 @admin.register(User)
 class MemberAccountAdmin(UserAdmin):
     """Django's own account admin, plus approving sign-ups in one step.
@@ -240,5 +272,14 @@ class MemberAccountAdmin(UserAdmin):
 
     @admin.action(description="Approve selected accounts")
     def approve_accounts(self, request, queryset):
-        count = queryset.filter(is_active=False).update(is_active=True)
+        approving = list(queryset.filter(is_active=False))
+        count = queryset.filter(pk__in=[u.pk for u in approving]).update(is_active=True)
         self.message_user(request, f"{count} account{'s' if count != 1 else ''} approved.")
+        notifications.account_approved(waiting_now_active(approving), request)
+
+    def save_model(self, request, obj, form, change):
+        # Ticking "Active" on a new sign-up approves it just as the action does.
+        was_waiting = change and waiting_for_approval(User.objects.filter(pk=obj.pk)).exists()
+        super().save_model(request, obj, form, change)
+        if was_waiting and obj.is_active:
+            notifications.account_approved([obj], request)

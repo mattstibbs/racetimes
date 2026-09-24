@@ -1,0 +1,21 @@
+{% comment %}The race's publishing state and its buttons. Swapped in by id when a row is saved.{% endcomment %}
+<div id="publishing" class="card publishing"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <form method="post" action="{% url 'races:publish_results' race.pk %}">{% csrf_token %}
+  {% if not race.published_at %}
+    <p><strong>Provisional.</strong> These results are public, but marked provisional until you publish them.
+      Publishing emails them to the owners of every boat entered in the series.</p>
+    <button type="submit">Publish results</button>
+  {% elif not race.results_sent_at %}
+    <p><strong>Published {{ race.published_at|date:"j M Y H:i" }}</strong>, but the results have not been
+      emailed: sending failed. Try again:</p>
+    <button type="submit" name="send" value="updated">Send results</button>
+  {% elif amended %}
+    <p class="amended"><strong>Amended since results were sent</strong> on {{ race.results_sent_at|date:"j M Y H:i" }}.
+      When you have finished correcting, send the updated results to the owners.</p>
+    <button type="submit" name="send" value="updated">Send updated results</button>
+  {% else %}
+    <p><strong>Published {{ race.published_at|date:"j M Y H:i" }}.</strong>
+      Results last sent {{ race.results_sent_at|date:"j M Y H:i" }}.</p>
+  {% endif %}
+  </form>
+</div>

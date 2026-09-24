@@ -185,6 +185,11 @@ class Race(models.Model):
     # A plain time of day, stored as typed with no timezone: it is what the
     # race officer's watch said. Elapsed time is finish time minus this.
     start_time = models.TimeField()
+    # Slice 4. Results are public as soon as they are saved, but provisional
+    # until published. Publishing emails them; the committee can later send
+    # them again after corrections, which moves results_sent_at on.
+    published_at = models.DateTimeField(null=True, blank=True, editable=False)
+    results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         ordering = ["series", "number"]

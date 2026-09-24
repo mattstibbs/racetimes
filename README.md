@@ -25,7 +25,7 @@ It is being built for two groups:
 | 1 | Walking skeleton: Django models, forms, results page | **Complete** |
 | 2 | Corrections and audit trail | **Complete** |
 | 3 | Member self-service and accounts | **Complete** |
-| 4 | Emailing results | Not started |
+| 4 | Emailing results | **Complete** |
 | 5 | Results web app | Not started |
 
 The scoring engine is finished and tested. In the Django app, the race

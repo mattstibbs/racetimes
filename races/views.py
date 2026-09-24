@@ -6,9 +6,9 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from . import approvals, audit
+from . import approvals, audit, notifications, publishing
 from .forms import DecisionForm, FinishForm
-from .models import BoatRequest, EntryRequest, Finish, Race, Series
+from .models import Boat, BoatRequest, EntryRequest, Finish, Race, Series
 from .roles import committee_required
 from .scoring import score_series
 
@@ -36,6 +36,10 @@ def series_results(request, pk):
             "results": results.for_race(race),
             "note": results.note_for(race),
             "amended_on": amended.get(race.pk),
+            # Corrected since the owners were emailed: the version they have
+            # is out of date until the committee sends the update.
+            "changed_since_sent": race.published_at is not None
+            and publishing.amended_since_sent(race),
         }
         for race in series.races.order_by("number")
     ]
@@ -112,6 +116,7 @@ def save_finish(request, race_pk, entry_pk):
             # page's note is sent back too, and HTMX swaps it in by id.
             "note": results.note_for(race),
             "update_note": True,
+            **_publishing_context(race),
         },
     )
 
@@ -156,7 +161,12 @@ def _finish_entry_context(race, bound_form=None, bound_entry=None):
         else:
             form = FinishForm(instance=finish, prefix=_prefix(entry))
         rows.append(_row(entry, form, race_results, finish))
-    return {"race": race, "rows": rows, "note": results.note_for(race)}
+    return {
+        "race": race,
+        "rows": rows,
+        "note": results.note_for(race),
+        **_publishing_context(race),
+    }
 
 
 # --- The committee's requests page -------------------------------------------
@@ -187,6 +197,11 @@ def decide_request(request, kind, pk):
     member_request = get_object_or_404(model, pk=pk)
     form = DecisionForm(request.POST)
     error = message = ""
+    # Worked out before deciding: once a change is applied, the boat already
+    # matches it, and a claim changes who the previous owner was.
+    details = approvals.proposed_values(member_request) if kind == "boat" else []
+    previous_owner = member_request.boat.owner if kind == "boat" and member_request.boat else None
+    boat_name = str(member_request.boat) if member_request.boat_id else None
     if form.is_valid():
         try:
             if form.cleaned_data["decision"] == "approve":
@@ -198,6 +213,8 @@ def decide_request(request, kind, pk):
     else:
         error = "Choose approve or reject."
     member_request.refresh_from_db()
+    if not error:
+        _email_decision(member_request, request, details, previous_owner, boat_name)
     if not request.htmx:
         if error:
             messages.error(request, error)
@@ -218,3 +235,56 @@ def _request_row(kind, member_request):
         # Worked out only while it can still matter, since it replays scores.
         "needs_reason": member_request.is_pending and approvals.needs_reason(member_request),
     }
+
+
+# --- Publishing results --------------------------------------------------------
+
+
+@committee_required
+@require_POST
+def publish_results(request, pk):
+    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
+    if score_series(race.series).for_race(race) is None:
+        messages.error(request, "There are no results to publish yet: nothing is scored in this race.")
+    else:
+        updated = request.POST.get("send") == "updated"
+        sent_before = race.results_sent_at
+        count = (publishing.send_updated if updated else publishing.publish)(race, request)
+        race.refresh_from_db()
+        # If sending failed, results_sent_at has not moved, and notifications
+        # has already said so on the page; claiming success here would contradict it.
+        if race.results_sent_at != sent_before:
+            first = "Updated results sent" if updated else "Results published and sent"
+            messages.success(request, f"{first} to {_owners(count)}.")
+    return redirect("races:finish_entry", race.pk)
+
+
+def _owners(count):
+    return f"{count} boat owner{'s' if count != 1 else ''}"
+
+
+def _publishing_context(race):
+    race.refresh_from_db(fields=["published_at", "results_sent_at"])
+    return {"race": race, "amended": publishing.amended_since_sent(race)}
+
+
+def _email_decision(member_request, request, details, previous_owner, boat_name):
+    """The member hears the decision; a claim's previous owner hears they lost the boat.
+
+    The member's own "request approved" email carries what changed, so they are
+    not also sent "your boat was updated" or "your boat was entered".
+    """
+    notifications.request_decided(member_request, request, details, boat_name)
+    approved_claim = (
+        isinstance(member_request, BoatRequest)
+        and member_request.kind == BoatRequest.Kind.CLAIM
+        and member_request.status == BoatRequest.Status.APPROVED
+    )
+    if approved_claim and previous_owner is not None and previous_owner != member_request.requested_by:
+        boat = Boat.objects.get(pk=member_request.boat_id)  # as it is now, new owner and all
+        notifications.boat_updated(
+            boat,
+            [("Owner", previous_owner.get_full_name() or previous_owner.get_username(), boat.owner_display)],
+            [previous_owner],
+            request,
+        )

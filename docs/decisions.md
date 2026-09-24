@@ -943,6 +943,57 @@ is now part of every user-facing change.
 
 ---
 
+## 2026-09-24 - Slice 4: what gets emailed, and who decides when
+
+**Context.** The plan's line was "emailing results after a race is
+published", but nothing was ever "published": results are public the moment a
+finish is saved. Slice 3 also deferred account emails to this slice.
+
+**Decision.** Agreed with the project owner:
+- A **Publish results** button, which emails the race's results. The public
+  page keeps showing results before that, labelled provisional.
+- After corrections, the committee sends a "results updated" email with a
+  button, when they have finished correcting. The site never sends on its own,
+  so a run of corrections cannot flood every owner's inbox.
+- Emails also for account approval, request decisions, series entry, any
+  change to a boat, and password reset. A change the owner asked for is
+  reported once, in the "request approved" email, not again as "boat
+  updated".
+- Django's built-in SMTP email, no new dependency; the provider is chosen
+  before deploying.
+
+**Consequence.** Two new fields on Race (published and last sent), proposed
+for approval. "Amended since sent" reuses the change history rather than
+tracking changes a second time.
+
+---
+
+## 2026-09-24 - Slice 4: how email is sent
+
+**Decision.**
+- Every email goes through `races/notifications.send`, which sends once the
+  database transaction commits, so a change that is rolled back emails
+  nobody. A sending failure is logged and shown as a warning on the page; the
+  change itself stands.
+- Publishing records `results_sent_at` only once every email has gone. A
+  failed send therefore leaves the race "published but not sent", and the
+  finish-entry page offers to send again.
+- Each owner gets their own message rather than one message to everyone, so
+  owners never see each other's addresses.
+- Emails are plain-text templates in `templates/emails/`, first line the
+  subject, with autoescaping off so names like "Wind & Water" arrive as
+  typed.
+- A request's email names the boat as it was when the member asked, so an
+  approved rename is reported as a change to the old name.
+
+**Consequence.** Emails are sent while the page request is handled, not by a
+background worker. For a club's series (tens of owners) that is a second or
+two; a much larger fleet would want a queue. The tests make "after commit"
+run immediately, as it does on the live site, except the rollback test, which
+uses Django's real deferral because that is what it checks.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

@@ -1,0 +1,9 @@
+{% autoescape off %}Your boat's details have been updated: {{ boat }}
+Hello {{ user.first_name|default:user.get_username }},
+
+The race committee has updated the details of {{ boat }}:
+{% for label, old, new in changes %}  {{ label }}: {{ old|default:"(none)" }} -> {{ new|default:"(none)" }}
+{% endfor %}
+If anything here is wrong, you can ask for a change from "My boats":
+{{ boats_url }}
+{% endautoescape %}

@@ -18,6 +18,13 @@ async function logIn(browser, email) {
 }
 
 const shot = (target, name) => target.screenshot({ path: path.join(OUT, name) });
+// A race on the public results page: its heading down to the start of its table.
+const raceHeader = async (page, number, name) => {
+  const top = await page.locator(`#race-${number}`).boundingBox();
+  const table = await page.locator(`#race-${number} ~ .table-scroll`).first().boundingBox();
+  const clip = { x: 0, y: top.y - 8, width: 1000, height: table.y - top.y + 8 };
+  await page.screenshot({ path: path.join(OUT, name), clip });
+};
 const card = (page, text) => page.locator('section.card', { hasText: text }).first();
 
 (async () => {
@@ -45,6 +52,33 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const rejected = officer.locator('section.card.saved', { hasText: 'Register a boat' });
   await rejected.waitFor();
   await shot(rejected, 'request-rejected.png');
+
+  // Publishing results: provisional, then published, then amended by a correction.
+  const publicPage = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
+  await publicPage.goto(`${BASE}/series/1/`);
+  await raceHeader(publicPage, 1, 'results-provisional.png');
+  await officer.goto(`${BASE}/series/1/`);
+  await officer.click('#race-1 ~ p.muted >> text=Enter finishes');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('#publishing'), 'publish-provisional.png');
+  await officer.click('#publishing button');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('.messages'), 'publish-sent.png');
+  await publicPage.goto(`${BASE}/series/1/`);
+  await raceHeader(publicPage, 1, 'results-published.png');
+  const row = officer.locator('form.finish-row', { hasText: 'GBR 42' });
+  await row.locator('input[type=time]').fill('19:32:10');
+  await row.locator('input[name$="-reason"]').fill('Misread the finish sheet');
+  await row.locator('button').click();
+  const amended = officer.locator('#publishing', { hasText: 'Amended since results were sent' });
+  await amended.waitFor();
+  await shot(amended, 'publish-amended.png');
+  await publicPage.goto(`${BASE}/series/1/`);
+  await raceHeader(publicPage, 1, 'results-amended-since-published.png');
+
+  // Forgotten passwords.
+  await publicPage.goto(`${BASE}/accounts/password-reset/`);
+  await shot(publicPage.locator('body'), 'password-reset.png');
 
   // What the member sees.
   const sam = await logIn(browser, 'sam@example.com');

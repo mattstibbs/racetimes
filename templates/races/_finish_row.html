@@ -27,4 +27,4 @@
     {% if saved %}<span class="muted">{{ message }}</span>{% endif %}
   </div>
 </form>
-{% if update_note %}{% include "races/_race_note.html" with oob=True %}{% endif %}
+{% if update_note %}{% include "races/_race_note.html" with oob=True %}{% include "races/_publishing.html" with oob=True %}{% endif %}

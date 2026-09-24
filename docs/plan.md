@@ -131,7 +131,34 @@ has no accounts section.
 
 Accounts for members, boat registration requests, and series entry. This is where auth and permissions appear, so write the role rules into the brief before starting it.
 
-## Slice 4: notifications. 
+## Slice 4: notifications. **Status: complete (2026-09-24)**
+
+Acceptance criteria, from `docs/slices/04-notifications.md`:
+
+- [x] A race is provisional until published, and the public page says so.
+- [x] Publishing emails the race's results to every owner of a boat entered in
+      the series, one email each, and to nobody else.
+- [x] After a published race's results change, the committee sees it was
+      amended since the results were sent and can send updated results.
+      Nothing is sent automatically. A correction to an earlier race or to the
+      whole series amends it; a later race's does not.
+- [x] Each email is sent when, and only when, its event happens, tested per
+      email, including the "no duplicates" rule.
+- [x] A rolled-back change sends nothing; a sending failure keeps the change,
+      says so on the page, and offers to send again.
+- [x] Password reset by email, never revealing whether an address has an
+      account.
+- [x] The user manual covers publishing results, the emails members receive,
+      and resetting a password.
+- [x] Migrations use nothing database-specific.
+
+Manual check: the screenshot script publishes a race, corrects a finish and
+sees it marked amended, in headless Chromium, against the running site; the
+emails were read as the console printed them.
+
+Still to do before members receive email on the live site: choose an email
+provider and set it up on Render (`docs/deploying.md`, "Sending email").
+
 Emailing results after a race is published.
 
 ## Slice 5: results webapp.
