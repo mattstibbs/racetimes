@@ -1,7 +1,11 @@
 {% comment %}The race's publishing state and its buttons. Swapped in by id when a row is saved.{% endcomment %}
 <div id="publishing" class="card publishing"{% if oob %} hx-swap-oob="true"{% endif %}>
   <form method="post" action="{% url 'races:publish_results' race.pk %}">{% csrf_token %}
-  {% if not race.published_at %}
+  {% if unrecorded %}
+    <p><strong>{% if race.published_at %}Published {{ race.published_at|date:"j M Y H:i" }}{% else %}Provisional{% endif %}.</strong>
+      Before {% if race.published_at %}sending updated results{% else %}publishing{% endif %}, record a time or a code for every boat on the start sheet.
+      Still to record: {% for entry in unrecorded %}{{ entry.boat }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+  {% elif not race.published_at %}
     <p><strong>Provisional.</strong> These results are public, but marked provisional until you publish them.
       Publishing emails them to the owners of every boat entered in the series.</p>
     <button type="submit">Publish results</button>

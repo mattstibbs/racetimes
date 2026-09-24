@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.functions import Replace, Upper
 from django.urls import reverse
@@ -169,6 +169,9 @@ class SeriesEntry(models.Model):
         return str(self.boat)
 
 
+NOT_ON_START_SHEET = "This boat is not on the race's start sheet. Add it there first."
+
+
 def _whole_seconds(value, field):
     if value is not None and value.microsecond:
         raise ValidationError({field: "Times are recorded to the whole second."})
@@ -221,6 +224,52 @@ class Race(models.Model):
                         )
                     }
                 )
+
+
+class RaceEntry(models.Model):
+    """A boat on a race's start sheet: the committee says it came to race.
+
+    Only a boat on the start sheet can have a finish recorded, and each one
+    must have a time or a code before the race's results are published. A boat
+    in the series but not on the start sheet stayed at home and scores DNC.
+    Nothing here moves a score, so none of it is in the change history.
+    """
+
+    race = models.ForeignKey(Race, on_delete=models.CASCADE, related_name="race_entries")
+    # CASCADE is safe: a series entry with finishes cannot be deleted at all
+    # (Finish.entry is RESTRICT), so this only removes start sheet ticks.
+    entry = models.ForeignKey(SeriesEntry, on_delete=models.CASCADE, related_name="race_entries")
+    # For the committee only; public pages never show it.
+    persons_on_board = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(99)],
+    )
+
+    class Meta:
+        verbose_name = "start sheet entry"
+        verbose_name_plural = "start sheet entries"
+        ordering = ["race", "entry__boat__sail_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["race", "entry"],
+                name="race_entry_unique_per_race",
+                violation_error_message="This boat is already on the start sheet.",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(persons_on_board__isnull=True)
+                | models.Q(persons_on_board__gte=1, persons_on_board__lte=99),
+                name="race_entry_persons_on_board_range",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.entry} in {self.race}"
+
+    def clean(self):
+        # A database constraint cannot compare two tables' series, so it is here.
+        if self.race_id and self.entry_id and self.race.series_id != self.entry.series_id:
+            raise ValidationError("This boat is not entered in this race's series.")
 
 
 class Finish(models.Model):
@@ -279,6 +328,8 @@ class Finish(models.Model):
             return
         if self.entry_id and self.race.series_id != self.entry.series_id:
             raise ValidationError("This boat is not entered in this race's series.")
+        if self.entry_id and not RaceEntry.objects.filter(race=self.race, entry=self.entry).exists():
+            raise ValidationError(NOT_ON_START_SHEET)
         start = self.race.start_time
         if self.finish_time is not None and self.finish_time <= start:
             # Races past midnight are out of scope, so an early time is a typo.

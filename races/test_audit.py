@@ -15,7 +15,7 @@ from django.urls import reverse
 from races import audit
 from races.models import Boat, Finish, Race, ScoringChange, Series
 from races.scoring import score_series
-from races.testing import enter, make_boat, make_race, make_series, record
+from races.testing import enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
@@ -59,10 +59,11 @@ def sailed():
 
 @pytest.fixture
 def unsailed():
-    """A series set up but with no finishes recorded yet."""
+    """A series set up but with no finishes recorded yet; the boat is on the start sheet."""
     series = make_series("Spring")
     entry = enter(series, make_boat("GBR1", name="Serendipity"))
     race = make_race(series, 1)
+    start(race, entry)
     return series, race, entry
 
 

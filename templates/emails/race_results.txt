@@ -3,7 +3,7 @@ Hello {{ user.first_name|default:user.get_username }},
 
 {% if updated %}The results of {{ race.series }}, race {{ race.number }} ({{ race.date|date:"j F Y" }}) have been updated since they were last sent to you. The race committee has corrected them; these are the results as they now stand.{% else %}The race committee has published the results of {{ race.series }}, race {{ race.number }}, sailed on {{ race.date|date:"j F Y" }}.{% endif %}
 {% if race_results %}
-{% for row in race_results.rows %}{% if row.result.position %}{{ row.result.position|stringformat:"3d" }}{% else %}{{ row.result.status|stringformat:"3s" }}{% endif %}  {{ row.entry.boat }}{% if row.result.corrected_time %} - corrected {{ row.result.corrected_time|hms }}{% endif %} - {{ row.result.points|points }} pt{{ row.result.points|pluralize }}
+{% for row in race_results.rows %}{% if row.result.position %}{{ row.result.position|stringformat:"3d" }}{% else %}{{ row.place|stringformat:"3s" }}{% endif %}  {{ row.entry.boat }}{% if row.result.corrected_time %} - corrected {{ row.result.corrected_time|hms }}{% endif %} - {{ row.result.points|points }} pt{{ row.result.points|pluralize }}
 {% endfor %}{% else %}
 {{ note }}
 {% endif %}{% if standings %}

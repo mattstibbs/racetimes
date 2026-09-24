@@ -20,6 +20,7 @@ from .models import Finish, Race, Series, SeriesEntry
 logger = logging.getLogger(__name__)
 
 NOT_SAILED = "No results recorded yet."
+NOT_RECORDED = "Not recorded"
 NO_FINISHER = (
     "Not scored yet. In a regatta, boats that do not finish are given times "
     "worked out from the boats that do, so this race is scored once at least "
@@ -42,6 +43,17 @@ class BoatRaceResult:
     entry: SeriesEntry
     finish: Finish | None  # None when nothing was recorded, which scores DNC
     result: nhc.RaceResult
+    # On the start sheet but nothing recorded yet. Still scored DNC - the
+    # engine is not told otherwise - but shown as "Not recorded", and the race
+    # cannot be published until it is (slice 6).
+    not_recorded: bool = False
+
+    @property
+    def place(self):
+        """What goes in the Pos column: a place, a code, or "Not recorded"."""
+        if self.result.position:
+            return self.result.position
+        return NOT_RECORDED if self.not_recorded else self.result.status
 
 
 @dataclass(frozen=True)
@@ -142,7 +154,7 @@ def score_series(series):
     the handicaps the one before produces. See docs/decisions.md.
     """
     entries = list(series.entries.select_related("boat"))
-    races = list(series.races.order_by("number").prefetch_related("finishes"))
+    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
     if not entries:
         # The engine refuses a series with no boats, and there is nothing to show.
         return SeriesResults(series=series, races=(), standings=())
@@ -167,11 +179,13 @@ def score_series(series):
     race_results = []
     for race, race_outcome in zip(scored, outcome.races):
         finishes = {str(finish.entry_id): finish for finish in race.finishes.all()}
+        racing = {str(race_entry.entry_id) for race_entry in race.race_entries.all()}
         rows = [
             BoatRaceResult(
                 entry=entry_by_id[result.boat_id],
                 finish=finishes.get(result.boat_id),
                 result=result,
+                not_recorded=result.boat_id in racing and result.boat_id not in finishes,
             )
             for result in race_outcome.results
         ]

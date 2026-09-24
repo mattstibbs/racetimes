@@ -9,7 +9,7 @@ from django.db import IntegrityError
 from django.db.models import ProtectedError, RestrictedError
 
 from races.models import Boat, Finish, Race, Series, SeriesEntry
-from races.testing import enter, make_boat, make_race, make_series, record
+from races.testing import enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
@@ -143,7 +143,9 @@ def test_race_start_is_whole_seconds():
 @pytest.fixture
 def race_and_entry():
     series = make_series()
-    return make_race(series, start="18:00:00"), enter(series, make_boat())
+    race, entry = make_race(series, start="18:00:00"), enter(series, make_boat())
+    start(race, entry)
+    return race, entry
 
 
 def test_elapsed_seconds_is_finish_minus_start(race_and_entry):

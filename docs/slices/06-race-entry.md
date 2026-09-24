@@ -33,9 +33,11 @@ scores DNC, as today.
 - It links to the finish-entry page and back, and it is linked from the race
   in the admin and from the finish-entry page.
 - A boat can't be taken off the start sheet once it has a finish or code
-  recorded for that race. The row says why, and the finish has to be removed
-  first, which is already a recorded correction. This matches the rule that a
-  series entry with finishes can't be removed.
+  recorded for that race. This matches the rule that a series entry with
+  finishes can't be removed. A saved finish can't be cleared either (slice 2),
+  so the row says to correct the boat's result to DNC instead. That is a
+  recorded correction, and it scores exactly as being off the start sheet.
+  *(Found while building: the spec first said to remove the finish.)*
 
 ### Entering finishes
 - The finish-entry page has a row with input boxes only for boats on the
@@ -63,8 +65,10 @@ scores DNC, as today.
     boat on the start sheet has nothing recorded. The page names the boats.
     A boat added after the race was published (one that was forgotten)
     blocks sending updated results the same way, until its finish is
-    recorded. That finish is a correction, so the race shows as amended
-    since it was sent, as it does today.
+    recorded. That finish is its first, so it needs no reason (slice 2's
+    rule), but it is in the change history, so the race shows as amended
+    since it was sent. *(Found while building: the spec first called it a
+    correction.)*
 - `races/scoring.py` still decides which races are scored the same way: a
   race with boats on its start sheet but no finishes yet is "not sailed
   yet", as today. A start sheet on its own records nothing.
@@ -118,8 +122,8 @@ scores DNC, as today.
   with no finish is scored exactly as one left off it. The history stays
   "every change that could move a score", and "amended since sent" stays
   correct because it reads that history.
-- Recording a finish for a boat added after publishing is audited as it
-  already is.
+- Recording a finish for a boat added after publishing is audited as any
+  first finish is.
 
 ### Data model *(approved by the project owner, 2026-09-24)*
 - A new model, `RaceEntry`:
@@ -144,7 +148,7 @@ scores DNC, as today.
   race's start sheet, with persons on board left empty and no emails sent.
   Boats with no finish stay off, so they score DNC as they do now. Every
   existing race therefore scores exactly as before, and every existing
-  finish meets the new rule. Undoing the migration deletes those rows.
+  finish meets the new rule.
 - No other fields change. The migrations use nothing database-specific.
 
 ## Acceptance criteria

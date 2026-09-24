@@ -38,7 +38,7 @@
   <tbody>
     {% for row in race_results.rows %}
     <tr{% if row.entry.boat == followed %} class="followed"{% endif %}>
-      <td class="num">{% if row.result.position %}{{ row.result.position }}{% else %}{{ row.result.status }}{% endif %}</td>
+      <td class="num">{{ row.place }}</td>
       <td><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat }}</a></td>
       <td class="num detail">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }}{% endif %}</td>
       <td class="num detail">{{ row.result.elapsed_seconds|hms }}</td>

@@ -43,7 +43,7 @@
       <tr>
         <td><a href="{% url 'results:series' history.series.pk %}?race={{ line.race.number }}&amp;boat={{ boat.pk }}">Race {{ line.race.number }}</a>{% if line.row and not line.race.published_at %}<abbr title="Provisional">*</abbr>{% endif %}<br><span class="muted">{{ line.race.date|date:"j M" }}</span></td>
         {% if line.row %}{% with result=line.row.result %}
-        <td class="num">{% if result.position %}{{ result.position }}{% else %}{{ result.status }}{% endif %}</td>
+        <td class="num">{{ line.row.place }}</td>
         <td class="num{% if line.points_discarded %} discarded{% endif %}">{% if line.points_discarded %}({{ result.points|points }}){% else %}{{ result.points|points }}{% endif %}</td>
         <td class="num detail">{{ result.corrected_time|hms }}</td>
         <td class="num">{{ result.tcf_used|tcf }}</td>

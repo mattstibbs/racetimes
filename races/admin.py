@@ -146,12 +146,14 @@ class RaceInline(admin.TabularInline):
     extra = 0
     readonly_fields = ["finishes_link"]
 
-    @admin.display(description="Finishes")
+    @admin.display(description="Race day")
     def finishes_link(self, race):
         if not race.pk:
             return ""
         return format_html(
-            '<a href="{}">Enter finishes</a>', reverse("races:finish_entry", args=[race.pk])
+            '<a href="{}">Start sheet</a> &middot; <a href="{}">Enter finishes</a>',
+            reverse("races:start_sheet", args=[race.pk]),
+            reverse("races:finish_entry", args=[race.pk]),
         )
 
 
@@ -192,6 +194,7 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
         form.recorded += audit.record(formset.changes_to_record(), request.user, reason)
         if formset.model is SeriesEntry:
             notifications.entered_in_series(formset.new_objects, request)
+            notifications.removed_from_series(formset.deleted_objects, request)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

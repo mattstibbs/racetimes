@@ -7,7 +7,7 @@ as the situation it sets up.
 from datetime import date, time
 from decimal import Decimal
 
-from races.models import Boat, Finish, Race, Series, SeriesEntry
+from races.models import Boat, Finish, Race, RaceEntry, Series, SeriesEntry
 
 
 def make_boat(sail_number="GBR1234", base_number="0.964", **fields):
@@ -30,8 +30,21 @@ def make_race(series, number=1, start="18:00:00", on=date(2026, 9, 23)):
     )
 
 
+def start(race, entry, persons_on_board=None):
+    """Put a boat on a race's start sheet (if it is not on it already)."""
+    race_entry, _ = RaceEntry.objects.get_or_create(race=race, entry=entry)
+    if persons_on_board is not None:
+        race_entry.persons_on_board = persons_on_board
+        race_entry.save()
+    return race_entry
+
+
 def record(race, entry, finish_time=None, status=None):
-    """Record a finish: a clock time like "19:02:17", or a status code."""
+    """Record a finish: a clock time like "19:02:17", or a status code.
+
+    The boat goes on the start sheet first, as it must on the real site.
+    """
+    start(race, entry)
     if status is None:
         status = Finish.Status.FINISHED if finish_time else Finish.Status.DNC
     return Finish.objects.create(

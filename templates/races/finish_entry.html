@@ -4,16 +4,26 @@
 <h1>{{ race.series.name }}: Race {{ race.number }}</h1>
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
-  <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>
+  <a href="{% url 'races:start_sheet' race.pk %}">Start sheet</a>
+  &middot; <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">Correction history</a>
 </p>
 {% include "races/_race_note.html" %}
 {% include "races/_publishing.html" %}
 <p>Enter each boat's finish time as the clock showed it, or choose a code, and save the row.
-  A boat with nothing saved is scored DNC. Changing a saved row is a correction and needs a reason.</p>
+  Every boat on the start sheet needs a time or a code before the results can be published.
+  Changing a saved row is a correction and needs a reason.</p>
 {% for row in rows %}
   {% include "races/_finish_row.html" %}
 {% empty %}
-  <p class="muted">No boats are entered in this series yet. Enter them in the admin.</p>
+  <p class="note">No boats are on the <a href="{% url 'races:start_sheet' race.pk %}">start sheet</a> yet.
+    Tick the boats that are racing there first.</p>
 {% endfor %}
+{% if not_racing %}
+<details class="not-racing">
+  <summary>Not racing (scored DNC): {{ not_racing|length }} boat{{ not_racing|length|pluralize }}</summary>
+  <ul>{% for entry in not_racing %}<li>{{ entry.boat }}</li>{% endfor %}</ul>
+  <p class="muted">A boat that did race is added on the <a href="{% url 'races:start_sheet' race.pk %}">start sheet</a> first.</p>
+</details>
+{% endif %}
 {% endblock %}

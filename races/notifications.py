@@ -160,6 +160,49 @@ def entered_in_series(entries, request):
     )
 
 
+def removed_from_series(entries, request):
+    """Tell each owner their boat is no longer entered in a series.
+
+    Called after the entries are deleted, so each email is written from the
+    entry as it was held in memory: its boat and series still exist. Their
+    start sheet rows went with them, and that sends no race emails as well.
+    """
+    _to_owners(entries, "removed_from_series", request, lambda entry: {
+        "boat": entry.boat,
+        "series": entry.series,
+        "results_url": _link(request, "results:series", entry.series.pk),
+    })
+
+
+def _to_owners(entries, template, request, context):
+    """One email per series entry, to its boat's owner if they have an active account."""
+    send(
+        [
+            email(entry.boat.owner, template, request, **context(entry))
+            for entry in entries
+            if has_owner_to_email(entry.boat)
+        ],
+        request,
+    )
+
+
+def has_owner_to_email(boat):
+    """Whether the site can email this boat's owner at all."""
+    return boat.owner is not None and boat.owner.is_active and bool(boat.owner.email)
+
+
+# --- Race day: the start sheet ----------------------------------------------------
+
+
+def start_sheet_changed(race, entry, request, *, racing):
+    """Tell the owner their boat was put on, or taken off, a race's start sheet."""
+    _to_owners([entry], "entered_in_race" if racing else "removed_from_race", request, lambda entry: {
+        "boat": entry.boat,
+        "race": race,
+        "results_url": _link(request, "results:series", race.series.pk) + f"?race={race.number}",
+    })
+
+
 def boat_updated(boat, changes, owners, request):
     """Tell the owner(s) what changed about their boat.
 

@@ -5,9 +5,9 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from . import approvals, audit, notifications, publishing
-from .forms import DecisionForm, FinishForm
-from .models import Boat, BoatRequest, EntryRequest, Finish, Race, Series
+from . import approvals, audit, notifications, publishing, start_sheet
+from .forms import DecisionForm, FinishForm, StartSheetRowForm
+from .models import NOT_ON_START_SHEET, Boat, BoatRequest, EntryRequest, Finish, Race, Series
 from .roles import committee_required
 from .scoring import score_series
 
@@ -44,6 +44,12 @@ def save_finish(request, race_pk, entry_pk):
     """Save one boat's row. Each row saves alone, so one bad time loses nothing else."""
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    if not request.htmx and not race.race_entries.filter(entry=entry).exists():
+        # The page offers no row for a boat that is not racing, so this is a
+        # stale page or a hand-made request. With HTMX, the row shows the
+        # form's own error, which says the same.
+        messages.error(request, NOT_ON_START_SHEET)
+        return redirect("races:finish_entry", race.pk)
     finish = Finish.objects.filter(race=race, entry=entry).first() or Finish(race=race, entry=entry)
     form = FinishForm(request.POST, instance=finish, prefix=_prefix(entry))
 
@@ -71,7 +77,13 @@ def save_finish(request, race_pk, entry_pk):
         "races/_finish_row.html",
         {
             "race": race,
-            "row": _row(entry, form, results.for_race(race), _saved_finish(race, entry)),
+            "row": _row(
+                entry,
+                form,
+                results.for_race(race),
+                _saved_finish(race, entry),
+                race.race_entries.filter(entry=entry).first(),
+            ),
             "saved": saved,
             "message": message,
             # Saving a row can change whether the race is scored at all, so the
@@ -99,36 +111,111 @@ def _saved_finish(race, entry):
     return Finish.objects.select_related("race").filter(race=race, entry=entry).first()
 
 
-def _row(entry, form, race_results, finish):
+def _row(entry, form, race_results, finish, race_entry):
     """One row of the finish-entry page.
 
     ``result`` is the engine's view of this boat in this race, or None when the
-    race is not scored yet; ``finish`` is what is saved, whether scored or not.
+    race is not scored yet; ``finish`` is what is saved, whether scored or not;
+    ``race_entry`` is its start sheet row, which holds persons on board.
     """
     result = race_results.for_entry(entry).result if race_results else None
-    return {"entry": entry, "form": form, "finish": finish, "result": result}
+    return {"entry": entry, "form": form, "finish": finish, "result": result, "race_entry": race_entry}
 
 
 def _finish_entry_context(race, bound_form=None, bound_entry=None):
     results = score_series(race.series)
     race_results = results.for_race(race)
     finishes = {finish.entry_id: finish for finish in race.finishes.select_related("race")}
-    rows = []
+    racing = {race_entry.entry_id: race_entry for race_entry in race.race_entries.all()}
+    rows, not_racing = [], []
     # Sail-number order rather than finishing order, so a row stays put while
-    # the committee works down the sheet.
+    # the committee works down the sheet. Only boats on the start sheet get a
+    # row to fill in; the rest stayed at home and score DNC.
     for entry in race.series.entries.select_related("boat"):
+        if entry.pk not in racing:
+            not_racing.append(entry)
+            continue
         finish = finishes.get(entry.pk)
         if bound_entry is not None and entry.pk == bound_entry.pk:
             form = bound_form
         else:
             form = FinishForm(instance=finish, prefix=_prefix(entry))
-        rows.append(_row(entry, form, race_results, finish))
+        rows.append(_row(entry, form, race_results, finish, racing[entry.pk]))
     return {
         "race": race,
         "rows": rows,
+        "not_racing": not_racing,
         "note": results.note_for(race),
         **_publishing_context(race),
     }
+
+
+# --- The start sheet ---------------------------------------------------------
+
+
+@committee_required
+def start_sheet_page(request, pk):
+    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
+    return render(request, "races/start_sheet.html", _start_sheet_context(race))
+
+
+@committee_required
+@require_POST
+def save_start_sheet_row(request, race_pk, entry_pk):
+    """Put one boat on the start sheet, change who is aboard, or take it off."""
+    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    entry = get_object_or_404(race.series.entries.select_related("boat__owner"), pk=entry_pk)
+    form = StartSheetRowForm(request.POST, prefix=_prefix(entry))
+    message = ""
+    if form.is_valid():
+        try:
+            message = start_sheet.save_row(
+                race,
+                entry,
+                racing=form.cleaned_data["racing"],
+                persons_on_board=form.cleaned_data["persons_on_board"],
+                request=request,
+            )
+        except ValidationError as refused:
+            form.add_error(None, refused)
+    if not request.htmx:
+        if not form.errors:
+            messages.success(request, f"{entry.boat}: {message}")
+            return redirect("races:start_sheet", race.pk)
+        return render(request, "races/start_sheet.html", _start_sheet_context(race, form, entry))
+    context = _start_sheet_context(race, form, entry)
+    row = next(row for row in context["rows"] if row["entry"].pk == entry.pk)
+    return render(
+        request,
+        "races/_start_sheet_row.html",
+        {**context, "row": row, "saved": not form.errors, "message": message, "update_count": True},
+    )
+
+
+def _start_sheet_context(race, bound_form=None, bound_entry=None):
+    racing = {race_entry.entry_id: race_entry for race_entry in race.race_entries.all()}
+    recorded = set(race.finishes.values_list("entry_id", flat=True))
+    rows = []
+    for entry in race.series.entries.select_related("boat__owner"):
+        race_entry = racing.get(entry.pk)
+        if bound_entry is not None and entry.pk == bound_entry.pk and bound_form.errors:
+            form = bound_form
+        else:
+            form = StartSheetRowForm(
+                initial={
+                    "racing": race_entry is not None,
+                    "persons_on_board": race_entry.persons_on_board if race_entry else None,
+                },
+                prefix=_prefix(entry),
+            )
+        rows.append({
+            "entry": entry,
+            "form": form,
+            "racing": race_entry is not None,
+            "has_result": entry.pk in recorded,
+            "can_email": notifications.has_owner_to_email(entry.boat),
+        })
+    return {"race": race, "rows": rows, "racing_count": len(racing), "entry_count": len(rows)}
 
 
 # --- The committee's requests page -------------------------------------------
@@ -206,7 +293,10 @@ def _request_row(kind, member_request):
 @require_POST
 def publish_results(request, pk):
     race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
-    if score_series(race.series).for_race(race) is None:
+    missing = start_sheet.unrecorded(race)
+    if missing:
+        messages.error(request, UNRECORDED.format(boats=", ".join(str(entry.boat) for entry in missing)))
+    elif score_series(race.series).for_race(race) is None:
         messages.error(request, "There are no results to publish yet: nothing is scored in this race.")
     else:
         updated = request.POST.get("send") == "updated"
@@ -225,9 +315,19 @@ def _owners(count):
     return f"{count} boat owner{'s' if count != 1 else ''}"
 
 
+UNRECORDED = (
+    "Not sent: record a time or a code for every boat on the start sheet first. "
+    "Still to record: {boats}."
+)
+
+
 def _publishing_context(race):
     race.refresh_from_db(fields=["published_at", "results_sent_at"])
-    return {"race": race, "amended": publishing.amended_since_sent(race)}
+    return {
+        "race": race,
+        "amended": publishing.amended_since_sent(race),
+        "unrecorded": start_sheet.unrecorded(race),
+    }
 
 
 def _email_decision(member_request, request, details, previous_owner, boat_name):
