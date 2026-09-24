@@ -1,13 +1,15 @@
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from . import audit
-from .forms import FinishForm
-from .models import Finish, Race, Series
+from . import approvals, audit
+from .forms import DecisionForm, FinishForm
+from .models import BoatRequest, EntryRequest, Finish, Race, Series
+from .roles import committee_required
 from .scoring import score_series
 
 
@@ -49,7 +51,7 @@ def series_results(request, pk):
     )
 
 
-@staff_member_required
+@committee_required
 def series_history(request, pk):
     series = get_object_or_404(Series, pk=pk)
     changes = series.scoring_changes.select_related("race")
@@ -64,13 +66,13 @@ def series_history(request, pk):
     )
 
 
-@staff_member_required
+@committee_required
 def finish_entry(request, pk):
     race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
     return render(request, "races/finish_entry.html", _finish_entry_context(race))
 
 
-@staff_member_required
+@committee_required
 @require_POST
 def save_finish(request, race_pk, entry_pk):
     """Save one boat's row. Each row saves alone, so one bad time loses nothing else."""
@@ -155,3 +157,64 @@ def _finish_entry_context(race, bound_form=None, bound_entry=None):
             form = FinishForm(instance=finish, prefix=_prefix(entry))
         rows.append(_row(entry, form, race_results, finish))
     return {"race": race, "rows": rows, "note": results.note_for(race)}
+
+
+# --- The committee's requests page -------------------------------------------
+
+REQUEST_MODELS = {"boat": BoatRequest, "entry": EntryRequest}
+
+
+@committee_required
+def requests_page(request):
+    pending, decided = [], []
+    for kind, model in REQUEST_MODELS.items():
+        related = ["requested_by", "boat", "series"] if model is EntryRequest else ["requested_by", "boat"]
+        for member_request in model.objects.select_related(*related):
+            (pending if member_request.is_pending else decided).append(_request_row(kind, member_request))
+    pending.sort(key=lambda row: row["request"].created_at)  # oldest first: first come, first served
+    decided.sort(key=lambda row: row["request"].decided_at or row["request"].created_at, reverse=True)
+    return render(
+        request, "races/requests.html", {"pending": pending, "decided": decided[:50]}
+    )
+
+
+@committee_required
+@require_POST
+def decide_request(request, kind, pk):
+    model = REQUEST_MODELS.get(kind)
+    if model is None:
+        return HttpResponse(status=404)
+    member_request = get_object_or_404(model, pk=pk)
+    form = DecisionForm(request.POST)
+    error = message = ""
+    if form.is_valid():
+        try:
+            if form.cleaned_data["decision"] == "approve":
+                message = approvals.approve(member_request, request.user, form.cleaned_data["reason"])
+            else:
+                message = approvals.reject(member_request, request.user, form.cleaned_data["note"])
+        except ValidationError as failure:
+            error = " ".join(failure.messages)
+    else:
+        error = "Choose approve or reject."
+    member_request.refresh_from_db()
+    if not request.htmx:
+        if error:
+            messages.error(request, error)
+        else:
+            messages.success(request, message)
+        return redirect("races:requests")
+    row = _request_row(kind, member_request)
+    return render(
+        request, "races/_request_row.html", {"row": row, "error": error, "message": message}
+    )
+
+
+def _request_row(kind, member_request):
+    return {
+        "kind": kind,
+        "request": member_request,
+        "proposed": approvals.proposed_values(member_request) if kind == "boat" else [],
+        # Worked out only while it can still matter, since it replays scores.
+        "needs_reason": member_request.is_pending and approvals.needs_reason(member_request),
+    }

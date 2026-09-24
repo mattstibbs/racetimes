@@ -23,15 +23,17 @@ It is being built for two groups:
 | --- | --- | --- |
 | 0 | Scoring engine | **Complete** |
 | 1 | Walking skeleton: Django models, forms, results page | **Complete** |
-| 2 | Corrections and audit trail | Not started |
-| 3 | Member self-service and accounts | Not started |
+| 2 | Corrections and audit trail | **Complete** |
+| 3 | Member self-service and accounts | **Complete** |
 | 4 | Emailing results | Not started |
 | 5 | Results web app | Not started |
 
-The scoring engine is finished and tested. The Django app is a walking
-skeleton: the race committee sets up boats and series in the Django admin,
-enters finish times on an HTMX page, and anyone can read the results, which are
-recalculated through the engine on every request.
+The scoring engine is finished and tested. In the Django app, the race
+committee sets up boats and series in the Django admin and enters finish times
+on an HTMX page, and anyone can read the results, which are recalculated
+through the engine on every request. Corrections are recorded with who, when
+and why. Members sign up, register their boats and ask to enter series; the
+race committee approves every request.
 
 See [`docs/plan.md`](docs/plan.md) for what each slice covers.
 
@@ -90,7 +92,7 @@ collected nothing and reported success, which is worse than failing.
 | --- | --- |
 | `nhc/` | The scoring engine. Standard library only, no Django, no I/O |
 | `tests/` | The engine's tests, and the scenario fixtures they run against |
-| `races/` | The Django app: models, admin, results and finish-entry pages |
+| `races/` | The Django app: models, admin, results, finish entry, change history, member accounts and requests |
 | `config/` | Django project settings, URLs, WSGI/ASGI |
 | `templates/`, `static/` | Server-rendered templates; HTMX is vendored, not from a CDN |
 | `docs/` | Brief, plan, slice specs, decisions, and the reference rules |

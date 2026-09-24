@@ -1,0 +1,46 @@
+{% with r=row.request %}
+<section class="card request{% if error %} has-errors{% elif message %} saved{% endif %}" id="request-{{ row.kind }}-{{ r.pk }}">
+  <h3>
+    {% if row.kind == "entry" %}Enter {{ r.boat }} in {{ r.series }}{% else %}{{ r.get_kind_display }}: {% if r.boat %}{{ r.boat }}{% else %}{{ r.sail_number }} {{ r.name }}{% endif %}{% endif %}
+  </h3>
+  <p class="muted">
+    From {{ r.requested_by.get_full_name|default:r.requested_by.get_username }} ({{ r.requested_by.email }}),
+    {{ r.created_at|date:"j M Y H:i" }}.
+    {% if r.kind == "CLAIM" %}Current owner: {{ r.boat.owner_display|default:"none recorded" }}.{% endif %}
+  </p>
+  {% if r.member_note %}<p>Member's note: <em>{{ r.member_note }}</em></p>{% endif %}
+  {% if row.proposed %}
+  <table class="proposed">
+    <thead><tr><th>Field</th>{% if r.boat %}<th>Now</th>{% endif %}<th>{% if r.boat %}Requested{% else %}Details{% endif %}</th></tr></thead>
+    <tbody>
+    {% for field in row.proposed %}
+      <tr{% if r.boat and field.changed %} class="changed"{% endif %}>
+        <td>{{ field.label }}</td>{% if r.boat %}<td>{{ field.current }}</td>{% endif %}<td>{{ field.proposed }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if r.is_pending %}
+  {% url 'races:decide_request' row.kind r.pk as decide_url %}
+  <form method="post" action="{{ decide_url }}" hx-post="{{ decide_url }}"
+        hx-target="#request-{{ row.kind }}-{{ r.pk }}" hx-swap="outerHTML" class="decision">
+    {% csrf_token %}
+    {% if row.needs_reason %}
+    <p><label>Reason for the correction (required: this changes recorded results)
+      <input name="reason" maxlength="500"></label></p>
+    {% endif %}
+    <p><label>Note to the member (required if rejecting)
+      <input name="note" maxlength="500"></label></p>
+    <button type="submit" name="decision" value="approve">Approve</button>
+    <button type="submit" name="decision" value="reject">Reject</button>
+  </form>
+  {% else %}
+  <p><strong>{{ r.get_status_display }}</strong>{% if r.decided_at %} by {{ r.decided_by_name }}, {{ r.decided_at|date:"j M Y H:i" }}{% endif %}.
+    {% if r.committee_note %}Note: {{ r.committee_note }}{% endif %}</p>
+  {% endif %}
+  {% if error %}<ul class="errorlist"><li>{{ error }}</li></ul>{% endif %}
+  {% if message %}<p class="muted">{{ message }}</p>{% endif %}
+</section>
+{% endwith %}

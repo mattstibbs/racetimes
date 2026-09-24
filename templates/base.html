@@ -10,8 +10,25 @@
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header>
     <p><a href="{% url 'races:home' %}"><strong>Race Times</strong></a></p>
-    {% if user.is_staff %}<p><a href="{% url 'admin:index' %}">Setup (admin)</a></p>{% endif %}
+    <nav>
+      {% if user.is_authenticated %}
+        <a href="{% url 'races:my_boats' %}">My boats</a>
+        {% if is_committee %}
+          &middot; <a href="{% url 'races:requests' %}">Requests</a>
+          &middot; <a href="{% url 'admin:index' %}">Setup (admin)</a>
+        {% endif %}
+        &middot;
+        <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
+          <button type="submit" class="link">Log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'races:login' %}">Log in</a> &middot; <a href="{% url 'races:signup' %}">Sign up</a>
+      {% endif %}
+    </nav>
   </header>
+  {% if messages %}
+  <ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+  {% endif %}
   {% block content %}{% endblock %}
 </body>
 </html>

@@ -876,6 +876,36 @@ small migration.
 
 ---
 
+## 2026-09-24 - Slice 3: how the roles are enforced
+
+**Decision.**
+- The committee is staff *in the "Race committee" group*, checked by
+  `races/roles.py`. Staff status alone no longer opens the committee pages:
+  the group is what grants the racing parts of the admin, so without it a
+  staff account would reach pages whose admin it cannot use.
+- The login says an account is waiting for approval only when the password is
+  right, so it never reveals which emails have signed up. It does this in the
+  form rather than with Django's backend that lets inactive accounts log in,
+  because that backend would also keep a *deactivated* person's existing
+  session alive.
+- A boat's owner is chosen in the admin from a plain list of active accounts,
+  not Django's search box, which needs permission to browse accounts - a
+  permission the committee deliberately does not have.
+- Requests are read-only in the admin. Changing a request's status there would
+  not apply it; only the Requests page does.
+- Approving claims the request with a conditional update inside the same
+  transaction, so a double click or two committee members cannot both apply
+  it, and a failed approval leaves it pending. Everything is validated again
+  at approval, in case the boat or series changed since the member asked.
+- A member trying another member's boat or request gets a 404, not a 403, so
+  the site does not confirm it exists.
+
+**Consequence.** Any existing committee login that is staff but not a
+superuser must be added to the Race committee group after this deploys, or it
+loses the finish-entry and history pages. `docs/deploying.md` says how.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

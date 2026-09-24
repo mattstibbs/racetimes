@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Register a boat - Race Times{% endblock %}
+{% block content %}
+<h1>Register a boat</h1>
+<p class="muted">The race committee checks the details, especially the NHC base
+  number, before the boat is registered.</p>
+{% if claimable %}
+<div class="note">
+  <p><strong>{{ claimable }}</strong> is already registered with the club. If it is your boat,
+    ask the race committee to record you as its owner.</p>
+  <form method="post" action="{% url 'races:claim_boat' claimable.pk %}" class="stacked">{% csrf_token %}
+    <p><label for="claim-note">Note for the race committee (optional)</label>
+      <input id="claim-note" name="member_note" maxlength="500"></p>
+    <button type="submit">Ask to be recorded as the owner</button>
+  </form>
+</div>
+{% endif %}
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Send to the race committee</button>
+</form>
+{% endblock %}

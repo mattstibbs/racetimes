@@ -30,6 +30,14 @@ the same steps are in Render's own guide to deploying Django.
 
 ## Day to day
 
+- **Accounts.** Members sign up on the site and wait for approval. As the
+  administrator, approve them in the admin under **Users**: filter by
+  "Active: No", tick them, and choose "Approve selected accounts".
+- **Making someone race committee.** In the admin, open their account, tick
+  "Staff status", and add them to the **Race committee** group. Staff status
+  alone is not enough: the committee pages check the group, which is what
+  gives access to the racing parts of the admin and nothing about accounts.
+
 - **To update the site,** merge a pull request into `main`. Render builds and
   deploys it; if the build fails, the previous version stays live.
 - **To see why something failed,** open the service's **Logs** in Render.

@@ -40,3 +40,27 @@ def record(race, entry, finish_time=None, status=None):
         status=status,
         finish_time=time.fromisoformat(finish_time) if finish_time else None,
     )
+
+
+def make_member(email="member@example.com", first_name="Pat", last_name="Jones", **fields):
+    """An active member account, logged in by email as the slice 3 sign-up does."""
+    from django.contrib.auth import get_user_model
+
+    return get_user_model().objects.create_user(
+        username=email, email=email, first_name=first_name, last_name=last_name, **fields
+    )
+
+
+def make_committee(email="officer@example.com", **fields):
+    """A race committee account: staff, in the Race committee group."""
+    from django.contrib.auth.models import Group
+
+    from races.roles import COMMITTEE_GROUP
+
+    user = make_member(email, first_name="Race", last_name="Officer", is_staff=True, **fields)
+    user.groups.add(Group.objects.get(name=COMMITTEE_GROUP))
+    return user
+
+
+def make_administrator(email="admin@example.com"):
+    return make_member(email, first_name="Club", last_name="Admin", is_staff=True, is_superuser=True)

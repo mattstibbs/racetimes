@@ -101,6 +101,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'races.context_processors.roles',
             ],
         },
     },
@@ -120,6 +121,12 @@ DATABASES = {
         conn_max_age=600,
     )
 }
+
+
+# One login page for everyone; see races/member_views.py.
+LOGIN_URL = 'races:login'
+LOGIN_REDIRECT_URL = 'races:my_boats'
+LOGOUT_REDIRECT_URL = 'races:home'
 
 
 # Password validation

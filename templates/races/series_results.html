@@ -52,7 +52,7 @@
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
   {% if section.amended_on %}<span class="amended">Amended {{ section.amended_on|date:"j F Y" }}.</span>{% endif %}
-  {% if user.is_staff %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
+  {% if is_committee %}<a href="{% url 'races:finish_entry' race.pk %}">Enter finishes</a>
   &middot; <a href="{% url 'races:series_history' race.series.pk %}?race={{ race.pk }}">History</a>{% endif %}
 </p>
 {% if race_results %}

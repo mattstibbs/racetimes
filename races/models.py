@@ -24,6 +24,15 @@ class Boat(models.Model):
     make = models.CharField(max_length=100, blank=True)
     model = models.CharField(max_length=100, blank=True)
     owner_name = models.CharField(max_length=100, blank=True)
+    # The member who owns the boat, set only by the race committee. Cleared if
+    # the account is deleted; the boat and its results stay.
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boats",
+    )
     length_overall_m = models.DecimalField(
         "length overall (m)",
         max_digits=5,
@@ -70,6 +79,13 @@ class Boat(models.Model):
 
     def __str__(self):
         return f"{self.sail_number} {self.name}".strip()
+
+    @property
+    def owner_display(self):
+        """The owner as shown: the member's name if linked, else the typed name."""
+        if self.owner is not None:
+            return self.owner.get_full_name() or self.owner.get_username()
+        return self.owner_name
 
 
 class Series(models.Model):
@@ -332,3 +348,122 @@ class ScoringChange(models.Model):
         if not self._state.adding:
             raise ValueError("A recorded change is never edited.")
         super().save(*args, **kwargs)
+
+
+class Request(models.Model):
+    """What a member asks the race committee for, and what the committee decided.
+
+    Members change nothing directly (see docs/brief.md, "Roles and
+    permissions"): every registration, change, claim and entry is one of these,
+    and only approval by the committee applies it.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Waiting for the race committee"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+        WITHDRAWN = "WITHDRAWN", "Withdrawn"
+
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+"
+    )
+    member_note = models.CharField(max_length=500, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(default=timezone.now)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    # A copy of the username, as in the change history, so the record still
+    # says who decided after the account goes.
+    decided_by_name = models.CharField(max_length=150, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    # Shown to the member. Required when rejecting.
+    committee_note = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        abstract = True
+        ordering = ["-created_at", "-pk"]
+
+    @property
+    def is_pending(self):
+        return self.status == self.Status.PENDING
+
+
+class BoatRequest(Request):
+    """A member asking to register a boat, change one of theirs, or own one on record."""
+
+    class Kind(models.TextChoices):
+        REGISTER = "REGISTER", "Register a boat"
+        CHANGE = "CHANGE", "Change a boat"
+        CLAIM = "CLAIM", "Own a boat on record"
+
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    # Empty for a registration, which has no boat until it is approved.
+    boat = models.ForeignKey(
+        Boat, on_delete=models.CASCADE, null=True, blank=True, related_name="requests"
+    )
+    # The boat as the member wants it to be. Filled in for a registration or a
+    # change; empty for a claim, which changes only who owns the boat.
+    sail_number = models.CharField(max_length=20, blank=True)
+    name = models.CharField(max_length=100, blank=True)
+    make = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    length_overall_m = models.DecimalField(
+        "length overall (m)", max_digits=5, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    waterline_length_m = models.DecimalField(
+        "waterline length (m)", max_digits=5, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    base_number = models.DecimalField(
+        "NHC base number", max_digits=4, decimal_places=3, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("0.001"))],
+    )
+
+    # The fields a registration or change proposes, in display order.
+    PROPOSED_FIELDS = [
+        "sail_number", "name", "make", "model",
+        "length_overall_m", "waterline_length_m", "base_number",
+    ]
+
+    class Meta(Request.Meta):
+        constraints = [
+            # One thing at a time per boat, so two approvals can never race to
+            # overwrite each other.
+            models.UniqueConstraint(
+                fields=["boat"],
+                condition=models.Q(status="PENDING"),
+                name="boat_request_one_pending_per_boat",
+                violation_error_message="This boat already has a request waiting for the race committee.",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind="REGISTER", boat__isnull=True)
+                | (~models.Q(kind="REGISTER") & models.Q(boat__isnull=False)),
+                name="boat_request_boat_matches_kind",
+            ),
+        ]
+
+    def __str__(self):
+        target = self.boat or self.sail_number
+        return f"{self.get_kind_display()}: {target}"
+
+
+class EntryRequest(Request):
+    """A member asking to enter one of their boats in a series."""
+
+    series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="entry_requests")
+    boat = models.ForeignKey(Boat, on_delete=models.CASCADE, related_name="entry_requests")
+
+    class Meta(Request.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                fields=["series", "boat"],
+                condition=models.Q(status="PENDING"),
+                name="entry_request_one_pending_per_series_and_boat",
+                violation_error_message="This boat already has an entry request for this series.",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Enter {self.boat} in {self.series}"
