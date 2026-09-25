@@ -94,17 +94,37 @@ service, under **Environment**:
 | `EMAIL_PORT` | Usually `587`. |
 | `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | The login the provider gives you for SMTP. |
 | `EMAIL_USE_TLS` | `1` (the default) for port 587. |
-| `DEFAULT_FROM_EMAIL` | Who the emails come from, e.g. `Race Times <results@yourclub.org>`. It must be an address or domain the provider lets you send from. |
+| `DEFAULT_FROM_EMAIL` | The service's one sending address, e.g. `Race Times <noreply@racetimes.co.uk>`. It must be an address or domain the provider lets you send from. |
 
-Before choosing, check two things:
+Every club's emails go from that one address, under the club's name:
+**From** "Demo Club via Race Times" `<noreply@racetimes.co.uk>`, with
+**Reply-To** the club's contact email (set on the operator's page for the
+club), so a reply reaches the club, not the service. Emails from the
+service's own address, with no club, use `DEFAULT_FROM_EMAIL` as it is.
 
-- **Whether Render lets your plan send over SMTP.** Some hosts block outgoing
-  SMTP on free plans to stop spam. If yours does, choose a provider that
-  offers SMTP on a port Render allows, or ask to have an HTTP-API email
-  library added (a new dependency).
-- **The provider's free allowance.** A club series emails every owner after
-  each race, so 30 boats and 20 races is about 600 emails a season, plus
-  updates and account emails.
+Before choosing a provider, check:
+
+- **Whether the host lets your plan send over SMTP.** Some hosts block
+  outgoing SMTP on free plans to stop spam. If yours does, choose a provider
+  that offers SMTP on a port the host allows, or ask to have an HTTP-API
+  email library added (a new dependency).
+- **The allowance.** A club series emails every owner after each race, so 30
+  boats and 20 races is about 600 emails per club per season, plus updates
+  and account emails. Multiply by the number of clubs.
+- **The domain's records**, so clubs' emails aren't marked as spam. In the
+  DNS for the sending domain (`racetimes.co.uk`), add what the provider
+  gives you for:
+  - **SPF**: a TXT record naming the provider as allowed to send for the
+    domain;
+  - **DKIM**: the provider's signing key, usually one or more CNAME or TXT
+    records;
+  - **DMARC**: a TXT record at `_dmarc.racetimes.co.uk`. Start with
+    `v=DMARC1; p=none; rua=mailto:<your address>` to receive reports, and
+    tighten `p=` to `quarantine` once the reports show only the provider
+    sending.
+
+  Then send yourself a password reset and check the email's headers say SPF,
+  DKIM and DMARC all "pass".
 
 After saving the variables, Render redeploys. To test, use **Forgotten your
 password?** on the login page with your own account's email address.

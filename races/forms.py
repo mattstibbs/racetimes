@@ -1,15 +1,20 @@
+import logging
 import re
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, UserCreationForm
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
 from django.db.models import Q, Value
 from django.db.models.functions import Replace, Upper
 from django.forms.models import BaseInlineFormSet
+from django.template.loader import render_to_string
 
-from . import audit, final
+from . import audit, final, notifications
 from .models import Boat, BoatRequest, Club, Finish, Race, Series
+
+logger = logging.getLogger(__name__)
 
 REASON_HELP = "Required when correcting results already recorded."
 
@@ -252,6 +257,32 @@ class LoginForm(AuthenticationForm):
             raise
 
     unconfirmed = False
+
+
+class ClubPasswordResetForm(PasswordResetForm):
+    """Django's password reset, but the email comes from the club (slice 11 part 4).
+
+    Django builds and sends this one email itself, so it can't go through
+    notifications.email_to; this gives it the same sender. Like Django's, a
+    failure to send is logged and not shown, so the page never reveals whether
+    the email address has an account.
+    """
+
+    reply_to = ()
+
+    def save(self, *args, request=None, **kwargs):
+        kwargs["from_email"], self.reply_to = notifications.sender(getattr(request, "club", None))
+        return super().save(*args, request=request, **kwargs)
+
+    def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email,
+                  html_email_template_name=None):
+        subject = "".join(render_to_string(subject_template_name, context).splitlines())
+        body = render_to_string(email_template_name, context)
+        message = EmailMessage(subject, body, from_email, [to_email], reply_to=self.reply_to)
+        try:
+            message.send()
+        except Exception:
+            logger.exception("Could not send a password reset email to user %s", context["user"].pk)
 
 
 # --- The operator (slice 11 part 3) -------------------------------------------

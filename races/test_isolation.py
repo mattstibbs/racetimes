@@ -299,6 +299,9 @@ def test_publishing_at_one_club_emails_only_its_owners(client, clubs, run_on_com
     client.post(reverse("races:publish_results", args=[race_2.pk]), HTTP_HOST=DEMO)
     assert sorted(m.to[0] for m in mail.outbox) == ["ann@example.com", "shared@example.com"]
     assert all(leaks(m.subject + m.body) == [] for m in mail.outbox)
+    # Sent as Demo Club, with replies to Demo Club, never Harbour (slice 11 part 4).
+    assert all("Demo Club" in m.from_email and "Harbour" not in m.from_email + str(m.reply_to)
+               for m in mail.outbox)
 
 
 # --- The code keeps to for_club -----------------------------------------------------------------
