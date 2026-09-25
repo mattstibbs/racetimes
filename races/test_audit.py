@@ -360,13 +360,13 @@ def test_the_database_refuses_a_correction_without_a_reason(sailed):
     series, *_ = sailed
     with pytest.raises(IntegrityError):
         ScoringChange.objects.create(
-            series=series, kind="SERIES", action="CHANGED", description="x", is_correction=True
+            club=series.club, series=series, kind="SERIES", action="CHANGED", description="x", is_correction=True
         )
 
 
 def test_a_recorded_change_is_never_edited(sailed):
     series, *_ = sailed
-    change = ScoringChange.objects.create(series=series, kind="SERIES", action="CHANGED", description="x")
+    change = ScoringChange.objects.create(club=series.club, series=series, kind="SERIES", action="CHANGED", description="x")
     change.reason = "rewritten"
     with pytest.raises(ValueError):
         change.save()

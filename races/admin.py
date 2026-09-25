@@ -17,12 +17,61 @@ from .forms import (
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, BoatRequest, EntryRequest, Race, Series, SeriesEntry
+from .models import Boat, BoatRequest, Club, EntryRequest, Race, Series, SeriesEntry
 from .roles import waiting_for_approval
 from .scoring import score_series
 
 # The admin wraps each save in a transaction, so a change and its history rows
 # are saved together or not at all.
+
+
+# --- Clubs (slice 11) -----------------------------------------------------------------
+
+
+class ClubScopedAdmin:
+    """Shows and edits only the current club's rows.
+
+    On a club's address, lists, searches, choice lists and new rows all belong
+    to ``request.club``. On the service's own address only the operator gets
+    into the admin at all (races/admin_site.py), and sees every club.
+    """
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset if request.club is None else queryset.for_club(request.club)
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.club = request.club  # a new boat or series joins this club
+        return form
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
+
+
+def _club_choices(db_field, request, kwargs):
+    """Only this club's boats and series in a choice list, including autocomplete ones."""
+    if request.club is not None and db_field.related_model in (Boat, Series):
+        kwargs["queryset"] = db_field.related_model.objects.for_club(request.club)
+    return kwargs
+
+
+class ClubScopedInline:
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
+
+
+@admin.register(Club)
+class ClubAdmin(admin.ModelAdmin):
+    """The operator's list of clubs. Part 3 of slice 11 gives the operator proper pages."""
+
+    list_display = ["name", "subdomain", "status", "created_at"]
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 class ReasonInAdminHistoryMixin:
@@ -70,7 +119,7 @@ def boat_changes(before, after):
 
 
 @admin.register(Boat)
-class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
+class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
     list_display = ["sail_number", "name", "make", "model", "base_number", "owner_display"]
     search_fields = ["sail_number", "name", "owner_name", "owner__first_name", "owner__last_name"]
@@ -89,9 +138,9 @@ class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        series_list = list(Series.objects.filter(entries__boat=obj).distinct()) if change else []
+        series_list = list(Series.objects.for_club(obj.club).filter(entries__boat=obj).distinct()) if change else []
         before = {series.pk: score_series(series) for series in series_list}
-        stored = Boat.objects.select_related("owner").get(pk=obj.pk) if change else None
+        stored = Boat.objects.for_club(obj.club).select_related("owner").get(pk=obj.pk) if change else None
         super().save_model(request, obj, form, change)
         if stored is not None:
             # The owner hears about any change the committee makes to their
@@ -107,7 +156,7 @@ class BoatAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
                 messages.info(request, f"{series}: {effect}")
 
 
-class SeriesEntryInline(admin.TabularInline):
+class SeriesEntryInline(ClubScopedInline, admin.TabularInline):
     model = SeriesEntry
     form = AuditedInlineForm
     formset = AuditedInlineFormSet
@@ -139,7 +188,7 @@ class SeriesEntryInline(admin.TabularInline):
         return formset
 
 
-class RaceInline(admin.TabularInline):
+class RaceInline(ClubScopedInline, admin.TabularInline):
     model = Race
     form = AuditedInlineForm
     formset = RaceInlineFormSet
@@ -156,7 +205,7 @@ class RaceInline(admin.TabularInline):
 
 
 @admin.register(Series)
-class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
+class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = SeriesAdminForm
     list_display = ["name", "series_type", "discards"]
     fieldsets = [
@@ -179,7 +228,7 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         # Scored now, before anything is saved, to say afterwards what moved.
-        form.scoring_before = score_series(Series.objects.get(pk=obj.pk)) if change else None
+        form.scoring_before = score_series(Series.objects.for_club(obj.club).get(pk=obj.pk)) if change else None
         form.recorded = []
         super().save_model(request, obj, form, change)
         form.recorded += audit.record(
@@ -206,7 +255,7 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
 # --- Members' requests: read-only here, decided on the Requests page ----------
 
 
-class RequestAdmin(admin.ModelAdmin):
+class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
     list_filter = ["status"]
     readonly_fields = ["decided_by"]
 

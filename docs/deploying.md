@@ -28,6 +28,27 @@ site within a few minutes. Database migrations apply as part of each deploy.
 Render's dashboard changes from time to time; if a label above does not match,
 the same steps are in Render's own guide to deploying Django.
 
+## Clubs (slice 11)
+
+Race Times now holds clubs: each club's data is kept apart, and each club has
+its own address, `<subdomain>.<SERVICE_DOMAIN>`. The migrations put all the
+existing data into the first club, **Demo Club** (subdomain `demo`, from
+`FIRST_CLUB_NAME` and `FIRST_CLUB_SUBDOMAIN`).
+
+- **The test site** on Render can't have subdomains: its address is fixed,
+  e.g. `racetimes-xxxx.onrender.com`. `render.yaml` sets `SINGLE_CLUB=demo`,
+  so that address shows Demo Club, exactly as the site did before. Without it,
+  the address would show the service's own front page.
+- **Locally**, open `http://demo.localhost:8000/`: every current browser
+  sends `*.localhost` to your own machine with no setup.
+  `http://127.0.0.1:8000/` shows Demo Club too, if you set `SINGLE_CLUB=demo`.
+- **More clubs:** as the superuser, add a club in the admin under **Clubs**.
+  Until part 2 of slice 11 lands, the race committee and administrator roles
+  are still site-wide, not per club. So don't give a second club real users
+  yet: its committee would also be committee at Demo Club.
+- **Production hosting** needs a wildcard DNS record and certificate for
+  `*.racetimes.co.uk`. That's a later slice.
+
 ## Day to day
 
 - **What's waiting.** The admin's front page lists what is waiting for you:

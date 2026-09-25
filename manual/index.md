@@ -5,6 +5,10 @@ and races, the finish times, and the results. It scores every race under the
 RYA's National Handicap for Cruisers (NHC) and the Racing Rules of Sailing, so
 results and handicaps are worked out for you.
 
+Each club has its own Race Times site, at its own address, such as
+`demo.racetimes.co.uk`. Your club's name is at the top of every page, and
+everything you see there belongs to your club alone.
+
 This manual explains how to use it. It is written for the people who use the
 site, not for developers.
 

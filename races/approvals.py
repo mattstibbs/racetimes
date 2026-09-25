@@ -123,7 +123,7 @@ def _scorings_before(request):
     if isinstance(request, EntryRequest):
         series_list = [request.series]
     elif request.kind == BoatRequest.Kind.CHANGE:
-        series_list = list(Series.objects.filter(entries__boat=request.boat).distinct())
+        series_list = list(Series.objects.for_club(request.club).filter(entries__boat=request.boat).distinct())
     else:
         series_list = []
     return [(series, score_series(series)) for series in series_list if audit.series_has_finishes(series)]
@@ -136,7 +136,7 @@ def _apply(request):
         entry.save()
         return f"{request.boat} is entered in {request.series}."
     if request.kind == BoatRequest.Kind.REGISTER:
-        boat = Boat(owner=request.requested_by, **_proposed(request))
+        boat = Boat(club=request.club, owner=request.requested_by, **_proposed(request))
         boat.full_clean()
         boat.save()
         return f"{boat} is registered to {boat.owner_display}."
@@ -152,7 +152,7 @@ def _apply(request):
 
 
 def _changed_boat(request):
-    boat = Boat.objects.get(pk=request.boat_id)
+    boat = Boat.objects.for_club(request.club).get(pk=request.boat_id)
     for name, value in _proposed(request).items():
         setattr(boat, name, value)
     return boat

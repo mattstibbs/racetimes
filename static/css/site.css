@@ -76,6 +76,13 @@ abbr[title] { text-decoration: none; cursor: help; }
 .brand { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.15rem; }
 .site-header a.brand { color: var(--surface); }
 .brand img { width: 1.6rem; height: 1.6rem; }
+/* Slice 11: the club's name leads; the service's name follows, smaller. */
+.brand-service {
+  font-size: 0.75rem; font-weight: 500; color: var(--header-link); letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* A long club name wraps beside the sail, and "Race Times" drops under it rather than squeezing. */
+.brand-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.5rem; }
 .site-header nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1.1rem; }
 .site-header nav form { display: inline; margin: 0; }
 .site-header button.link { color: var(--header-link); text-decoration: none; }

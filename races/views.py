@@ -24,7 +24,7 @@ def ping(request):
 
 @committee_required
 def series_history(request, pk):
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     changes = series.scoring_changes.select_related("race")
     race = None
     if request.GET.get("race", "").isdigit():
@@ -47,7 +47,7 @@ VIEWS = ("start", "finish")
 
 @committee_required
 def race_day_page(request, pk):
-    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=pk)
     view = request.GET.get("view")
     if view not in VIEWS:
         # Before anyone is racing there is nothing to finish, so open on the start sheet.
@@ -76,13 +76,13 @@ def _race_day_url(race, view):
 @committee_required
 def start_sheet_page(request, pk):
     """The slice 6 address: kept working for bookmarks."""
-    return redirect(_race_day_url(get_object_or_404(Race, pk=pk), "start"))
+    return redirect(_race_day_url(get_object_or_404(Race.objects.for_club(request.club), pk=pk), "start"))
 
 
 @committee_required
 def finish_entry(request, pk):
     """The slice 1 address: kept working for bookmarks and old links."""
-    return redirect(_race_day_url(get_object_or_404(Race, pk=pk), "finish"))
+    return redirect(_race_day_url(get_object_or_404(Race.objects.for_club(request.club), pk=pk), "finish"))
 
 
 def _race_day_context(race, view, **extra):
@@ -179,7 +179,7 @@ def _finish_or_page(request, race, **extra):
 @require_POST
 def tap_finish(request, race_pk, entry_pk):
     """The Finished button: record this boat as finishing now."""
-    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
     if race.series.is_final:
         return _finish_or_page(request, race, error=final.LOCKED)
@@ -196,7 +196,7 @@ def tap_finish(request, race_pk, entry_pk):
 @require_POST
 def undo_finish(request, race_pk, entry_pk):
     """Undo a finish saved in the last two minutes: the boat is racing again."""
-    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
     if race.series.is_final:
         return _finish_or_page(request, race, error=final.LOCKED)
@@ -211,7 +211,7 @@ def undo_finish(request, race_pk, entry_pk):
 @require_POST
 def save_finish(request, race_pk, entry_pk):
     """A typed finish time or code, from either list. Each row saves alone."""
-    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
     if race.series.is_final:
         return _finish_or_page(request, race, error=final.LOCKED)
@@ -221,7 +221,7 @@ def save_finish(request, race_pk, entry_pk):
         # form's own error, which says the same.
         messages.error(request, NOT_ON_START_SHEET)
         return redirect(_race_day_url(race, "finish"))
-    finish = Finish.objects.filter(race=race, entry=entry).first() or Finish(race=race, entry=entry)
+    finish = Finish.objects.for_club(request.club).filter(race=race, entry=entry).first() or Finish(race=race, entry=entry)
     form = FinishForm(request.POST, instance=finish, prefix=_prefix(entry))
     if not form.is_valid():
         if request.htmx:
@@ -257,7 +257,7 @@ def _prefix(entry):
 @require_POST
 def save_start_sheet_row(request, race_pk, entry_pk):
     """Put one boat on the start sheet, change who is aboard, or take it off."""
-    race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat__owner"), pk=entry_pk)
     form = StartSheetRowForm(request.POST, prefix=_prefix(entry))
     message = refused = ""
@@ -325,7 +325,7 @@ def _start_sheet_context(race, bound_form=None, bound_entry=None, refused=""):
 
 @committee_required
 def final_page(request, pk):
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     return render(request, "races/final.html", _final_context(series))
 
 
@@ -344,7 +344,7 @@ def _final_context(series, reopen_error=""):
 @committee_required
 @require_POST
 def declare_final(request, pk):
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     try:
         count = final.declare(series, request.user, request)
     except ValidationError as refused:
@@ -358,7 +358,7 @@ def declare_final(request, pk):
 @committee_required
 @require_POST
 def reopen_series(request, pk):
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     try:
         final.reopen(series, request.user, request.POST.get("reason", ""))
     except ValidationError as refused:
@@ -371,7 +371,7 @@ def reopen_series(request, pk):
 @require_POST
 def send_final(request, pk):
     """Send the final standings again, after a sending failure."""
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     if not series.is_final:
         messages.error(request, final.NOT_FINAL)
     else:
@@ -392,7 +392,7 @@ def requests_page(request):
     pending, decided = [], []
     for kind, model in REQUEST_MODELS.items():
         related = ["requested_by", "boat", "series"] if model is EntryRequest else ["requested_by", "boat"]
-        for member_request in model.objects.select_related(*related):
+        for member_request in model.objects.for_club(request.club).select_related(*related):
             (pending if member_request.is_pending else decided).append(_request_row(kind, member_request))
     pending.sort(key=lambda row: row["request"].created_at)  # oldest first: first come, first served
     decided.sort(key=lambda row: row["request"].decided_at or row["request"].created_at, reverse=True)
@@ -407,7 +407,7 @@ def decide_request(request, kind, pk):
     model = REQUEST_MODELS.get(kind)
     if model is None:
         return HttpResponse(status=404)
-    member_request = get_object_or_404(model, pk=pk)
+    member_request = get_object_or_404(model.objects.for_club(request.club), pk=pk)
     form = DecisionForm(request.POST)
     error = message = ""
     # Worked out before deciding: once a change is applied, the boat already
@@ -456,7 +456,7 @@ def _request_row(kind, member_request):
 @committee_required
 @require_POST
 def publish_results(request, pk):
-    race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
+    race = get_object_or_404(Race.objects.for_club(request.club).select_related("series"), pk=pk)
     missing = start_sheet.unrecorded(race)
     if race.series.is_final:
         messages.error(request, final.LOCKED)
@@ -509,7 +509,7 @@ def _email_decision(member_request, request, details, previous_owner, boat_name)
         and member_request.status == BoatRequest.Status.APPROVED
     )
     if approved_claim and previous_owner is not None and previous_owner != member_request.requested_by:
-        boat = Boat.objects.get(pk=member_request.boat_id)  # as it is now, new owner and all
+        boat = Boat.objects.for_club(request.club).get(pk=member_request.boat_id)  # as it is now, new owner and all
         notifications.boat_updated(
             boat,
             [("Owner", previous_owner.get_full_name() or previous_owner.get_username(), boat.owner_display)],

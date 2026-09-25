@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from races import approvals, audit
 from races.models import Boat, BoatRequest, EntryRequest, ScoringChange, SeriesEntry
-from races.testing import enter, make_boat, make_committee, make_member, make_race, make_series, record
+from races.testing import default_club, enter, make_boat, make_committee, make_member, make_race, make_series, record
 
 pytestmark = pytest.mark.django_db
 
@@ -43,13 +43,13 @@ def registration(member, **fields):
     values = dict(sail_number="GBR42", name="Kittiwake", make="Westerly", model="Centaur",
                   base_number=Decimal("0.805"))
     values.update(fields)
-    return BoatRequest.objects.create(kind="REGISTER", requested_by=member, **values)
+    return BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=member, **values)
 
 
 def change(boat, member, **fields):
     values = {name: getattr(boat, name) for name in BoatRequest.PROPOSED_FIELDS}
     values.update(fields)
-    return BoatRequest.objects.create(kind="CHANGE", boat=boat, requested_by=member, **values)
+    return BoatRequest.objects.create(club=default_club(), kind="CHANGE", boat=boat, requested_by=member, **values)
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ def test_approving_a_change_applies_every_requested_field(client, committee, mem
 
 def test_approving_a_claim_makes_the_member_the_owner(client, committee, member):
     boat = make_boat(owner_name="Previous owner")
-    request = BoatRequest.objects.create(kind="CLAIM", boat=boat, requested_by=member)
+    request = BoatRequest.objects.create(club=default_club(), kind="CLAIM", boat=boat, requested_by=member)
     decide(client, request, "approve")
     boat.refresh_from_db()
     assert boat.owner == member

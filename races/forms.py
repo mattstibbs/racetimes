@@ -63,6 +63,15 @@ class _AdminReasonForm(AuditedFormMixin, forms.ModelForm):
         label="Reason for change", required=False, max_length=500, help_text=REASON_HELP
     )
 
+    # The club a new boat or series belongs to. The admin sets it from the
+    # request (races/admin.py); a row's club is never a field anyone can edit.
+    club = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.club is not None and self.instance.club_id is None:
+            self.instance.club = self.club
+
 
 class SeriesAdminForm(_AdminReasonForm):
     class Meta:
@@ -86,6 +95,17 @@ class BoatAdminForm(_AdminReasonForm):
     class Meta:
         model = Boat
         fields = "__all__"
+
+    def clean_sail_number(self):
+        # The unique-in-club constraint can't be checked by the form itself,
+        # because club isn't one of its fields, so it's checked here instead.
+        sail_number = self.cleaned_data["sail_number"]
+        existing = boat_with_sail_number(
+            self.instance.club, sail_number, exclude=self.instance if self.instance.pk else None
+        )
+        if existing is not None:
+            raise ValidationError("A boat with this sail number is already registered.")
+        return sail_number
 
 
 class AuditedInlineForm(AuditedFormMixin, forms.ModelForm):
@@ -146,14 +166,14 @@ class RaceInlineFormSet(AuditedInlineFormSet):
             if moving:
                 spares = self._spare_numbers(len(moving))
                 for race, spare in zip(moving, spares):
-                    Race.objects.filter(pk=race.pk).update(number=spare)
+                    Race.objects.for_club(self.instance.club).filter(pk=race.pk).update(number=spare)
         return super().save_existing_objects(commit)
 
     def _spare_numbers(self, count):
         # Counting down from 32767, the largest small positive integer on
         # both SQLite and PostgreSQL, skipping any number in use now or about
         # to be.
-        in_use = set(Race.objects.filter(series=self.instance).values_list("number", flat=True))
+        in_use = set(Race.objects.for_club(self.instance.club).filter(series=self.instance).values_list("number", flat=True))
         in_use |= {form.cleaned_data.get("number") for form in self.forms if form.cleaned_data}
         return [n for n in range(32767, 0, -1) if n not in in_use][:count]
 
@@ -242,23 +262,35 @@ class _BoatDetailsForm(forms.ModelForm):
     # The boat this request is about, if any; excluded from the sail-number check.
     boat = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, club, **kwargs):
+        # The club the boat is (or will be) registered with (slice 11).
+        self.club = club
         super().__init__(*args, **kwargs)
         for name in ["sail_number", "base_number"]:
             self.fields[name].required = True
 
     def clean_sail_number(self):
         sail_number = self.cleaned_data["sail_number"].strip()
-        others = Boat.objects.exclude(pk=self.boat.pk) if self.boat else Boat.objects.all()
-        # The same comparison as the boat's unique constraint, so they agree.
-        self.existing_boat = (
-            others.annotate(normalised=Upper(Replace("sail_number", Value(" "), Value(""))))
-            .filter(normalised=sail_number.replace(" ", "").upper())
-            .first()
-        )
+        self.existing_boat = boat_with_sail_number(self.club, sail_number, exclude=self.boat)
         if self.existing_boat is not None:
             raise ValidationError(f"{self.existing_boat} is already registered with the club.")
         return sail_number
+
+
+def boat_with_sail_number(club, sail_number, exclude=None):
+    """The club's boat with this sail number, ignoring case and spaces, or None.
+
+    The same comparison as the boat's unique constraint, so the two agree. Only
+    within the club: two clubs can each have a GBR 42 (slice 11).
+    """
+    boats = Boat.objects.for_club(club)
+    if exclude is not None:
+        boats = boats.exclude(pk=exclude.pk)
+    return (
+        boats.annotate(normalised=Upper(Replace("sail_number", Value(" "), Value(""))))
+        .filter(normalised=sail_number.replace(" ", "").upper())
+        .first()
+    )
 
 
 class BoatRegistrationForm(_BoatDetailsForm):
@@ -271,7 +303,7 @@ class BoatChangeForm(_BoatDetailsForm):
     def __init__(self, *args, boat, **kwargs):
         self.boat = boat
         initial = {name: getattr(boat, name) for name in BoatRequest.PROPOSED_FIELDS}
-        super().__init__(*args, initial=initial, **kwargs)
+        super().__init__(*args, initial=initial, club=boat.club, **kwargs)
 
     def clean(self):
         cleaned = super().clean()
@@ -291,7 +323,8 @@ class EntryRequestForm(forms.Form):
     def __init__(self, *args, boat, **kwargs):
         super().__init__(*args, **kwargs)
         # Series the boat is not in and has not already asked to join.
-        self.fields["series"].queryset = Series.objects.exclude(entries__boat=boat).exclude(
+        # Only the boat's own club's series (slice 11).
+        self.fields["series"].queryset = Series.objects.for_club(boat.club).exclude(entries__boat=boat).exclude(
             entry_requests__boat=boat, entry_requests__status=BoatRequest.Status.PENDING
         )
 

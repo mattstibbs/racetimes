@@ -1190,6 +1190,64 @@ write path checks one function in `races/final.py`, tested path by path.
 
 ---
 
+## 2026-09-25 - Slice 11: many clubs in one database, a subdomain each
+
+**Context.** The project owner wants to offer Race Times to sailing clubs as a
+hosted service. The site assumes one club throughout: global sail numbers,
+a global committee group, and the superuser as the administrator.
+
+**Decision.** Agreed with the project owner:
+- **One database for every club, with the club on every row,** filtered in
+  one place (`for_club`) and tested for isolation on every page. Not a
+  schema per club (django-tenants: a new dependency, and PostgreSQL only),
+  and not a separate site per club (cost and upgrades grow with every club).
+- **A subdomain per club,** found from the request's host. A club's own
+  domain comes later. A `SINGLE_CLUB` setting keeps the current test site,
+  and the tests, working on an address with no subdomain.
+- **One login, many clubs:** roles belong to a membership of a club, not to
+  the account. Superuser now means the service's operator only.
+- **The operator (the project owner) sets clubs up** and invites each
+  club's first administrator. There's no self-serve sign-up or payments yet.
+- **One transactional email provider over SMTP** for every club, with the
+  club as the sender's name and reply-to address.
+- **Sentry** (`sentry-sdk`, a new dependency, approved) for errors, and an
+  external uptime check against `/health/`.
+- **The UK GDPR essentials** in this slice: privacy notice and terms, a
+  member's data download and account deletion, a club export, and deleting a
+  club.
+- **Production hosting is deferred** to a later slice.
+
+**Answered by the project owner, 2026-09-25:**
+- **Joining a club is what gets approved,** not the account.
+- **A boat belongs to one club.**
+- **The service is Race Times, at `racetimes.co.uk`.**
+- **The first club is "Demo Club",** at `demo.racetimes.co.uk`, and the
+  current test site's data becomes its data.
+- **The legal review is deferred** and recorded as an open requirement
+  (below).
+
+- **The data model is approved:** `Club`, `ClubMembership`,
+  `ClubInvitation`, `OperatorAction`, and a club on `Boat`, `Series`,
+  `BoatRequest` and `ScoringChange`.
+
+**Consequence.** The largest change since slice 1. It is built in five parts,
+each merged on its own.
+
+---
+
+## Open requirements
+
+Things that must be done before a stated milestone, but aren't code.
+
+- **Legal review before the first paying club** (slice 11, recorded
+  2026-09-25).
+  - The privacy notice and terms of service are drafts, marked "Draft" on
+    the page, until reviewed.
+  - Clubs will also need a data processing agreement: the club is the
+    controller of its members' data, and Race Times is its processor.
+  - None of this blocks building or testing slice 11. It blocks taking on a
+    paying club.
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected

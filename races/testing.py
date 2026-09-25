@@ -7,17 +7,26 @@ as the situation it sets up.
 from datetime import date, time
 from decimal import Decimal
 
-from races.models import Boat, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.models import Boat, Club, Finish, Race, RaceEntry, Series, SeriesEntry
 
 
-def make_boat(sail_number="GBR1234", base_number="0.964", **fields):
+def default_club():
+    """The first club, which the migrations create and tests see by default (slice 11)."""
+    return Club.objects.get(subdomain="demo")
+
+
+def make_club(subdomain, name=None, **fields):
+    return Club.objects.create(subdomain=subdomain, name=name or subdomain.capitalize(), **fields)
+
+
+def make_boat(sail_number="GBR1234", base_number="0.964", club=None, **fields):
     return Boat.objects.create(
-        sail_number=sail_number, base_number=Decimal(str(base_number)), **fields
+        club=club or default_club(), sail_number=sail_number, base_number=Decimal(str(base_number)), **fields
     )
 
 
-def make_series(name="Autumn 2026", **fields):
-    return Series.objects.create(name=name, **fields)
+def make_series(name="Autumn 2026", club=None, **fields):
+    return Series.objects.create(club=club or default_club(), name=name, **fields)
 
 
 def enter(series, boat):

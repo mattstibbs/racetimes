@@ -397,3 +397,48 @@ phone. It now sits below them, and a test checks where it is.
 The brief's user journey 5. The committee declares a series final: it is
 locked, a copy of its results is kept, and the owners are emailed their
 final places. Anyone can download any series as one CSV file.
+
+## Slice 11: a service for many clubs. **Status: ready to build (2026-09-25)**
+
+Spec: `docs/slices/11-multi-club-service.md`. The project owner has answered
+five of its six open questions:
+- Race Times at `racetimes.co.uk`;
+- the first club is "Demo Club", at `demo.racetimes.co.uk`;
+- joining a club is what gets approved;
+- a boat belongs to one club;
+- the legal review is deferred, as an open requirement.
+
+The data model is approved (the sixth question): clubs, memberships,
+invitations and an operator log, with a club on every row.
+
+It turns the single-club site into a service that hosts many clubs:
+- one database, with the club on every row;
+- a subdomain per club;
+- one login across clubs, with a role at each;
+- clubs set up by the operator (the project owner);
+- one email provider, Sentry and a health check;
+- the UK GDPR essentials.
+
+It is built and merged in five parts:
+1. clubs and isolation;
+2. people and roles per club;
+3. the operator's pages;
+4. running it in production;
+5. data protection.
+
+Production hosting is deferred to a later slice; the code stays independent
+of any particular host.
+
+**Part 1, clubs and keeping them apart: complete (2026-09-25).**
+- Demo Club holds every existing row. The manual's sample data, migrated
+  from `main`, scores identically.
+- The club is found from the address, with `SINGLE_CLUB` for addresses that
+  can't have subdomains, such as the Render test site.
+- `for_club` is used everywhere, with the admin scoped to the club.
+- `races/test_isolation.py` covers every URL as three roles, the other
+  club's ids (404, nothing written), the admin, emails, the CSV, and a
+  source check. Removing the scoping from any of three pages makes it fail.
+- The tests also pass on PostgreSQL 16, run by hand.
+
+Roles are still site-wide until part 2, so a second real club shouldn't be
+set up before then.
