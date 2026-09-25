@@ -124,6 +124,12 @@ class Series(models.Model):
             "Only if the notice of race says so; off is RRS A5.2."
         ),
     )
+    # Slice 10: a series declared final is locked, and scored from a copy of
+    # the engine's results saved when it was declared (races/final.py).
+    declared_final_at = models.DateTimeField(null=True, blank=True, editable=False)
+    declared_final_by_name = models.CharField(max_length=150, blank=True, editable=False)
+    final_results = models.JSONField(null=True, blank=True, editable=False)
+    final_results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name_plural = "series"
@@ -131,6 +137,10 @@ class Series(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_final(self):
+        return self.declared_final_at is not None
 
     def get_absolute_url(self):
         # Also gives the admin its "View on site" button.
@@ -370,6 +380,9 @@ class ScoringChange(models.Model):
         SERIES = "SERIES", "Series settings"
         ENTRY = "ENTRY", "Entry"
         BOAT = "BOAT", "Boat"
+        # Slice 10: declaring a series final, and reopening it. These move no
+        # score, so they don't mark results amended.
+        FINAL = "FINAL", "Final results"
 
     class Action(models.TextChoices):
         ADDED = "ADDED", "Added"

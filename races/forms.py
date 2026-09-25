@@ -6,7 +6,7 @@ from django.db.models import Q, Value
 from django.db.models.functions import Replace, Upper
 from django.forms.models import BaseInlineFormSet
 
-from . import audit
+from . import audit, final
 from .models import Boat, BoatRequest, Finish, Race, Series
 
 REASON_HELP = "Required when correcting results already recorded."
@@ -69,6 +69,18 @@ class SeriesAdminForm(_AdminReasonForm):
         model = Series
         fields = "__all__"
 
+    # A final series can still be renamed: a name moves no score (slice 10).
+    UNLOCKED_FIELDS = {"name", "reason"}
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.instance.pk and set(self.changed_data) - self.UNLOCKED_FIELDS:
+            try:
+                final.check_series_open(self.instance.pk)
+            except ValidationError as locked:
+                raise ValidationError(locked.messages)
+        return cleaned
+
 
 class BoatAdminForm(_AdminReasonForm):
     class Meta:
@@ -92,6 +104,10 @@ class AuditedInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
+        # Slice 10: a final series' races and entries can't change. Checked
+        # against the database, not the form, which may have been open a while.
+        if self.instance.pk and any(form.has_changed() for form in self.forms):
+            final.check_series_open(self.instance.pk)
         self.removal_changes = []
         for form in self.forms:
             if self._should_delete_form(form) and form.instance.pk:

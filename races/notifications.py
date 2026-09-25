@@ -96,6 +96,28 @@ def race_results(race, request, *, updated, on_sent=None):
     return len(owners)
 
 
+def final_standings(series, request, *, updated, on_sent=None):
+    """Email a final series' standings to every owner in it, each with their own place (slice 10)."""
+    results = score_series(series)
+    place = {}
+    for row in results.standings:
+        if row.entry.boat.owner_id is not None:
+            place.setdefault(row.entry.boat.owner_id, []).append(row)
+    owners = list(series_owners(series))
+    context = {
+        "series": series,
+        "standings": results.standings,
+        "updated": updated,
+        "results_url": _link(request, "results:series", series.pk),
+    }
+    send(
+        [email(owner, "final_standings", request, own_rows=place.get(owner.pk, []), **context) for owner in owners],
+        request,
+        on_sent,
+    )
+    return len(owners)
+
+
 # --- Members: accounts, requests, boats and entries ------------------------------
 
 

@@ -25,6 +25,7 @@ def amended_since_sent(race):
         return False
     return (
         ScoringChange.objects.filter(series=race.series, timestamp__gt=race.results_sent_at)
+        .exclude(kind=ScoringChange.Kind.FINAL)
         .filter(Q(race__isnull=True) | Q(race__number__lte=race.number))
         .exists()
     )

@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.text import capfirst
 
-from . import audit
+from . import audit, final
 from .models import Boat, BoatRequest, EntryRequest, Request, Series, SeriesEntry
 from .scoring import score_series
 
@@ -127,6 +127,7 @@ def _scorings_before(request):
 
 def _apply(request):
     if isinstance(request, EntryRequest):
+        final.check_series_open(request.series_id)
         entry = SeriesEntry(series=request.series, boat=request.boat)
         entry.full_clean()
         entry.save()

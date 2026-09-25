@@ -34,6 +34,10 @@ urlpatterns = [
     path('requests/', views.requests_page, name='requests'),
     path('requests/<str:kind>/<int:pk>/', views.decide_request, name='decide_request'),
     path('series/<int:pk>/history/', views.series_history, name='series_history'),
+    path('series/<int:pk>/final/', views.final_page, name='final'),
+    path('series/<int:pk>/final/declare/', views.declare_final, name='declare_final'),
+    path('series/<int:pk>/final/reopen/', views.reopen_series, name='reopen_series'),
+    path('series/<int:pk>/final/send/', views.send_final, name='send_final'),
     path('races/<int:pk>/', views.race_day_page, name='race_day'),
     # The slice 6 and slice 1 addresses, redirecting to the race day page.
     path('races/<int:pk>/entries/', views.start_sheet_page, name='start_sheet'),
