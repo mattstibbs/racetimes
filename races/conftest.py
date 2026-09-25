@@ -16,6 +16,18 @@ def single_club(settings):
     settings.SINGLE_CLUB = "demo"
 
 
+@pytest.fixture(autouse=True)
+def plain_csrf_tokens(monkeypatch):
+    """CSRF tokens without letters that could spell a name.
+
+    Every page carries a random 64-letter token, and a test checking that a
+    name like "Pat" is *not* on the page would fail whenever the token
+    happened to contain it: about 1 run in 2,000 for a three-letter name. The
+    token still works; it's just the same each time.
+    """
+    monkeypatch.setattr("django.middleware.csrf._get_new_csrf_string", lambda: "0" * 32)
+
+
 @pytest.fixture
 def admin_user(django_user_model):
     """pytest-django's superuser, plus Demo Club's administrator membership.

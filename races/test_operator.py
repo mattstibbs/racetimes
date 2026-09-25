@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from races import notifications
-from races.invitations import token_for
+from races.invitations import invitation_from, token_for
 from races.models import Club, ClubInvitation, ClubMembership, OperatorAction
 from races.testing import (
     default_club, enter, make_administrator, make_boat, make_club, make_member, make_operator, make_race,
@@ -189,8 +189,11 @@ def test_inviting_emails_a_link_to_the_clubs_address_and_is_logged(client, opera
     assert message.to == ["ann@example.com"]
     assert message.subject == "You're invited to run Harbour Sailing Club on Race Times"
     assert "within 7 days" in message.body
-    assert link_in(message) == "http://harbour.localhost" + reverse(
-        "races:accept_invitation", args=[token_for(invitation)])
+    # The link's token is signed with the time, to the second, so it's checked by
+    # reading it back rather than by making another and comparing.
+    prefix = "http://harbour.localhost" + reverse("races:accept_invitation", args=["TOKEN"]).split("TOKEN")[0]
+    link = link_in(message)
+    assert link.startswith(prefix) and invitation_from(link[len(prefix):].rstrip("/"), harbour) == invitation
     [action] = OperatorAction.objects.all()
     assert (action.action, action.club_subdomain, action.detail) == (
         "INVITED", "harbour", "ann@example.com as club administrator")
