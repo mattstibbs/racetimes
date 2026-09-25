@@ -13,6 +13,7 @@ operator's pages and the operator's admin are there.
 
 import sentry_sdk
 from django.conf import settings
+from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render
 
 from . import logs
@@ -37,11 +38,13 @@ def subdomain_of(host):
 def club_address(request, club, path="/"):
     """A full link to a path on a club's own address, e.g. for an email sent from elsewhere.
 
+    With ``club`` None, the link is to the service's own address.
+
     It keeps this request's scheme and any port in its address, as
     ``build_absolute_uri`` does, so it works on demo.localhost:8000 in
     development as well as in production.
     """
-    host = f"{club.subdomain}.{settings.SERVICE_DOMAIN}"
+    host = f"{club.subdomain}.{settings.SERVICE_DOMAIN}" if club else settings.SERVICE_DOMAIN
     _, colon, port = request.get_host().rpartition(":")
     if colon and port.isdigit():
         host += f":{port}"
@@ -54,6 +57,10 @@ class ClubMiddleware:
 
     def __call__(self, request):
         subdomain = subdomain_of(request.get_host())
+        if subdomain == "www":
+            # www.racetimes.co.uk is the service's own address by another name
+            # (slice 12); "www" is reserved, never a club's.
+            return HttpResponsePermanentRedirect(club_address(request, None, request.get_full_path()))
         if subdomain is None and settings.SINGLE_CLUB:
             subdomain = settings.SINGLE_CLUB
         request.club = None

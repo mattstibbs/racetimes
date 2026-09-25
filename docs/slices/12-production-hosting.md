@@ -1,7 +1,7 @@
 # Slice 12: production hosting
 
-**Status: planning. The questions at the end need the project owner's answers
-before building starts.**
+**Status: building. The project owner answered every question on 2026-09-25
+(see the end).**
 
 ## Goal
 Slice 11 made Race Times a service for many clubs, and kept the code
@@ -190,3 +190,26 @@ per season (slice 4's estimate) fits a small plan.
 7. **The test site's region.** It's in Oregon (US) today, by default. Move it
    to Frankfurt too? That means making a new database and copying the data,
    because a Render database can't change region.
+
+**The owner's answers (2026-09-25):**
+1. **Render, in Frankfurt.** (Heroku was also considered: it supports
+   wildcard domains with automatic certificates, but a database it can roll
+   back starts at about $50 a month, and its standard regions are only the
+   US and the EU.)
+2. **Postmark** for email.
+3. **Production deploys only when Deploy is pressed.**
+4. **Off-site backups now.**
+5. **Production starts empty,** with the fresh Demo Club the migrations make.
+6. **`racetimes.co.uk` is registered, with its DNS at Gandi.**
+7. **The test site stays where it is,** in Oregon, as sample data only.
+
+**Building on those answers:**
+- **Off-site storage is anything that speaks the S3 protocol.** The nightly
+  job uses the standard `aws` command-line tool, which works with Amazon S3
+  and with Backblaze B2, and the runbook recommends B2's EU region. Each copy
+  is encrypted before it leaves Render, with a passphrase kept only in the
+  dashboard and in the owner's password manager, so the storage provider
+  never holds readable personal data.
+- **The live checks are a script** (`scripts/check_live.py`, standard library
+  only), so they can be run again after any change, not just once.
+
