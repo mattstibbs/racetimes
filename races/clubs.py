@@ -11,9 +11,11 @@ there is one. Otherwise it's the service's own address: only its front page, the
 operator's pages and the operator's admin are there.
 """
 
+import sentry_sdk
 from django.conf import settings
 from django.shortcuts import render
 
+from . import logs
 from .models import Club
 
 # Paths that work on the service's own address, with no club: the operator's
@@ -62,6 +64,9 @@ class ClubMiddleware:
             if not club.is_active and not request.user.is_superuser:
                 return render(request, "clubs/paused.html", {"paused_club": club}, status=503)
             request.club = club
+            # Log lines and error reports say which club (slice 11 part 4).
+            logs.club.set(club.subdomain)
+            sentry_sdk.set_tag("club", club.subdomain)
         elif not request.path.startswith(SERVICE_PATHS):
             # The service's own address: its front page, and nothing of any club's.
             if request.path == "/":

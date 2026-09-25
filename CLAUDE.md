@@ -20,6 +20,9 @@ Ask before changing the data model. Don't install new dependencies without askin
   expected values to make a test pass — if they disagree with the code, the
   code is wrong, or the fixture's provenance needs checking with me first.
 - Do not generate new fixtures from the engine's own output.
+- Log lines name ids, never names or email addresses (e.g. "user 42", not
+  "Pat Jones"). The log formatter redacts anything email-shaped
+  (`races/logs.py`), but it can't spot a name.
 
 ## Testing
 - pytest. Fixtures in tests/fixtures/ are the specification for the scoring

@@ -244,13 +244,34 @@ if not DEBUG:
 
 # Errors go to the console, which is where a host like Render collects logs.
 # Django's default only prints them with DEBUG on, so a failure in production
-# would otherwise leave no trace.
+# would otherwise leave no trace. Each line names the club's subdomain, and
+# email addresses are redacted (races/logs.py).
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'filters': {'club': {'()': 'races.logs.ClubFilter'}},
+    'formatters': {
+        'redacted': {
+            '()': 'races.logs.RedactingFormatter',
+            'format': '%(levelname)s [%(club)s] %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'filters': ['club'], 'formatter': 'redacted'},
+    },
     'root': {'handlers': ['console'], 'level': 'WARNING'},
 }
+
+# Unhandled errors are reported to Sentry, tagged with the club, when
+# SENTRY_DSN is set; development, the tests and CI leave it unset and send
+# nothing. What's kept out of the reports is in races/logs.py.
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN:
+    import sentry_sdk
+
+    from races.logs import sentry_options
+
+    sentry_sdk.init(dsn=SENTRY_DSN, **sentry_options())
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
