@@ -4,12 +4,15 @@ Run only by run.sh, against a throwaway SQLite database it creates, never
 against a real one. Every account's password is PASSWORD.
 """
 
+import os
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
+from django.urls import reverse
 from django.utils import timezone
 
-from races.models import Boat, BoatRequest, Club, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.invitations import token_for
+from races.models import Boat, BoatRequest, Club, ClubInvitation, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
 from races.testing import make_member
 
 # Everything belongs to Demo Club, which the migrations create (slice 11).
@@ -103,4 +106,11 @@ BoatRequest.objects.create(club=club,
 )
 BoatRequest.objects.create(club=club, kind="CLAIM", boat=tern, requested_by=jo, member_note="Bought her in August")
 EntryRequest.objects.create(series=wednesdays, boat=kittiwake, requested_by=pat)
+
+# An invitation from the operator to run the club (slice 11 part 3). shots.js
+# opens its link, which run.sh passes over in a file.
+invitation = ClubInvitation.objects.create(club=club, email="lee@example.com", invited_by_name="operator")
+if os.environ.get("INVITATION_FILE"):
+    with open(os.environ["INVITATION_FILE"], "w") as out:
+        out.write(reverse("races:accept_invitation", args=[token_for(invitation)]))
 print("Seeded the manual's sample data.")

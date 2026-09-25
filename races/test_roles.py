@@ -200,6 +200,43 @@ def test_every_page_as_each_role(as_role, pages, role):
     assert outcomes == {name: expected[ROLES.index(role)] for name, (_, expected) in pages.items()}
 
 
+# --- The operator's pages: the service's own address, the operator only (slice 11 part 3) -----
+
+
+@pytest.fixture
+def operator_pages(settings):
+    settings.SINGLE_CLUB = ""  # so the test client's address is the service's own
+    club = default_club()
+    # Anyone else logged in is refused; the public goes to the admin's login,
+    # the one login on the service's own address.
+    operator_only = [TO_LOGIN, REFUSED, REFUSED, REFUSED, SEES, REFUSED]
+    return {
+        "clubs": (reverse("races:operator_clubs"), operator_only),
+        "create a club": (reverse("races:operator_create_club"), operator_only),
+        "a club": (reverse("races:operator_club", args=[club.pk]), operator_only),
+        "the operator log": (reverse("races:operator_log"), operator_only),
+        "front page": ("/", [SEES] * 6),
+    }
+
+
+@pytest.mark.parametrize("role", ROLES)
+def test_the_operators_pages_as_each_role(as_role, operator_pages, role):
+    client = as_role(role)
+    outcomes = {}
+    for name, (url, expected) in operator_pages.items():
+        response = client.get(url, HTTP_HOST="localhost")
+        is_login = response.status_code == 302 and "login" in response["Location"]
+        outcomes[name] = TO_LOGIN if is_login else response.status_code
+    assert outcomes == {name: expected[ROLES.index(role)] for name, (_, expected) in operator_pages.items()}
+
+
+@pytest.mark.parametrize("role", ROLES)
+def test_the_operators_pages_dont_exist_at_a_club(as_role, role):
+    client = as_role(role)
+    for url in (reverse("races:operator_clubs"), reverse("races:operator_club", args=[default_club().pk])):
+        assert client.get(url).status_code == 404, url
+
+
 def test_the_header_offers_log_in_and_sign_up_to_the_public(as_role):
     page = as_role("public").get(reverse("results:home")).content.decode()
     assert "Sign up" in page and "Log in" in page and "My boats" not in page

@@ -62,6 +62,9 @@ else:
 # means such an address is the service's own front page.
 SINGLE_CLUB = os.environ.get('SINGLE_CLUB', '')
 
+# Shown on the service's front page, for clubs that want to use Race Times.
+SERVICE_CONTACT_EMAIL = os.environ.get('SERVICE_CONTACT_EMAIL', 'hello@racetimes.co.uk')
+
 if not DEBUG:
     if SECRET_KEY.startswith('django-insecure'):
         # Refuse to start rather than run in public on a key everyone can read.

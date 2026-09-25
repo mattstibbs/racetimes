@@ -18,7 +18,7 @@ from .forms import (
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, BoatRequest, Club, ClubMembership, EntryRequest, Race, Series, SeriesEntry
+from .models import Boat, BoatRequest, ClubMembership, EntryRequest, Race, Series, SeriesEntry
 from .roles import is_committee
 from .scoring import score_series
 
@@ -87,55 +87,9 @@ class ClubScopedInline(ClubScopedAdmin):
         return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
 
 
-@admin.register(Club)
-class ClubAdmin(admin.ModelAdmin):
-    """The operator's list of clubs, on the service's own address only.
-
-    Part 3 of slice 11 gives the operator proper pages.
-    """
-
-    list_display = ["name", "subdomain", "status", "created_at"]
-
-    def has_module_permission(self, request):
-        return _operator_here(request)
-
-    def has_view_permission(self, request, obj=None):
-        return _operator_here(request)
-
-    def has_add_permission(self, request):
-        return _operator_here(request)
-
-    def has_change_permission(self, request, obj=None):
-        return _operator_here(request)
-
-    def has_delete_permission(self, request, obj=None):
-        return False  # part 5: deleting a club is a deliberate step of its own
-
-
-@admin.register(ClubMembership)
-class ClubMembershipAdmin(admin.ModelAdmin):
-    """The operator's way to give someone a role at a club, e.g. a new club's
-    first administrator. Club administrators use their club's Members page.
-    Part 3 of slice 11 replaces this with an emailed invitation."""
-
-    list_display = ["user", "club", "role", "status"]
-    list_filter = ["club", "role", "status"]
-    autocomplete_fields = ["user"]
-
-    def has_module_permission(self, request):
-        return _operator_here(request)
-
-    def has_view_permission(self, request, obj=None):
-        return _operator_here(request)
-
-    def has_add_permission(self, request):
-        return _operator_here(request)
-
-    def has_change_permission(self, request, obj=None):
-        return _operator_here(request)
-
-    def has_delete_permission(self, request, obj=None):
-        return _operator_here(request)
+# Clubs and memberships aren't in the admin. The operator creates clubs and
+# invites their administrators on the operator's pages (races/operator_views.py,
+# slice 11 part 3); a club's administrators manage its people on its Members page.
 
 
 def _operator_here(request):

@@ -58,12 +58,17 @@ def send(emails, request=None, on_sent=None):
 
 def email(user, template, request, **context):
     """One email to one person, from templates/emails/<template>.txt."""
+    return email_to(user.email, template, request, user=user, **context)
+
+
+def email_to(address, template, request, **context):
+    """One email to one address, which may have no account yet."""
     text = render_to_string(
         f"emails/{template}.txt",
-        {"user": user, "site_url": request.build_absolute_uri("/").rstrip("/"), **context},
+        {"site_url": request.build_absolute_uri("/").rstrip("/"), **context},
     )
     subject, _, body = text.strip().partition("\n")
-    return EmailMessage(subject.strip(), body.strip() + "\n", to=[user.email] if user.email else [])
+    return EmailMessage(subject.strip(), body.strip() + "\n", to=[address] if address else [])
 
 
 def _link(request, name, *args):
@@ -139,6 +144,12 @@ def membership_decided(membership, request, change):
     send([email(membership.user, "membership_decided", request, membership=membership, club=membership.club,
                 change=change, site_link=_link(request, "results:home"),
                 my_boats_link=_link(request, "races:my_boats"))], request)
+
+
+def invitation(invitation, request, link):
+    """The operator's invitation to run a club, with its 7-day link (slice 11 part 3)."""
+    send([email_to(invitation.email, "club_invitation", request, invitation=invitation,
+                   club=invitation.club, accept_url=link)], request)
 
 
 # --- Members: accounts, requests, boats and entries ------------------------------

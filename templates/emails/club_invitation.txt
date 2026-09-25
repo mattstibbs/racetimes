@@ -1,0 +1,13 @@
+{% autoescape off %}You're invited to run {{ club.name }} on Race Times
+Hello,
+
+You've been invited to be {{ club.name }}'s {{ invitation.get_role_display|lower }} on Race Times, the club's results and handicaps site. To accept, open this link within 7 days:
+
+{{ accept_url }}
+
+If you don't have a Race Times account yet, you'll make one there. If you do, log in with it.
+
+{% if invitation.role == "ADMINISTRATOR" %}As the club's administrator you approve people joining the club, and choose who is on the race committee.{% endif %}
+
+If you weren't expecting this, ignore this email: nothing happens unless the link is opened.
+{% endautoescape %}

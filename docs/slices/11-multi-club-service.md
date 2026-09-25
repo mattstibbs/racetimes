@@ -205,6 +205,47 @@ touches every page; the rest are additions.
   pages only by being given a membership like anyone else. Every operator
   action is recorded in an operator log (who, what, when).
 
+#### Picking up part 3 *(handover notes, written after parts 1 and 2 were merged)*
+Parts 1 and 2 are on `main` (PRs #20 and #21), and `docs/plan.md` records
+what each delivered. For part 3:
+- **Models:** `ClubInvitation` and `OperatorAction` are in the approved data
+  model above, but aren't built yet. `Club` and `ClubMembership` exist (in
+  `races/models.py`).
+- **The service's own address:** `races/clubs.py` lets through only paths in
+  `SERVICE_PATHS` (just `/admin/` today) when there's no club, and shows
+  `templates/clubs/service_home.html`, a placeholder, at `/`. `/operator/`
+  must be added to `SERVICE_PATHS`, and the front page written properly.
+- **The stopgap to replace:** until invitations exist, the operator gives
+  memberships in the Django admin (`ClubMembershipAdmin` and `ClubAdmin` in
+  `races/admin.py`, both limited to the operator on the service's own
+  address by `_operator_here`). Once the operator pages exist, drop or trim
+  these, and update `docs/deploying.md` ("More clubs") and the README's
+  "Getting started".
+- **The operator:** a superuser (`request.user.is_superuser`) on the
+  service's own address (`request.club is None`). Give them no powers at a
+  club: they act there only through a membership (see `races/roles.py`).
+- **Invitations:** follow part 2's email confirmation in
+  `races/membership_views.py`. That's a salted `PasswordResetTokenGenerator`
+  and a link in the email. An invitation link lasts 7 days, not 3, so it
+  needs its own token or a `signing.TimestampSigner` with `max_age`.
+  Accepting it creates the account if needed (the invitation proves the
+  email, so no separate confirmation) and an approved ADMINISTRATOR
+  membership. Emails go through `races/notifications.send`.
+- **Tests:**
+  - add the new pages to `races/test_roles.py` (six roles) and
+    `races/test_isolation.py`, whose `test_every_url_is_covered` fails until
+    every new URL is listed;
+  - test the service's own address with `settings.SINGLE_CLUB = ""` and
+    `HTTP_HOST="localhost"`;
+  - `make_operator()` builds the operator.
+- **Refusals:** someone logged in without the role gets a 403 (not a login
+  redirect, which loops; see `docs/decisions.md`).
+- **Manual and docs:**
+  - the operator guide is `docs/operating.md` (developer docs, not the user
+    manual);
+  - `docs/plan.md` gets a "Part 3 ... complete" note, as parts 1 and 2 did;
+  - each part gets its own PR.
+
 ### Part 4: running it in production
 - **Email.**
   - Every email is sent from one address on the service's domain, set by

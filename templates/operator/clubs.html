@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Clubs - Operator - Race Times{% endblock %}
+{% block content %}
+<h1>Clubs</h1>
+<p><a href="{% url 'races:operator_create_club' %}">Create a club</a></p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Club</th><th>Address</th><th>Status</th><th>Members</th><th>Series</th><th>Last result recorded</th></tr></thead>
+  <tbody>
+  {% for club, address in clubs %}
+  <tr>
+    <td><a href="{% url 'races:operator_club' club.pk %}">{{ club.name }}</a></td>
+    <td>{{ club.subdomain }}</td>
+    <td>{% if club.is_active %}{{ club.get_status_display }}{% else %}<span class="amended">{{ club.get_status_display }}</span>{% endif %}</td>
+    <td>{{ club.member_count }}</td>
+    <td>{{ club.series_count }}</td>
+    <td>{% if club.last_result %}{{ club.last_result|date:"j M Y" }}{% else %}<span class="muted">None yet</span>{% endif %}</td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="6" class="muted">No clubs yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+
+<h2>Recently</h2>
+{% include "operator/_log.html" with actions=recent %}
+<p><a href="{% url 'races:operator_log' %}">The whole operator log</a></p>
+{% endblock %}

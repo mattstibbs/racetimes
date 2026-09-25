@@ -273,18 +273,10 @@ def test_each_clubs_login_is_its_own():
     assert settings.SESSION_COOKIE_DOMAIN is None
 
 
-def test_the_operator_gives_memberships_in_the_admin_on_the_services_address(client, settings):
-    settings.SINGLE_CLUB = ""
-    client.force_login(make_operator())
-    person = make_member("first@example.com", club=None)
-    response = client.post(reverse("admin:races_clubmembership_add"), {
-        "user": person.pk, "club": default_club().pk, "role": "ADMINISTRATOR", "status": "APPROVED",
-        "created_at_0": "2026-09-25", "created_at_1": "10:00:00", "decided_by_name": "", "decided_at_0": "",
-        "decided_at_1": "",
-    }, HTTP_HOST="localhost")
-    assert response.status_code == 302
-    assert membership_of(person).role == "ADMINISTRATOR"
+def test_clubs_and_memberships_are_not_in_the_admin():
+    # The operator's pages (slice 11 part 3) and the Members page replace them.
+    from django.contrib import admin as django_admin
+    from races.models import Club
 
-
-def test_a_club_administrator_cant_give_memberships_in_the_admin(client, admin):
-    assert client.get(reverse("admin:races_clubmembership_changelist")).status_code == 403
+    assert not django_admin.site.is_registered(Club)
+    assert not django_admin.site.is_registered(ClubMembership)

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Create a club - Operator - Race Times{% endblock %}
+{% block content %}
+<h1>Create a club</h1>
+<form method="post" class="stacked">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Create the club</button>
+</form>
+<p><a href="{% url 'races:operator_clubs' %}">Back to clubs</a></p>
+{% endblock %}

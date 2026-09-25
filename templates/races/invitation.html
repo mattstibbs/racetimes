@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Invitation - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+{% if not valid %}
+<h1>That invitation link doesn't work</h1>
+<p>It may have expired (invitations last 7 days), or already been accepted. If you still need to join
+  {{ request.club.name }} as its administrator, ask for a new invitation.</p>
+<p>Accepted it already? <a href="{% url 'races:login' %}">Log in</a>.</p>
+{% else %}
+<h1>Join {{ request.club.name }} as its {{ invitation.get_role_display|lower }}</h1>
+<p>This invitation is for <strong>{{ invitation.email }}</strong>.</p>
+{% if someone_else %}
+<p class="note">You're logged in as {{ request.user.get_username }}. Log out, then open the invitation link again.</p>
+<form method="post" action="{% url 'races:logout' %}" class="inline">{% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit" class="secondary">Log out</button>
+</form>
+{% elif ready %}
+<form method="post">{% csrf_token %}
+  <button type="submit">Accept</button>
+</form>
+{% elif form %}
+<p>Make your Race Times account to accept. You'll log in with this email address.</p>
+<form method="post" class="stacked">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Make my account and accept</button>
+</form>
+{% else %}
+<p>You already have a Race Times account with this email address. <a href="{{ login_url }}">Log in</a> to accept.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

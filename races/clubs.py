@@ -7,8 +7,8 @@ querysets) to show only that club's data.
 
 An address with no club in it, such as the service's own domain, 127.0.0.1 or
 the test site on Render, gets the club named by the SINGLE_CLUB setting if
-there is one. Otherwise it's the service's own address: only its front page and
-the operator's admin are there.
+there is one. Otherwise it's the service's own address: only its front page, the
+operator's pages and the operator's admin are there.
 """
 
 from django.conf import settings
@@ -16,8 +16,10 @@ from django.shortcuts import render
 
 from .models import Club
 
-# Paths that work on the service's own address, with no club.
-SERVICE_PATHS = ("/admin/",)
+# Paths that work on the service's own address, with no club: the operator's
+# pages (slice 11 part 3), and the Django admin, where the operator logs in and
+# manages accounts.
+SERVICE_PATHS = ("/admin/", "/operator/")
 
 
 def subdomain_of(host):
@@ -28,6 +30,20 @@ def subdomain_of(host):
         subdomain = host[: -len(suffix)]
         return subdomain or None
     return None
+
+
+def club_address(request, club, path="/"):
+    """A full link to a path on a club's own address, e.g. for an email sent from elsewhere.
+
+    It keeps this request's scheme and any port in its address, as
+    ``build_absolute_uri`` does, so it works on demo.localhost:8000 in
+    development as well as in production.
+    """
+    host = f"{club.subdomain}.{settings.SERVICE_DOMAIN}"
+    _, colon, port = request.get_host().rpartition(":")
+    if colon and port.isdigit():
+        host += f":{port}"
+    return f"{request.scheme}://{host}{path}"
 
 
 class ClubMiddleware:
@@ -47,9 +63,10 @@ class ClubMiddleware:
                 return render(request, "clubs/paused.html", {"paused_club": club}, status=503)
             request.club = club
         elif not request.path.startswith(SERVICE_PATHS):
-            # The service's own address. Part 3 of slice 11 gives it a proper
-            # front page; until then it says what the service is.
+            # The service's own address: its front page, and nothing of any club's.
             if request.path == "/":
-                return render(request, "clubs/service_home.html")
+                return render(request, "clubs/service_home.html", {
+                    "contact_email": settings.SERVICE_CONTACT_EMAIL,
+                })
             return render(request, "clubs/no_club.html", status=404)
         return self.get_response(request)

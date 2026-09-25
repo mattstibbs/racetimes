@@ -36,6 +36,16 @@
           <a href="{% url 'races:signup' %}">Sign up</a>
         {% endif %}
       </nav>
+      {% elif user.is_superuser %}
+      {# The service's own address: the operator's pages (slice 11 part 3). #}
+      <nav aria-label="Operator">
+        <a href="{% url 'races:operator_clubs' %}">Clubs</a>
+        <a href="{% url 'races:operator_log' %}">Operator log</a>
+        <a href="{% url 'admin:index' %}">Accounts (admin)</a>
+        <form class="inline" method="post" action="{% url 'admin:logout' %}">{% csrf_token %}
+          <button type="submit" class="link">Log out</button>
+        </form>
+      </nav>
       {% endif %}
     </div>
   </header>
