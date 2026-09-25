@@ -72,7 +72,10 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
 - **To update the site,** merge a pull request into `main`. Render builds and
   deploys it; if the build fails, the previous version stays live.
 - **To see why something failed,** open the service's **Logs** in Render.
-  Errors are printed there, including any page that failed to load.
+  Errors are printed there, including any page that failed to load. Each
+  line says which club's address it was, e.g.
+  `WARNING [demo] django.request: Not Found: /series/99/` (`[-]` for none),
+  and email addresses in it show as `[email]`.
 - **The staff login** is created on the first deploy only. Change its password
   in the admin as usual; later deploys never touch an existing account.
 - **The data** on the hosted site is separate from your laptop's. Nothing is
@@ -129,6 +132,25 @@ Before choosing a provider, check:
 After saving the variables, Render redeploys. To test, use **Forgotten your
 password?** on the login page with your own account's email address.
 
+## Running it in production (slice 11 part 4)
+
+| Variable | What it is |
+|---|---|
+| `SENTRY_DSN` | Where to report errors, from a project at [sentry.io](https://sentry.io). Unset, nothing is reported. Reports are tagged with the club and the page, and carry no user, IP address, cookies, form contents or email addresses. |
+| `SECURE_HSTS_SECONDS` | How long browsers must use HTTPS for the site and every club's address, in seconds. It starts at `3600` (an hour); raise it (e.g. to `31536000`, a year) once hosting is settled. Lowering it later only takes effect as browsers' stored value runs out. |
+| `TRUSTED_PROXIES` | How many proxies in front of the site add the client's address to `X-Forwarded-For`: `1` on Render (set in `render.yaml`), `0` with none. Too low, and everyone behind the host shares one address for the failed-login limit; too high, and anyone can dodge the limit by sending the header themselves. |
+
+- **Health check:** `/health/` answers `ok` when the site and its database are
+  working, and `error` (status 503) when the database isn't. It works on any
+  address, over plain HTTP, so the host and an uptime monitor (e.g.
+  UptimeRobot) can poll it.
+- **HTTPS only:** with `DJANGO_DEBUG=0`, plain HTTP is redirected to HTTPS
+  and browsers are told to stay on HTTPS (HSTS), including on every club's
+  subdomain. CI runs `manage.py check --deploy` with production settings.
+- **Failed logins:** after 10 for one account, or from one address, within
+  15 minutes, logins are refused for 15 minutes. The counts are in the
+  database's cache table, which `build.sh` makes with `createcachetable`.
+
 ## Things to know about the free plans
 
 Free tiers change, so check Render's pricing page. When this was written:
@@ -142,10 +164,10 @@ Free tiers change, so check Render's pricing page. When this was written:
 ## What the deploy runs
 
 `build.sh`, on every deploy: install the requirements, `collectstatic`,
-`migrate`, then `ensure_superuser`. The site then runs under `gunicorn`.
+`migrate`, `createcachetable`, then `ensure_superuser`. The site then runs under `gunicorn`.
 
 The settings switch to production behaviour when `DJANGO_DEBUG` is `0`, which
-`render.yaml` sets: static files are served by WhiteNoise, cookies are
-HTTPS-only, and the site refuses to start without a `DJANGO_SECRET_KEY`
+`render.yaml` sets: static files are served by WhiteNoise, the site and its
+cookies are HTTPS-only, and the site refuses to start without a `DJANGO_SECRET_KEY`
 (Render generates one). Render also provides `RENDER_EXTERNAL_HOSTNAME`, which
 the settings use to allow the site's own address.

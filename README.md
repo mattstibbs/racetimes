@@ -40,7 +40,11 @@ It is built for:
   of its results, and emails the owners. Any series downloads as a CSV file.
 - **Many clubs:** one database, each club at its own address, with its data
   kept apart and tested for it on every page. Roles are per club: one login
-  can be a member at one club and on the committee at another.
+  can be a member at one club and on the committee at another. Emails come
+  from the club, and replies go to it.
+- **Ready for production:** HTTPS only, a health check, error reports
+  (Sentry) and logs that say which club without naming anyone, and a limit
+  on failed logins.
 
 ## Status
 
@@ -57,7 +61,7 @@ It is built for:
 | 8 | Other handicap systems (Portsmouth Yardstick, RYA YTC) | On hold |
 | 9 | The race day page | **Complete** |
 | 10 | Final results and CSV export | **Complete** |
-| 11 | Race Times as a service for many clubs | In progress: parts 1 (clubs) and 2 (people and roles) done; 3 (operator), 4 (production) and 5 (data protection) to come |
+| 11 | Race Times as a service for many clubs | In progress: parts 1 (clubs), 2 (people and roles), 3 (the operator) and 4 (running in production) done; 5 (data protection) to come |
 
 Production hosting at `racetimes.co.uk` is a later slice. Until then the test
 site on Render runs Demo Club. See [`docs/plan.md`](docs/plan.md) for what each
@@ -95,7 +99,7 @@ Requires Python 3.11 or later.
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-Run the tests (about 1,200 of them, engine and app):
+Run the tests (about 1,250 of them, engine and app):
 
 ```bash
 .venv/bin/python -m pytest
@@ -146,7 +150,7 @@ collected nothing and reported success, which is worse than failing.
 | [`docs/decisions.md`](docs/decisions.md) | Decisions taken and why, open questions, and open requirements |
 | [`manual/`](manual/index.md) | The user manual, for members, the race committee and club administrators |
 | [`docs/deploying-manual.md`](docs/deploying-manual.md) | Publishing the user manual on Read the Docs |
-| [`docs/deploying.md`](docs/deploying.md) | Hosting the test site on Render, which redeploys on every push to `main`, and how clubs and roles work there |
+| [`docs/deploying.md`](docs/deploying.md) | Hosting the test site on Render, which redeploys on every push to `main`; how clubs and roles work there; email, error reports and the production settings |
 | [`docs/reference/`](docs/reference/) | The RYA NHC calculation spec and the Racing Rules of Sailing |
 | [`CLAUDE.md`](CLAUDE.md) | How the code is organised, and the project's rules for working on it |
 
@@ -163,6 +167,7 @@ production via `DATABASE_URL`. Settings come from environment variables; see
 CI runs on every pull request:
 - the suite on Python 3.11 and 3.12;
 - `manage.py check` and a check for missing migrations;
+- `manage.py check --deploy` with production settings;
 - an import of `nhc` on a machine with nothing installed, to keep it honest
   about having no dependencies;
 - a strict build of the user manual.

@@ -477,3 +477,19 @@ of any particular host.
   accept as a new account, suspend.
 - **Docs:** `docs/operating.md`, the operator's guide; the manual's
   "Running your club" page covers accepting an invitation.
+
+**Part 4, running it in production: complete (2026-09-25).**
+- **Health:** `/health/` on every address, "ok" or a 503.
+- **Security:** HTTPS redirect, HSTS (an hour to start, including
+  subdomains), frame and referrer headers set explicitly; CI runs
+  `check --deploy` with production settings.
+- **Email from the club:** "<Club> via Race Times", Reply-To the club's
+  contact email, the password reset included; `docs/deploying.md` has the
+  provider checklist (SPF, DKIM, DMARC, the allowance).
+- **Errors and logs:** Sentry when `SENTRY_DSN` is set, tagged with the
+  club, with no personal data; log lines name the club and redact email
+  addresses.
+- **Failed logins:** 10 in 15 minutes locks an account or an address for 15
+  minutes (database cache; `TRUSTED_PROXIES`).
+- **Tests:** `races/test_production.py`, `races/test_email_sender.py`,
+  `races/test_logs.py`, `races/test_throttle.py`.
