@@ -137,6 +137,8 @@ ul.messages li.info { background: var(--accent-soft); border-left-color: var(--a
 }
 .note p:first-child { margin-top: 0; }
 .amended { color: var(--warn); }
+/* Under the series standings: the date of the latest correction, in the body text colour. */
+.standings-updated { color: var(--text); font-style: italic; }
 .published { color: var(--ok); }
 .provisional {
   display: inline-block; vertical-align: middle;

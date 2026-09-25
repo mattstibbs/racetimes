@@ -548,25 +548,27 @@ def test_results_mark_amended_races_without_saying_who_or_why(staff_client, clie
     url = reverse("results:series", args=[series.pk])
     # The results page shows one race at a time.
     page = client.get(url, {"race": 2}).content.decode()
-    assert page.count("Amended") == 2  # race 2 and the standings
-    assert page.index("Amended") < page.index('id="race-2"')  # the standings one
+    # Race 2 says "Amended"; the standings say when they were last updated.
+    assert page.count("Amended") == 1 and page.count("Last updated") == 1
+    assert page.index("Last updated") < page.index('id="race-2"') < page.index("Amended")
     assert "Protest upheld" not in page and "officer" not in page
     # Race 3 is not marked, but the standings still are.
-    assert client.get(url, {"race": 3}).content.decode().count("Amended") == 1
+    page = client.get(url, {"race": 3}).content.decode()
+    assert "Amended" not in page and page.count("Last updated") == 1
 
 
 def test_first_entries_do_not_mark_results_amended(staff_client, client, unsailed):
     series, race, entry = unsailed
     save_finish(staff_client, race, entry, "19:00:00")
     page = client.get(reverse("results:series", args=[series.pk])).content.decode()
-    assert "Amended" not in page
+    assert "Amended" not in page and "Last updated" not in page
 
 
 def test_a_settings_correction_marks_only_the_standings(staff_client, client, sailed):
     series, *_ = sailed
     post_series(staff_client, series, discards="0", reason="Per the NoR")
     page = client.get(reverse("results:series", args=[series.pk])).content.decode()
-    assert page.count("Amended") == 1
+    assert "Amended" not in page and page.count("Last updated") == 1
 
 
 # --- The admin explains what it refuses, rather than crashing ----------------
