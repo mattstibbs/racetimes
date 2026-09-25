@@ -1226,9 +1226,12 @@ a global committee group, and the superuser as the administrator.
 - **The legal review is deferred** and recorded as an open requirement
   (below).
 
+- **The data model is approved:** `Club`, `ClubMembership`,
+  `ClubInvitation`, `OperatorAction`, and a club on `Boat`, `Series`,
+  `BoatRequest` and `ScoringChange`.
+
 **Consequence.** The largest change since slice 1. It is built in five parts,
-each merged on its own. The data model is still waiting for the project
-owner's approval; see the spec.
+each merged on its own.
 
 ---
 

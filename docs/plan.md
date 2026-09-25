@@ -398,7 +398,7 @@ The brief's user journey 5. The committee declares a series final: it is
 locked, a copy of its results is kept, and the owners are emailed their
 final places. Anyone can download any series as one CSV file.
 
-## Slice 11: a service for many clubs. **Status: planned (2026-09-25)**
+## Slice 11: a service for many clubs. **Status: ready to build (2026-09-25)**
 
 Spec: `docs/slices/11-multi-club-service.md`. The project owner has answered
 five of its six open questions:
@@ -408,8 +408,8 @@ five of its six open questions:
 - a boat belongs to one club;
 - the legal review is deferred, as an open requirement.
 
-The proposed data model still needs approval before building: clubs,
-memberships, invitations and an operator log, with a club on every row.
+The data model is approved (the sixth question): clubs, memberships,
+invitations and an operator log, with a club on every row.
 
 It turns the single-club site into a service that hosts many clubs:
 - one database, with the club on every row;

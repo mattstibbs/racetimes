@@ -1,7 +1,7 @@
 # Slice 11: Race Times as a service for many clubs
 
-**Status: planned. Open questions 1 to 5 are answered (see the end). The
-data model still needs the project owner's approval before building starts.**
+**Status: planned, and ready to build. Every open question is answered, and
+the data model was approved by the project owner on 2026-09-25.**
 
 ## Goal
 Race Times today is one club's website. It assumes a single club throughout:
@@ -297,8 +297,7 @@ touches every page; the rest are additions.
 - **Retention:** nothing is deleted automatically. The notice says data is
   kept while the club uses the service, and deleted when it leaves.
 
-## Data model *(proposed; needs the project owner's approval before any
-migration is written)*
+## Data model *(approved by the project owner, 2026-09-25)*
 
 | Change | Why |
 |---|---|
@@ -375,7 +374,7 @@ once it has been filled, so each migration can run on a live database.
 - Single sign-on (Google, Microsoft) and two-factor authentication.
 - Moving other clubs' data in from other software.
 
-## Open questions *(answered by the project owner on 2026-09-25, except 6)*
+## Open questions *(all answered by the project owner on 2026-09-25)*
 1. **Joining a club is approved, not the account.** Anyone can create an
    account, and a club's administrators approve them joining. **Yes.**
 2. **A boat belongs to one club.** A boat that races at two clubs is typed
@@ -397,4 +396,4 @@ once it has been filled, so each migration can run on a live database.
    - Having them reviewed, and providing clubs with a data processing
      agreement, must happen before the first paying club signs up. It's
      listed under "Open requirements" in `docs/decisions.md`.
-6. **Approve the data model** above. *Still waiting for the project owner.*
+6. **Approve the data model** above. **Approved.**
