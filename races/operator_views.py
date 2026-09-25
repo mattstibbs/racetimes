@@ -21,7 +21,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from . import invitations
+from . import club_deletion, club_export, invitations
 from .clubs import club_address
 from .forms import ClubForm, InvitationForm
 from .models import Club, ClubMembership, OperatorAction
@@ -140,3 +140,41 @@ def change_status(request, pk):
 @operator_required
 def operator_log(request):
     return render(request, "operator/log.html", {"actions": OperatorAction.objects.all()[:500]})
+
+
+# --- A club's data, and deleting a club (slice 11 part 5) ---------------------------------------
+
+
+@operator_required
+def export_club(request, pk):
+    """Everything the club holds, as a ZIP; works while it's suspended, before deletion."""
+    club = get_object_or_404(Club, pk=pk)
+    response = club_export.download(club)
+    log(request, Action.EXPORTED, club)
+    return response
+
+
+NOT_WHILE_ACTIVE = "Suspend the club before deleting it, so its administrators know and its data can be downloaded."
+MISTYPED = "Type the club's address exactly, to confirm."
+
+
+@operator_required
+def delete_club(request, pk):
+    """Delete a suspended club and everything it holds, once its subdomain is typed to confirm."""
+    club = get_object_or_404(Club, pk=pk)
+    # (No need to guard the SINGLE_CLUB club: with SINGLE_CLUB set, every address
+    # with no club in it shows that club, so these pages don't exist at all.)
+    refused = NOT_WHILE_ACTIVE if club.is_active else ""
+    error = ""
+    if request.method == "POST" and not refused:
+        if request.POST.get("confirm", "").strip() != club.subdomain:
+            error = MISTYPED
+        else:
+            with transaction.atomic():
+                gone = club_deletion.delete_club(club)
+                log(request, Action.DELETED, club, f"{club.name}: {gone['boats']} boats, {gone['series']} series, "
+                                                   f"{gone['memberships']} memberships")
+            messages.success(request, f"{club.name} and everything it held have been deleted.")
+            return redirect("races:operator_clubs")
+    return render(request, "operator/delete_club.html", {"club": club, "refused": refused, "error": error},
+                  status=400 if error else 200)

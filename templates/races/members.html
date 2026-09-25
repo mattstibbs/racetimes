@@ -4,6 +4,8 @@
 <h1>Members</h1>
 <p class="muted">Who can use {{ request.club.name }}'s site, and what they can do. Each decision emails the person.
   You can't change your own membership, and the club always keeps at least one administrator.</p>
+<p><a href="{% url 'races:export_club_data' %}" download>Download everything the club holds (ZIP)</a>: boats,
+  members, series, results, requests and history, as CSV files for a spreadsheet.</p>
 
 <section aria-labelledby="waiting">
 <h2 id="waiting">Waiting to join ({{ waiting|length }})</h2>

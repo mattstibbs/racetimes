@@ -21,7 +21,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_POST
 
-from . import notifications
+from . import club_export, notifications
 from .models import ClubMembership
 from .roles import club_administrator_required, forget_memberships, membership
 
@@ -174,3 +174,9 @@ def _decide(request, target, action, role):
 
 def _name(user):
     return user.get_full_name() or user.get_username()
+
+
+@club_administrator_required
+def export_club_data(request):
+    """Everything this club holds, as a ZIP of CSV files (slice 11 part 5)."""
+    return club_export.download(request.club)

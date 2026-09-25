@@ -133,6 +133,9 @@ class OperatorAction(models.Model):
         INVITED = "INVITED", "Invited an administrator"
         SUSPENDED = "SUSPENDED", "Suspended a club"
         REACTIVATED = "REACTIVATED", "Reactivated a club"
+        # Slice 11 part 5.
+        EXPORTED = "EXPORTED", "Downloaded a club's data"
+        DELETED = "DELETED", "Deleted a club"
 
     who = models.CharField(max_length=150)
     action = models.CharField(max_length=15, choices=Action.choices)

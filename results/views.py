@@ -19,11 +19,11 @@ from django.utils.cache import patch_vary_headers
 from django.views.decorators.http import require_safe
 
 from races.models import Boat, ScoringChange, Series
+from races import series_csv as csv_file  # the view below is called series_csv
 from races.publishing import amended_since_sent
 from races.roles import is_member
 from races.scoring import score_series
 
-from . import export
 
 # The home page shows the latest race of this many series, most recent first.
 LATEST_SERIES = 5
@@ -199,9 +199,9 @@ def series_csv(request, pk):
     """The series' standings and every race's results as one CSV file, for anyone."""
     series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     response = HttpResponse(
-        export.series_csv(series, score_series(series)), content_type="text/csv; charset=utf-8"
+        csv_file.series_csv(series, score_series(series)), content_type="text/csv; charset=utf-8"
     )
-    response["Content-Disposition"] = f'attachment; filename="{export.filename(series)}"'
+    response["Content-Disposition"] = f'attachment; filename="{csv_file.filename(series)}"'
     return response
 
 

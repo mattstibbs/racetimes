@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ club.name }} - Operator - Race Times{% endblock %}
+{% block content %}
+<p><a href="{% url 'races:operator_club' club.pk %}">{{ club.name }}</a></p>
+<h1>Delete {{ club.name }}</h1>
+{% if refused %}
+<p class="note">{{ refused }}</p>
+{% else %}
+<p>This deletes everything {{ club.name }} holds, and can't be undone: its boats, series, races, finishes,
+  requests, change history, memberships and invitations. People's accounts stay, since they may belong to other
+  clubs.</p>
+<p>Have you <a href="{% url 'races:operator_export_club' club.pk %}" download>downloaded its data</a>?</p>
+<form method="post" class="stacked">{% csrf_token %}
+  {% if error %}<ul class="errorlist"><li>{{ error }}</li></ul>{% endif %}
+  <p><label for="confirm">To confirm, type the club's address, <strong>{{ club.subdomain }}</strong></label>
+    <input type="text" name="confirm" id="confirm" autocomplete="off" required></p>
+  <button type="submit">Delete {{ club.name }}</button>
+</form>
+{% endif %}
+{% endblock %}

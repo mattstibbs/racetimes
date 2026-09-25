@@ -13,7 +13,9 @@ to its club, so any of Harbour's names turning up at Demo Club is a leak.
 - A source check fails if a page queries a club's rows without for_club.
 """
 
+import io
 import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -120,6 +122,8 @@ def urls_for(data, kind=None):
         "races:privacy": [], "races:terms": [],
         # The account's own pages, which cover every club the person belongs to.
         "races:account": [], "races:download_my_data": [], "races:delete_account": [],
+        "races:export_club_data": [],
+        "races:operator_export_club": [data["club"].pk], "races:operator_delete_club": [data["club"].pk],
     }
 
 
@@ -144,6 +148,14 @@ def test_every_url_is_covered(clubs):
 
 def leaks(html):
     return [name for name in HARBOUR_ONLY if name in html]
+
+
+def text_of(response):
+    """A response's text; for a ZIP (the club's data export), every file in it."""
+    if response["Content-Type"] == "application/zip":
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            return "\n".join(archive.read(name).decode("utf-8-sig") for name in archive.namelist())
+    return response.content.decode()
 
 
 def log_in(client, role, clubs):
@@ -171,7 +183,7 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
         url = reverse(name, args=args) + extras.get(name, "")
         response = client.get(url, HTTP_HOST=DEMO)
         if response.status_code == 200:
-            shown[name] = leaks(response.content.decode())
+            shown[name] = leaks(text_of(response))
         # The race day page's other view, and the boat search as a fragment.
     for url, headers in [
         (reverse("races:race_day", args=[clubs["demo"]["races"][0].pk]) + "?view=finish", {}),
@@ -182,6 +194,8 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
             shown[url] = leaks(response.content.decode())
     assert shown and all(found == [] for found in shown.values()), {k: v for k, v in shown.items() if v}
     assert "results:series_csv" in shown and "results:home" in shown
+    if role == "administrator":
+        assert "races:export_club_data" in shown  # the club's data export was read, and is clean
 
 
 def test_a_member_of_both_clubs_sees_only_this_clubs_boats_and_requests(client, clubs):
@@ -343,7 +357,7 @@ CLUB_MODELS = "Boat|Series|SeriesEntry|Race|RaceEntry|Finish|ScoringChange|BoatR
 # rows these have already found, so they don't need to.
 REQUEST_MODULES = [
     "races/views.py", "races/member_views.py", "races/admin.py", "races/context_processors.py",
-    "results/views.py", "results/export.py", "races/forms.py", "races/approvals.py",
+    "results/views.py", "races/series_csv.py", "races/forms.py", "races/approvals.py",
     "races/membership_views.py", "races/invitations.py", "races/account_views.py",
 ]
 # Not races/operator_views.py: the operator's pages are the service's, across
