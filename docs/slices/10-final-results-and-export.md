@@ -60,7 +60,9 @@ While a series is final, **nothing that could move its results can change**:
 - **Entries and settings:** entering or removing a boat, and the series'
   settings, in the admin and through a member's entry request. An entry
   request for a final series is refused when approved, with a note that
-  says why.
+  says why. The lock is checked before the "give a reason" check, so the
+  committee is told the series is final rather than asked for a reason.
+  *(Found while building.)*
 
 Each is refused with the message "This series is final. Reopen it to make
 changes.", on the page or the admin form. **Nothing is written.**
@@ -177,6 +179,12 @@ form:
 
 One migration, with nothing database-specific. Every existing series starts
 not final.
+
+*(Found while building.)* The same migration adds a choice, `FINAL`, to the
+change history's kinds, for "Declared final" and "Reopened". Neither moves a
+score, so neither should mark races "amended since sent" or move the
+standings' "Last updated" date. Their own kind lets both leave them out.
+Adding a choice changes no column.
 
 ## Acceptance criteria
 - **Declaring:**

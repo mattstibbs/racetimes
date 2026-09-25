@@ -258,6 +258,11 @@ def test_the_race_day_page_shows_the_series_is_final(client, locked):
     race_2 = locked["races"][1]
     page = client.get(reverse("races:race_day", args=[race_2.pk]) + "?view=finish").content.decode()
     assert "This series is final" in page
+    # The note sits below the view buttons, not inside them.
+    tabs_start = page.index('<nav class="view-tabs"')
+    tabs_end = page.index("</nav>", tabs_start)
+    assert "locked-note" not in page[tabs_start:tabs_end]
+    assert tabs_end < page.index('<p class="note locked-note">')
     assert "Edit</summary>" not in page and "Finished</button>" not in page and 'id="publishing"' not in page
     page = client.get(reverse("races:race_day", args=[race_2.pk]) + "?view=start").content.decode()
     assert '<fieldset class="start-rows" disabled>' in page

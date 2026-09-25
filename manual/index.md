@@ -42,6 +42,8 @@ way every boat, entry and result has been checked by someone on the committee.
 - [Publishing results](committee/publishing-results.md): marking a race's
   results final, emailing them to owners, and sending updated results after
   corrections.
+- [Ending a series: final results](committee/ending-a-series.md): declaring
+  a series final, emailing owners their final places, and reopening it.
 - [Reviewing waiting requests](committee/reviewing-requests.md): finding out
   what is waiting for you, and approving or rejecting members' requests and
   new accounts.

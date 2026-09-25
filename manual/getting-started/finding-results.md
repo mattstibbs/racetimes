@@ -70,3 +70,16 @@ you are following, so you can bookmark it or send the link to your crew.
 | **Amended** | Something in this race was corrected after the results first appeared, on the date shown. |
 | **Last updated** | Under the series standings: the date of the latest correction that could have changed them. |
 | **Amended since published** | A published race has been corrected, and the committee has not yet sent the updated results. The page shows the results as they now stand. |
+| **Final** | The race committee has declared the series over. Its standings are the final places, and it can no longer change. |
+
+## Downloading a series' results
+
+Every series' page has a **Download (CSV)** link near the top. It gives you
+one file with the series standings, then each race's results: place, boat,
+finish time, elapsed time, handicap, corrected time, points and any code
+(such as DNF). It opens in Excel, Numbers or Google Sheets.
+
+The file says at the top whether the standings are final or provisional,
+and when you downloaded it. Like every page, it never shows owners' names.
+
+![The Summer 2026 Series page: the Download (CSV) link, and the series standings marked Final](../images/results-final.png)

@@ -339,18 +339,61 @@ pages' layout were updated to the new one; the commit message lists them.
 One page per race replaces the start sheet and finish-entry pages: tick who
 is racing, then tap **Finished** as each boat crosses the line.
 
-## Slice 10: final results and export. **Status: planned (2026-09-25)**
+## Slice 10: final results and export. **Status: complete (2026-09-25)**
 
-Spec: `docs/slices/10-final-results-and-export.md`. It proposes four new
-fields on `Series`, which need the project owner's approval before any
-migration is written.
+Acceptance criteria, from `docs/slices/10-final-results-and-export.md`:
 
-The brief's user journey 5. The committee declares a series final:
-- it is locked, so nothing that could move its results can change until
-  it's reopened with a reason;
-- a copy of its results is kept, so a later base number correction can't
-  change a finished season;
-- the owners are emailed their final places.
+- [x] The committee declares a series final on its Final results page. It's
+      refused, naming the races and boats, while a race with results is
+      unpublished, amended since sent, or has a boat not recorded. Races not
+      sailed are listed and don't block. Who, when and a "Declared final"
+      history entry are recorded.
+- [x] Every write path refuses a final series and writes nothing, tested
+      path by path:
+      - finish, tap, Undo and the start sheet, with and without HTMX;
+      - publishing;
+      - five admin changes (settings, a race's start, adding a race, adding
+        and removing an entry);
+      - approving an entry request.
+- [x] A boat's base number and the series' name can still be changed.
+- [x] A final series scores identically from its copy (SCEN-005, and a
+      series with codes, ties and discards). A base number change after
+      declaring leaves it exactly as declared, while another series moves.
+- [x] Reopening needs a reason, unlocks the series and drops the copy.
+      Declaring again makes a new copy and sends "Updated final standings".
+- [x] The email:
+      - goes once to each active owning account;
+      - isn't sent on a rolled-back declaration or on reopening;
+      - after a sending failure, the series stays final and the page offers
+        Send again.
+- [x] The series, home and boat pages label a final series Final.
+- [x] The CSV:
+      - anyone can download it, as UTF-8 with a byte-order mark;
+      - it matches the series page and SCEN-005;
+      - it keeps a final series' places;
+      - it has no owner names or persons on board;
+      - it says final or provisional, and handles an empty series.
+- [x] `results/test_read_only.py` still passes. Both new pages are in the
+      four-role test.
+- [x] Migrations use nothing database-specific. The app's tests were also
+      run against PostgreSQL 16 by hand; CI runs SQLite only.
+- [x] The manual gains "Ending a series: final results", with four new
+      screenshots. "Finding your results" gains the Final label and the
+      download, and the email page lists the two new emails.
 
-Anyone can download any series' standings and race results as one CSV
-file.
+Manual check: in headless Chromium at 375 px, on the manual's sample data:
+- declared the Summer series final, and read the Final label on the public
+  page;
+- downloaded the CSV and checked its byte-order mark and contents;
+- saw the race day page locked;
+- reopened the series with JavaScript off.
+
+No page scrolls sideways. The email was read as it renders.
+
+Found while checking: the race day page's "This series is final" note had
+been placed inside the view buttons, which pushed the page sideways on a
+phone. It now sits below them, and a test checks where it is.
+
+The brief's user journey 5. The committee declares a series final: it is
+locked, a copy of its results is kept, and the owners are emailed their
+final places. Anyone can download any series as one CSV file.

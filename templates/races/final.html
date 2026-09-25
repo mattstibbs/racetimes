@@ -12,33 +12,36 @@
 {% if series.is_final %}
   <p><strong>Final.</strong> Declared {{ series.declared_final_at|date:"j M Y H:i" }} by {{ series.declared_final_by_name }}.
     The series is locked: finishes, start sheets, races, entries and settings can't be changed.</p>
-  {% if not series.final_results_sent_at %}
-  <p>The final standings have not been emailed: sending failed. Try again:</p>
-  <form method="post" action="{% url 'races:send_final' series.pk %}">{% csrf_token %}
-    <button type="submit">Send final standings</button>
-  </form>
-  {% else %}
-  <p>Final standings emailed to the owners {{ series.final_results_sent_at|date:"j M Y H:i" }}.</p>
-  {% endif %}
 {% elif blockers %}
   <p><strong>Not final yet.</strong> Before declaring the series final:</p>
   <ul class="blockers">{% for problem in blockers %}<li>{{ problem }}</li>{% endfor %}</ul>
 {% else %}
   <p><strong>Ready to declare final.</strong> Declaring locks the series, keeps these standings as its
     final places, and emails every owner their boat's final place. You can reopen it later if a mistake turns up.</p>
-  <form method="post" action="{% url 'races:declare_final' series.pk %}">{% csrf_token %}
-    <button type="submit">Declare final</button>
-  </form>
 {% endif %}
 {% if not_sailed %}
   <p class="muted">Not sailed, so left out of the {% if series.is_final %}final {% endif %}standings:
     {% for race in not_sailed %}race {{ race.number }} ({{ race.date|date:"j M" }}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
 {% endif %}
+{% if series.is_final %}
+  {% if series.final_results_sent_at %}
+  <p>Final standings emailed to the owners {{ series.final_results_sent_at|date:"j M Y H:i" }}.</p>
+  {% else %}
+  <p>The final standings have not been emailed: sending failed. Try again:</p>
+  <form method="post" action="{% url 'races:send_final' series.pk %}">{% csrf_token %}
+    <button type="submit">Send final standings</button>
+  </form>
+  {% endif %}
+{% elif not blockers %}
+  <form method="post" action="{% url 'races:declare_final' series.pk %}">{% csrf_token %}
+    <button type="submit">Declare final</button>
+  </form>
+{% endif %}
 </div>
 
 <h2>{% if series.is_final %}Final standings{% else %}Standings as they stand now{% endif %}</h2>
 {% if results.standings %}
-<div class="table-wrap"><table>
+<div class="table-scroll"><table>
   <thead><tr><th class="num">Pos</th><th>Boat</th><th class="num">Total</th></tr></thead>
   <tbody>{% for row in results.standings %}
     <tr><td class="num">{{ row.position }}</td><td>{{ row.entry.boat }}</td><td class="num">{{ row.total|points }}</td></tr>

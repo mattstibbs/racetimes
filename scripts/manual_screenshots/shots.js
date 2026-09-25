@@ -115,6 +115,23 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await refused.waitFor();
   await shot(refused, 'start-sheet-has-result.png');
 
+  // Ending a series: the Autumn series isn't ready; the Summer one is, and is declared final.
+  await officer.goto(`${BASE}/series/1/final/`);
+  await shot(officer.locator('#final-state'), 'final-not-ready.png');
+  await officer.goto(`${BASE}/series/3/final/`);
+  await shot(officer.locator('main'), 'final-ready.png');
+  await officer.click('#final-state button');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('main'), 'final-declared.png');
+  // The public series page, from its title to the end of the final standings.
+  await publicPage.goto(`${BASE}/series/3/`);
+  const title = await publicPage.locator('main h1').boundingBox();
+  const standings = await publicPage.locator('#series-body .table-scroll').first().boundingBox();
+  await publicPage.screenshot({
+    path: path.join(OUT, 'results-final.png'), fullPage: true,
+    clip: { x: 0, y: title.y - 8, width: 1000, height: standings.y + standings.height - title.y + 16 },
+  });
+
   // Forgotten passwords.
   await publicPage.goto(`${BASE}/accounts/password-reset/`);
   await shot(publicPage.locator('body'), 'password-reset.png');
