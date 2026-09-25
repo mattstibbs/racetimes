@@ -192,3 +192,19 @@ def test_history_rows_belong_to_the_club(client, harbour):
                 {f"{prefix}-finish_time": "19:00:00", f"{prefix}-status": "FINISHED"}, **at("harbour"))
     assert Finish.objects.get().race.series.club == harbour
     assert list(harbour.scoring_changes.values_list("kind", flat=True)) == ["FINISH"]
+
+
+# --- www (slice 12) --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("path", ["/", "/privacy/?x=1", "/operator/"])
+def test_www_redirects_to_the_services_own_address_keeping_the_path(client, settings, path):
+    settings.SINGLE_CLUB = ""
+    response = client.get(path, HTTP_HOST="www.localhost:8000")
+    assert response.status_code == 301 and response["Location"] == f"http://localhost:8000{path}"
+
+
+def test_www_is_never_a_club(client, settings):
+    settings.SINGLE_CLUB = "demo"  # even on a site that shows one club on addresses with none
+    make_club("www", "Sneaky")  # can't be made through the operator's form, but just in case
+    assert client.get("/", HTTP_HOST="www.localhost")["Location"] == "http://localhost/"

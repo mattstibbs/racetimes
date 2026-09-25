@@ -1399,6 +1399,27 @@ subdomains, which come with production hosting.
 
 ---
 
+## 2026-09-25 - Slice 12: production hosting on Render, in Frankfurt
+
+**Decision.** Agreed with the project owner:
+- **Render, Frankfurt,** for production: the deploy set-up already exists,
+  wildcard certificates are automatic, point-in-time recovery comes with
+  paid databases, and data stays in the EU, which UK GDPR accepts. Heroku
+  would also do the subdomains, but a database it can roll back starts at
+  about $50 a month.
+- **Postmark** sends every club's email.
+- **Production deploys only when Deploy is pressed.** The test site keeps
+  deploying on every merge to `main`, so it's always the first to get a
+  change.
+- **Off-site backups from the start:** a nightly, encrypted copy to
+  S3-compatible storage (Backblaze B2's EU region recommended), using the
+  storage's own command-line tool, so there's no new Python dependency.
+- **Production starts empty.** The test site keeps its sample data, and
+  stays in Oregon.
+- **The domain's DNS is at Gandi.**
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
@@ -1410,8 +1431,9 @@ Things that must be done before a stated milestone, but aren't code.
   - Clubs will also need a data processing agreement: the club is the
     controller of its members' data, and Race Times is its processor.
   - The drafts have marked placeholders to fill in: the operator's legal
-    name and postal address, the hosting and email providers (once hosting
-    is chosen), and the terms' limits of liability.
+    name and postal address, and the terms' limits of liability. (The
+    processors are named since slice 12: Render, Postmark, Backblaze and
+    Sentry.)
   - None of this blocks building or testing slice 11. It blocks taking on a
     paying club.
 

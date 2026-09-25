@@ -5,6 +5,11 @@ The repository describes its own hosting in `render.yaml` (a Render
 every push to `main` - in practice, every merged pull request - redeploys the
 site within a few minutes. Database migrations apply as part of each deploy.
 
+Production, at `racetimes.co.uk`, is described in the same `render.yaml` but
+deploys only when you press **Deploy**. Its set-up, deploying, backups and
+alerts are in [`docs/production.md`](production.md). This page is about the
+test site.
+
 ## One-time setup
 
 1. Create an account at [render.com](https://render.com) and connect your
@@ -47,8 +52,8 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
   address. See `docs/operating.md`. Those pages need an address with no club
   in it, so they aren't on the test site, where `SINGLE_CLUB` makes every
   address Demo Club's.
-- **Production hosting** needs a wildcard DNS record and certificate for
-  `*.racetimes.co.uk`. That's a later slice.
+- **Production** is at `racetimes.co.uk`, with a wildcard DNS record and
+  certificate for every club's subdomain: see `docs/production.md`.
 
 ## Day to day
 
@@ -163,8 +168,10 @@ Free tiers change, so check Render's pricing page. When this was written:
 
 ## What the deploy runs
 
-`build.sh`, on every deploy: install the requirements, `collectstatic`,
-`migrate`, `createcachetable`, then `ensure_superuser`. The site then runs under `gunicorn`.
+`build.sh`, on every deploy: install the requirements and `collectstatic`,
+then `release.sh`: `migrate`, `createcachetable` and `ensure_superuser`.
+(Production runs `release.sh` as Render's pre-deploy step instead, so a
+failed migration stops the deploy before the new version starts.) The site then runs under `gunicorn`.
 
 The settings switch to production behaviour when `DJANGO_DEBUG` is `0`, which
 `render.yaml` sets: static files are served by WhiteNoise, the site and its
