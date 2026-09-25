@@ -1,4 +1,4 @@
-# Joining a club
+# Joining a club, and your data
 
 *For anyone who sails at a club that uses Race Times.*
 
@@ -35,3 +35,43 @@ same way.
 Each club's site keeps its own login, so you log in at each club's address
 separately. Your role is separate at each club too: being on the race
 committee at one club gives you nothing at another.
+
+## Your account
+
+**Account**, at the top of every page once you're logged in, shows your name
+and email address, and your role at each club you've joined or asked to join.
+
+![Your account: your name and email, your clubs with your role and status at each, and links to download your data and delete your account](../images/account.png)
+
+## Downloading your data
+
+**Download my data**, on your Account page, gives you a file of everything
+Race Times holds about you, at every club: your account, your memberships,
+the boats you own, your requests to the race committee, and any changes
+you've made to results. It's a JSON file, a plain text format that other
+programs can read.
+
+It doesn't include other people's details, such as who approved you.
+
+## Deleting your account
+
+**Delete my account**, on your Account page, deletes your account and your
+membership of every club. You confirm with your password.
+
+![Deleting your account: what goes, what stays, and your password to confirm](../images/delete-account.png)
+
+- **What goes:** your account, your memberships and your requests to the
+  race committee.
+- **What stays:** your boats, as each club's records with no owner, and every
+  result, exactly as it is. The change history says "a deleted account"
+  wherever it named you.
+
+You're emailed once to confirm it, and that's the last email Race Times sends
+to that address. It can't be undone: to use Race Times again, sign up afresh.
+
+If you're the only administrator of a club, you can't delete your account
+until you've made someone else an administrator there: a club always keeps
+one.
+
+How your data is used, and your rights, are in the **Privacy notice**, linked
+at the bottom of every page of your club's site.

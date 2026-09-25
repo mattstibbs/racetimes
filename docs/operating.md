@@ -67,9 +67,31 @@ before deleting a club.
 
 ## Exporting and deleting a club
 
-Part 5 of slice 11: a club's administrator downloads the club's data, and the
-operator deletes a suspended club after typing its address to confirm. Not
-built yet.
+When a club leaves Race Times:
+
+1. **Suspend it** (above), so its members see the site is paused.
+2. **Download its data.** On the club's page, under "The club's data",
+   **Download everything <club> holds (ZIP)** gives the same ZIP the club's
+   administrators get from their Members page: boats, members, series,
+   entries, races, start sheets, finishes, each series' results, requests and
+   the change history, as CSV files. It works while the club is suspended,
+   which is the point: its administrators can't reach its site then. Send it
+   to the club. Each download is recorded in the operator log.
+3. **Delete it.** Once the club is suspended, **Delete <club>...** on its page
+   asks you to type the club's address (its subdomain) to confirm. Everything
+   the club holds goes, in one step: boats, series, races, finishes,
+   requests, history, memberships and invitations. People's accounts stay,
+   since they may belong to other clubs. The operator log records it, with
+   counts of what went, and keeps the club's subdomain as text so the log
+   still reads after the club has gone.
+
+An active club can't be deleted. With `SINGLE_CLUB` set (the test site),
+there are no operator pages at all, so the club it shows can't be deleted
+from the site.
+
+People delete their own accounts, from **Account** at any club; the
+operator's own account can't be deleted that way. See the manual's "Joining a
+club, and your data".
 
 ## Clubs at a glance
 

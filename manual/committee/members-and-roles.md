@@ -81,3 +81,24 @@ and can ask to join again, which puts them back under "Waiting to join".
 
 So that there's always someone to turn to, it's a good idea for a club to have
 two administrators.
+
+## Downloading the club's data
+
+**Download everything the club holds (ZIP)**, at the top of the **Members**
+page, gives you a ZIP file of spreadsheet (CSV) files:
+
+| File | Holds |
+|---|---|
+| `boats.csv` | Every boat, with its owner. |
+| `members.csv` | Everyone at the club: name, email, role and status. |
+| `series.csv`, `series_entries.csv`, `races.csv` | Every series, the boats entered in it, and its races. |
+| `start_sheets.csv`, `finishes.csv` | Who was racing, and every recorded finish time and code. |
+| `results/` | Each series' standings and race results, the same file as its **Download (CSV)** link. |
+| `boat_requests.csv`, `entry_requests.csv` | Members' requests, and what was decided. |
+| `history.csv` | Every change to a result: who, when, and why. |
+
+It holds members' names and email addresses, so keep it safe, and share it
+only as your club's own data protection rules allow.
+
+If your club stops using Race Times, the service's operator can take the same
+download for you before the club's data is deleted.

@@ -1,7 +1,7 @@
 # Slice 11: Race Times as a service for many clubs
 
-**Status: planned, and ready to build. Every open question is answered, and
-the data model was approved by the project owner on 2026-09-25.**
+**Status: complete (2026-09-25). All five parts are built and merged; see
+`docs/plan.md`.**
 
 ## Goal
 Race Times today is one club's website. It assumes a single club throughout:

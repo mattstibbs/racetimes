@@ -1368,6 +1368,37 @@ subdomains, which come with production hosting.
 
 ---
 
+## 2026-09-25 - Slice 11 part 5: how data protection was built
+
+**Decision.**
+- **Messages travel in the session,** not in their own cookie, so the site
+  sets only the session and CSRF cookies, both essential: no cookie banner.
+- **A person's own pages cross clubs.** The account page and the data
+  download show every club the person belongs to, since it's all theirs.
+  They're the one exception to "a page shows only its own club", tested on
+  its own terms: someone at one club sees nothing of another, and a member
+  of two sees only their own rows at each.
+- **Deleting an account edits records that are otherwise never edited.** The
+  change history and a final series are locked against changes, but removing
+  a login from them changes no result, so the anonymising updates go around
+  those rules on purpose (`races/account_deletion.py`).
+- **Deleting a club deletes in order** (history, requests, series, then
+  boats), in one transaction, because a boat in a series is protected from
+  deletion. No model change.
+- **No guard for the `SINGLE_CLUB` club:** the plan had one, but with
+  `SINGLE_CLUB` set every address with no club shows that club, so the
+  operator's pages, and the delete button, don't exist at all.
+- **Spreadsheet formulas:** typed text starting with `=`, `+`, `-` or `@`
+  gets a leading apostrophe in the club export and in the series CSV, which
+  share the code (moved from `results/export.py` to `races/series_csv.py`).
+- **Two intermittent test failures fixed:** a random CSRF token could contain
+  a short name a test checked was absent, and a signed link includes the
+  time to the second. Tests now fix the token and read links back.
+
+**Why.** The slice 11 spec, part 5; the owner's answers above.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
@@ -1378,6 +1409,9 @@ Things that must be done before a stated milestone, but aren't code.
     the page, until reviewed.
   - Clubs will also need a data processing agreement: the club is the
     controller of its members' data, and Race Times is its processor.
+  - The drafts have marked placeholders to fill in: the operator's legal
+    name and postal address, the hosting and email providers (once hosting
+    is chosen), and the terms' limits of liability.
   - None of this blocks building or testing slice 11. It blocks taking on a
     paying club.
 

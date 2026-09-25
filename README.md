@@ -45,6 +45,9 @@ It is built for:
 - **Ready for production:** HTTPS only, a health check, error reports
   (Sentry) and logs that say which club without naming anyone, and a limit
   on failed logins.
+- **Data protection:** a privacy notice and terms (drafts, for legal
+  review), essential cookies only, people download or delete their own data,
+  and a club downloads everything it holds before leaving.
 
 ## Status
 
@@ -61,7 +64,7 @@ It is built for:
 | 8 | Other handicap systems (Portsmouth Yardstick, RYA YTC) | On hold |
 | 9 | The race day page | **Complete** |
 | 10 | Final results and CSV export | **Complete** |
-| 11 | Race Times as a service for many clubs | In progress: parts 1 (clubs), 2 (people and roles), 3 (the operator) and 4 (running in production) done; 5 (data protection) to come |
+| 11 | Race Times as a service for many clubs | **Complete** |
 
 Production hosting at `racetimes.co.uk` is a later slice. Until then the test
 site on Render runs Demo Club. See [`docs/plan.md`](docs/plan.md) for what each
@@ -99,7 +102,7 @@ Requires Python 3.11 or later.
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-Run the tests (about 1,250 of them, engine and app):
+Run the tests (about 1,300 of them, engine and app):
 
 ```bash
 .venv/bin/python -m pytest
@@ -133,7 +136,7 @@ collected nothing and reported success, which is worse than failing.
 | `nhc/` | The scoring engine. Standard library only, no Django, no I/O |
 | `tests/` | The engine's tests and the scenario fixtures they run against, plus a check of the user manual's links |
 | `races/` | The Django app: clubs and memberships, models, admin, race day, publishing, final results, change history, member accounts and requests, emails |
-| `results/` | The public results pages and the CSV download. Read-only: no models, GET only |
+| `results/` | The public results pages and the series CSV download. Read-only: no models, GET only |
 | `config/` | Django project settings, URLs, WSGI/ASGI |
 | `templates/`, `static/` | Server-rendered templates, one hand-written stylesheet, HTMX (vendored, not from a CDN), and the race clock script |
 | `manual/` | The user manual, published on Read the Docs |
