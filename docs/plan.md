@@ -397,3 +397,28 @@ phone. It now sits below them, and a test checks where it is.
 The brief's user journey 5. The committee declares a series final: it is
 locked, a copy of its results is kept, and the owners are emailed their
 final places. Anyone can download any series as one CSV file.
+
+## Slice 11: a service for many clubs. **Status: planned (2026-09-25)**
+
+Spec: `docs/slices/11-multi-club-service.md`. It proposes a new data model
+(clubs, memberships, invitations and an operator log, with a club on every
+row), which needs the project owner's approval, and lists six open questions
+to answer before building.
+
+It turns the single-club site into a service that hosts many clubs:
+- one database, with the club on every row;
+- a subdomain per club;
+- one login across clubs, with a role at each;
+- clubs set up by the operator (the project owner);
+- one email provider, Sentry and a health check;
+- the UK GDPR essentials.
+
+It is built and merged in five parts:
+1. clubs and isolation;
+2. people and roles per club;
+3. the operator's pages;
+4. running it in production;
+5. data protection.
+
+Production hosting is deferred to a later slice; the code stays independent
+of any particular host.
