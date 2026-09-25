@@ -457,3 +457,23 @@ of any particular host.
   role was sent to log in, which looped. They're refused with a clear page
   instead.
 - The tests also pass on PostgreSQL 16, run by hand.
+
+**Part 3, the operator: complete (2026-09-25).**
+- **The operator's pages** at `/operator/` on the service's own address:
+  every club with its members, series and last result; creating a club
+  (subdomains checked, reserved names refused); suspending and reactivating;
+  and the operator log of everything done there.
+- **Invitations:** an emailed link to the club's address, lasting 7 days and
+  working once, that makes the person's account if needed and makes them the
+  club's administrator. Migration 0016 adds `ClubInvitation` and
+  `OperatorAction`.
+- **The service's front page** says what Race Times is, with a contact
+  address for clubs. It lists no clubs.
+- **The admin stopgap is gone:** clubs and memberships are no longer in the
+  Django admin.
+- **Tests:** `races/test_operator.py`; the operator's pages as six roles in
+  `races/test_roles.py`; invitations and the operator's URLs in
+  `races/test_isolation.py`. Checked in the browser: create a club, invite,
+  accept as a new account, suspend.
+- **Docs:** `docs/operating.md`, the operator's guide; the manual's
+  "Running your club" page covers accepting an invitation.

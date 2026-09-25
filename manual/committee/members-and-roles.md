@@ -14,6 +14,26 @@ A role belongs to the person *at your club*. Someone who also sails at
 another club using Race Times has one login, and a separate role there that
 the other club decides. Nothing they do there changes anything here.
 
+## Becoming your club's first administrator
+
+When your club starts using Race Times, its first administrator is invited by
+email: **You're invited to run** your club **on Race Times**. Open the link
+in it within 7 days. It goes to your club's own address.
+
+- **If you don't have a Race Times login yet,** you make one there: your
+  name and a password. Your email address is the one the invitation was sent
+  to, and you're logged in straight away.
+- **If you already have one,** from another club, log in with it, and press
+  **Accept**.
+
+Either way, you land on your club's **Members** page as its administrator.
+The link works once. If it has expired, ask for a new invitation.
+
+![Accepting an invitation to run the club: the email address it was sent to, and a form to make an account](../images/invitation.png)
+
+From then on the club runs itself: you approve people joining, and choose
+who's on the race committee and who else is an administrator, as below.
+
 ## Approving people who want to join
 
 Anyone can sign up at your club's address. They confirm their email address,

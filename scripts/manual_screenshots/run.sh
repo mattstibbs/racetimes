@@ -21,6 +21,8 @@ export DATABASE_URL="sqlite:///$WORK/manual.sqlite3"
 export DJANGO_DEBUG=1
 # 127.0.0.1 names no club, so the pages are Demo Club's (slice 11).
 export SINGLE_CLUB=demo
+# Where seed.py leaves the link of the invitation shots.js photographs.
+export INVITATION_FILE="$WORK/invitation-link"
 cd "$ROOT"
 "$PYTHON" manage.py migrate --verbosity 0
 "$PYTHON" manage.py shell --verbosity 0 < "$HERE/seed.py"

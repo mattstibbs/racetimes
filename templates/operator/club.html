@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ club.name }} - Operator - Race Times{% endblock %}
+{% block content %}
+<p><a href="{% url 'races:operator_clubs' %}">Clubs</a></p>
+<h1>{{ club.name }}</h1>
+<p>At <a href="{{ address }}">{{ address }}</a>. Contact: {{ club.contact_email|default:"none" }}.
+  Created {{ club.created_at|date:"j M Y" }}.</p>
+
+<section class="card" aria-labelledby="status">
+<h2 id="status">{% if club.is_active %}Active{% else %}Suspended{% endif %}</h2>
+{% if club.is_active %}
+<p>Suspending the club pauses its site: everyone sees "This club's site is paused", and nothing is deleted.</p>
+<form method="post" action="{% url 'races:operator_club_status' club.pk %}">{% csrf_token %}
+  <button type="submit" name="status" value="SUSPENDED" class="secondary">Suspend {{ club.name }}</button>
+</form>
+{% else %}
+<p>The club's site is paused. Reactivating it brings it back as it was.</p>
+<form method="post" action="{% url 'races:operator_club_status' club.pk %}">{% csrf_token %}
+  <button type="submit" name="status" value="ACTIVE">Reactivate {{ club.name }}</button>
+</form>
+{% endif %}
+</section>
+
+<section aria-labelledby="administrators">
+<h2 id="administrators">Administrators</h2>
+{% if administrators %}
+<ul>{% for m in administrators %}<li>{{ m.user.get_full_name|default:m.user.username }} ({{ m.user.email }})</li>{% endfor %}</ul>
+{% else %}
+<p class="muted">None yet. Invite one below.</p>
+{% endif %}
+</section>
+
+<section aria-labelledby="invite">
+<h2 id="invite">Invite an administrator</h2>
+<p>We email them a link to the club's address, which lasts {{ lasts_days }} days. It makes their account if they
+  don't have one, and makes them the club's administrator. From then on, the club manages its own people.</p>
+<form method="post" action="{% url 'races:operator_invite' club.pk %}" class="stacked">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Email the invitation</button>
+</form>
+{% if invitations %}
+<div class="table-scroll"><table>
+  <thead><tr><th>Invited</th><th>Email</th><th>By</th><th>Accepted</th></tr></thead>
+  <tbody>
+  {% for invitation in invitations %}
+  <tr><td>{{ invitation.created_at|date:"j M Y H:i" }}</td><td>{{ invitation.email }}</td><td>{{ invitation.invited_by_name }}</td>
+    <td>{% if invitation.accepted_at %}{{ invitation.accepted_at|date:"j M Y H:i" }}{% else %}<span class="muted">Not yet</span>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endif %}
+</section>
+
+<h2>Operator log for this club</h2>
+{% include "operator/_log.html" with actions=log %}
+{% endblock %}

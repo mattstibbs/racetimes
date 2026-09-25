@@ -96,6 +96,57 @@ class ClubMembership(models.Model):
         return self.status == self.Status.APPROVED
 
 
+class ClubInvitation(models.Model):
+    """The operator's invitation to someone to run a club (slice 11 part 3).
+
+    The emailed link is a signed token naming this row (``races/invitations.py``),
+    so the link itself isn't stored. Accepting it gives the person an approved
+    membership in ``role``; the row then records when.
+    """
+
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="invitations")
+    email = models.EmailField()
+    role = models.CharField(
+        max_length=15, choices=ClubMembership.Role.choices, default=ClubMembership.Role.ADMINISTRATOR
+    )
+    # Kept as text, like decided_by_name, so it survives the account going.
+    invited_by_name = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.email} to {self.club}"
+
+
+class OperatorAction(models.Model):
+    """The operator log: one row for everything the operator does (slice 11 part 3).
+
+    Who and which club are kept as text, so the log still reads the same after
+    the account or the club is deleted.
+    """
+
+    class Action(models.TextChoices):
+        CREATED = "CREATED", "Created a club"
+        INVITED = "INVITED", "Invited an administrator"
+        SUSPENDED = "SUSPENDED", "Suspended a club"
+        REACTIVATED = "REACTIVATED", "Reactivated a club"
+
+    who = models.CharField(max_length=150)
+    action = models.CharField(max_length=15, choices=Action.choices)
+    club_subdomain = models.CharField(max_length=40)
+    detail = models.TextField(blank=True)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-timestamp", "-pk"]
+
+    def __str__(self):
+        return f"{self.who}: {self.get_action_display()} ({self.club_subdomain})"
+
+
 def _club_manager(path):
     """A manager whose ``for_club(club)`` keeps only that club's rows.
 

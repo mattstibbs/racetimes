@@ -42,10 +42,11 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
 - **Locally**, open `http://demo.localhost:8000/`: every current browser
   sends `*.localhost` to your own machine with no setup.
   `http://127.0.0.1:8000/` shows Demo Club too, if you set `SINGLE_CLUB=demo`.
-- **More clubs:** as the operator, add a club in the admin under **Clubs**,
-  on the service's own address. Part 3 of slice 11 will add proper operator
-  pages, including inviting a club's first administrator. Until then, give
-  that person a membership in the admin by hand.
+- **More clubs:** the operator creates each club and invites its first
+  administrator on the operator's pages, `/operator/` on the service's own
+  address. See `docs/operating.md`. Those pages need an address with no club
+  in it, so they aren't on the test site, where `SINGLE_CLUB` makes every
+  address Demo Club's.
 - **Production hosting** needs a wildcard DNS record and certificate for
   `*.racetimes.co.uk`. That's a later slice.
 
@@ -65,7 +66,8 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
   operator. It has no role at a club unless it has a membership there. The
   migration gave the existing superuser Demo Club's administrator membership,
   so on the test site it still runs Demo Club. On the service's own address,
-  `/admin/` is the operator's: clubs and accounts.
+  `/operator/` has the operator's pages (clubs, invitations, the operator
+  log) and `/admin/` has accounts.
 
 - **To update the site,** merge a pull request into `main`. Render builds and
   deploys it; if the build fails, the previous version stays live.

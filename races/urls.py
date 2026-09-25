@@ -2,7 +2,7 @@ from django.urls import path, reverse_lazy
 
 from django.contrib.auth import views as auth_views
 
-from . import member_views, membership_views, views
+from . import invitations, member_views, membership_views, operator_views, views
 
 app_name = 'races'
 
@@ -15,6 +15,14 @@ urlpatterns = [
     path('join/', membership_views.join_club, name='join_club'),
     path('members/', membership_views.members_page, name='members'),
     path('members/<int:pk>/', membership_views.decide_membership, name='decide_membership'),
+    path('invitation/<str:token>/', invitations.accept_invitation, name='accept_invitation'),
+    # The operator's pages, on the service's own address only (slice 11 part 3).
+    path('operator/', operator_views.clubs, name='operator_clubs'),
+    path('operator/clubs/new/', operator_views.create_club, name='operator_create_club'),
+    path('operator/clubs/<int:pk>/', operator_views.club_page, name='operator_club'),
+    path('operator/clubs/<int:pk>/invite/', operator_views.invite, name='operator_invite'),
+    path('operator/clubs/<int:pk>/status/', operator_views.change_status, name='operator_club_status'),
+    path('operator/log/', operator_views.operator_log, name='operator_log'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # Django's own password reset: a signed, time-limited link by email.
     path('accounts/password-reset/', auth_views.PasswordResetView.as_view(

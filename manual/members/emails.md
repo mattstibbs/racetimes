@@ -9,6 +9,7 @@ with.
 | Email | When |
 |---|---|
 | **Confirm your email address for Race Times** | You've just signed up. Open its link to confirm your email address, which lets you log in. |
+| **You're invited to run** your club **on Race Times** | You've been invited to be your club's administrator. Open its link within 7 days to accept. See [Running your club](../committee/members-and-roles.md#becoming-your-clubs-first-administrator). |
 | **Welcome to** your club **on Race Times** | The club's administrator has approved you joining the club. |
 | **Your request to join** your club | The club's administrator hasn't approved you joining. |
 | **Your role at** your club **has changed** | The club's administrator has made you, for example, a member of the race committee. |

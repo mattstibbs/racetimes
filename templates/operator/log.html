@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Operator log - Race Times{% endblock %}
+{% block content %}
+<h1>Operator log</h1>
+<p class="muted">Everything done on the operator's pages, newest first{% if actions|length == 500 %}: the latest 500{% endif %}.</p>
+{% include "operator/_log.html" %}
+{% endblock %}

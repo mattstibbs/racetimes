@@ -95,7 +95,7 @@ Requires Python 3.11 or later.
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-Run the tests (about 1,150 of them, engine and app):
+Run the tests (about 1,200 of them, engine and app):
 
 ```bash
 .venv/bin/python -m pytest
@@ -111,9 +111,11 @@ Then open **<http://demo.localhost:8000/>**. Each club has its own address,
 and every current browser sends `*.localhost` to your own machine with no
 setup. The migrations create Demo Club; `http://localhost:8000/` is the
 service's own front page. To log in, create a superuser
-(`manage.py createsuperuser`) and give it a Demo Club membership in the admin
-at `localhost:8000/admin/`. Or load the user manual's sample data, as
-`scripts/manual_screenshots/run.sh` does.
+(`manage.py createsuperuser`): that's the service's operator. At
+`http://localhost:8000/operator/` it can create clubs and invite someone to
+run each one; the invitation email, with its link, is printed in the
+server's console. See `docs/operating.md`. Or load the user manual's sample
+data, as `scripts/manual_screenshots/run.sh` does.
 
 Note that the test suite is pytest, not Django's runner. `manage.py test`
 deliberately fails with a pointer, because after the move to pytest it

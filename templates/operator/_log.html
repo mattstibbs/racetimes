@@ -1,0 +1,13 @@
+{% if actions %}
+<div class="table-scroll"><table>
+  <thead><tr><th>When</th><th>Who</th><th>What</th><th>Club</th><th>Detail</th></tr></thead>
+  <tbody>
+  {% for action in actions %}
+  <tr><td>{{ action.timestamp|date:"j M Y H:i" }}</td><td>{{ action.who }}</td><td>{{ action.get_action_display }}</td>
+    <td>{{ action.club_subdomain }}</td><td>{{ action.detail }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<p class="muted">Nothing yet.</p>
+{% endif %}

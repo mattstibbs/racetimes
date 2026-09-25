@@ -1257,6 +1257,45 @@ every page.
 
 ---
 
+## 2026-09-25 - Slice 11 part 3: the operator's pages, and invitations
+
+**Context.** Part 3 gives the operator proper pages to create clubs, invite
+each club's first administrator and suspend a club, replacing the stopgap of
+editing clubs and memberships in the Django admin.
+
+**Decision.**
+- **The operator's pages are at `/operator/`, on the service's own address
+  only.** On a club's address they're a 404, even for the operator. The
+  public is sent to the admin's login page, the one login on the service's
+  own address; anyone else logged in gets a 403 (see part 2's decision).
+- **Clubs and memberships leave the Django admin.** The operator's pages and
+  each club's Members page do everything they did, and every operator action
+  is logged, which admin edits wouldn't be. Correcting a club's name or
+  contact email isn't offered yet; add it to the club's page if it's needed.
+- **An invitation link is a `signing.dumps` of the invitation's id,** with
+  its own salt and a 7-day `max_age`, not a password-reset style token: that
+  needs an account, and the invitee may have none. It works once (the row's
+  `accepted_at`) and only at its own club's address. The link is built for
+  the club's address from `SERVICE_DOMAIN`, keeping the request's scheme and
+  port.
+- **Accepting proves the email.** Someone with no account makes one on the
+  invitation page, active at once. Someone with an account logs in first, on
+  the club's normal login page, so part 4's login throttling will cover it.
+  Someone logged in as another account is asked to log out first, rather than
+  being switched to a new account.
+- **Subdomains:** lower-case letters, digits and hyphens, as the spec says,
+  and also not starting or ending with a hyphen, which DNS doesn't allow.
+- **A suspended club can't be sent invitations,** since nobody could open
+  the link while its site is paused.
+- **The front page's contact address** is a setting,
+  `SERVICE_CONTACT_EMAIL`, defaulting to `hello@racetimes.co.uk`.
+
+**Consequence.** The operator's pages aren't available on the Render test
+site: `SINGLE_CLUB` makes every address there Demo Club's. They need real
+subdomains, which come with production hosting.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

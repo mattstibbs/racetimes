@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -7,7 +9,7 @@ from django.db.models.functions import Replace, Upper
 from django.forms.models import BaseInlineFormSet
 
 from . import audit, final
-from .models import Boat, BoatRequest, Finish, Race, Series
+from .models import Boat, BoatRequest, Club, Finish, Race, Series
 
 REASON_HELP = "Required when correcting results already recorded."
 
@@ -250,6 +252,79 @@ class LoginForm(AuthenticationForm):
             raise
 
     unconfirmed = False
+
+
+# --- The operator (slice 11 part 3) -------------------------------------------
+
+# Names that belong to the service, never to a club.
+RESERVED_SUBDOMAINS = ("www", "admin", "operator", "mail", "api", "static", "app")
+SUBDOMAIN_RULE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
+class ClubForm(forms.ModelForm):
+    """A new club: its name, its address and where replies to its emails go."""
+
+    class Meta:
+        model = Club
+        fields = ["name", "subdomain", "contact_email"]
+        labels = {"subdomain": "Address", "contact_email": "Contact email"}
+        help_texts = {
+            "subdomain": "The club's address, e.g. exesc for exesc.racetimes.co.uk. "
+                         "Letters, digits and hyphens only. It can't be changed later.",
+            "contact_email": "Replies to the club's emails go here.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["contact_email"].required = True
+
+    def clean_subdomain(self):
+        subdomain = self.cleaned_data["subdomain"].strip().lower()
+        # A hyphen can't start or end an address: DNS doesn't allow it.
+        if not SUBDOMAIN_RULE.match(subdomain):
+            raise ValidationError(
+                "Use only letters, digits and hyphens, not starting or ending with a hyphen."
+            )
+        if subdomain in RESERVED_SUBDOMAINS:
+            raise ValidationError(f"{subdomain} is reserved for the service. Choose another.")
+        return subdomain
+
+
+class InvitationForm(forms.Form):
+    email = forms.EmailField(label="Their email")
+
+    def clean_email(self):
+        return self.cleaned_data["email"].strip().lower()
+
+
+class InvitedSignUpForm(UserCreationForm):
+    """An account for someone accepting an invitation. The invitation gives the email.
+
+    Opening the emailed link proves the address, so the account is active
+    straight away, with no separate confirmation.
+    """
+
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        fields = ["first_name", "last_name"]
+
+    def __init__(self, *args, email, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email = email
+        for name in ["first_name", "last_name"]:
+            self.fields[name].required = True
+
+    def _post_clean(self):
+        # Set before the password checks, which compare it with the account's details.
+        self.instance.username = self.instance.email = self.email
+        super()._post_clean()
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_active = True
+        if commit:
+            user.save()
+        return user
 
 
 # --- Members' requests -------------------------------------------------------

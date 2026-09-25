@@ -1,6 +1,7 @@
 // Takes the user manual's screenshots from a running copy of the app seeded by
 // seed.py. Run it with run.sh, which sets everything up and tears it down.
 const { chromium } = require('playwright');
+const fs = require('fs');
 const path = require('path');
 
 const BASE = process.env.BASE_URL;
@@ -156,6 +157,11 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const kim = await logIn(browser, 'kim@example.com');
   await kim.goto(`${BASE}/my/boats/`);
   await shot(kim.locator('main'), 'join-waiting.png');
+
+  // Accepting the operator's invitation to run the club, with no account yet.
+  const invited = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
+  await invited.goto(`${BASE}${fs.readFileSync(process.env.INVITATION_FILE, 'utf8')}`);
+  await shot(invited.locator('main'), 'invitation.png');
 
   await browser.close();
   console.log(`Screenshots written to ${OUT}`);
