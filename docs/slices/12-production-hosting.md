@@ -163,12 +163,39 @@ per season (slice 4's estimate) fits a small plan.
 - The test suite and CI are unchanged apart from the new redirect's tests.
   The code still runs on any host.
 
+## Outstanding before the first paying club: the legal review
+Production can go live and be tested without it, but **no paying club signs
+up until it's done.** It isn't code, so it isn't an acceptance criterion of
+this slice. It's recorded here so it isn't lost at launch, and under "Open
+requirements" in `docs/decisions.md` (since slice 11).
+
+- **Have the privacy notice and terms reviewed** (`templates/legal/`). Both
+  are drafts, marked "Draft" on the page. Remove the banner once reviewed.
+- **Fill in the placeholders they still carry:**
+  - the operator's legal name and postal address, in both pages;
+  - the limits of liability, in the terms.
+
+  The processors (Render, Postmark, Backblaze and Sentry) were named in
+  this slice.
+- **A data processing agreement for clubs.** Each club is the controller of
+  its members' data and Race Times its processor, so each club needs one to
+  sign.
+- **Check each provider's own terms for UK GDPR:**
+  - Postmark, which sends from the US, for transfers from the UK;
+  - Render, Backblaze and Sentry, whose EU regions need no transfer terms.
+
+  Sign each one's data processing agreement.
+
+`docs/production.md` repeats this as the gate before inviting the first
+paying club.
+
 ## Out of scope
 - A club's own domain (e.g. `results.exesc.org.uk`), self-serve sign-up and
   payments, and club branding. These are still later slices.
 - Scaling beyond one web service. It's enough for many clubs; the runbook
   says how to add a second when needed.
-- The legal review, which is already an open requirement.
+- The legal review itself (see "Outstanding before the first paying club",
+  above).
 
 ## Questions for the project owner
 1. **Host and region.** Render in Frankfurt (recommended), or Fly.io in

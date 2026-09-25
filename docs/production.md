@@ -164,6 +164,17 @@ first club is invited.
 | | Restore rehearsed; `series_summary` identical | |
 
 ### 9. The first club
+**Before the first paying club: the legal review must be done.** That means:
+- the privacy notice and terms reviewed, with their placeholders filled in
+  (the operator's legal name and address, the limits of liability) and the
+  "Draft" banners removed;
+- a data processing agreement ready for clubs to sign;
+- each provider's data processing agreement signed.
+
+The full list is in `docs/slices/12-production-hosting.md`, and it's an
+open requirement in `docs/decisions.md`. A trial with your own club, or one
+that knows the pages are drafts, can go ahead before that.
+
 Log in at `https://racetimes.co.uk/admin/login/` as the operator, then follow
 `docs/operating.md`: create the club, invite its administrator.
 

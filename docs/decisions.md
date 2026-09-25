@@ -1436,6 +1436,10 @@ Things that must be done before a stated milestone, but aren't code.
     Sentry.)
   - None of this blocks building or testing slice 11. It blocks taking on a
     paying club.
+  - Also listed, as the gate before the first paying club, in the slice 12
+    spec (`docs/slices/12-production-hosting.md`) and in
+    `docs/production.md` step 9. That includes signing each provider's
+    data processing agreement.
 
 ## Open questions
 

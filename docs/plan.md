@@ -551,3 +551,9 @@ DNS at Gandi):
 accounts, set the DNS, deploy, and run and record the launch checks,
 including one restore. The slice is complete when that table is filled in.
 
+**Outstanding before the first paying club:** the legal review (the privacy
+notice and terms reviewed and their placeholders filled in, a data
+processing agreement for clubs, and the providers' agreements signed). It's
+listed in the slice 12 spec and `docs/production.md`, and it's an open
+requirement in `docs/decisions.md`.
+
