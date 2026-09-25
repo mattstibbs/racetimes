@@ -1,12 +1,24 @@
-# Render Blueprint: the hosted test site and its database.
-# Set up once from the Render dashboard (New > Blueprint, pick this repo); after
-# that, every push to main redeploys. See docs/deploying.md.
+# Render Blueprint: the test site and production, each with its database.
+# Set up once from the Render dashboard (New > Blueprint, pick this repo).
+# - The test site (racetimes): free, sample data, Oregon; every push to main
+#   redeploys it. See docs/deploying.md.
+# - Production (racetimes-production): paid plans in Frankfurt, at
+#   racetimes.co.uk; deploys only when Deploy is pressed in the dashboard.
+#   See docs/production.md.
 
 databases:
   - name: racetimes-db
     databaseName: racetimes
     user: racetimes
     plan: free
+  # Production's database. Paid, so Render keeps point-in-time recovery for it;
+  # a nightly encrypted copy also goes off-site (racetimes-backup, below).
+  - name: racetimes-production-db
+    databaseName: racetimes
+    user: racetimes
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"
 
 services:
   - type: web
@@ -41,3 +53,88 @@ services:
         sync: false
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
+
+  # --- Production (slice 12) -------------------------------------------------
+  - type: web
+    name: racetimes-production
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    # Only when Deploy is pressed: a merge to main reaches the test site first.
+    autoDeploy: false
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    # Database changes run before the new version takes traffic; if they fail,
+    # the old version keeps running.
+    preDeployCommand: ./release.sh
+    startCommand: gunicorn config.wsgi:application
+    # Render checks this before switching traffic to a new version.
+    healthCheckPath: /health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: racetimes-production-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      # SERVICE_DOMAIN is left at its production default, racetimes.co.uk, and
+      # SINGLE_CLUB unset: every club is at its own subdomain.
+      - key: TRUSTED_PROXIES
+        value: "1"
+      # An hour to start; raise it once the site has run well for a while
+      # (docs/production.md).
+      - key: SECURE_HSTS_SECONDS
+        value: "3600"
+      - key: DEFAULT_FROM_EMAIL
+        value: Race Times <noreply@racetimes.co.uk>
+      - key: SERVICE_CONTACT_EMAIL
+        value: hello@racetimes.co.uk
+      - key: EMAIL_HOST
+        value: smtp.postmarkapp.com
+      - key: EMAIL_PORT
+        value: "587"
+      # Secrets and one-off values, entered in the dashboard, never here.
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+  # The nightly off-site backup of production's database: pg_dump, encrypted,
+  # uploaded to S3-compatible storage (backup/backup.sh).
+  - type: cron
+    name: racetimes-backup
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./backup/Dockerfile
+    dockerContext: ./backup
+    # 02:17 UTC every night, when nobody is racing.
+    schedule: "17 2 * * *"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: racetimes-production-db
+          property: connectionString
+      - key: BACKUP_BUCKET
+        sync: false
+      - key: BACKUP_ENDPOINT_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        sync: false
+      - key: BACKUP_PASSPHRASE
+        sync: false
+

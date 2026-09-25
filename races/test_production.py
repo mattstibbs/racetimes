@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 from django.db import connection
 from django.urls import reverse
 
@@ -81,3 +82,61 @@ def test_the_production_settings_pass_the_deploy_check():
     result = subprocess.run([sys.executable, "manage.py", "check", "--deploy", "--fail-level", "WARNING"],
                             cwd=ROOT, env=env, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+# --- The Render Blueprint (slice 12) -----------------------------------------------------------
+
+BLUEPRINT = yaml.safe_load((ROOT / "render.yaml").read_text())
+SERVICES = {service["name"]: service for service in BLUEPRINT["services"]}
+DATABASES = {database["name"]: database for database in BLUEPRINT["databases"]}
+
+
+def env(service):
+    return {var["key"]: var for var in service["envVars"]}
+
+
+def test_production_deploys_only_when_asked_in_frankfurt_with_checks():
+    production = SERVICES["racetimes-production"]
+    assert production["autoDeploy"] is False and production["region"] == "frankfurt"
+    assert production["preDeployCommand"] == "./release.sh" and production["healthCheckPath"] == "/health/"
+    assert "migrate" not in production["buildCommand"]  # database changes wait for the pre-deploy step
+    assert DATABASES["racetimes-production-db"]["region"] == "frankfurt"
+    assert DATABASES["racetimes-production-db"]["plan"] != "free"
+
+
+def test_production_is_every_club_at_its_own_address_with_no_secret_in_the_file():
+    variables = env(SERVICES["racetimes-production"])
+    assert variables["DJANGO_DEBUG"]["value"] == "0" and variables["TRUSTED_PROXIES"]["value"] == "1"
+    assert "SINGLE_CLUB" not in variables and "SERVICE_DOMAIN" not in variables  # racetimes.co.uk by default
+    for secret in ("EMAIL_HOST_USER", "EMAIL_HOST_PASSWORD", "SENTRY_DSN", "DJANGO_SUPERUSER_PASSWORD"):
+        assert variables[secret] == {"key": secret, "sync": False}
+    assert variables["DJANGO_SECRET_KEY"] == {"key": "DJANGO_SECRET_KEY", "generateValue": True}
+    for secret in ("AWS_SECRET_ACCESS_KEY", "BACKUP_PASSPHRASE"):
+        assert env(SERVICES["racetimes-backup"])[secret] == {"key": secret, "sync": False}
+
+
+def test_the_test_site_is_as_it_was():
+    test_site = SERVICES["racetimes"]
+    assert test_site["plan"] == "free" and test_site["buildCommand"] == "./build.sh"
+    assert env(test_site)["SINGLE_CLUB"]["value"] == "demo" and "region" not in test_site
+    assert "./release.sh" in (ROOT / "build.sh").read_text()
+
+
+def test_the_release_step_migrates_and_makes_the_cache_table():
+    release = (ROOT / "release.sh").read_text()
+    assert "migrate --no-input" in release and "createcachetable" in release and "ensure_superuser" in release
+
+
+def test_the_scripts_stop_at_the_first_failure_and_can_run():
+    import os
+
+    for script in ("build.sh", "release.sh", "backup/backup.sh", "backup/restore.sh"):
+        path = ROOT / script
+        assert os.access(path, os.X_OK), script
+        assert "set -o errexit" in path.read_text() or "set -eu" in path.read_text(), script
+
+
+def test_backups_are_encrypted_before_they_leave_and_never_logged():
+    backup = (ROOT / "backup" / "backup.sh").read_text()
+    assert backup.index("gpg") < backup.index("aws s3 cp")
+    assert "--symmetric --cipher-algo AES256" in backup and 'echo "$BACKUP_PASSPHRASE' not in backup
