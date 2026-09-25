@@ -519,3 +519,13 @@ of any particular host.
 With part 5, every acceptance criterion in the spec is met. Production
 hosting is the next slice; the legal review stays an open requirement before
 the first paying club.
+
+## Slice 12: production hosting. **Status: planning (2026-09-25)**
+
+Spec: `docs/slices/12-production-hosting.md`. Race Times live at
+`racetimes.co.uk`: the host and region, the wildcard domain and certificate,
+backups with a restore that has been rehearsed, an email provider, Sentry and
+an uptime monitor, and a runbook. Most of it is setting up accounts, which only
+the project owner can do; the code's part is the deploy configuration, the
+`www` redirect and checks that prove each piece works. Seven questions for the
+project owner, starting with the host.
