@@ -3,6 +3,7 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 
 from . import invitations, member_views, membership_views, operator_views, views
+from .forms import ClubPasswordResetForm
 
 app_name = 'races'
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # Django's own password reset: a signed, time-limited link by email.
     path('accounts/password-reset/', auth_views.PasswordResetView.as_view(
+        form_class=ClubPasswordResetForm,
         email_template_name='emails/password_reset.txt',
         subject_template_name='emails/password_reset_subject.txt',
         success_url=reverse_lazy('races:password_reset_done'),

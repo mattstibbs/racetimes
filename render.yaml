@@ -31,6 +31,10 @@ services:
       # subdomains, so it shows Demo Club, which holds the site's data.
       - key: SINGLE_CLUB
         value: demo
+      # Render's proxy adds the client's address to X-Forwarded-For; the site
+      # needs it to limit failed logins per address (races/throttle.py).
+      - key: TRUSTED_PROXIES
+        value: "1"
       # Your first staff login. Render asks for these when the Blueprint is
       # created; build.sh creates the account once and never changes it.
       - key: DJANGO_SUPERUSER_USERNAME

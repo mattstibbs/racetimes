@@ -29,6 +29,13 @@ class ClubAdminSite(admin.AdminSite):
             return request.user.is_active and request.user.is_superuser
         return is_committee(request.user, club)
 
+    @property
+    def login_form(self):
+        # The operator's login, limited like the site's (races/throttle.py).
+        from .forms import AdminLoginForm
+
+        return AdminLoginForm
+
     def login(self, request, extra_context=None):
         # At a club, everyone logs in on the site's own login page, which
         # takes an email and knows about clubs. Someone logged in without the

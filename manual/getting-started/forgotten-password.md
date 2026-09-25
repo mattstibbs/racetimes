@@ -19,3 +19,9 @@ account: that way it can't be used to find out who is a member. If no email
 arrives, check your spam folder, then check you used the address you signed up
 with. Accounts still waiting for the administrator's approval cannot reset
 their password yet.
+
+## "Too many failed logins"
+
+After 10 wrong passwords in a row, logging in to that account is paused for
+15 minutes, even with the right password, to stop anyone guessing it. Wait 15
+minutes and try again; resetting your password doesn't end the pause sooner.

@@ -6,6 +6,9 @@ Race Times emails you when something that concerns you happens. You don't
 need to do anything to receive them; they go to the email address you log in
 with.
 
+They come from your club, as "*Your club* via Race Times". If you reply, your
+reply goes to the club's contact address, not to Race Times.
+
 | Email | When |
 |---|---|
 | **Confirm your email address for Race Times** | You've just signed up. Open its link to confirm your email address, which lets you log in. |

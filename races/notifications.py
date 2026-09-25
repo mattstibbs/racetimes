@@ -10,11 +10,17 @@ Each recipient gets their own message, addressed to them, rather than one
 message to everyone: owners should not see each other's email addresses.
 
 Templates are in templates/emails/. Their first line is the subject.
+
+Each email comes from its club (slice 11 part 4): "<Club name> via Race
+Times", at the service's one sending address, with replies going to the
+club's contact email. See ``sender``.
 """
 
 import logging
+from email.utils import formataddr, parseaddr
 
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage, get_connection
 from django.db import transaction
@@ -62,13 +68,35 @@ def email(user, template, request, **context):
 
 
 def email_to(address, template, request, **context):
-    """One email to one address, which may have no account yet."""
+    """One email to one address, which may have no account yet.
+
+    It comes from the club named in ``context`` (an invitation's, sent from
+    the service's own address), or else the request's club.
+    """
     text = render_to_string(
         f"emails/{template}.txt",
         {"site_url": request.build_absolute_uri("/").rstrip("/"), **context},
     )
     subject, _, body = text.strip().partition("\n")
-    return EmailMessage(subject.strip(), body.strip() + "\n", to=[address] if address else [])
+    from_email, reply_to = sender(context.get("club") or getattr(request, "club", None))
+    return EmailMessage(subject.strip(), body.strip() + "\n", from_email=from_email,
+                        to=[address] if address else [], reply_to=reply_to)
+
+
+def sender(club):
+    """The From address and Reply-To list for an email from this club.
+
+    Every club sends from the one address in DEFAULT_FROM_EMAIL, the only one
+    the email provider can vouch for (SPF and DKIM), under the club's name.
+    ``formataddr`` quotes a name with commas or quotes in it and encodes
+    accents, which a hand-built "Name <address>" would get wrong. With no
+    club, the service's own address, both are as DEFAULT_FROM_EMAIL has them.
+    """
+    if club is None:
+        return settings.DEFAULT_FROM_EMAIL, []
+    _, address = parseaddr(settings.DEFAULT_FROM_EMAIL)
+    from_email = formataddr((f"{club.name} via Race Times", address), charset="utf-8")
+    return from_email, [club.contact_email] if club.contact_email else []
 
 
 def _link(request, name, *args):

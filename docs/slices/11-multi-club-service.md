@@ -294,6 +294,154 @@ what each delivered. For part 3:
   minutes, with a message saying so. This matters more now that anyone can
   create an account.
 
+#### Planning part 4 *(written after part 3 was merged, 2026-09-25)*
+Parts 1 to 3 are on `main` (PRs #20, #21 and #22). What's there already,
+what part 4 adds, and the questions for the project owner.
+
+**Already done in part 1:**
+- `ALLOWED_HOSTS` and the CSRF trusted origins already follow
+  `SERVICE_DOMAIN` (`config/settings.py`). Part 4 only adds tests for them.
+- `X_FRAME_OPTIONS` is Django's default, `DENY`, and the referrer policy is
+  Django's default, `same-origin`, the strictest useful one. Part 4 sets both
+  explicitly, so they can't change with a Django upgrade, and tests them.
+
+**Build order.** Each step is one commit, with its tests, and leaves the site
+working.
+1. **Health** (`races/health.py`):
+   - a small middleware, first in `MIDDLEWARE`, answers `/health/` before
+     anything else runs;
+   - so it works on every address: no club lookup, no HTTPS redirect (the
+     host polls over plain HTTP), and no `ALLOWED_HOSTS` check (hosts poll
+     with an internal address);
+   - "ok" (200) after a `SELECT 1`, or "error" (503) if the database fails,
+     with no other detail;
+   - it writes nothing and sets no cookie. Tested with the database made to
+     fail.
+2. **Security settings**, in the `if not DEBUG` block:
+   - `SECURE_SSL_REDIRECT = True`;
+   - `SECURE_HSTS_SECONDS` from an environment variable, defaulting to 3600,
+     so it can be raised without a code change;
+   - `SECURE_HSTS_INCLUDE_SUBDOMAINS = True`, to cover every club's address;
+   - preloading stays off (see question 1).
+
+   This reverses the note in `config/settings.py` that left the redirect and
+   HSTS off on purpose; `docs/decisions.md` records why.
+   - **CI:** a new job runs `manage.py check --deploy --fail-level WARNING`
+     with `DJANGO_DEBUG=0` and a throwaway secret key. Without
+     `--fail-level WARNING` the check passes whatever it finds: today it
+     finds two warnings and still exits 0.
+3. **Email from the club:**
+   - every email is built in `races/notifications.email_to`. It gains the
+     club (the request's club, or the invitation's):
+     - From: "<Club name> via Race Times", at the address in
+       `DEFAULT_FROM_EMAIL`, built with Python's `email.utils`, which quotes
+       names with commas and accents correctly;
+     - Reply-To: the club's contact email;
+     - with no club (the service's own address), both stay as today.
+   - The password reset is the one email Django sends itself. It gets a
+     small `PasswordResetForm` subclass so it comes from the club too.
+   - **Tests:** every email the site sends, checked for its From and
+     Reply-To, with a club name containing a comma, quotes and an accent. The
+     isolation tests' emails also check the other club's name isn't in the
+     sender.
+   - **Docs:** `docs/deploying.md` "Sending email" gains the provider
+     checklist: SPF, DKIM and DMARC for `racetimes.co.uk`, and the allowance
+     (about 600 emails per club per season, times the clubs).
+4. **Sentry:**
+   - `sentry-sdk[django]`, pinned (2.70.0 today), in `requirements.txt`;
+   - `sentry_sdk.init` only when `SENTRY_DSN` is set, so development, the
+     tests and CI send nothing;
+   - personal data kept out:
+     - `send_default_pii=False` (no user, no IP address, no cookies);
+     - `max_request_body_size="never"` (no form contents);
+     - `include_local_variables=False`, since a failing function's
+       variables can hold names and emails;
+   - `ClubMiddleware` tags each event with the club's subdomain; Sentry
+     already records the page;
+   - tested without sending anything: `sentry-sdk` has a test transport that
+     captures events in memory.
+5. **Logs:**
+   - `ClubMiddleware` stores the club's subdomain in a `contextvars`
+     variable for the request, and a logging filter adds it to every line,
+     e.g. `WARNING [demo] django.request: Not Found: /series/99/`. Outside a
+     request, or on the service's own address, it's `[-]`;
+   - no emails or names in log lines:
+     - the two log calls in the code today (`notifications.send` and
+       `scoring`) already name none;
+     - but an SMTP error can quote the address it refused, inside the
+       traceback. So the log formatter replaces anything shaped like an email
+       address with `[email]`, including in tracebacks;
+     - names can't be spotted reliably, so the rule for new log calls is "ids,
+       never names", written in `CLAUDE.md`.
+   - Tested by capturing the formatted output.
+6. **Throttling logins** (`races/throttle.py`):
+   - Django's database cache (`DatabaseCache`), which needs its table:
+     `createcachetable` joins `build.sh` and the setup commands in
+     `CLAUDE.md`. The test database creates it by itself;
+   - two counters, each for 15 minutes from the first failure:
+     - per account: the typed email, normalised as the login form does;
+     - per address: the client's IP (see question 2);
+   - at 10 failures either counter locks for 15 minutes. While locked, the
+     login is refused before the password is checked, with "Too many failed
+     logins. Try again in 15 minutes.";
+   - a correct password clears that account's counter, not the address's;
+   - it applies whether or not the email has an account, so the lock
+     message reveals nothing;
+   - both login pages use it: the site's (`LoginForm`) and the admin's
+     login on the service's own address, which is the operator's;
+   - tests: the 10th failure locks, the 9th doesn't, a lock ends after 15
+     minutes (with a fixed clock), a locked login with the right password is
+     still refused, one address locks every account, one account locks from
+     every address, and nothing reveals whether an account exists.
+7. **Docs and manual:**
+   - `docs/deploying.md`: the new environment variables (`SENTRY_DSN`,
+     `SECURE_HSTS_SECONDS`, the proxy setting), the health check address,
+     and the email checklist;
+   - `.env.example`, the README and `CLAUDE.md`'s commands and architecture
+     notes;
+   - the manual's login page gets one line on the 15-minute lock. No
+     screenshots change: the lock message is text, and nothing else is
+     visible to users;
+   - `docs/decisions.md`: HTTPS redirect and HSTS on, the database cache,
+     and how the client's address is found;
+   - `docs/plan.md`: "Part 4 ... complete".
+
+**Manual check:** run with `DJANGO_DEBUG=0` locally behind no proxy, and
+check:
+- `/health/` over plain HTTP, and with an unknown host;
+- the headers on a page (HSTS, frame options, referrer policy);
+- an email's From and Reply-To, printed by the console backend;
+- the log line for a missing page naming the club;
+- ten wrong passwords, then the lock message, in the browser.
+
+Sentry itself is checked only when the project owner has a DSN to try.
+
+**Questions for the project owner:**
+1. **HSTS preload.** `check --deploy --fail-level WARNING` also warns until
+   the domain is on browsers' HSTS preload list, which is hard to undo and
+   belongs with choosing hosting. Proposed: silence that one warning
+   (`security.W021`) in the settings, with a comment saying why.
+2. **Which client address to trust for throttling.** Behind the host's proxy,
+   every request comes from the proxy, so the real address is in the
+   `X-Forwarded-For` header. But its left-hand end can be forged by anyone.
+   Proposed: a setting, `TRUSTED_PROXIES` (the number of proxies in front of
+   the site: 0 in development, 1 on Render), and the address taken that many
+   places from the right-hand end. It's set again when hosting is chosen.
+3. **Locking an account can be used against its owner.** Anyone who knows a
+   member's email can lock their login for 15 minutes at a time. That's the
+   usual trade-off, and the spec accepts it; a password reset doesn't clear
+   the lock. Confirm that's fine.
+4. **Adding `sentry-sdk`.** The spec approves it. Confirm installing it now
+   at the version above.
+
+**Answered by the project owner, 2026-09-25: all four agreed.**
+- Silence `security.W021` (preload), with a comment.
+- A `TRUSTED_PROXIES` count, taking the address that many places from the
+  right of `X-Forwarded-For`: 0 in development, 1 on Render.
+- A lock can be used against an account's owner; accepted, and a password
+  reset doesn't clear it.
+- Install `sentry-sdk[django]` 2.70.0.
+
 ### Part 5: data protection (UK GDPR essentials)
 - **Pages.**
   - A **privacy notice** and **terms of service**, at `racetimes.co.uk`,

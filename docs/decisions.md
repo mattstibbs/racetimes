@@ -842,6 +842,7 @@ creates the account, so a password changed later in the admin stays changed.
 Production settings are keyed off `DJANGO_DEBUG=0`, so development and the test
 suite are unchanged. HSTS and Django's own HTTPS redirect are deliberately off:
 Render redirects to HTTPS already, and HSTS is hard to undo on a test site.
+(Reversed in slice 11 part 4, below: a service for paying clubs is HTTPS only.)
 
 ---
 
@@ -1293,6 +1294,55 @@ editing clubs and memberships in the Django admin.
 **Consequence.** The operator's pages aren't available on the Render test
 site: `SINGLE_CLUB` makes every address there Demo Club's. They need real
 subdomains, which come with production hosting.
+
+---
+
+## 2026-09-25 - Slice 11 part 4: the owner's answers on running in production
+
+**Decision.** Agreed with the project owner, from the part 4 plan's questions:
+- **HSTS preload stays off,** and its deploy-check warning (`security.W021`)
+  is silenced with a comment. Preloading is hard to undo, and belongs with
+  choosing hosting.
+- **The client's address for throttling** is taken from `X-Forwarded-For`,
+  `TRUSTED_PROXIES` places from the right-hand end: 0 in development, 1 on
+  Render. The left-hand end can be forged, so it's never trusted.
+- **A login lock can be used against an account's owner:** anyone who knows
+  a member's email can lock their login for 15 minutes at a time. That's the
+  usual trade-off, and it's accepted. A password reset doesn't clear the
+  lock.
+- **`sentry-sdk[django]` 2.70.0 is added** as a dependency, as the spec
+  approved.
+
+---
+
+## 2026-09-25 - Slice 11 part 4: running it in production
+
+**Decision.**
+- **HTTPS redirect and HSTS are on** with `DJANGO_DEBUG=0`, reversing the
+  slice 1 hosting note. HSTS starts at an hour (`SECURE_HSTS_SECONDS`) and
+  covers subdomains, so every club's address; it's raised without a code
+  change once hosting is settled. `/health/` is answered before the
+  redirect and the host check, since hosts poll over plain HTTP from an
+  internal address.
+- **Every email comes from its club** at the service's one sending address:
+  "<Club> via Race Times", Reply-To the club's contact email. One address
+  means one domain for the provider to vouch for (SPF, DKIM, DMARC); sending
+  "from" each club's own domain would need every club to set up DNS. The
+  club is the one the email names (an invitation's), else the request's.
+- **Failed-login counts are in Django's database cache.** The workers share
+  the database and nothing else, and it needs no new dependency. The keys
+  are hashed, so the table holds no email or IP addresses. Counting isn't
+  exact under concurrent requests, which is fine for slowing guessing down.
+- **The client's address** counts `TRUSTED_PROXIES` from the right of
+  `X-Forwarded-For` (see the owner's answers above).
+- **Logs name the club, and error reports and logs name nobody.** The club
+  goes in a context variable, cleared on Django's request signals rather
+  than by the middleware, since Django logs a response ("Not Found") after
+  the middleware has returned it. Email-shaped text is redacted in log lines
+  and, going a little beyond the plan, in Sentry reports too: an exception's
+  message (an SMTP refusal, say) is sent whatever `send_default_pii` says.
+
+**Why.** The slice 11 spec, part 4; the owner's answers above.
 
 ---
 

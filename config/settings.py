@@ -62,6 +62,21 @@ else:
 # means such an address is the service's own front page.
 SINGLE_CLUB = os.environ.get('SINGLE_CLUB', '')
 
+# How many proxies in front of the site add to X-Forwarded-For, so the
+# client's own address can be found: 0 with none (development), 1 on Render.
+# Used to limit failed logins from one address (races/throttle.py).
+TRUSTED_PROXIES = int(os.environ.get('TRUSTED_PROXIES', '0'))
+
+# Failed-login counts (races/throttle.py) are kept in the database, the one
+# place every web worker shares. Its table is made by `createcachetable`,
+# which build.sh runs; the test database makes it by itself.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'racetimes_cache',
+    }
+}
+
 # Shown on the service's front page, for clubs that want to use Race Times.
 SERVICE_CONTACT_EMAIL = os.environ.get('SERVICE_CONTACT_EMAIL', 'hello@racetimes.co.uk')
 
@@ -76,10 +91,23 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # `check --deploy` also suggests SECURE_SSL_REDIRECT and HSTS. Both are
-    # left off on purpose: the host already redirects HTTP to HTTPS, and HSTS
-    # makes browsers refuse plain HTTP for months, which is hard to undo on a
-    # test site.
+    # Slice 11 part 4: a service for paying clubs is HTTPS only. (These were
+    # left off for the test site, whose host already redirects to HTTPS; see
+    # docs/decisions.md.) Browsers are told to use HTTPS for every club's
+    # address (HSTS), for an hour to begin with; raise SECURE_HSTS_SECONDS
+    # once hosting is settled, without a code change.
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # Not on browsers' HSTS preload list: that's hard to undo, and belongs with
+    # choosing hosting. So its deploy-check warning is silenced (agreed by the
+    # project owner).
+    SILENCED_SYSTEM_CHECKS = ['security.W021']
+
+# Set explicitly, so a Django upgrade can't loosen them: no page may be shown
+# in another site's frame, and links out send only this site's address.
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'same-origin'
 
 
 # Application definition
@@ -98,6 +126,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # First, so /health/ answers on any address, over plain HTTP, before the
+    # host check, the HTTPS redirect or the club lookup (races/health.py).
+    'races.health.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # Serves the CSS and HTMX files in production, straight after security as
     # WhiteNoise's docs require. With DEBUG on, runserver serves them instead.
@@ -228,13 +259,34 @@ if not DEBUG:
 
 # Errors go to the console, which is where a host like Render collects logs.
 # Django's default only prints them with DEBUG on, so a failure in production
-# would otherwise leave no trace.
+# would otherwise leave no trace. Each line names the club's subdomain, and
+# email addresses are redacted (races/logs.py).
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'filters': {'club': {'()': 'races.logs.ClubFilter'}},
+    'formatters': {
+        'redacted': {
+            '()': 'races.logs.RedactingFormatter',
+            'format': '%(levelname)s [%(club)s] %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'filters': ['club'], 'formatter': 'redacted'},
+    },
     'root': {'handlers': ['console'], 'level': 'WARNING'},
 }
+
+# Unhandled errors are reported to Sentry, tagged with the club, when
+# SENTRY_DSN is set; development, the tests and CI leave it unset and send
+# nothing. What's kept out of the reports is in races/logs.py.
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN:
+    import sentry_sdk
+
+    from races.logs import sentry_options
+
+    sentry_sdk.init(dsn=SENTRY_DSN, **sentry_options())
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
