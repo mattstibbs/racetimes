@@ -174,6 +174,16 @@ def membership_decided(membership, request, change):
                 my_boats_link=_link(request, "races:my_boats"))], request)
 
 
+def account_deleted(user, request):
+    """The one email confirming an account was deleted (slice 11 part 5).
+
+    Built before the account goes, and sent by the caller once it has: the
+    last email Race Times sends to that address.
+    """
+    return email_to(user.email, "account_deleted", request, name=user.first_name or user.get_username(),
+                    account_email=user.email)
+
+
 def invitation(invitation, request, link):
     """The operator's invitation to run a club, with its 7-day link (slice 11 part 3)."""
     send([email_to(invitation.email, "club_invitation", request, invitation=invitation,

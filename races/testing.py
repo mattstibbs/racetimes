@@ -99,9 +99,9 @@ def make_committee(email="officer@example.com", club=_DEFAULT, **fields):
     return make_member(email, first_name="Race", last_name="Officer", club=club, role="COMMITTEE", **fields)
 
 
-def make_administrator(email="admin@example.com", club=_DEFAULT):
+def make_administrator(email="admin@example.com", club=_DEFAULT, **fields):
     """A club administrator of Demo Club (or ``club``). Not the operator."""
-    return make_member(email, first_name="Club", last_name="Admin", club=club, role="ADMINISTRATOR")
+    return make_member(email, first_name="Club", last_name="Admin", club=club, role="ADMINISTRATOR", **fields)
 
 
 def make_operator(email="operator@example.com"):

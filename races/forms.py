@@ -265,6 +265,28 @@ class LoginForm(AuthenticationForm):
     unconfirmed = False
 
 
+class DeleteAccountForm(forms.Form):
+    """Deleting your own account needs your password (slice 11 part 5).
+
+    The check is limited like a login (races/throttle.py), so this form can't
+    be used to guess a password either.
+    """
+
+    password = forms.CharField(label="Your password", strip=False, widget=forms.PasswordInput)
+
+    def __init__(self, *args, request, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        user = self.request.user
+        with throttle.guard(self.request, user.get_username(), password):
+            if not user.check_password(password):
+                raise ValidationError("That isn't your password.", code="invalid_login")
+        return password
+
+
 class AdminLoginForm(AdminAuthenticationForm):
     """The admin's login on the service's own address, the operator's, with the same limit on guessing."""
 

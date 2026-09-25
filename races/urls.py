@@ -2,7 +2,7 @@ from django.urls import path, reverse_lazy
 
 from django.contrib.auth import views as auth_views
 
-from . import invitations, member_views, membership_views, operator_views, views
+from . import account_views, invitations, member_views, membership_views, operator_views, views
 from .forms import ClubPasswordResetForm
 
 app_name = 'races'
@@ -16,6 +16,9 @@ urlpatterns = [
     path('accounts/confirm/<uidb64>/<token>/', membership_views.confirm_email, name='confirm_email'),
     path('accounts/confirm/again/', membership_views.resend_confirmation, name='resend_confirmation'),
     path('join/', membership_views.join_club, name='join_club'),
+    path('account/', account_views.account, name='account'),
+    path('account/data.json', account_views.download_my_data, name='download_my_data'),
+    path('account/delete/', account_views.delete_my_account, name='delete_account'),
     path('members/', membership_views.members_page, name='members'),
     path('members/<int:pk>/', membership_views.decide_membership, name='decide_membership'),
     path('invitation/<str:token>/', invitations.accept_invitation, name='accept_invitation'),
