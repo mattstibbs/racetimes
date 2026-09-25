@@ -1217,11 +1217,33 @@ a global committee group, and the superuser as the administrator.
   club.
 - **Production hosting is deferred** to a later slice.
 
+**Answered by the project owner, 2026-09-25:**
+- **Joining a club is what gets approved,** not the account.
+- **A boat belongs to one club.**
+- **The service is Race Times, at `racetimes.co.uk`.**
+- **The first club is "Demo Club",** at `demo.racetimes.co.uk`, and the
+  current test site's data becomes its data.
+- **The legal review is deferred** and recorded as an open requirement
+  (below).
+
 **Consequence.** The largest change since slice 1. It is built in five parts,
-each merged on its own. The data model and six open questions are waiting
-for the project owner; see the spec.
+each merged on its own. The data model is still waiting for the project
+owner's approval; see the spec.
 
 ---
+
+## Open requirements
+
+Things that must be done before a stated milestone, but aren't code.
+
+- **Legal review before the first paying club** (slice 11, recorded
+  2026-09-25).
+  - The privacy notice and terms of service are drafts, marked "Draft" on
+    the page, until reviewed.
+  - Clubs will also need a data processing agreement: the club is the
+    controller of its members' data, and Race Times is its processor.
+  - None of this blocks building or testing slice 11. It blocks taking on a
+    paying club.
 
 ## Open questions
 

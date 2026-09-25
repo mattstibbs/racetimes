@@ -1,7 +1,7 @@
 # Slice 11: Race Times as a service for many clubs
 
-**Status: planned. The open questions at the end need answers, and the data
-model needs the project owner's approval, before building starts.**
+**Status: planned. Open questions 1 to 5 are answered (see the end). The
+data model still needs the project owner's approval before building starts.**
 
 ## Goal
 Race Times today is one club's website. It assumes a single club throughout:
@@ -255,10 +255,11 @@ touches every page; the rest are additions.
 
 ### Part 5: data protection (UK GDPR essentials)
 - **Pages.**
-  - A **privacy notice** and **terms of service**, on the service's own
-    address, linked from every page's footer.
-  - Their text is a draft for the project owner to have reviewed, and is
-    marked as a draft until then.
+  - A **privacy notice** and **terms of service**, at `racetimes.co.uk`,
+    linked from every page's footer.
+  - Their text is a draft, marked "Draft" on the page until it has been
+    reviewed. The review is an open requirement before the first paying
+    club (open question 5).
   - Each club is the "controller" of its members' data and the service is
     its "processor". The notice explains that.
 - **Cookies:** only the essential ones, the login session and the CSRF
@@ -374,18 +375,26 @@ once it has been filled, so each migration can run on a live database.
 - Single sign-on (Google, Microsoft) and two-factor authentication.
 - Moving other clubs' data in from other software.
 
-## Open questions *(to answer before building)*
+## Open questions *(answered by the project owner on 2026-09-25, except 6)*
 1. **Joining a club is approved, not the account.** Anyone can create an
-   account, and a club's administrator approves them joining. Today the
-   administrator approves the account itself. Is that change right?
+   account, and a club's administrators approve them joining. **Yes.**
 2. **A boat belongs to one club.** A boat that races at two clubs is typed
-   in at each, with separate handicap histories. Is that acceptable for now?
-3. **The product's name and domain.** Is it still "Race Times"? Is there a
-   domain yet? The code only needs `SERVICE_DOMAIN`, but the emails, the
-   privacy notice and the front page need a name.
-4. **The first club.** Which club is the current test site's data, and what
-   subdomain should it have?
-5. **Legal text.** The privacy notice and terms are drafts. Who will review
-   them before a paying club signs up? Clubs will also ask for a data
-   processing agreement; that's a document you provide, not code.
-6. **Approve the data model** above.
+   in at each, with separate handicap histories. **Yes, for now.**
+3. **The product's name and domain.** **Race Times, at `racetimes.co.uk`.**
+   - The service's front page, privacy notice and terms are at
+     `racetimes.co.uk`.
+   - Clubs are at `<subdomain>.racetimes.co.uk`.
+   - Emails come from an address at `racetimes.co.uk`.
+   - `SERVICE_DOMAIN` defaults to `racetimes.co.uk` in production, and to
+     `localhost` in development.
+4. **The first club.** **"Demo Club", at `demo.racetimes.co.uk`.** The data
+   migration's defaults are `FIRST_CLUB_NAME="Demo Club"` and
+   `FIRST_CLUB_SUBDOMAIN="demo"`, and the current test site's data becomes
+   Demo Club's.
+5. **Legal text.** **Deferred, and recorded as an open requirement.**
+   - The privacy notice and terms are built as drafts, clearly marked
+     "Draft" on the page.
+   - Having them reviewed, and providing clubs with a data processing
+     agreement, must happen before the first paying club signs up. It's
+     listed under "Open requirements" in `docs/decisions.md`.
+6. **Approve the data model** above. *Still waiting for the project owner.*
