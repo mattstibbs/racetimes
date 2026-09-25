@@ -434,6 +434,14 @@ Sentry itself is checked only when the project owner has a DSN to try.
 4. **Adding `sentry-sdk`.** The spec approves it. Confirm installing it now
    at the version above.
 
+**Answered by the project owner, 2026-09-25: all four agreed.**
+- Silence `security.W021` (preload), with a comment.
+- A `TRUSTED_PROXIES` count, taking the address that many places from the
+  right of `X-Forwarded-For`: 0 in development, 1 on Render.
+- A lock can be used against an account's owner; accepted, and a password
+  reset doesn't clear it.
+- Install `sentry-sdk[django]` 2.70.0.
+
 ### Part 5: data protection (UK GDPR essentials)
 - **Pages.**
   - A **privacy notice** and **terms of service**, at `racetimes.co.uk`,

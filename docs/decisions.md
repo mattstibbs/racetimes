@@ -1296,6 +1296,24 @@ subdomains, which come with production hosting.
 
 ---
 
+## 2026-09-25 - Slice 11 part 4: the owner's answers on running in production
+
+**Decision.** Agreed with the project owner, from the part 4 plan's questions:
+- **HSTS preload stays off,** and its deploy-check warning (`security.W021`)
+  is silenced with a comment. Preloading is hard to undo, and belongs with
+  choosing hosting.
+- **The client's address for throttling** is taken from `X-Forwarded-For`,
+  `TRUSTED_PROXIES` places from the right-hand end: 0 in development, 1 on
+  Render. The left-hand end can be forged, so it's never trusted.
+- **A login lock can be used against an account's owner:** anyone who knows
+  a member's email can lock their login for 15 minutes at a time. That's the
+  usual trade-off, and it's accepted. A password reset doesn't clear the
+  lock.
+- **`sentry-sdk[django]` 2.70.0 is added** as a dependency, as the spec
+  approved.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
