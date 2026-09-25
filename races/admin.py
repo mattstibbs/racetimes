@@ -3,7 +3,8 @@ import json
 from django.contrib import admin, messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
+from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.core.exceptions import ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
@@ -17,8 +18,8 @@ from .forms import (
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, BoatRequest, Club, EntryRequest, Race, Series, SeriesEntry
-from .roles import waiting_for_approval
+from .models import Boat, BoatRequest, Club, ClubMembership, EntryRequest, Race, Series, SeriesEntry
+from .roles import is_committee
 from .scoring import score_series
 
 # The admin wraps each save in a transaction, so a change and its history rows
@@ -40,6 +41,25 @@ class ClubScopedAdmin:
         queryset = super().get_queryset(request)
         return queryset if request.club is None else queryset.for_club(request.club)
 
+    # Permission comes from the club membership (slice 11 part 2): this club's
+    # race committee and administrators may set things up here. Django's own
+    # per-model permissions, which came from the old site-wide group, aren't
+    # consulted. On the service's own address, only the operator.
+    def has_module_permission(self, request):
+        return _may_set_up(request)
+
+    def has_view_permission(self, request, obj=None):
+        return _may_set_up(request)
+
+    def has_add_permission(self, request, *args):
+        return _may_set_up(request)
+
+    def has_change_permission(self, request, obj=None):
+        return _may_set_up(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return _may_set_up(request)
+
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         form.club = request.club  # a new boat or series joins this club
@@ -49,6 +69,12 @@ class ClubScopedAdmin:
         return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
 
 
+def _may_set_up(request):
+    if request.club is None:
+        return request.user.is_active and request.user.is_superuser
+    return is_committee(request.user, request.club)
+
+
 def _club_choices(db_field, request, kwargs):
     """Only this club's boats and series in a choice list, including autocomplete ones."""
     if request.club is not None and db_field.related_model in (Boat, Series):
@@ -56,22 +82,65 @@ def _club_choices(db_field, request, kwargs):
     return kwargs
 
 
-class ClubScopedInline:
+class ClubScopedInline(ClubScopedAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
 
 
 @admin.register(Club)
 class ClubAdmin(admin.ModelAdmin):
-    """The operator's list of clubs. Part 3 of slice 11 gives the operator proper pages."""
+    """The operator's list of clubs, on the service's own address only.
+
+    Part 3 of slice 11 gives the operator proper pages.
+    """
 
     list_display = ["name", "subdomain", "status", "created_at"]
 
     def has_module_permission(self, request):
-        return request.user.is_superuser
+        return _operator_here(request)
 
     def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return _operator_here(request)
+
+    def has_add_permission(self, request):
+        return _operator_here(request)
+
+    def has_change_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # part 5: deleting a club is a deliberate step of its own
+
+
+@admin.register(ClubMembership)
+class ClubMembershipAdmin(admin.ModelAdmin):
+    """The operator's way to give someone a role at a club, e.g. a new club's
+    first administrator. Club administrators use their club's Members page.
+    Part 3 of slice 11 replaces this with an emailed invitation."""
+
+    list_display = ["user", "club", "role", "status"]
+    list_filter = ["club", "role", "status"]
+    autocomplete_fields = ["user"]
+
+    def has_module_permission(self, request):
+        return _operator_here(request)
+
+    def has_view_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_add_permission(self, request):
+        return _operator_here(request)
+
+    def has_change_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return _operator_here(request)
+
+
+def _operator_here(request):
+    """The operator, on the service's own address (which belongs to no club)."""
+    return request.club is None and request.user.is_active and request.user.is_superuser
 
 
 class ReasonInAdminHistoryMixin:
@@ -132,9 +201,11 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
         # A plain list of active accounts. Django's search box would need
         # permission to browse accounts, which the committee does not have.
         if db_field.name == "owner":
-            kwargs["queryset"] = get_user_model().objects.filter(is_active=True).order_by(
-                "first_name", "last_name"
-            )
+            # Only this club's approved members can own its boats (slice 11).
+            kwargs["queryset"] = get_user_model().objects.filter(
+                is_active=True, memberships__club=request.club,
+                memberships__status=ClubMembership.Status.APPROVED,
+            ).order_by("first_name", "last_name")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -266,6 +337,9 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
         # Deciding a request applies it; changing its status here would not.
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False  # a request is a record of what was asked and decided
+
     def changelist_view(self, request, extra_context=None):
         messages.info(request, format_html(
             'Requests are approved or rejected on the <a href="{}">Requests page</a>.',
@@ -284,54 +358,42 @@ class EntryRequestAdmin(RequestAdmin):
     list_display = ["created_at", "boat", "series", "requested_by", "status", "decided_by_name"]
 
 
-# --- Accounts: the administrator's alone -------------------------------------
+# --- Accounts and groups: the operator's alone ---------------------------------------
+#
+# Since slice 11, a club's administrator manages its people on the club's
+# Members page (races/membership_views.py), never here. Accounts span every
+# club, so the Django admin for them is the operator's, on the service's own
+# address only.
 
 User = get_user_model()
 admin.site.unregister(User)
-
-
-class ApprovalFilter(admin.SimpleListFilter):
-    """New sign-ups, as distinct from accounts switched off later."""
-
-    title = "approval"
-    parameter_name = "approval"
-    WAITING = "waiting"
-
-    def lookups(self, request, model_admin):
-        return [(self.WAITING, "Waiting for approval")]
-
-    def queryset(self, request, queryset):
-        if self.value() == self.WAITING:
-            return waiting_for_approval(queryset)
-        return queryset
-
-
-def waiting_now_active(users):
-    return [user for user in users if user.last_login is None]
+admin.site.unregister(Group)
 
 
 @admin.register(User)
-class MemberAccountAdmin(UserAdmin):
-    """Django's own account admin, plus approving sign-ups in one step.
+class OperatorAccountAdmin(UserAdmin):
+    list_display = ["username", "first_name", "last_name", "is_active", "is_superuser", "date_joined"]
 
-    Only the administrator (a superuser) reaches it: the Race committee group
-    has no permissions on accounts.
-    """
+    def has_module_permission(self, request):
+        return _operator_here(request)
 
-    list_display = ["username", "first_name", "last_name", "is_active", "is_staff", "date_joined"]
-    list_filter = [ApprovalFilter, "is_active", "is_staff", "is_superuser", "groups"]
-    actions = ["approve_accounts"]
+    def has_view_permission(self, request, obj=None):
+        return _operator_here(request)
 
-    @admin.action(description="Approve selected accounts")
-    def approve_accounts(self, request, queryset):
-        approving = list(queryset.filter(is_active=False))
-        count = queryset.filter(pk__in=[u.pk for u in approving]).update(is_active=True)
-        self.message_user(request, f"{count} account{'s' if count != 1 else ''} approved.")
-        notifications.account_approved(waiting_now_active(approving), request)
+    def has_add_permission(self, request):
+        return _operator_here(request)
 
-    def save_model(self, request, obj, form, change):
-        # Ticking "Active" on a new sign-up approves it just as the action does.
-        was_waiting = change and waiting_for_approval(User.objects.filter(pk=obj.pk)).exists()
-        super().save_model(request, obj, form, change)
-        if was_waiting and obj.is_active:
-            notifications.account_approved([obj], request)
+    def has_change_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return _operator_here(request)
+
+
+@admin.register(Group)
+class OperatorGroupAdmin(GroupAdmin):
+    def has_module_permission(self, request):
+        return _operator_here(request)
+
+    def has_view_permission(self, request, obj=None):
+        return _operator_here(request)

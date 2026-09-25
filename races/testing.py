@@ -7,7 +7,7 @@ as the situation it sets up.
 from datetime import date, time
 from decimal import Decimal
 
-from races.models import Boat, Club, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.models import Boat, Club, ClubMembership, Finish, Race, RaceEntry, Series, SeriesEntry
 
 
 def default_club():
@@ -64,25 +64,47 @@ def record(race, entry, finish_time=None, status=None):
     )
 
 
-def make_member(email="member@example.com", first_name="Pat", last_name="Jones", **fields):
-    """An active member account, logged in by email as the slice 3 sign-up does."""
+_DEFAULT = object()
+
+
+def make_member(email="member@example.com", first_name="Pat", last_name="Jones",
+                club=_DEFAULT, role="MEMBER", status="APPROVED", **fields):
+    """An active account, logged in by email, with an approved membership of Demo Club.
+
+    Pass ``club`` for another club, or ``club=None`` for an account that
+    belongs to no club. ``role`` and ``status`` are the membership's (slice 11).
+    """
     from django.contrib.auth import get_user_model
 
-    return get_user_model().objects.create_user(
+    user = get_user_model().objects.create_user(
         username=email, email=email, first_name=first_name, last_name=last_name, **fields
     )
-
-
-def make_committee(email="officer@example.com", **fields):
-    """A race committee account: staff, in the Race committee group."""
-    from django.contrib.auth.models import Group
-
-    from races.roles import COMMITTEE_GROUP
-
-    user = make_member(email, first_name="Race", last_name="Officer", is_staff=True, **fields)
-    user.groups.add(Group.objects.get(name=COMMITTEE_GROUP))
+    if club is _DEFAULT:
+        club = default_club()
+    if club is not None:
+        ClubMembership.objects.create(user=user, club=club, role=role, status=status)
     return user
 
 
-def make_administrator(email="admin@example.com"):
-    return make_member(email, first_name="Club", last_name="Admin", is_staff=True, is_superuser=True)
+def join(user, club, role="MEMBER", status="APPROVED"):
+    """Give an existing account a membership of another club."""
+    from races.roles import forget_memberships
+
+    forget_memberships(user)  # the user object may have looked up its memberships already
+    return ClubMembership.objects.create(user=user, club=club, role=role, status=status)
+
+
+def make_committee(email="officer@example.com", club=_DEFAULT, **fields):
+    """A race committee member of Demo Club (or ``club``)."""
+    return make_member(email, first_name="Race", last_name="Officer", club=club, role="COMMITTEE", **fields)
+
+
+def make_administrator(email="admin@example.com", club=_DEFAULT):
+    """A club administrator of Demo Club (or ``club``). Not the operator."""
+    return make_member(email, first_name="Club", last_name="Admin", club=club, role="ADMINISTRATOR")
+
+
+def make_operator(email="operator@example.com"):
+    """The service's operator: a superuser with no club membership."""
+    return make_member(email, first_name="Service", last_name="Operator", club=None,
+                       is_staff=True, is_superuser=True)

@@ -22,11 +22,13 @@ nav:
   - Introduction: index.md
   - Getting started:
       - Finding your results: getting-started/finding-results.md
+      - Joining a club: getting-started/joining-a-club.md
       - Forgotten your password?: getting-started/forgotten-password.md
   - Members:
       - Emails you will receive: members/emails.md
   - Race committee:
       - "Race day: the start sheet and finishes": committee/race-day.md
       - Publishing results: committee/publishing-results.md
+      - "Running your club: members and roles": committee/members-and-roles.md
       - "Ending a series: final results": committee/ending-a-series.md
       - Reviewing waiting requests: committee/reviewing-requests.md

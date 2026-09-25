@@ -6,49 +6,52 @@ from django.db import IntegrityError
 from django.urls import reverse
 
 from races.models import BoatRequest, EntryRequest
-from races.roles import COMMITTEE_GROUP, is_committee, is_member
+from races.roles import is_club_administrator, is_committee, is_member
 from races.testing import (
-    default_club,
-    make_administrator, make_boat, make_committee, make_member, make_series,
+    default_club, join,
+    make_administrator, make_boat, make_club, make_committee, make_member, make_operator, make_series,
 )
 
 pytestmark = pytest.mark.django_db
 
 
-# --- Who counts as what -----------------------------------------------------
+# --- Who counts as what (slice 11: roles belong to a club membership) -------------
 
 
-def test_roles():
+def test_roles_come_from_an_approved_membership_of_this_club():
+    club = default_club()
     member, committee, admin = make_member(), make_committee(), make_administrator()
-    assert [is_member(u) for u in (AnonymousUser(), member, committee, admin)] == [
-        False, True, True, True,
-    ]
-    assert [is_committee(u) for u in (AnonymousUser(), member, committee, admin)] == [
-        False, False, True, True,
-    ]
+    people = (AnonymousUser(), member, committee, admin)
+    assert [is_member(u, club) for u in people] == [False, True, True, True]
+    assert [is_committee(u, club) for u in people] == [False, False, True, True]
+    assert [is_club_administrator(u, club) for u in people] == [False, False, False, True]
 
 
-def test_staff_alone_is_not_the_committee():
-    """Staff access only counts with the group, or as the administrator."""
-    assert not is_committee(make_member(is_staff=True))
+def test_a_role_at_one_club_is_nothing_at_another():
+    harbour = make_club("harbour")
+    committee = make_committee()
+    assert not is_member(committee, harbour) and not is_committee(committee, harbour)
+    join(committee, harbour)
+    assert is_member(committee, harbour) and not is_committee(committee, harbour)
+
+
+@pytest.mark.parametrize("status", ["WAITING", "REMOVED"])
+def test_a_membership_not_approved_has_no_role(status):
+    person = make_committee(status=status)
+    assert not is_member(person, default_club()) and not is_committee(person, default_club())
+
+
+def test_staff_superusers_and_the_old_group_mean_nothing_at_a_club():
+    operator = make_operator()
+    staff = make_member("staff@example.com", club=None, is_staff=True)
+    staff.groups.add(Group.objects.get(name="Race committee"))
+    for person in (operator, staff):
+        assert not is_member(person, default_club()) and not is_committee(person, default_club())
 
 
 def test_an_inactive_account_has_no_role():
-    assert not is_member(make_member(is_active=False))
-    assert not is_committee(make_committee(is_active=False))
-
-
-def test_the_committee_group_grants_racing_and_nothing_about_people():
-    codenames = set(
-        Group.objects.get(name=COMMITTEE_GROUP).permissions.values_list("codename", flat=True)
-    )
-    for model in ["boat", "series", "seriesentry", "race", "finish"]:
-        assert {f"{a}_{model}" for a in ("add", "change", "delete", "view")} <= codenames
-    # Requests are decided on the Requests page; history is never edited.
-    for model in ["boatrequest", "entryrequest", "scoringchange"]:
-        assert f"view_{model}" in codenames
-        assert f"change_{model}" not in codenames
-    assert not any(c.endswith(("_user", "_group", "_permission")) for c in codenames)
+    assert not is_member(make_member(is_active=False), default_club())
+    assert not is_committee(make_committee(is_active=False), default_club())
 
 
 # --- Boats and requests -----------------------------------------------------
@@ -121,7 +124,10 @@ def test_a_members_requests_go_with_their_account():
 
 # --- Every page, as each of the four roles -----------------------------------
 
-ROLES = ["public", "member", "committee", "administrator"]
+# Slice 11: roles at Demo Club, plus the operator (a superuser, with no role at
+# any club) and a race committee member of another club. Neither of the last two
+# may do anything here that the public can't, except see that they're not a member.
+ROLES = ["public", "member", "committee", "administrator", "operator", "committee elsewhere"]
 SEES = 200
 TO_LOGIN = "login"
 REFUSED = 403
@@ -135,6 +141,8 @@ def as_role(client):
             "member": make_member,
             "committee": make_committee,
             "administrator": make_administrator,
+            "operator": make_operator,
+            "committee elsewhere": lambda: make_committee("far@example.com", club=make_club("harbour")),
         }[role]()
         if user is not None:
             client.force_login(user)
@@ -149,24 +157,33 @@ def pages():
     race = make_race(series)
     boat = make_boat()
     enter(series, boat)
+    everyone = [SEES] * 6
+    # The public is sent to log in; anyone logged in without the role is
+    # refused (sending them to log in looped, since they're logged in already).
+    # The admin sends everyone without access to its own login first.
+    committee = [TO_LOGIN, REFUSED, SEES, SEES, REFUSED, REFUSED]
+    admin_committee = [TO_LOGIN, TO_LOGIN, SEES, SEES, TO_LOGIN, TO_LOGIN]
     return {
-        "home": (reverse("results:home"), [SEES] * 4),
-        "results": (reverse("results:series", args=[series.pk]), [SEES] * 4),
-        "a boat's results": (reverse("results:boat", args=[boat.pk]), [SEES] * 4),
-        "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES]),
-        "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES]),
-        "requests": (reverse("races:requests"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "start sheet": ((reverse("races:race_day", args=[race.pk]) + "?view=start"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "finish entry": ((reverse("races:race_day", args=[race.pk]) + "?view=finish"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "history": (reverse("races:series_history", args=[series.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "final results": (reverse("races:final", args=[series.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "download (CSV)": (reverse("results:series_csv", args=[series.pk]), [SEES] * 4),
-        "admin: boats": (reverse("admin:races_boat_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "admin: series": (reverse("admin:races_series_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "admin: requests": (reverse("admin:races_boatrequest_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
-        "admin: accounts": (reverse("admin:auth_user_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, SEES]),
-        "admin: groups": (reverse("admin:auth_group_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, SEES]),
+        "home": (reverse("results:home"), everyone),
+        "results": (reverse("results:series", args=[series.pk]), everyone),
+        "a boat's results": (reverse("results:boat", args=[boat.pk]), everyone),
+        "download (CSV)": (reverse("results:series_csv", args=[series.pk]), everyone),
+        # Anyone logged in gets My boats; someone not a member here is offered Join this club.
+        "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES, SEES, SEES]),
+        "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES, REFUSED, REFUSED]),
+        "requests": (reverse("races:requests"), committee),
+        "start sheet": ((reverse("races:race_day", args=[race.pk]) + "?view=start"), committee),
+        "finish entry": ((reverse("races:race_day", args=[race.pk]) + "?view=finish"), committee),
+        "history": (reverse("races:series_history", args=[series.pk]), committee),
+        "final results": (reverse("races:final", args=[series.pk]), committee),
+        "members": (reverse("races:members"), [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED]),
+        "admin: boats": (reverse("admin:races_boat_changelist"), admin_committee),
+        "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), admin_committee),
+        "admin: series": (reverse("admin:races_series_changelist"), admin_committee),
+        "admin: requests": (reverse("admin:races_boatrequest_changelist"), admin_committee),
+        # Accounts span clubs: the operator's alone, on the service's own address.
+        "admin: accounts": (reverse("admin:auth_user_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),
+        "admin: groups": (reverse("admin:auth_group_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),
     }
 
 
@@ -195,35 +212,30 @@ def test_the_header_offers_requests_only_to_the_committee(as_role, role, sees_re
     assert (reverse("races:requests") in page) is sees_requests
 
 
-# --- The administrator manages accounts; the committee cannot ----------------
+# --- Accounts belong to the operator; a club's people are on its Members page -----
+# Slice 11: accounts span clubs, so the Django admin for them is the operator's,
+# on the service's own address. Approving people is on the Members page
+# (races/test_memberships.py).
 
 
-def test_the_administrator_approves_waiting_accounts(as_role):
-    waiting = [make_member(f"new{n}@example.com", is_active=False) for n in range(2)]
-    client = as_role("administrator")
-    client.post(reverse("admin:auth_user_changelist"), {
-        "action": "approve_accounts", "_selected_action": [u.pk for u in waiting],
-    })
-    for user in waiting:
-        user.refresh_from_db()
-        assert user.is_active
-
-
-def test_the_committee_cannot_change_an_account(as_role):
+@pytest.mark.parametrize("role", ["committee", "administrator"])
+def test_nobody_at_a_club_can_change_an_account(as_role, role):
     member = make_member("pat@example.com")
-    client = as_role("committee")
+    client = as_role(role)
     response = client.post(reverse("admin:auth_user_change", args=[member.pk]), {"is_staff": "on"})
     assert response.status_code == 403
     member.refresh_from_db()
     assert not member.is_staff
 
 
-def test_the_committee_sets_a_boats_owner_from_active_accounts(as_role):
-    active, waiting = make_member("pat@example.com"), make_member("new@example.com", is_active=False)
+def test_the_committee_sets_a_boats_owner_from_this_clubs_members(as_role):
+    member = make_member("pat@example.com")
+    waiting = make_member("new@example.com", status="WAITING")
+    elsewhere = make_member("far@example.com", club=make_club("harbour"))
     boat = make_boat()
     page = as_role("committee").get(reverse("admin:races_boat_change", args=[boat.pk])).content.decode()
-    assert f'value="{active.pk}"' in page
-    assert f'value="{waiting.pk}"' not in page
+    assert f'value="{member.pk}"' in page
+    assert f'value="{waiting.pk}"' not in page and f'value="{elsewhere.pk}"' not in page
 
 
 def test_requests_are_read_only_in_the_admin(as_role):
@@ -235,46 +247,32 @@ def test_requests_are_read_only_in_the_admin(as_role):
     assert request.status == "PENDING"
 
 
-# --- The administrator is told about new sign-ups ------------------------------
+# --- The club's administrators are told about people waiting to join ------------------
 
 
-def test_the_admin_front_page_counts_accounts_waiting_for_approval(as_role):
-    make_member("new1@example.com", is_active=False)
-    make_member("new2@example.com", is_active=False)
+def test_the_admin_front_page_counts_people_waiting_to_join(as_role):
+    make_member("new1@example.com", status="WAITING")
+    make_member("new2@example.com", status="WAITING")
+    make_member("gone@example.com", status="REMOVED")
     page = as_role("administrator").get(reverse("admin:index")).content.decode()
-    assert "2 new accounts are waiting for approval" in page
-    assert f'{reverse("admin:auth_user_changelist")}?approval=waiting' in page
+    assert "2 people are waiting to join the club." in page
+    assert reverse("races:members") in page
+
+
+def test_one_person_waiting_reads_in_the_singular(as_role):
+    make_member("new@example.com", status="WAITING")
+    assert "1 person is waiting to join the club." in as_role("administrator").get(reverse("admin:index")).content.decode()
 
 
 def test_no_notice_when_nobody_is_waiting(as_role):
     page = as_role("administrator").get(reverse("admin:index")).content.decode()
-    assert "waiting for approval" not in page
+    assert "waiting to join" not in page
 
 
-def test_an_account_switched_off_later_is_not_a_new_sign_up(as_role):
-    from django.utils import timezone
-    make_member("left@example.com", is_active=False, last_login=timezone.now())
-    make_member("new@example.com", is_active=False)
-    page = as_role("administrator").get(reverse("admin:index")).content.decode()
-    assert "1 new account is waiting for approval" in page
-
-
-def test_the_committee_is_not_told_about_sign_ups(as_role):
-    make_member("new@example.com", is_active=False)
+def test_the_committee_is_not_told_about_people_joining(as_role):
+    make_member("new@example.com", status="WAITING")
     page = as_role("committee").get(reverse("admin:index")).content.decode()
-    assert "waiting for approval" not in page
-
-
-def test_the_waiting_filter_lists_only_new_sign_ups(as_role):
-    from django.utils import timezone
-    make_member("left@example.com", is_active=False, last_login=timezone.now())
-    make_member("new@example.com", is_active=False)
-    make_member("active@example.com")
-    page = as_role("administrator").get(
-        reverse("admin:auth_user_changelist") + "?approval=waiting"
-    ).content.decode()
-    assert "new@example.com" in page
-    assert "left@example.com" not in page and "active@example.com" not in page
+    assert "waiting to join" not in page
 
 
 # --- Members' requests waiting for the committee -------------------------------
@@ -311,8 +309,8 @@ def test_no_request_notice_when_none_are_pending(as_role):
     assert "waiting for the race committee" not in front_page(as_role, "committee")
 
 
-def test_the_administrator_sees_requests_and_accounts_together(as_role, waiting_requests):
-    make_member("new@example.com", is_active=False)
+def test_the_administrator_sees_requests_and_people_together(as_role, waiting_requests):
+    make_member("new@example.com", status="WAITING")
     page = front_page(as_role, "administrator")
     assert "waiting for the race committee" in page
-    assert "1 new account is waiting for approval." in page
+    assert "1 person is waiting to join the club." in page

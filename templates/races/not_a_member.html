@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ request.club.name }}</h1>
+{% if membership.status == "WAITING" %}
+<p class="note">You've asked to join <strong>{{ request.club.name }}</strong>. The club's administrator hasn't
+  decided yet; you'll get an email when they do.</p>
+{% else %}
+<p>{% if membership.status == "REMOVED" %}You're no longer a member of {{ request.club.name }}.{% else %}You're logged in, but not a member of {{ request.club.name }} yet.{% endif %}
+  Members can register their boats, enter series and see their requests.</p>
+<form method="post" action="{% url 'races:join_club' %}">{% csrf_token %}
+  <button type="submit">Join this club</button>
+</form>
+<p class="muted">The club's administrator decides, and you'll get an email when they do.</p>
+{% endif %}
+<p><a href="{% url 'results:home' %}">{{ request.club.name }}'s results</a> are open to everyone.</p>
+{% endblock %}

@@ -1,9 +1,0 @@
-{% autoescape off %}Your Race Times account is approved
-Hello {{ user.first_name|default:user.get_username }},
-
-Your account has been approved by the club's administrator. You can now log in with your email address, {{ user.email }}:
-
-{{ login_url }}
-
-Once logged in, "My boats" is where you register your boats and enter them in series.
-{% endautoescape %}

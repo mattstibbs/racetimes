@@ -160,7 +160,7 @@ def test_a_boat_can_only_be_entered_in_its_own_clubs_series(harbour):
 
 
 def test_the_admin_puts_a_new_boat_in_the_current_club(client, harbour):
-    committee = make_committee()
+    committee = make_committee(club=harbour)
     client.force_login(committee)
     response = client.post(reverse("admin:races_boat_add"), {
         "sail_number": "GBR42", "name": "Kittiwake", "make": "", "model": "", "owner_name": "",
@@ -172,7 +172,7 @@ def test_the_admin_puts_a_new_boat_in_the_current_club(client, harbour):
 
 def test_the_admin_refuses_a_sail_number_already_in_the_club(client, harbour):
     make_boat("GBR42", club=harbour)
-    client.force_login(make_committee())
+    client.force_login(make_committee(club=harbour))
     response = client.post(reverse("admin:races_boat_add"), {
         "sail_number": "gbr 42", "name": "", "make": "", "model": "", "owner_name": "",
         "length_overall_m": "", "waterline_length_m": "", "base_number": "0.805", "reason": "",
@@ -184,7 +184,7 @@ def test_history_rows_belong_to_the_club(client, harbour):
     series = make_series(club=harbour)
     entry = enter(series, make_boat(club=harbour))
     race = make_race(series)
-    client.force_login(make_committee())
+    client.force_login(make_committee(club=harbour))
     prefix = f"entry-{entry.pk}"
     from races.testing import start
     start(race, entry)

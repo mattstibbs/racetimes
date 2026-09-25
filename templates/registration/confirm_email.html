@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Confirm your email - Race Times{% endblock %}
+{% block content %}
+{% if valid %}
+<h1>Email confirmed</h1>
+<p>Thank you. You can now <a href="{% url 'races:login' %}">log in</a>.</p>
+{% else %}
+<h1>That link doesn't work</h1>
+<p>It may have expired (links last three days), or already been used to log in.
+  Try <a href="{% url 'races:login' %}">logging in</a>: if your email still needs confirming,
+  you'll be offered a new link.</p>
+{% endif %}
+{% endblock %}

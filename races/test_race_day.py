@@ -89,7 +89,7 @@ def test_the_old_addresses_redirect_to_the_race_day_page(client, committee, raci
 def test_the_old_addresses_still_need_the_committee(client, racing):
     client.force_login(make_member("someone@example.com"))
     response = client.get(reverse("races:finish_entry", args=[racing["race"].pk]))
-    assert response.status_code == 302 and "login" in response["Location"]
+    assert response.status_code == 403  # refused, not a login loop (slice 11)
 
 
 def test_the_page_opens_on_finishing_once_anyone_is_racing(client, committee, racing):

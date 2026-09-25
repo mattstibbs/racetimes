@@ -145,8 +145,17 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const admin = await logIn(browser, 'admin@example.com');
   await admin.goto(`${BASE}/admin/`);
   await shot(admin.locator('.messagelist'), 'front-page-administrator.png');
-  await admin.goto(`${BASE}/admin/auth/user/?approval=waiting`);
-  await shot(admin.locator('#content'), 'accounts-waiting.png');
+  // The club administrator's Members page, then approving Robin as a member.
+  await admin.goto(`${BASE}/members/`);
+  await shot(admin.locator('main'), 'members-page.png');
+  await admin.locator('form.member-row', { hasText: 'Robin' }).locator('button[value=approve]').click();
+  await admin.waitForLoadState('networkidle');
+  await shot(admin.locator('.messages'), 'members-approved.png');
+
+  // Joining: someone logged in who isn't a member is offered to join.
+  const kim = await logIn(browser, 'kim@example.com');
+  await kim.goto(`${BASE}/my/boats/`);
+  await shot(kim.locator('main'), 'join-waiting.png');
 
   await browser.close();
   console.log(`Screenshots written to ${OUT}`);

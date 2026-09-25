@@ -11,7 +11,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from races.forms import PENDING_APPROVAL
+from races.forms import UNCONFIRMED
 from races.models import Boat, BoatRequest, EntryRequest, SeriesEntry
 from races.testing import default_club, enter, make_boat, make_member, make_series
 
@@ -45,38 +45,72 @@ def boat_form(**fields):
     return data
 
 
-# --- Sign-up: nobody logs in until the administrator approves -----------------
+# --- Sign-up (slice 11): confirm the email to log in; the club approves joining ------
+# Rewritten for slice 11, as the project owner agreed: it's joining a club that
+# waits for approval, not the account. The account logs in once its email is
+# confirmed.
 
 
-def test_sign_up_creates_an_account_that_cannot_log_in_yet(client):
-    response = sign_up(client, email="New@Example.com")
-    assert "waiting for approval" in response.content.decode()
-    user = get_user_model().objects.get()
-    assert (user.username, user.email, user.is_active) == ("new@example.com", "new@example.com", False)
-    assert user.get_full_name() == "Sam Taylor"
+def confirmation_link(outbox):
+    """The confirm link from the last email, as a path."""
+    body = outbox[-1].body
+    return "/" + body.split("http://testserver/", 1)[1].split()[0]
 
 
-def test_a_waiting_member_is_told_why_they_cannot_log_in(client):
+def test_sign_up_creates_an_unconfirmed_account_asking_to_join(client, mailoutbox, django_capture_on_commit_callbacks):
+    with django_capture_on_commit_callbacks(execute=True):
+        response = sign_up(client, email="New@Example.com")
+    page = response.content.decode()
+    assert "Check your email" in page and "asked to join <strong>Demo Club</strong>" in page
+    user = get_user_model().objects.get(username="new@example.com")
+    assert (user.email, user.is_active, user.get_full_name()) == ("new@example.com", False, "Sam Taylor")
+    [membership] = user.memberships.all()
+    assert (membership.club, membership.status, membership.role) == (default_club(), "WAITING", "MEMBER")
+    assert mailoutbox[-1].subject == "Confirm your email address for Race Times"
+
+
+def test_an_unconfirmed_account_is_told_to_confirm_and_offered_the_link_again(client):
     sign_up(client)
     response = log_in(client, "new@example.com")
-    assert escape(PENDING_APPROVAL) in response.content.decode()
+    html = response.content.decode()
+    assert escape(UNCONFIRMED) in html and "Send the confirmation link again" in html
     assert "_auth_user_id" not in client.session
 
 
-def test_a_wrong_password_does_not_reveal_a_waiting_account(client):
+def test_a_wrong_password_does_not_reveal_an_unconfirmed_account(client):
     sign_up(client)
-    response = log_in(client, "new@example.com", "not-the-password")
-    html = response.content.decode()
-    assert escape(PENDING_APPROVAL) not in html
+    html = log_in(client, "new@example.com", "not-the-password").content.decode()
+    assert escape(UNCONFIRMED) not in html and "Send the confirmation link again" not in html
     assert "correct" in html  # Django's own "enter a correct username and password"
 
 
-def test_an_approved_member_logs_in_with_their_email_in_any_case(client):
-    sign_up(client)
-    get_user_model().objects.update(is_active=True)
+def test_the_link_confirms_the_account_which_then_waits_to_join(client, mailoutbox, django_capture_on_commit_callbacks):
+    with django_capture_on_commit_callbacks(execute=True):
+        sign_up(client)
+    page = client.get(confirmation_link(mailoutbox)).content.decode()
+    assert "Email confirmed" in page
     response = log_in(client, "NEW@example.COM")
-    assert response.status_code == 302
-    assert response["Location"] == reverse("races:my_boats")
+    assert response.status_code == 302 and response["Location"] == reverse("races:my_boats")
+    page = client.get(reverse("races:my_boats")).content.decode()
+    assert "You've asked to join <strong>Demo Club</strong>" in page
+    assert "Register a boat" not in page
+
+
+def test_a_tampered_link_confirms_nothing(client):
+    sign_up(client)
+    response = client.get(reverse("races:confirm_email", args=["MQ", "not-a-token"]))
+    assert response.status_code == 400
+    assert not get_user_model().objects.get(username="new@example.com").is_active
+
+
+def test_sending_the_link_again_says_the_same_either_way(client, mailoutbox, django_capture_on_commit_callbacks):
+    sign_up(client)
+    with django_capture_on_commit_callbacks(execute=True):
+        sent = client.post(reverse("races:resend_confirmation"), {"email": "new@example.com"}, follow=True)
+        unknown = client.post(reverse("races:resend_confirmation"), {"email": "nobody@example.com"}, follow=True)
+    assert "we&#x27;ve sent the link again" in sent.content.decode()
+    assert "we&#x27;ve sent the link again" in unknown.content.decode()
+    assert [m.to for m in mailoutbox] == [["new@example.com"]]
 
 
 @pytest.mark.parametrize("email", ["pat@example.com", "PAT@example.com"])

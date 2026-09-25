@@ -5,8 +5,8 @@
 Members ask the race committee for things rather than changing them
 themselves: registering a boat, changing one, being recorded as a boat's
 owner, or entering a series. Each of these is a **request**, and it waits
-until someone on the committee approves or rejects it. New members also wait,
-until the administrator approves their account.
+until someone on the committee approves or rejects it. People joining the
+club also wait, until a club administrator approves them.
 
 This page explains how you find out something is waiting, and how to deal
 with it.
@@ -23,8 +23,8 @@ You only see what you can act on:
 
 | Notice | Who sees it | The link takes you to |
 |---|---|---|
-| Boat and entry requests waiting for the race committee | The race committee and the administrator | The **Requests** page |
-| New accounts waiting for approval | The administrator only | The list of new accounts |
+| Boat and entry requests waiting for the race committee | The race committee and club administrators | The **Requests** page |
+| People waiting to join the club | Club administrators only | The **Members** page |
 
 If nothing is waiting, there is no notice. You can also open the Requests
 page at any time from **Requests** at the top of the site.
@@ -127,30 +127,8 @@ something changed after the member asked. For example:
 
 Nothing is changed when an approval is refused.
 
-## New accounts (administrator)
+## People joining the club (club administrators)
 
-When someone signs up, their account cannot be used until the administrator
-approves it. Until then, if they try to log in they are told their account is
-waiting for approval.
-
-The admin's front page tells the administrator how many accounts are waiting:
-
-![The administrator's front page notices: requests waiting for the race committee, and new accounts waiting for approval](../images/front-page-administrator.png)
-
-Follow **Review and approve** to see just those accounts:
-
-![The list of accounts waiting for approval](../images/accounts-waiting.png)
-
-To approve them:
-
-1. Tick the accounts you recognise as club members.
-2. Choose **Approve selected accounts** from the **Action** list.
-3. Press **Go**.
-
-They can log in straight away, and each is emailed to say their account is approved.
-
-To turn someone away, open their account and delete it.
-
-The same list is available at any time from **Users** in the admin: choose
-**Waiting for approval** under **By approval** on the right. It lists only
-new accounts, not accounts that were switched off later.
+People asking to join the club, and each person's role, are managed by the
+club's administrators on the **Members** page. See
+[Running your club: members and roles](members-and-roles.md).

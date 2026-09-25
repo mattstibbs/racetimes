@@ -1,0 +1,9 @@
+{% autoescape off %}{% if change == "approved" %}Welcome to {{ club.name }} on Race Times{% elif change == "rejected" %}Your request to join {{ club.name }}{% elif change == "role" %}Your role at {{ club.name }} has changed{% else %}You are no longer a member of {{ club.name }} on Race Times{% endif %}
+Hello {{ membership.user.first_name|default:membership.user.get_username }},
+
+{% if change == "approved" %}{{ club.name }}'s administrator has approved you joining the club, as {{ membership.get_role_display|lower }}. "My boats" is where you register your boats and enter them in series:
+
+{{ my_boats_link }}{% elif change == "rejected" %}{{ club.name }}'s administrator hasn't approved you joining the club on Race Times. If you think that's a mistake, please ask the club.{% elif change == "role" %}{{ club.name }}'s administrator has changed your role at the club. You are now: {{ membership.get_role_display }}.
+
+{{ site_link }}{% else %}{{ club.name }}'s administrator has removed you from the club on Race Times. You can still see its public results, but no longer your boats or requests there. If you think that's a mistake, please ask the club.{% endif %}
+{% endautoescape %}

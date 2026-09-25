@@ -29,7 +29,7 @@ from races.models import (
     Boat, BoatRequest, Club, EntryRequest, Finish, RaceEntry, ScoringChange, Series, SeriesEntry,
 )
 from races.testing import (
-    default_club, enter, make_boat, make_club, make_committee, make_member, make_race, make_series, record,
+    default_club, enter, join, make_administrator, make_boat, make_club, make_committee, make_member, make_race, make_series, record,
 )
 
 pytestmark = pytest.mark.django_db
@@ -70,7 +70,9 @@ def build(club, prefix, names, series_name, owner, shared):
     }
     ScoringChange.objects.create(club=club, series=series, race=race_1, kind="FINISH", action="CHANGED",
                                  description=f"{first}, Race 1", is_correction=True, reason="Protest")
-    return {"club": club, "series": series, "entries": entries, "races": [race_1, race_2], "requests": requests}
+    waiting = make_member(f"{prefix.lower()}.waiting@example.com", first_name=f"{prefix}waiting", club=club, status="WAITING")
+    return {"club": club, "series": series, "entries": entries, "races": [race_1, race_2], "requests": requests,
+            "membership": waiting.memberships.get()}
 
 
 @pytest.fixture
@@ -79,8 +81,9 @@ def clubs():
     shared = make_member("shared@example.com", first_name="Sam")
     demo = build(default_club(), "Arctic", ["Avocet", "Auk", "Albatross"], "Autumn Series",
                  make_member("ann@example.com", first_name="Ann"), shared)
+    join(shared, harbour)  # a member of both clubs (slice 11 part 2)
     harbour_data = build(harbour, "Black", ["Bittern", "Brant", "Booby"], "Harbour Winter",
-                         make_member("bea@example.com", first_name="Bea"), shared)
+                         make_member("bea@example.com", first_name="Bea", club=harbour), shared)
     return {"demo": demo, "harbour": harbour_data, "shared": shared}
 
 
@@ -104,6 +107,9 @@ def urls_for(data, kind=None):
         "races:withdraw_request": ["boat", requests["claim"].pk],
         "results:boat": [e1.boat.pk], "results:home": [], "results:series": [series.pk],
         "results:series_csv": [series.pk],
+        # Slice 11 part 2: accounts and memberships.
+        "races:confirm_email": ["x", "y"], "races:resend_confirmation": [], "races:join_club": [],
+        "races:members": [], "races:decide_membership": [data["membership"].pk],
     }
 
 
@@ -130,12 +136,14 @@ def log_in(client, role, clubs):
         client.force_login(clubs["shared"])
     elif role == "committee":
         client.force_login(make_committee())
+    elif role == "administrator":
+        client.force_login(make_administrator())
 
 
 # --- Every page, as every role, shows only its own club ------------------------------------
 
 
-@pytest.mark.parametrize("role", ["public", "member", "committee"])
+@pytest.mark.parametrize("role", ["public", "member", "committee", "administrator"])
 def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
     log_in(client, role, clubs)
     extras = {"results:home": "?q=GBR", "races:race_day": "?view=start", "results:series": "?detail=1"}
@@ -186,7 +194,7 @@ def counts():
                                                  EntryRequest, ScoringChange)]
 
 
-@pytest.mark.parametrize("role", ["member", "committee"])
+@pytest.mark.parametrize("role", ["member", "committee", "administrator"])
 def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
     log_in(client, role, clubs)
     harbour_urls = urls_for(clubs["harbour"])
@@ -194,20 +202,24 @@ def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
     before = counts()
     checked = []
     for name, args in harbour_urls.items():
-        if args == demo_urls[name] or not args or name == "races:password_reset_confirm":
+        if args == demo_urls[name] or not args or name in ("races:password_reset_confirm", "races:confirm_email"):
             continue  # no club object in the address
         url = reverse(name, args=args)
         for method in (client.get, client.post):
             response = method(url, HTTP_HOST=DEMO)
-            if role == "member" and response.status_code == 302 and "login" in response["Location"]:
-                continue  # a committee page: the member is sent to log in before any lookup
+            if response.status_code == 403 or (response.status_code == 302 and "login" in response["Location"]):
+                # A page for a role this person hasn't: refused (or, in the
+                # admin, sent to its login) before any lookup, whatever the id.
+                continue
             assert response.status_code in (404, 405), (name, method.__name__, response.status_code)
             if response.status_code == 404:
                 checked.append(name)
     assert counts() == before
     assert "results:series" in checked and "races:change_boat" in checked
-    if role == "committee":
+    if role in ("committee", "administrator"):
         assert {"races:save_finish", "races:tap_finish", "races:decide_request", "races:declare_final"} <= set(checked)
+    if role == "administrator":
+        assert "races:decide_membership" in checked
 
 
 def test_a_demo_race_with_a_harbour_entry_is_not_found(client, clubs):

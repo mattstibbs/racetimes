@@ -534,5 +534,9 @@ def test_only_the_committee_can_change_a_start_sheet(client, race_day, who):
     if who == "member":
         client.force_login(make_member("someone@example.com"))
     response = tick(client, race_day["race"], race_day["kittiwake"])
-    assert response.status_code == 302 and "login" in response["Location"]
+    # The public is sent to log in; a member is refused, not sent round a login loop (slice 11).
+    if who == "member":
+        assert response.status_code == 403
+    else:
+        assert response.status_code == 302 and "login" in response["Location"]
     assert not RaceEntry.objects.exists()

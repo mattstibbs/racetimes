@@ -51,19 +51,29 @@ It will also expose all of the race and yacht data via a very simple to use API.
 
 
 ### Roles and permissions
-Agreed with the project owner on 2026-09-24, before slice 3.
+Agreed with the project owner on 2026-09-24, before slice 3. Changed in slice
+11 (2026-09-25), when Race Times became a service for many clubs: roles now
+belong to a person's membership of a club, not to their account.
 
-| Can… | Public | Member | Race committee | Administrator |
+| Can… | Public | Member | Race committee | Club administrator |
 |---|:-:|:-:|:-:|:-:|
-| See results and standings | ✓ | ✓ | ✓ | ✓ |
-| Sign up for an account | ✓ | | | |
+| See the club's results and standings | ✓ | ✓ | ✓ | ✓ |
+| Sign up, or ask to join the club | ✓ | | | |
 | Request a boat registration, a change to their own boat, ownership of a boat already on record, or a series entry; see and withdraw their own requests | | ✓ | ✓ | ✓ |
 | Approve or reject those requests; set up boats, series and races; enter finishes; see the change history | | | ✓ | ✓ |
-| Approve new member accounts; make someone race committee; reset passwords | | | | ✓ |
+| Approve people joining the club; set each person's role; remove people | | | | ✓ |
 
-- **Accounts are people, not boats.** A member signs up with their email
-  address, which is also their login. A new account cannot log in until the
-  administrator approves it.
+Each column is a role *at one club*. The same person can be a member at one
+club and on the race committee at another, and a role at one club gives
+nothing at another. The **operator** (the project owner, a superuser) runs
+the service: creating and suspending clubs, and managing accounts. The
+operator has no role at any club unless given a membership like anyone else.
+
+- **Accounts are people, not boats.** A person signs up with their email
+  address, which is also their login, and can log in once they've confirmed
+  it. It's joining a club that waits for approval, by that club's
+  administrators (slice 11; before that, the administrator approved the
+  account itself).
 - **A boat has at most one owning account.** Only the race committee sets or
   changes it. A boat with no owning account (a visitor, say) shows its typed
   owner name.
@@ -72,9 +82,10 @@ Agreed with the project owner on 2026-09-24, before slice 3.
   approves or rejects, so nothing a member types reaches a boat or a result
   without a committee member's say-so.
 - **The race committee cannot manage people**, including giving themselves
-  more access. That is the administrator's alone.
-- Until email exists (slice 4), a forgotten password is reset by the
+  more access. That is the club administrators' alone. No administrator can
+  change their own membership, and a club always keeps at least one
   administrator.
+- A forgotten password is reset by email (slice 4).
 
 ### Source of truth
 - NHC calculation: docs/reference/RYA_nhc_calculation_spec.md. Where Claude's

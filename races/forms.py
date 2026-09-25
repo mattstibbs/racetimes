@@ -180,9 +180,9 @@ class RaceInlineFormSet(AuditedInlineFormSet):
 
 # --- Accounts ----------------------------------------------------------------
 
-PENDING_APPROVAL = (
-    "Your account is waiting for approval by the club's administrator. "
-    "You can log in once it has been approved."
+UNCONFIRMED = (
+    "Confirm your email address first: open the link we emailed you when you signed up. "
+    "It lasts three days."
 )
 
 
@@ -194,7 +194,7 @@ def _normalise_login(value):
 
 
 class SignUpForm(UserCreationForm):
-    """A member's own sign-up. The account starts switched off until approved."""
+    """Anyone's own sign-up. The account is switched off until its email is confirmed (slice 11)."""
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
@@ -210,7 +210,9 @@ class SignUpForm(UserCreationForm):
         email = self.cleaned_data["email"].strip().lower()
         User = get_user_model()
         if User.objects.filter(Q(username__iexact=email) | Q(email__iexact=email)).exists():
-            raise ValidationError("An account with this email address already exists.")
+            raise ValidationError(
+                "An account with this email address already exists. Log in, and use Join this club."
+            )
         return email
 
     def save(self, commit=True):
@@ -223,7 +225,7 @@ class SignUpForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    """Everyone's login, by email. A member still waiting for approval is told so."""
+    """Everyone's login, by email. An account whose email isn't confirmed yet is told so."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -235,14 +237,19 @@ class LoginForm(AuthenticationForm):
         try:
             return super().clean()
         except ValidationError:
-            # Say "waiting for approval" only to someone who knows the
-            # password, so the form never reveals which emails have signed up.
+            # Say "confirm your email" only to someone who knows the password,
+            # so the form never reveals which emails have signed up. An
+            # account switched off after it had logged in gets the usual
+            # message instead.
             username = self.cleaned_data.get("username", "")
             password = self.cleaned_data.get("password", "")
             user = get_user_model().objects.filter(username=username).first()
-            if user and not user.is_active and user.check_password(password):
-                raise ValidationError(PENDING_APPROVAL, code="inactive")
+            if user and not user.is_active and user.last_login is None and user.check_password(password):
+                self.unconfirmed = True
+                raise ValidationError(UNCONFIRMED, code="inactive")
             raise
+
+    unconfirmed = False
 
 
 # --- Members' requests -------------------------------------------------------

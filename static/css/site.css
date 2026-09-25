@@ -344,3 +344,8 @@ details.finish-form .figures { flex-basis: 100%; }
   .finished-row .time { grid-column: 2 / 3; }
   .race-clock strong { font-size: 1.25rem; }
 }
+
+/* --- The Members page (slice 11) ---------------------------------------------------- */
+.member-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.6rem 1rem; align-items: center; margin-bottom: 0.6rem; }
+.member-row .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+@media (max-width: 40rem) { .member-row { grid-template-columns: 1fr; } }

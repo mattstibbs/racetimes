@@ -8,7 +8,11 @@ with.
 
 | Email | When |
 |---|---|
-| **Your Race Times account is approved** | The club's administrator has approved your account, and you can log in. |
+| **Confirm your email address for Race Times** | You've just signed up. Open its link to confirm your email address, which lets you log in. |
+| **Welcome to** your club **on Race Times** | The club's administrator has approved you joining the club. |
+| **Your request to join** your club | The club's administrator hasn't approved you joining. |
+| **Your role at** your club **has changed** | The club's administrator has made you, for example, a member of the race committee. |
+| **You are no longer a member of** your club **on Race Times** | The club's administrator has removed you from the club. |
 | **Results** | The race committee has published a race's results, in a series you have a boat entered in. |
 | **Updated results** | The race committee has corrected a race's results after sending them, and is sending them again as they now stand. |
 | **Final standings** | The race committee has declared a series you have a boat in final. It gives the final standings and your boat's final place. |
@@ -26,6 +30,6 @@ committee approves your request to change your boat's details, you get the
 "Approved" email listing what changed, not a second email saying your boat
 was updated.
 
-Emails about results only go to owners with an approved account on the site.
+Emails about results only go to owners who are approved members of the club.
 If you share a boat with someone else, only the owner recorded on the site
 receives them.

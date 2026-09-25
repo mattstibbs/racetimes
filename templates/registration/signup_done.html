@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Signed up - Race Times{% endblock %}
+{% block title %}Check your email - Race Times{% endblock %}
 {% block content %}
-<h1>Thank you</h1>
-<p>Your account for <strong>{{ email }}</strong> is waiting for approval by the
-  club's administrator. You can <a href="{% url 'races:login' %}">log in</a> once it has
-  been approved.</p>
+<h1>Check your email</h1>
+<p>We've sent a link to <strong>{{ email }}</strong>. Open it to confirm your email address; then you
+  can <a href="{% url 'races:login' %}">log in</a>.</p>
+<p>You've also asked to join <strong>{{ request.club.name }}</strong>. The club's administrator will
+  approve you joining, and you'll get an email when they do.</p>
 {% endblock %}

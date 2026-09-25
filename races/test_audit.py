@@ -15,7 +15,7 @@ from django.urls import reverse
 from races import audit
 from races.models import Boat, Finish, Race, ScoringChange, Series
 from races.scoring import score_series
-from races.testing import enter, make_boat, make_race, make_series, record, start
+from races.testing import default_club, join, enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
@@ -24,7 +24,10 @@ REASON_REQUIRED = "give a reason for the correction"
 
 @pytest.fixture
 def staff_user(django_user_model):
-    return django_user_model.objects.create_user("officer", is_staff=True, is_superuser=True)
+    # The superuser is Demo Club's administrator, as the slice 11 migration makes it.
+    user = django_user_model.objects.create_user("officer", is_staff=True, is_superuser=True)
+    join(user, default_club(), role="ADMINISTRATOR")
+    return user
 
 
 @pytest.fixture
@@ -520,7 +523,7 @@ def test_the_history_page_needs_staff(client, django_user_model, sailed):
     url = reverse("races:series_history", args=[series.pk])
     assert client.get(url).status_code == 302
     client.force_login(django_user_model.objects.create_user("member"))
-    assert client.get(url).status_code == 302
+    assert client.get(url).status_code == 403  # refused, not a login loop (slice 11)
 
 
 def test_the_history_page_shows_who_what_and_why(staff_client, sailed):

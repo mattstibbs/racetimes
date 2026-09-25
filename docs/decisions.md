@@ -1235,6 +1235,28 @@ each merged on its own.
 
 ---
 
+## 2026-09-25 - Slice 11 part 2: refuse, don't redirect, someone logged in without the role
+
+**Context.** Since slice 3, a page for a role you don't have sent you to log
+in. That's right for the public. But the login page sends anyone already
+logged in straight back to where they came from, so a member opening a
+committee page went round in a loop until the browser gave up. The unit
+tests checked only the first redirect, so it was found in slice 11 part 2's
+browser check, where more people now lack roles: at another club, or while
+waiting to join.
+
+**Decision.** The public is still sent to log in. Someone logged in without
+the role gets a 403 page saying the page isn't available to them, with links
+to their own page and the club's results. The admin keeps its own behaviour:
+it sends everyone without access to its login, which refuses anyone already
+logged in.
+
+**Consequence.** The tests that expected a login redirect for a logged-in
+member now expect 403. The role table in races/test_roles.py records it for
+every page.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

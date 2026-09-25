@@ -55,6 +55,47 @@ class Club(models.Model):
         return self.status == self.Status.ACTIVE
 
 
+class ClubMembership(models.Model):
+    """A person's place in a club: their role there, and whether it's approved (slice 11).
+
+    Roles belong to a membership, not to the account, so one person can be a
+    member at one club and on the race committee at another. Nobody has any
+    access at a club until a club administrator approves their membership.
+    """
+
+    class Role(models.TextChoices):
+        MEMBER = "MEMBER", "Member"
+        COMMITTEE = "COMMITTEE", "Race committee"
+        ADMINISTRATOR = "ADMINISTRATOR", "Club administrator"
+
+    class Status(models.TextChoices):
+        WAITING = "WAITING", "Waiting for approval"
+        APPROVED = "APPROVED", "Approved"
+        REMOVED = "REMOVED", "Removed"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="memberships")
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="memberships")
+    role = models.CharField(max_length=15, choices=Role.choices, default=Role.MEMBER)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.WAITING)
+    created_at = models.DateTimeField(default=timezone.now)
+    # Who decided, kept as text so it survives their account being deleted.
+    decided_by_name = models.CharField(max_length=150, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["user__first_name", "user__last_name", "user__username"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "club"], name="one_membership_per_club"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} at {self.club}: {self.get_role_display()}, {self.get_status_display().lower()}"
+
+    @property
+    def is_approved(self):
+        return self.status == self.Status.APPROVED
+
+
 def _club_manager(path):
     """A manager whose ``for_club(club)`` keeps only that club's rows.
 
