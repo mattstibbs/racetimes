@@ -10,9 +10,12 @@ from decimal import Decimal
 from django.contrib.auth.models import Group
 from django.utils import timezone
 
-from races.models import Boat, BoatRequest, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.models import Boat, BoatRequest, Club, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
 from races.roles import COMMITTEE_GROUP
 from races.testing import make_member
+
+# Everything belongs to Demo Club, which the migrations create (slice 11).
+club = Club.objects.get(subdomain="demo")
 
 PASSWORD = "manual-screenshots-only"
 
@@ -35,18 +38,18 @@ account("robin@example.com", "Robin", "Hale", is_active=False)
 account("kim@example.com", "Kim", "Park", is_active=False)
 
 # Pat's boat, entered in a series that already has a result.
-kittiwake = Boat.objects.create(
+kittiwake = Boat.objects.create(club=club,
     sail_number="GBR 42", name="Kittiwake", make="Westerly", model="Centaur",
     length_overall_m=Decimal("7.92"), waterline_length_m=Decimal("6.48"),
     base_number=Decimal("0.805"), owner=pat,
 )
-tern = Boat.objects.create(sail_number="GBR 7", name="Tern", base_number=Decimal("0.900"),
+tern = Boat.objects.create(club=club, sail_number="GBR 7", name="Tern", base_number=Decimal("0.900"),
                            owner_name="M. Visitor")
-serendipity = Boat.objects.create(sail_number="GBR 1234", name="Serendipity", make="Sadler",
+serendipity = Boat.objects.create(club=club, sail_number="GBR 1234", name="Serendipity", make="Sadler",
                                   model="26", base_number=Decimal("0.857"), owner=sam)
-blue_moon = Boat.objects.create(sail_number="GBR 88", name="Blue Moon", make="Contessa",
+blue_moon = Boat.objects.create(club=club, sail_number="GBR 88", name="Blue Moon", make="Contessa",
                                 model="32", base_number=Decimal("0.921"), owner_name="R. Blue")
-autumn = Series.objects.create(name="Autumn 2026 Series")
+autumn = Series.objects.create(club=club, name="Autumn 2026 Series")
 # Three races sailed and a fourth to come. None is published yet: the
 # screenshots below publish race 1.
 finishes = {
@@ -72,11 +75,11 @@ race_4 = Race.objects.create(series=autumn, number=4, date=started.date(),
 # Race day for race 4: two boats ticked so far. The screenshots add a third.
 RaceEntry.objects.create(race=race_4, entry=entries[0], persons_on_board=3)
 RaceEntry.objects.create(race=race_4, entry=entries[2], persons_on_board=4)
-wednesdays = Series.objects.create(name="Wednesday Evenings")
+wednesdays = Series.objects.create(club=club, name="Wednesday Evenings")
 
 # A finished summer series, every race published and sent, ready to be
 # declared final (slice 10). Race 3 was cancelled for weather: nothing recorded.
-summer = Series.objects.create(name="Summer 2026 Series")
+summer = Series.objects.create(club=club, name="Summer 2026 Series")
 summer_entries = [SeriesEntry.objects.create(series=summer, boat=boat) for boat in (kittiwake, tern, serendipity)]
 summer_finishes = {1: [time(19, 12, 40), time(19, 15, 2), time(19, 14, 21)],
                    2: [time(19, 20, 5), time(19, 18, 33), time(19, 21, 50)]}
@@ -90,15 +93,15 @@ for number, day in [(1, 1), (2, 8), (3, 15)]:
         Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
 # One request of each kind, waiting.
-BoatRequest.objects.create(
+BoatRequest.objects.create(club=club,
     kind="REGISTER", requested_by=sam, sail_number="GBR 77", name="Puffin", make="Hunter",
     model="Channel 27", length_overall_m=Decimal("8.23"), waterline_length_m=Decimal("6.71"),
     base_number=Decimal("0.842"),
 )
-BoatRequest.objects.create(
+BoatRequest.objects.create(club=club,
     kind="CHANGE", boat=kittiwake, requested_by=pat, member_note="New RYA certificate this week",
     **{**{f: getattr(kittiwake, f) for f in BoatRequest.PROPOSED_FIELDS}, "base_number": Decimal("0.812")},
 )
-BoatRequest.objects.create(kind="CLAIM", boat=tern, requested_by=jo, member_note="Bought her in August")
+BoatRequest.objects.create(club=club, kind="CLAIM", boat=tern, requested_by=jo, member_note="Bought her in August")
 EntryRequest.objects.create(series=wednesdays, boat=kittiwake, requested_by=pat)
 print("Seeded the manual's sample data.")

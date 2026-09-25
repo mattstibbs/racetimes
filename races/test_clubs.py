@@ -132,7 +132,7 @@ def test_only_the_operator_gets_into_the_admin_on_the_services_address(client, s
 
 def test_the_header_names_the_club(client):
     page = client.get(reverse("results:home")).content.decode()
-    assert '<span>Demo Club</span> <small class="brand-service">Race Times</small>' in page
+    assert '<span>Demo Club</span> <small class="brand-service">Race Times</small>' in page  # in .brand-text
 
 
 # --- The rules that come with clubs --------------------------------------------------

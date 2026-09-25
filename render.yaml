@@ -27,6 +27,10 @@ services:
         generateValue: true
       - key: DJANGO_DEBUG
         value: "0"
+      # Slice 11: the test site's onrender.com address can't have club
+      # subdomains, so it shows Demo Club, which holds the site's data.
+      - key: SINGLE_CLUB
+        value: demo
       # Your first staff login. Render asks for these when the Blueprint is
       # created; build.sh creates the account once and never changes it.
       - key: DJANGO_SUPERUSER_USERNAME

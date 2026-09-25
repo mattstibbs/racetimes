@@ -19,6 +19,8 @@ trap 'kill "${SERVER:-}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
 export DATABASE_URL="sqlite:///$WORK/manual.sqlite3"
 export DJANGO_DEBUG=1
+# 127.0.0.1 names no club, so the pages are Demo Club's (slice 11).
+export SINGLE_CLUB=demo
 cd "$ROOT"
 "$PYTHON" manage.py migrate --verbosity 0
 "$PYTHON" manage.py shell --verbosity 0 < "$HERE/seed.py"

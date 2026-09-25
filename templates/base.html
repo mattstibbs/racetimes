@@ -14,7 +14,7 @@
       {% if request.club %}
       {# Slice 11: every page says which club it belongs to, with the service's name smaller. #}
       <a class="brand" href="{% url 'results:home' %}"><img src="{% static 'img/sail.svg' %}" alt="">
-        <span>{{ request.club.name }}</span> <small class="brand-service">Race Times</small></a>
+        <span class="brand-text"><span>{{ request.club.name }}</span> <small class="brand-service">Race Times</small></span></a>
       {% else %}
       <a class="brand" href="/"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</a>
       {% endif %}
