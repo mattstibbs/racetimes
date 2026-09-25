@@ -338,3 +338,19 @@ pages' layout were updated to the new one; the commit message lists them.
 
 One page per race replaces the start sheet and finish-entry pages: tick who
 is racing, then tap **Finished** as each boat crosses the line.
+
+## Slice 10: final results and export. **Status: planned (2026-09-25)**
+
+Spec: `docs/slices/10-final-results-and-export.md`. It proposes four new
+fields on `Series`, which need the project owner's approval before any
+migration is written.
+
+The brief's user journey 5. The committee declares a series final:
+- it is locked, so nothing that could move its results can change until
+  it's reopened with a reason;
+- a copy of its results is kept, so a later base number correction can't
+  change a finished season;
+- the owners are emailed their final places.
+
+Anyone can download any series' standings and race results as one CSV
+file.
