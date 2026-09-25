@@ -56,6 +56,10 @@ def approve(request, user, reason=""):
     """Apply the request, record it, and return a message for the committee."""
     reason = reason.strip()
     with transaction.atomic():
+        if isinstance(request, EntryRequest):
+            # Slice 10: a final series takes no new entries. Checked first, so
+            # the committee is told that rather than asked for a reason.
+            final.check_series_open(request.series_id)
         _claim_decision(request, user, Request.Status.APPROVED)
         changes = _audited_changes(request)
         if audit.needs_reason(changes) and not reason:
@@ -127,7 +131,6 @@ def _scorings_before(request):
 
 def _apply(request):
     if isinstance(request, EntryRequest):
-        final.check_series_open(request.series_id)
         entry = SeriesEntry(series=request.series, boat=request.boat)
         entry.full_clean()
         entry.save()
