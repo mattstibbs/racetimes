@@ -1,10 +1,14 @@
 """Smoke tests for the HTMX wiring in the races app.
 
 Written against pytest-django's `client` fixture rather than
-`django.test.TestCase`. The ping view needs no database.
+`django.test.TestCase`. The ping view itself needs no database, but since
+slice 11 every request looks up its club first.
 """
 
+import pytest
 from django.urls import reverse
+
+pytestmark = pytest.mark.django_db
 
 
 def test_ping_detects_htmx_request(client):

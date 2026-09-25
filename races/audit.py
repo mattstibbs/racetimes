@@ -98,6 +98,7 @@ def series_has_finishes(series):
 def _rows(obj, action, changes):
     def row(series, race, is_correction):
         return ScoringChange(
+            club=_club_of(obj),
             kind=KINDS[type(obj)],
             action=action,
             description=_describe(obj),
@@ -122,6 +123,15 @@ def _rows(obj, action, changes):
     if not series_list:
         return [row(None, None, False)]
     return [row(series, None, series_has_finishes(series)) for series in series_list]
+
+
+def _club_of(obj):
+    """The club a changed row belongs to (slice 11)."""
+    if isinstance(obj, Finish):
+        return obj.race.series.club
+    if isinstance(obj, (Race, SeriesEntry)):
+        return obj.series.club
+    return obj.club  # a Series or a Boat
 
 
 def _describe(obj):

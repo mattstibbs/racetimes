@@ -45,6 +45,23 @@ if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
     CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
+# Slice 11: many clubs, each at <subdomain>.<SERVICE_DOMAIN> (races/clubs.py).
+# In development that's e.g. demo.localhost:8000, which every current browser
+# resolves with no setup.
+SERVICE_DOMAIN = os.environ.get('SERVICE_DOMAIN', 'localhost' if DEBUG else 'racetimes.co.uk')
+ALLOWED_HOSTS += [SERVICE_DOMAIN, f'.{SERVICE_DOMAIN}']
+if DEBUG:
+    # Django allows these by itself only while ALLOWED_HOSTS is empty, which
+    # it no longer is.
+    ALLOWED_HOSTS += ['127.0.0.1', '[::1]']
+else:
+    CSRF_TRUSTED_ORIGINS += [f'https://{SERVICE_DOMAIN}', f'https://*.{SERVICE_DOMAIN}']
+
+# The subdomain of the club to show on an address with no club in it, such as
+# the test site on Render (which can't have subdomains), or 127.0.0.1. Empty
+# means such an address is the service's own front page.
+SINGLE_CLUB = os.environ.get('SINGLE_CLUB', '')
+
 if not DEBUG:
     if SECRET_KEY.startswith('django-insecure'):
         # Refuse to start rather than run in public on a key everyone can read.
@@ -65,7 +82,8 @@ if not DEBUG:
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # The admin, aware of clubs (slice 11): races/admin_site.py.
+    'races.admin_site.ClubAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -85,6 +103,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # After authentication, so a suspended club's page can let the operator in.
+    'races.clubs.ClubMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',

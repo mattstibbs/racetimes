@@ -115,7 +115,7 @@ def test_declaring_is_refused_while_a_race_isnt_settled(client, committee, seaso
         race_2.published_at = race_2.results_sent_at = None
         race_2.save()
     elif problem == "amended":
-        ScoringChange.objects.create(series=season["series"], race=race_2, kind="FINISH", action="CHANGED",
+        ScoringChange.objects.create(club=season["series"].club, series=season["series"], race=race_2, kind="FINISH", action="CHANGED",
                                      description="x", is_correction=True, reason="Protest")
     else:
         record(race_3, season["entries"][0], "19:00:00")

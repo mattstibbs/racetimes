@@ -57,21 +57,21 @@ def home(request):
     context = {
         "query": query,
         "searched": "q" in request.GET,
-        "matches": search_boats(query) if query else None,
+        "matches": search_boats(request.club, query) if query else None,
         "max_matches": MAX_MATCHES,
     }
     if not (request.htmx and request.htmx.target == "boat-matches"):
         context.update(
-            latest=latest_results(),
-            series_list=Series.objects.annotate(latest=Max("races__date")).order_by(
+            latest=latest_results(request.club),
+            series_list=Series.objects.for_club(request.club).annotate(latest=Max("races__date")).order_by(
                 F("latest").desc(nulls_last=True), "name"
             ),
-            my_boats=request.user.boats.all() if is_member(request.user) else None,
+            my_boats=request.user.boats.filter(club=request.club) if is_member(request.user) else None,
         )
     return _render(request, "results/home.html", {"boat-matches": "results/_boat_matches.html"}, context)
 
 
-def search_boats(query):
+def search_boats(club, query):
     """Boats whose sail number or name contains the query.
 
     Sail numbers match ignoring case and spaces, as the database already
@@ -80,16 +80,16 @@ def search_boats(query):
     """
     squashed = query.replace(" ", "").upper()
     return list(
-        Boat.objects.annotate(squashed=Upper(Replace("sail_number", Value(" "), Value(""))))
+        Boat.objects.for_club(club).annotate(squashed=Upper(Replace("sail_number", Value(" "), Value(""))))
         .filter(Q(squashed__contains=squashed) | Q(name__icontains=query))
         .order_by("sail_number")[: MAX_MATCHES + 1]
     )
 
 
-def latest_results():
+def latest_results(club):
     """Each series' most recent scored race, newest first, with its top three."""
     recent = (
-        Series.objects.annotate(sailed=Max("races__date", filter=Q(races__finishes__isnull=False)))
+        Series.objects.for_club(club).annotate(sailed=Max("races__date", filter=Q(races__finishes__isnull=False)))
         .filter(sailed__isnull=False)
         .order_by("-sailed", "name")[:LATEST_SERIES]
     )
@@ -107,7 +107,7 @@ def latest_results():
 
 @require_safe
 def series(request, pk):
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     results = score_series(series)
     races = list(series.races.order_by("number"))
     boats = sorted((entry.boat for entry in series.entries.select_related("boat")),
@@ -197,7 +197,7 @@ class RaceLine:
 @require_safe
 def series_csv(request, pk):
     """The series' standings and every race's results as one CSV file, for anyone."""
-    series = get_object_or_404(Series, pk=pk)
+    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     response = HttpResponse(
         export.series_csv(series, score_series(series)), content_type="text/csv; charset=utf-8"
     )
@@ -207,7 +207,7 @@ def series_csv(request, pk):
 
 @require_safe
 def boat(request, pk):
-    boat = get_object_or_404(Boat, pk=pk)
+    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk)
     entries = list(boat.series_entries.select_related("series"))
     histories = [_history(entry) for entry in entries]
     # Newest series first. A series with no races yet goes at the top, as it

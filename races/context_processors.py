@@ -11,11 +11,11 @@ def roles(request):
         "is_committee": is_committee(request.user),
         # A function, which templates call when they use it, so pages that
         # never show the notices never run their queries.
-        "waiting_notices": lambda: waiting_notices(request.user),
+        "waiting_notices": lambda: waiting_notices(request.user, getattr(request, "club", None)),
     }
 
 
-def waiting_notices(user):
+def waiting_notices(user, club):
     """What is waiting for this person to act on, each with where to act.
 
     Everyone sees only what they can decide: requests for the race committee
@@ -25,11 +25,12 @@ def waiting_notices(user):
     notices = []
     if not user.is_active:
         return notices
-    if is_committee(user):
+    if is_committee(user) and club is not None:
+        # Only this club's requests (slice 11).
         pending = Request.Status.PENDING
         counts = [
-            (BoatRequest.objects.filter(status=pending).count(), "boat request"),
-            (EntryRequest.objects.filter(status=pending).count(), "entry request"),
+            (BoatRequest.objects.for_club(club).filter(status=pending).count(), "boat request"),
+            (EntryRequest.objects.for_club(club).filter(status=pending).count(), "entry request"),
         ]
         if any(number for number, _ in counts):
             notices.append({

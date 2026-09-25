@@ -9,7 +9,7 @@ from django.db import IntegrityError
 from django.db.models import ProtectedError, RestrictedError
 
 from races.models import Boat, Finish, Race, Series, SeriesEntry
-from races.testing import enter, make_boat, make_race, make_series, record, start
+from races.testing import default_club, enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
@@ -33,7 +33,7 @@ def test_sail_numbers_are_unique_ignoring_case_and_spaces(duplicate):
 def test_duplicate_sail_number_is_a_validation_error_on_the_field():
     make_boat("GBR1234")
     with pytest.raises(ValidationError) as caught:
-        Boat(sail_number="gbr 1234", base_number=Decimal("0.9")).full_clean()
+        Boat(club=default_club(), sail_number="gbr 1234", base_number=Decimal("0.9")).full_clean()
     assert "already registered" in str(caught.value)
 
 

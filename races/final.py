@@ -129,6 +129,7 @@ def _history(series, user, description, changes, reason=""):
     # Its own kind, so it neither marks races "amended since sent" nor moves
     # the standings' "Last updated" date: declaring and reopening move no score.
     ScoringChange.objects.create(
+        club=series.club,
         series=series,
         user=user,
         user_name=user.get_username(),

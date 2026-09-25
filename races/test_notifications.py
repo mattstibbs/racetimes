@@ -20,6 +20,7 @@ from races import notifications, publishing
 from races.models import BoatRequest, EntryRequest, Finish, Race
 from races.test_audit import boat_form, series_form
 from races.testing import (
+    default_club,
     enter, make_administrator, make_boat, make_committee, make_member, make_race, make_series, record,
 )
 
@@ -347,7 +348,7 @@ def decide(client, member_request, decision, reason="", note=""):
 def test_an_approved_change_emails_what_changed_and_nothing_else(client, committee, club, run_on_commit):
     boat = club["kittiwake"]
     values = {name: getattr(boat, name) for name in BoatRequest.PROPOSED_FIELDS}
-    request = BoatRequest.objects.create(kind="CHANGE", boat=boat, requested_by=club["pat"],
+    request = BoatRequest.objects.create(club=default_club(), kind="CHANGE", boat=boat, requested_by=club["pat"],
                                          **{**values, "name": "Kittiwake II"})
     with run_on_commit():
         decide(client, request, "approve")
@@ -359,7 +360,7 @@ def test_an_approved_change_emails_what_changed_and_nothing_else(client, committ
 
 
 def test_an_approved_registration_lists_the_details(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(kind="REGISTER", requested_by=club["sam"],
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
                                          sail_number="GBR5", name="Gannet", base_number="0.880")
     with run_on_commit():
         decide(client, request, "approve")
@@ -369,7 +370,7 @@ def test_an_approved_registration_lists_the_details(client, committee, club, run
 
 
 def test_a_rejection_carries_the_committees_note(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(kind="REGISTER", requested_by=club["sam"],
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
                                          sail_number="GBR5", name="Gannet", base_number="0.880")
     with run_on_commit():
         decide(client, request, "reject", note="Base number does not match the RYA list")
@@ -388,7 +389,7 @@ def test_an_approved_entry_is_one_email(client, committee, club, run_on_commit):
 
 
 def test_an_approved_claim_tells_the_previous_owner(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(kind="CLAIM", boat=club["puffin"], requested_by=club["pat"])
+    request = BoatRequest.objects.create(club=default_club(), kind="CLAIM", boat=club["puffin"], requested_by=club["pat"])
     with run_on_commit():
         decide(client, request, "approve")
     by_recipient = {m.to[0]: m for m in mail.outbox}
@@ -397,7 +398,7 @@ def test_an_approved_claim_tells_the_previous_owner(client, committee, club, run
 
 
 def test_a_failed_decision_sends_nothing(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(kind="REGISTER", requested_by=club["sam"],
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
                                          sail_number="GBR5", base_number="0.880")
     with run_on_commit():
         decide(client, request, "reject")  # no note: refused

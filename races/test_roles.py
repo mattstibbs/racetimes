@@ -8,6 +8,7 @@ from django.urls import reverse
 from races.models import BoatRequest, EntryRequest
 from races.roles import COMMITTEE_GROUP, is_committee, is_member
 from races.testing import (
+    default_club,
     make_administrator, make_boat, make_committee, make_member, make_series,
 )
 
@@ -70,6 +71,7 @@ def test_deleting_the_owner_keeps_the_boat():
 
 def request_for(boat, member, **fields):
     return BoatRequest.objects.create(
+        club=default_club(),
         kind=BoatRequest.Kind.CHANGE, boat=boat, requested_by=member, **fields
     )
 
@@ -91,13 +93,13 @@ def test_a_decided_request_does_not_block_a_new_one():
 def test_a_registration_has_no_boat_and_the_others_do():
     member = make_member()
     with pytest.raises(IntegrityError):
-        BoatRequest.objects.create(kind=BoatRequest.Kind.REGISTER, boat=make_boat(), requested_by=member)
+        BoatRequest.objects.create(club=default_club(), kind=BoatRequest.Kind.REGISTER, boat=make_boat(), requested_by=member)
 
 
 def test_several_pending_registrations_are_allowed():
     member = make_member()
     for sail in ("GBR1", "GBR2"):
-        BoatRequest.objects.create(kind=BoatRequest.Kind.REGISTER, sail_number=sail, requested_by=member)
+        BoatRequest.objects.create(club=default_club(), kind=BoatRequest.Kind.REGISTER, sail_number=sail, requested_by=member)
     assert BoatRequest.objects.count() == 2
 
 
@@ -225,7 +227,7 @@ def test_the_committee_sets_a_boats_owner_from_active_accounts(as_role):
 
 
 def test_requests_are_read_only_in_the_admin(as_role):
-    request = BoatRequest.objects.create(kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
     client = as_role("administrator")
     response = client.post(reverse("admin:races_boatrequest_change", args=[request.pk]), {"status": "APPROVED"})
     assert response.status_code == 403
@@ -286,10 +288,10 @@ def front_page(as_role, role):
 def waiting_requests():
     member = make_member("pat@example.com")
     for sail in ("GBR1", "GBR2"):
-        BoatRequest.objects.create(kind="REGISTER", sail_number=sail, requested_by=member)
+        BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number=sail, requested_by=member)
     EntryRequest.objects.create(series=make_series(), boat=make_boat(owner=member), requested_by=member)
     # Decided requests wait for nobody.
-    BoatRequest.objects.create(kind="REGISTER", sail_number="GBR3", requested_by=member,
+    BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR3", requested_by=member,
                                status="REJECTED", committee_note="No")
 
 
@@ -301,7 +303,7 @@ def test_the_committee_is_told_about_waiting_requests(as_role, waiting_requests,
 
 
 def test_one_request_reads_in_the_singular(as_role):
-    BoatRequest.objects.create(kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
+    BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
     assert "1 boat request is waiting for the race committee." in front_page(as_role, "committee")
 
 

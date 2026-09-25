@@ -42,11 +42,16 @@ class LoginView(auth_views.LoginView):
 
 @member_required
 def my_boats(request):
-    boats = request.user.boats.prefetch_related("series_entries__series")
-    boat_requests = BoatRequest.objects.filter(requested_by=request.user).select_related("boat")
-    entry_requests = EntryRequest.objects.filter(requested_by=request.user).select_related(
-        "boat", "series"
+    # Only this club's boats and requests: the same person may be a member elsewhere.
+    boats = Boat.objects.for_club(request.club).filter(owner=request.user).prefetch_related(
+        "series_entries__series"
     )
+    boat_requests = BoatRequest.objects.for_club(request.club).filter(
+        requested_by=request.user
+    ).select_related("boat")
+    entry_requests = EntryRequest.objects.for_club(request.club).filter(
+        requested_by=request.user
+    ).select_related("boat", "series")
     return render(
         request,
         "races/my_boats.html",
@@ -61,9 +66,10 @@ def my_boats(request):
 
 @member_required
 def register_boat(request):
-    form = BoatRegistrationForm(request.POST or None)
+    form = BoatRegistrationForm(request.POST or None, club=request.club)
     if request.method == "POST" and form.is_valid():
         boat_request = form.save(commit=False)
+        boat_request.club = request.club
         boat_request.kind = BoatRequest.Kind.REGISTER
         boat_request.requested_by = request.user
         boat_request.save()
@@ -79,13 +85,14 @@ def register_boat(request):
 @member_required
 @require_POST
 def claim_boat(request, pk):
-    boat = get_object_or_404(Boat, pk=pk)
+    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk)
     if boat.owner_id == request.user.pk:
         messages.info(request, f"{boat} is already recorded as yours.")
     elif boat.requests.filter(status=BoatRequest.Status.PENDING).exists():
         messages.error(request, PENDING_ALREADY)
     else:
         BoatRequest.objects.create(
+            club=request.club,
             kind=BoatRequest.Kind.CLAIM,
             boat=boat,
             requested_by=request.user,
@@ -97,13 +104,14 @@ def claim_boat(request, pk):
 
 @member_required
 def change_boat(request, pk):
-    boat = get_object_or_404(Boat, pk=pk, owner=request.user)
+    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk, owner=request.user)
     if boat.requests.filter(status=BoatRequest.Status.PENDING).exists():
         messages.error(request, PENDING_ALREADY)
         return redirect("races:my_boats")
     form = BoatChangeForm(request.POST or None, boat=boat)
     if request.method == "POST" and form.is_valid():
         boat_request = form.save(commit=False)
+        boat_request.club = request.club
         boat_request.kind = BoatRequest.Kind.CHANGE
         boat_request.boat = boat
         boat_request.requested_by = request.user
@@ -115,7 +123,7 @@ def change_boat(request, pk):
 
 @member_required
 def enter_series(request, pk):
-    boat = get_object_or_404(Boat, pk=pk, owner=request.user)
+    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk, owner=request.user)
     form = EntryRequestForm(request.POST or None, boat=boat)
     if request.method == "POST" and form.is_valid():
         EntryRequest.objects.create(
@@ -135,7 +143,7 @@ def withdraw_request(request, kind, pk):
     model = {"boat": BoatRequest, "entry": EntryRequest}.get(kind)
     if model is None:
         return redirect("races:my_boats")
-    member_request = get_object_or_404(model, pk=pk, requested_by=request.user)
+    member_request = get_object_or_404(model.objects.for_club(request.club), pk=pk, requested_by=request.user)
     try:
         approvals.withdraw(member_request)
         messages.success(request, "Request withdrawn.")

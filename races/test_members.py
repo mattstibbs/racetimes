@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from races.forms import PENDING_APPROVAL
 from races.models import Boat, BoatRequest, EntryRequest, SeriesEntry
-from races.testing import enter, make_boat, make_member, make_series
+from races.testing import default_club, enter, make_boat, make_member, make_series
 
 pytestmark = pytest.mark.django_db
 
@@ -183,14 +183,14 @@ def test_only_series_not_yet_entered_or_asked_for_are_offered(client, member):
 
 
 def test_a_member_can_withdraw_a_pending_request(client, member):
-    request = BoatRequest.objects.create(kind="REGISTER", sail_number="GBR1", requested_by=member)
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=member)
     client.post(reverse("races:withdraw_request", args=["boat", request.pk]))
     request.refresh_from_db()
     assert request.status == "WITHDRAWN"
 
 
 def test_a_decided_request_cannot_be_withdrawn(client, member):
-    request = BoatRequest.objects.create(kind="REGISTER", sail_number="GBR1", requested_by=member,
+    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=member,
                                          status="REJECTED", committee_note="Not a club boat")
     client.post(reverse("races:withdraw_request", args=["boat", request.pk]))
     request.refresh_from_db()
@@ -200,7 +200,7 @@ def test_a_decided_request_cannot_be_withdrawn(client, member):
 def test_my_boats_shows_boats_entries_and_requests(client, member):
     boat = make_boat("GBR42", owner=member, name="Kittiwake")
     enter(make_series("Autumn 2026"), boat)
-    BoatRequest.objects.create(kind="REGISTER", sail_number="GBR7", name="Puffin",
+    BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR7", name="Puffin",
                                requested_by=member, status="REJECTED", committee_note="Wrong base number")
     page = client.get(reverse("races:my_boats")).content.decode()
     for text in ["GBR42 Kittiwake", "Autumn 2026", "Rejected", "Wrong base number"]:
@@ -224,7 +224,7 @@ def test_my_boats_links_to_each_boat_s_results(client, member):
 def someone_elses(member):
     other = make_member("other@example.com")
     boat = make_boat("GBR99", owner=other)
-    request = BoatRequest.objects.create(kind="CHANGE", boat=boat, requested_by=other, name="x")
+    request = BoatRequest.objects.create(club=default_club(), kind="CHANGE", boat=boat, requested_by=other, name="x")
     return boat, request
 
 

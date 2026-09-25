@@ -18,7 +18,66 @@ from django.urls import reverse
 from django.utils import timezone
 
 
+# --- Clubs (slice 11) ----------------------------------------------------------------
+
+
+class Club(models.Model):
+    """One sailing club using the service. Every boat and series belongs to one.
+
+    A club is found from the address of each request: ``<subdomain>.<service
+    domain>`` (see ``races/clubs.py``). Everything a page shows is filtered to
+    that club with the ``for_club`` querysets below, so clubs never see each
+    other's data.
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Active"
+        SUSPENDED = "SUSPENDED", "Suspended"
+
+    name = models.CharField(max_length=100)
+    subdomain = models.CharField(
+        max_length=40, unique=True,
+        help_text="The club's address: <subdomain>.racetimes.co.uk. Lower-case letters, digits and hyphens.",
+    )
+    # Where replies to the club's emails go (slice 11, part 4).
+    contact_email = models.EmailField(blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_active(self):
+        return self.status == self.Status.ACTIVE
+
+
+def _club_manager(path):
+    """A manager whose ``for_club(club)`` keeps only that club's rows.
+
+    ``path`` is how the model reaches its club, e.g. ``"race__series__club"``.
+    Every page asks for club-owned rows through ``for_club`` (or through a row
+    already found that way), so one club's data can never reach another's pages.
+    ``races/test_isolation.py`` checks the code keeps to that.
+    """
+
+    class ClubQuerySet(models.QuerySet):
+        club_path = path
+
+        def for_club(self, club):
+            return self.filter(**{path: club})
+
+    return models.Manager.from_queryset(ClubQuerySet)()
+
+
 class Boat(models.Model):
+    # Only this club's rows: Boat.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, editable=False, related_name="boats")
     sail_number = models.CharField(max_length=20)
     name = models.CharField(max_length=100, blank=True)
     make = models.CharField(max_length=100, blank=True)
@@ -66,9 +125,11 @@ class Boat(models.Model):
             # expression rather than a stored normalised copy so that Django's
             # form validation checks it too, and reports it against the sail
             # number field instead of failing on save.
+            # Unique within a club (slice 11): two clubs can each have a GBR 42.
             models.UniqueConstraint(
+                "club",
                 Upper(Replace("sail_number", models.Value(" "), models.Value(""))),
-                name="boat_sail_number_unique_ignoring_case_and_spaces",
+                name="boat_sail_number_unique_in_club",
                 violation_error_message="A boat with this sail number is already registered.",
             ),
             models.CheckConstraint(
@@ -96,11 +157,15 @@ class Series(models.Model):
     workflow; see docs/decisions.md.
     """
 
+    # Only this club's rows: Series.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
     class SeriesType(models.TextChoices):
         # Values match nhc.SeriesType, so they convert with SeriesType(value).
         CLUB = "CLUB", "Club series"
         REGATTA = "REGATTA", "Regatta"
 
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, editable=False, related_name="series")
     name = models.CharField(max_length=100)
     series_type = models.CharField(
         max_length=10, choices=SeriesType.choices, default=SeriesType.CLUB
@@ -159,6 +224,9 @@ class Series(models.Model):
 class SeriesEntry(models.Model):
     """A boat entered in a series, and so scored in every race of it (RRS A2.2)."""
 
+    # Only this club's rows: SeriesEntry.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
+
     series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="entries")
     # PROTECT: a boat's race history must not vanish because the boat record
     # was deleted.
@@ -178,6 +246,11 @@ class SeriesEntry(models.Model):
     def __str__(self):
         return str(self.boat)
 
+    def clean(self):
+        # A boat belongs to one club, and races only in that club's series (slice 11).
+        if self.boat_id and self.series_id and self.boat.club_id != self.series.club_id:
+            raise ValidationError({"boat": "This boat belongs to another club."})
+
 
 NOT_ON_START_SHEET = "This boat is not on the race's start sheet. Add it there first."
 
@@ -189,6 +262,9 @@ def _whole_seconds(value, field):
 
 class Race(models.Model):
     """One race in a series, with a single start."""
+
+    # Only this club's rows: Race.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
 
     series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="races")
     number = models.PositiveSmallIntegerField(
@@ -245,6 +321,9 @@ class RaceEntry(models.Model):
     Nothing here moves a score, so none of it is in the change history.
     """
 
+    # Only this club's rows: RaceEntry.objects.for_club(club) (slice 11).
+    objects = _club_manager("race__series__club")
+
     race = models.ForeignKey(Race, on_delete=models.CASCADE, related_name="race_entries")
     # CASCADE is safe: a series entry with finishes cannot be deleted at all
     # (Finish.entry is RESTRICT), so this only removes start sheet ticks.
@@ -284,6 +363,9 @@ class RaceEntry(models.Model):
 
 class Finish(models.Model):
     """What the race officer wrote down for one boat: a time, or a code."""
+
+    # Only this club's rows: Finish.objects.for_club(club) (slice 11).
+    objects = _club_manager("race__series__club")
 
     class Status(models.TextChoices):
         # Values match nhc.RaceStatus. Only the engine's four for now; OCS, RET
@@ -374,6 +456,9 @@ class ScoringChange(models.Model):
     rows it describes, so ``description`` and ``changes`` are kept as text.
     """
 
+    # Only this club's rows: ScoringChange.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
     class Kind(models.TextChoices):
         FINISH = "FINISH", "Finish"
         RACE = "RACE", "Race"
@@ -389,6 +474,9 @@ class ScoringChange(models.Model):
         CHANGED = "CHANGED", "Changed"
         REMOVED = "REMOVED", "Removed"
 
+    # Every change belongs to a club, even a base number change for a boat in
+    # no series, which has no series to say which club it was.
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, editable=False, related_name="scoring_changes")
     timestamp = models.DateTimeField(default=timezone.now)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
@@ -470,11 +558,16 @@ class Request(models.Model):
 class BoatRequest(Request):
     """A member asking to register a boat, change one of theirs, or own one on record."""
 
+    # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
     class Kind(models.TextChoices):
         REGISTER = "REGISTER", "Register a boat"
         CHANGE = "CHANGE", "Change a boat"
         CLAIM = "CLAIM", "Own a boat on record"
 
+    # A registration has no boat yet, so the request says which club it's for.
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, editable=False, related_name="boat_requests")
     kind = models.CharField(max_length=10, choices=Kind.choices)
     # Empty for a registration, which has no boat until it is approved.
     boat = models.ForeignKey(
@@ -530,8 +623,16 @@ class BoatRequest(Request):
 class EntryRequest(Request):
     """A member asking to enter one of their boats in a series."""
 
+    # Only this club's rows: EntryRequest.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
+
     series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="entry_requests")
     boat = models.ForeignKey(Boat, on_delete=models.CASCADE, related_name="entry_requests")
+
+    @property
+    def club(self):
+        # An entry request's club is its series' club; BoatRequest stores its own.
+        return self.series.club
 
     class Meta(Request.Meta):
         constraints = [
