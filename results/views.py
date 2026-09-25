@@ -66,7 +66,7 @@ def home(request):
             series_list=Series.objects.for_club(request.club).annotate(latest=Max("races__date")).order_by(
                 F("latest").desc(nulls_last=True), "name"
             ),
-            my_boats=request.user.boats.filter(club=request.club) if is_member(request.user) else None,
+            my_boats=request.user.boats.filter(club=request.club) if is_member(request.user, request.club) else None,
         )
     return _render(request, "results/home.html", {"boat-matches": "results/_boat_matches.html"}, context)
 

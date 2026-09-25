@@ -8,6 +8,8 @@ the pages do not even confirm that another member's boat or request exists.
 
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -16,8 +18,9 @@ from . import approvals
 from .forms import (
     BoatChangeForm, BoatRegistrationForm, EntryRequestForm, LoginForm, SignUpForm,
 )
-from .models import Boat, BoatRequest, EntryRequest
-from .roles import member_required
+from .membership_views import send_confirmation
+from .models import Boat, BoatRequest, ClubMembership, EntryRequest
+from .roles import is_member, member_required, membership
 
 PENDING_ALREADY = (
     "This boat already has a request waiting for the race committee. "
@@ -26,11 +29,19 @@ PENDING_ALREADY = (
 
 
 def signup(request):
+    """A new account, asking to join this club (slice 11).
+
+    The account can log in once its email address is confirmed, from the link
+    emailed now. Joining the club waits for the club's administrators.
+    """
     if request.user.is_authenticated:
         return redirect("races:my_boats")
     form = SignUpForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        with transaction.atomic():
+            user = form.save()
+            ClubMembership.objects.create(user=user, club=request.club)
+            send_confirmation(user, request)
         return render(request, "registration/signup_done.html", {"email": form.cleaned_data["email"]})
     return render(request, "registration/signup.html", {"form": form})
 
@@ -40,8 +51,16 @@ class LoginView(auth_views.LoginView):
     redirect_authenticated_user = True
 
 
-@member_required
+@login_required
 def my_boats(request):
+    if not is_member(request.user, request.club):
+        # Logged in, but not (or not yet) a member here: say where they stand,
+        # and offer to join (slice 11).
+        return render(request, "races/not_a_member.html", {"membership": membership(request.user, request.club)})
+    return _my_boats(request)
+
+
+def _my_boats(request):
     # Only this club's boats and requests: the same person may be a member elsewhere.
     boats = Boat.objects.for_club(request.club).filter(owner=request.user).prefetch_related(
         "series_entries__series"

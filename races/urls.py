@@ -2,7 +2,7 @@ from django.urls import path, reverse_lazy
 
 from django.contrib.auth import views as auth_views
 
-from . import member_views, views
+from . import member_views, membership_views, views
 
 app_name = 'races'
 
@@ -10,6 +10,11 @@ urlpatterns = [
     path('ping/', views.ping, name='ping'),
     path('accounts/signup/', member_views.signup, name='signup'),
     path('accounts/login/', member_views.LoginView.as_view(), name='login'),
+    path('accounts/confirm/<uidb64>/<token>/', membership_views.confirm_email, name='confirm_email'),
+    path('accounts/confirm/again/', membership_views.resend_confirmation, name='resend_confirmation'),
+    path('join/', membership_views.join_club, name='join_club'),
+    path('members/', membership_views.members_page, name='members'),
+    path('members/<int:pk>/', membership_views.decide_membership, name='decide_membership'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # Django's own password reset: a signed, time-limited link by email.
     path('accounts/password-reset/', auth_views.PasswordResetView.as_view(

@@ -1,0 +1,11 @@
+{% autoescape off %}Confirm your email address for Race Times
+Hello {{ user.first_name|default:user.get_username }},
+
+You signed up to Race Times at {{ club.name }} with this email address. To confirm it, open this link:
+
+{{ confirm_url }}
+
+Once it's confirmed you can log in, and {{ club.name }}'s administrators will be asked to approve you joining the club. You'll get an email when they decide.
+
+If it wasn't you, ignore this email: nothing happens unless the link is opened.
+{% endautoescape %}

@@ -15,7 +15,7 @@ from django.urls import reverse
 from races import audit
 from races.models import Boat, Finish, Race, ScoringChange, Series
 from races.scoring import score_series
-from races.testing import enter, make_boat, make_race, make_series, record, start
+from races.testing import default_club, join, enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
@@ -24,7 +24,10 @@ REASON_REQUIRED = "give a reason for the correction"
 
 @pytest.fixture
 def staff_user(django_user_model):
-    return django_user_model.objects.create_user("officer", is_staff=True, is_superuser=True)
+    # The superuser is Demo Club's administrator, as the slice 11 migration makes it.
+    user = django_user_model.objects.create_user("officer", is_staff=True, is_superuser=True)
+    join(user, default_club(), role="ADMINISTRATOR")
+    return user
 
 
 @pytest.fixture

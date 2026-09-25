@@ -291,49 +291,14 @@ def test_a_rolled_back_change_sends_nothing(club, django_capture_on_commit_callb
     with django_capture_on_commit_callbacks(execute=True):
         try:
             with transaction.atomic():
-                notifications.account_approved([club["pat"]], request)
+                notifications.membership_decided(club["pat"].memberships.get(), request, "approved")
                 raise RuntimeError("the change failed")
         except RuntimeError:
             pass
     assert not mail.outbox
 
 
-# --- Accounts ------------------------------------------------------------------
-
-
-def test_approving_accounts_emails_them(client, run_on_commit):
-    waiting = [make_member(f"new{n}@example.com", first_name="New", is_active=False) for n in range(2)]
-    client.force_login(make_administrator())
-    with run_on_commit():
-        client.post(reverse("admin:auth_user_changelist"),
-                    {"action": "approve_accounts", "_selected_action": [u.pk for u in waiting]})
-    assert recipients() == ["new0@example.com", "new1@example.com"]
-    assert mail.outbox[0].subject == "Your Race Times account is approved"
-    assert reverse("races:login") in mail.outbox[0].body
-
-
-def test_ticking_active_on_a_new_account_emails_it(client, run_on_commit):
-    new = make_member("new@example.com", is_active=False)
-    client.force_login(make_administrator())
-    page = client.get(reverse("admin:auth_user_change", args=[new.pk]))
-    form = page.context["adminform"].form
-    data = {name: value for name, value in form.initial.items() if value is not None and not isinstance(value, list)}
-    data.update({"is_active": "on", "date_joined_0": "2026-09-24", "date_joined_1": "09:00:00"})
-    data.pop("is_staff", None), data.pop("is_superuser", None), data.pop("last_login", None)
-    with run_on_commit():
-        client.post(reverse("admin:auth_user_change", args=[new.pk]), data)
-    new.refresh_from_db()
-    assert new.is_active
-    assert recipients() == ["new@example.com"]
-
-
-def test_reactivating_an_old_account_is_not_an_approval(client, run_on_commit):
-    old = make_member("old@example.com", is_active=False, last_login=timezone.now())
-    client.force_login(make_administrator())
-    with run_on_commit():
-        client.post(reverse("admin:auth_user_changelist"),
-                    {"action": "approve_accounts", "_selected_action": [old.pk]})
-    assert not mail.outbox
+# --- Accounts: see races/test_memberships.py (slice 11) --------------------------
 
 
 # --- Requests: the member hears the decision, once ----------------------------

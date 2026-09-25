@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Members - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>Members</h1>
+<p class="muted">Who can use {{ request.club.name }}'s site, and what they can do. Each decision emails the person.
+  You can't change your own membership, and the club always keeps at least one administrator.</p>
+
+<section aria-labelledby="waiting">
+<h2 id="waiting">Waiting to join ({{ waiting|length }})</h2>
+{% for m in waiting %}
+<form method="post" action="{% url 'races:decide_membership' m.pk %}" class="card member-row" id="member-{{ m.pk }}">{% csrf_token %}
+  <div><strong>{{ m.user.get_full_name|default:m.user.username }}</strong><br><span class="muted">{{ m.user.email }} &middot; asked {{ m.created_at|date:"j M Y" }}</span></div>
+  <label>As <select name="role">{% for value, label in roles %}<option value="{{ value }}"{% if value == "MEMBER" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <div class="buttons">
+    <button type="submit" name="action" value="approve">Approve</button>
+    <button type="submit" name="action" value="reject" class="secondary">Don't approve</button>
+  </div>
+</form>
+{% empty %}
+<p class="muted">Nobody is waiting.</p>
+{% endfor %}
+</section>
+
+<section aria-labelledby="approved">
+<h2 id="approved">Members ({{ approved|length }})</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+  <tbody>
+  {% for m in approved %}
+  <tr id="member-{{ m.pk }}">
+    <td>{{ m.user.get_full_name|default:m.user.username }}</td>
+    <td>{{ m.user.email }}</td>
+    {% if m.user == request.user %}
+    <td>{{ m.get_role_display }}</td><td class="muted">You</td>
+    {% else %}
+    <td><form method="post" action="{% url 'races:decide_membership' m.pk %}" class="inline">{% csrf_token %}
+      <input type="hidden" name="action" value="role">
+      <select name="role" aria-label="Role for {{ m.user.get_full_name|default:m.user.username }}">{% for value, label in roles %}<option value="{{ value }}"{% if value == m.role %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <button type="submit" class="secondary">Change</button></form></td>
+    <td><form method="post" action="{% url 'races:decide_membership' m.pk %}" class="inline">{% csrf_token %}
+      <button type="submit" name="action" value="remove" class="secondary">Remove</button></form></td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+</section>
+
+{% if removed %}
+<details class="not-racing">
+  <summary>No longer members, or not approved: {{ removed|length }}</summary>
+  <ul>{% for m in removed %}<li>{{ m.user.get_full_name|default:m.user.username }} ({{ m.user.email }}){% if m.decided_at %}, {{ m.decided_at|date:"j M Y" }}{% endif %}</li>{% endfor %}</ul>
+  <p class="muted">They can ask to join again, which puts them back under "Waiting to join".</p>
+</details>
+{% endif %}
+{% endblock %}

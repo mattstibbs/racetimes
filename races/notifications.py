@@ -21,7 +21,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from .models import BoatRequest, EntryRequest
+from .models import BoatRequest, ClubMembership, EntryRequest
 from .scoring import score_series
 
 logger = logging.getLogger(__name__)
@@ -74,9 +74,14 @@ def _link(request, name, *args):
 
 
 def series_owners(series):
-    """Active members who own a boat entered in the series."""
+    """Approved members of the series' club who own a boat entered in it.
+
+    Someone removed from the club, or still waiting to join, gets no results
+    emails from it even if a boat there is recorded as theirs (slice 11).
+    """
     return get_user_model().objects.filter(
-        boats__series_entries__series=series, is_active=True
+        boats__series_entries__series=series, is_active=True,
+        memberships__club=series.club, memberships__status=ClubMembership.Status.APPROVED,
     ).exclude(email="").distinct()
 
 
@@ -118,14 +123,25 @@ def final_standings(series, request, *, updated, on_sent=None):
     return len(owners)
 
 
+# --- Accounts and memberships (slice 11) -------------------------------------------
+
+
+def confirm_email(user, club, request, link):
+    """The link that confirms a new account's email address, sent once on signing up."""
+    send([email(user, "confirm_email", request, club=club, confirm_url=link)], request)
+
+
+def membership_decided(membership, request, change):
+    """Tell a person what the club's administrator decided about their membership.
+
+    ``change`` is "approved", "rejected", "role" or "removed".
+    """
+    send([email(membership.user, "membership_decided", request, membership=membership, club=membership.club,
+                change=change, site_link=_link(request, "results:home"),
+                my_boats_link=_link(request, "races:my_boats"))], request)
+
+
 # --- Members: accounts, requests, boats and entries ------------------------------
-
-
-def account_approved(users, request):
-    send(
-        [email(user, "account_approved", request, login_url=_link(request, "races:login")) for user in users],
-        request,
-    )
 
 
 def request_decided(member_request, request, details=(), boat_name=None):
@@ -209,8 +225,12 @@ def _to_owners(entries, template, request, context):
 
 
 def has_owner_to_email(boat):
-    """Whether the site can email this boat's owner at all."""
-    return boat.owner is not None and boat.owner.is_active and bool(boat.owner.email)
+    """Whether the site can email this boat's owner: an approved member of the boat's club."""
+    owner = boat.owner
+    return (
+        owner is not None and owner.is_active and bool(owner.email)
+        and owner.memberships.filter(club_id=boat.club_id, status=ClubMembership.Status.APPROVED).exists()
+    )
 
 
 # --- Race day: the start sheet ----------------------------------------------------

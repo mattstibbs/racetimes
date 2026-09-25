@@ -9,6 +9,13 @@
   <input type="hidden" name="next" value="{{ next }}">
   <button type="submit">Log in</button>
 </form>
+{% if form.unconfirmed %}
+{# Only shown to someone who gave the right password for an unconfirmed account. #}
+<form method="post" action="{% url 'races:resend_confirmation' %}" class="inline">{% csrf_token %}
+  <input type="hidden" name="email" value="{{ form.cleaned_data.username }}">
+  <button type="submit" class="secondary">Send the confirmation link again</button>
+</form>
+{% endif %}
 <p class="muted">No account yet? <a href="{% url 'races:signup' %}">Sign up</a>.
   <a href="{% url 'races:password_reset' %}">Forgotten your password?</a></p>
 {% endblock %}
