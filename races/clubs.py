@@ -19,9 +19,9 @@ from . import logs
 from .models import Club
 
 # Paths that work on the service's own address, with no club: the operator's
-# pages (slice 11 part 3), and the Django admin, where the operator logs in and
-# manages accounts.
-SERVICE_PATHS = ("/admin/", "/operator/")
+# pages (slice 11 part 3), the Django admin, where the operator logs in and
+# manages accounts, and the privacy notice and terms (part 5).
+SERVICE_PATHS = ("/admin/", "/operator/", "/privacy/", "/terms/")
 
 
 def subdomain_of(host):

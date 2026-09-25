@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Privacy notice - Race Times{% endblock %}
+{% block content %}
+<h1>Privacy notice</h1>
+{% include "legal/_draft.html" %}
+
+<h2>Who we are</h2>
+<p>Race Times is a results service for sailing clubs, run by [the operator's legal name], [postal address].
+  You can contact us at <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+
+<h2>Your club and Race Times</h2>
+<p>Each club that uses Race Times decides what it uses it for. The club is the <strong>controller</strong> of its
+  members' personal data, and Race Times is its <strong>processor</strong>: we hold and use the data on the club's
+  behalf, following its instructions, and for nothing else.</p>
+<p>Questions about what your club holds about you are best asked of the club first. Replying to any email it sends
+  you through Race Times reaches the club.</p>
+
+<h2>What we hold</h2>
+<ul>
+  <li><strong>Your account:</strong> your name, your email address, and your password, stored only in a form that
+    can't be turned back into the password.</li>
+  <li><strong>Your membership of each club:</strong> your role there (member, race committee or administrator),
+    whether it's approved, and who approved it.</li>
+  <li><strong>Boats:</strong> sail number, name, class, handicap, and who owns them.</li>
+  <li><strong>Results:</strong> finish times, places, points and handicaps. These are published on the club's
+    public pages, by boat. Public pages never show owners' names.</li>
+  <li><strong>Requests</strong> you make to the race committee, such as registering a boat or entering a series,
+    and what was decided.</li>
+  <li><strong>The change history:</strong> who changed a result, when, and the reason they gave.</li>
+</ul>
+
+<h2>Why we hold it</h2>
+<p>To run the club's racing: to score its results, publish them, and email you about your boats and results. The
+  lawful basis is the club's legitimate interest in running its racing, and, for your account, providing the
+  service you signed up for. We don't use your data for advertising, and we don't sell it.</p>
+
+<h2>Who else handles it</h2>
+<p>Race Times uses a hosting provider to run the site and store its data, an email provider to send its emails, and
+  Sentry to report errors in the site. Error reports carry no names or email addresses. [The providers will be named
+  here once they are chosen.]</p>
+
+<h2>How long we keep it</h2>
+<p>Everything is kept while your club uses Race Times, so that its results and handicaps stay complete. When a club
+  leaves Race Times, everything it holds is deleted. Nothing is deleted automatically before then.</p>
+
+<h2>Your rights</h2>
+<ul>
+  <li><strong>See your data:</strong> <em>Download my data</em>, on your Account page, gives you a copy of
+    everything held about you.</li>
+  <li><strong>Correct it:</strong> change your boats' details from <em>My boats</em>, or ask your club's race
+    committee.</li>
+  <li><strong>Delete it:</strong> <em>Delete my account</em>, on your Account page. Your memberships and requests
+    are deleted. Your boats stay with the club, as its records, with no owner. Results stay as they were, and the
+    change history says "a deleted account" where it named you. Reasons the committee typed for a correction are
+    kept as they wrote them.</li>
+  <li><strong>Object, or ask anything else:</strong> ask your club, or email us.</li>
+</ul>
+<p>If you're unhappy with how your data is handled, you can complain to the Information Commissioner's Office,
+  at <a href="https://ico.org.uk/">ico.org.uk</a>.</p>
+
+<h2>Cookies</h2>
+<p>Race Times sets two cookies, both needed for the site to work, so it doesn't ask first:</p>
+<ul>
+  <li><strong>sessionid</strong> keeps you logged in, and carries short messages such as "Saved" from one page to
+    the next.</li>
+  <li><strong>csrftoken</strong> protects the site's forms from being sent by other websites.</li>
+</ul>
+<p>There are no analytics or advertising cookies.</p>
+{% endblock %}

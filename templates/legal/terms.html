@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Terms of service - Race Times{% endblock %}
+{% block content %}
+<h1>Terms of service</h1>
+{% include "legal/_draft.html" %}
+
+<h2>The service</h2>
+<p>Race Times scores sailing races and publishes results for the clubs that use it. It is run by [the operator's
+  legal name], [postal address]. By creating an account, you agree to these terms and to the
+  <a href="{% url 'races:privacy' %}">privacy notice</a>.</p>
+
+<h2>Your account</h2>
+<ul>
+  <li>One account per person, in your own name, with an email address you use.</li>
+  <li>Keep your password to yourself. You're responsible for what's done with your account.</li>
+  <li>You can delete your account at any time, from your Account page.</li>
+</ul>
+
+<h2>Clubs</h2>
+<ul>
+  <li>Each club decides who joins it, and what role they have there.</li>
+  <li>Each club's race committee is responsible for its results. Race Times calculates them under the RYA's NHC
+    rules and the Racing Rules of Sailing from what the committee records; the committee's decision on a result is
+    final.</li>
+  <li>A club that leaves Race Times can download everything it holds first. Its data is then deleted.</li>
+</ul>
+
+<h2>Using the site</h2>
+<p>Don't use Race Times to break the law, to see or change what you're not entitled to, or to disrupt it for
+  others. We may suspend an account that does.</p>
+
+<h2>Availability</h2>
+<p>We work to keep Race Times running and its data safe, but can't promise it will always be available or free of
+  errors. [Limits of liability to be set out here.]</p>
+
+<h2>Changes</h2>
+<p>If these terms change, we'll say so on this page, with the date.</p>
+
+<h2>The law</h2>
+<p>These terms are governed by the law of England and Wales. Questions:
+  <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+{% endblock %}

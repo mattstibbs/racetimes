@@ -2,11 +2,13 @@
 {% block title %}Sign up - Race Times{% endblock %}
 {% block content %}
 <h1>Sign up</h1>
-<p>Club members can register their boats and enter series here. Your account
-  is checked by the club's administrator before you can log in.</p>
+<p>Club members can register their boats and enter series here. You'll confirm
+  your email address, and then the club's administrator approves you joining.</p>
 <form method="post" class="stacked">
   {% csrf_token %}
   {{ form.as_p }}
+  <p class="muted">By signing up you agree to the <a href="{% url 'races:terms' %}">terms</a> and the
+    <a href="{% url 'races:privacy' %}">privacy notice</a>.</p>
   <button type="submit">Sign up</button>
 </form>
 {% endblock %}

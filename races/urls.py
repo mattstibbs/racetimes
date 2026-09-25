@@ -9,6 +9,8 @@ app_name = 'races'
 
 urlpatterns = [
     path('ping/', views.ping, name='ping'),
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
     path('accounts/signup/', member_views.signup, name='signup'),
     path('accounts/login/', member_views.LoginView.as_view(), name='login'),
     path('accounts/confirm/<uidb64>/<token>/', membership_views.confirm_email, name='confirm_email'),
