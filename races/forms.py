@@ -166,14 +166,14 @@ class RaceInlineFormSet(AuditedInlineFormSet):
             if moving:
                 spares = self._spare_numbers(len(moving))
                 for race, spare in zip(moving, spares):
-                    Race.objects.filter(pk=race.pk).update(number=spare)
+                    Race.objects.for_club(self.instance.club).filter(pk=race.pk).update(number=spare)
         return super().save_existing_objects(commit)
 
     def _spare_numbers(self, count):
         # Counting down from 32767, the largest small positive integer on
         # both SQLite and PostgreSQL, skipping any number in use now or about
         # to be.
-        in_use = set(Race.objects.filter(series=self.instance).values_list("number", flat=True))
+        in_use = set(Race.objects.for_club(self.instance.club).filter(series=self.instance).values_list("number", flat=True))
         in_use |= {form.cleaned_data.get("number") for form in self.forms if form.cleaned_data}
         return [n for n in range(32767, 0, -1) if n not in in_use][:count]
 
