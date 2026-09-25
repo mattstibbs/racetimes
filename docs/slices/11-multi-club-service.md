@@ -682,6 +682,9 @@ club**. It's a choices-only migration: no table changes.
    contact email is `SERVICE_CONTACT_EMAIL`. Filling them in is part of the
    legal review, which is already an open requirement.
 
+**The owner's answers (2026-09-25):** all five proposals agreed, including
+the model change in question 4 (two new operator log actions).
+
 ## Data model *(approved by the project owner, 2026-09-25)*
 
 | Change | Why |

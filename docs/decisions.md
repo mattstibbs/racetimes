@@ -1346,6 +1346,28 @@ subdomains, which come with production hosting.
 
 ---
 
+## 2026-09-25 - Slice 11 part 5: the owner's answers on data protection
+
+**Decision.** Agreed with the project owner, from the part 5 plan's questions:
+- **The privacy notice and terms** are at `/privacy/` and `/terms/` on every
+  address, the service's and each club's, with the same text. The footer
+  links to the one on the address you're on, so the test site (which has no
+  service address) links to itself.
+- **Deleting an account anonymises everywhere their login is kept as text:**
+  change history, who decided a request or membership, who declared a
+  series final, who sent an invitation, the operator log (its details
+  included), and invitations sent to their address. Each becomes "a deleted
+  account". Free-text reasons are left as typed; the notice says so.
+- **One email confirms an account's deletion,** to the deleted address.
+- **The operator can take a club's export,** including while the club is
+  suspended, and each operator export and each club deletion is logged.
+  `OperatorAction.Action` gains two choices for it (a choices-only
+  migration), approved.
+- **The notice's legal name and address are marked placeholders** until the
+  legal review, which is already an open requirement.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
