@@ -62,6 +62,21 @@ else:
 # means such an address is the service's own front page.
 SINGLE_CLUB = os.environ.get('SINGLE_CLUB', '')
 
+# How many proxies in front of the site add to X-Forwarded-For, so the
+# client's own address can be found: 0 with none (development), 1 on Render.
+# Used to limit failed logins from one address (races/throttle.py).
+TRUSTED_PROXIES = int(os.environ.get('TRUSTED_PROXIES', '0'))
+
+# Failed-login counts (races/throttle.py) are kept in the database, the one
+# place every web worker shares. Its table is made by `createcachetable`,
+# which build.sh runs; the test database makes it by itself.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'racetimes_cache',
+    }
+}
+
 # Shown on the service's front page, for clubs that want to use Race Times.
 SERVICE_CONTACT_EMAIL = os.environ.get('SERVICE_CONTACT_EMAIL', 'hello@racetimes.co.uk')
 

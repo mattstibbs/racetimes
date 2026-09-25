@@ -25,6 +25,7 @@ export SINGLE_CLUB=demo
 export INVITATION_FILE="$WORK/invitation-link"
 cd "$ROOT"
 "$PYTHON" manage.py migrate --verbosity 0
+"$PYTHON" manage.py createcachetable
 "$PYTHON" manage.py shell --verbosity 0 < "$HERE/seed.py"
 "$PYTHON" manage.py runserver "$PORT" --noreload > "$WORK/server.log" 2>&1 &
 SERVER=$!

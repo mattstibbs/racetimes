@@ -2,6 +2,7 @@ import logging
 import re
 
 from django import forms
+from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, UserCreationForm
 from django.core.exceptions import ValidationError
@@ -11,7 +12,7 @@ from django.db.models.functions import Replace, Upper
 from django.forms.models import BaseInlineFormSet
 from django.template.loader import render_to_string
 
-from . import audit, final, notifications
+from . import audit, final, notifications, throttle
 from .models import Boat, BoatRequest, Club, Finish, Race, Series
 
 logger = logging.getLogger(__name__)
@@ -241,6 +242,11 @@ class LoginForm(AuthenticationForm):
     def clean(self):
         if "username" in self.cleaned_data:
             self.cleaned_data["username"] = _normalise_login(self.cleaned_data["username"])
+        username, password = self.cleaned_data.get("username"), self.cleaned_data.get("password")
+        with throttle.guard(self.request, username, password):
+            return self._check_password()
+
+    def _check_password(self):
         try:
             return super().clean()
         except ValidationError:
@@ -257,6 +263,14 @@ class LoginForm(AuthenticationForm):
             raise
 
     unconfirmed = False
+
+
+class AdminLoginForm(AdminAuthenticationForm):
+    """The admin's login on the service's own address, the operator's, with the same limit on guessing."""
+
+    def clean(self):
+        with throttle.guard(self.request, self.cleaned_data.get("username"), self.cleaned_data.get("password")):
+            return super().clean()
 
 
 class ClubPasswordResetForm(PasswordResetForm):

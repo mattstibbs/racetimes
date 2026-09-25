@@ -39,6 +39,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requiremen
 
 ```bash
 .venv/bin/python manage.py migrate
+.venv/bin/python manage.py createcachetable   # once: the failed-login counts live there
 .venv/bin/python manage.py runserver
 .venv/bin/python manage.py makemigrations
 ```

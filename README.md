@@ -104,7 +104,8 @@ Run the tests (about 1,200 of them, engine and app):
 Run the development server:
 
 ```bash
-.venv/bin/python manage.py migrate && .venv/bin/python manage.py runserver
+.venv/bin/python manage.py migrate && .venv/bin/python manage.py createcachetable
+.venv/bin/python manage.py runserver
 ```
 
 Then open **<http://demo.localhost:8000/>**. Each club has its own address,
