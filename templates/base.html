@@ -28,6 +28,7 @@
             <a href="{% url 'admin:index' %}">Setup (admin)</a>
           {% endif %}
           {% if is_club_administrator %}<a href="{% url 'races:members' %}">Members</a>{% endif %}
+          <a href="{% url 'races:account' %}">Account</a>
           <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
             <button type="submit" class="link">Log out</button>
           </form>
@@ -55,5 +56,8 @@
     {% endif %}
     {% block content %}{% endblock %}
   </main>
+  <footer class="site-footer">
+    <div class="wrap"><a href="{% url 'races:privacy' %}">Privacy notice</a> <a href="{% url 'races:terms' %}">Terms</a></div>
+  </footer>
 </body>
 </html>

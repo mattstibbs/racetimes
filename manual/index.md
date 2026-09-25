@@ -36,8 +36,9 @@ way every boat, entry and result has been checked by someone on the committee.
 
 - [Finding your results](getting-started/finding-results.md): your boat's
   results and next handicap, and a series' standings.
-- [Joining a club](getting-started/joining-a-club.md): signing up, confirming
-  your email, and waiting for the club to approve you.
+- [Joining a club, and your data](getting-started/joining-a-club.md): signing
+  up, confirming your email, waiting for the club to approve you, and
+  downloading your data or deleting your account.
 - [Forgotten your password?](getting-started/forgotten-password.md)
 
 **Members**
@@ -55,6 +56,7 @@ way every boat, entry and result has been checked by someone on the committee.
 - [Reviewing waiting requests](committee/reviewing-requests.md): finding out
   what is waiting for you, and approving or rejecting members' requests.
 - [Running your club: members and roles](committee/members-and-roles.md): for
-  club administrators, approving people joining, and choosing their roles.
+  club administrators, approving people joining, choosing their roles, and
+  downloading the club's data.
 
 More sections will follow as the manual grows.

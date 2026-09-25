@@ -141,6 +141,11 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const sam = await logIn(browser, 'sam@example.com');
   await sam.goto(`${BASE}/my/boats/`);
   await shot(sam.locator('table').first(), 'member-request-status.png');
+  // Their account page, and deleting the account (not pressed).
+  await sam.goto(`${BASE}/account/`);
+  await shot(sam.locator('main'), 'account.png');
+  await sam.goto(`${BASE}/account/delete/`);
+  await shot(sam.locator('main'), 'delete-account.png');
 
   // The administrator's view.
   const admin = await logIn(browser, 'admin@example.com');

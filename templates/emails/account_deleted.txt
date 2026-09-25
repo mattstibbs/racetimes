@@ -1,0 +1,9 @@
+{% autoescape off %}Your Race Times account has been deleted
+Hello {{ name }},
+
+Your Race Times account, {{ account_email }}, has been deleted, as you asked.
+
+Your club memberships and requests have been deleted with it. Boats you owned stay with their clubs as the clubs' records, with no owner, and results stay as they were.
+
+This is the last email Race Times will send to this address. If you didn't ask for this, reply to this email to tell the club.
+{% endautoescape %}

@@ -398,7 +398,7 @@ The brief's user journey 5. The committee declares a series final: it is
 locked, a copy of its results is kept, and the owners are emailed their
 final places. Anyone can download any series as one CSV file.
 
-## Slice 11: a service for many clubs. **Status: ready to build (2026-09-25)**
+## Slice 11: a service for many clubs. **Status: complete (2026-09-25)**
 
 Spec: `docs/slices/11-multi-club-service.md`. The project owner has answered
 five of its six open questions:
@@ -493,3 +493,29 @@ of any particular host.
   minutes (database cache; `TRUSTED_PROXIES`).
 - **Tests:** `races/test_production.py`, `races/test_email_sender.py`,
   `races/test_logs.py`, `races/test_throttle.py`.
+
+**Part 5, data protection: complete (2026-09-25).**
+- **Privacy notice and terms** at `/privacy/` and `/terms/` on every address,
+  marked Draft, linked from every page's footer. Only two cookies (messages
+  moved into the session), so no banner.
+- **The account page** (`/account/`): every club's membership, **Download my
+  data** (one JSON file) and **Delete my account** (password, refused for a
+  club's only administrator and for the operator; their login becomes "a
+  deleted account" everywhere it's stored; one email confirms it).
+- **A club's data export:** a ZIP of CSV files, for the club's administrators
+  and for the operator (logged, and while suspended). Spreadsheet formulas
+  are guarded against in it and in the series CSV.
+- **Deleting a club:** the operator, once suspended, typing its subdomain;
+  series before boats in one transaction; accounts stay. Migration 0017 adds
+  the two operator log actions.
+- **Tests:** `races/test_legal.py`, `races/test_account.py`,
+  `races/test_club_data.py`, and the isolation tests (the export is read
+  inside the ZIP; the account pages show another club only as the person's
+  own). Two intermittent test failures found and fixed on the way.
+- **Manual:** "Joining a club, and your data" and "Running your club" gain
+  the new pages, with screenshots; `docs/operating.md` covers exporting and
+  deleting a club.
+
+With part 5, every acceptance criterion in the spec is met. Production
+hosting is the next slice; the legal review stays an open requirement before
+the first paying club.

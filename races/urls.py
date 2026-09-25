@@ -2,20 +2,26 @@ from django.urls import path, reverse_lazy
 
 from django.contrib.auth import views as auth_views
 
-from . import invitations, member_views, membership_views, operator_views, views
+from . import account_views, invitations, member_views, membership_views, operator_views, views
 from .forms import ClubPasswordResetForm
 
 app_name = 'races'
 
 urlpatterns = [
     path('ping/', views.ping, name='ping'),
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
     path('accounts/signup/', member_views.signup, name='signup'),
     path('accounts/login/', member_views.LoginView.as_view(), name='login'),
     path('accounts/confirm/<uidb64>/<token>/', membership_views.confirm_email, name='confirm_email'),
     path('accounts/confirm/again/', membership_views.resend_confirmation, name='resend_confirmation'),
     path('join/', membership_views.join_club, name='join_club'),
+    path('account/', account_views.account, name='account'),
+    path('account/data.json', account_views.download_my_data, name='download_my_data'),
+    path('account/delete/', account_views.delete_my_account, name='delete_account'),
     path('members/', membership_views.members_page, name='members'),
     path('members/<int:pk>/', membership_views.decide_membership, name='decide_membership'),
+    path('members/export.zip', membership_views.export_club_data, name='export_club_data'),
     path('invitation/<str:token>/', invitations.accept_invitation, name='accept_invitation'),
     # The operator's pages, on the service's own address only (slice 11 part 3).
     path('operator/', operator_views.clubs, name='operator_clubs'),
@@ -23,6 +29,8 @@ urlpatterns = [
     path('operator/clubs/<int:pk>/', operator_views.club_page, name='operator_club'),
     path('operator/clubs/<int:pk>/invite/', operator_views.invite, name='operator_invite'),
     path('operator/clubs/<int:pk>/status/', operator_views.change_status, name='operator_club_status'),
+    path('operator/clubs/<int:pk>/export.zip', operator_views.export_club, name='operator_export_club'),
+    path('operator/clubs/<int:pk>/delete/', operator_views.delete_club, name='operator_delete_club'),
     path('operator/log/', operator_views.operator_log, name='operator_log'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # Django's own password reset: a signed, time-limited link by email.

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Your account - Race Times{% endblock %}
+{% block content %}
+<h1>Your account</h1>
+<p>{{ user.get_full_name|default:user.get_username }}<br><span class="muted">{{ user.email }}</span></p>
+
+<h2>Your clubs</h2>
+{% if memberships %}
+<div class="table-scroll"><table>
+  <thead><tr><th>Club</th><th>Role</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for m, address in memberships %}
+    <tr><td><a href="{{ address }}">{{ m.club.name }}</a></td><td>{{ m.get_role_display }}</td><td>{{ m.get_status_display }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<p class="muted">You haven't joined a club yet.</p>
+{% endif %}
+
+<h2>Your data</h2>
+<p>Everything Race Times holds about you, at every club: your account, your memberships, the boats you own, your
+  requests and any changes you've made to results. See the <a href="{% url 'races:privacy' %}">privacy notice</a>.</p>
+<p><a href="{% url 'races:download_my_data' %}" download>Download my data (JSON)</a></p>
+
+<h2>Delete your account</h2>
+<p>Deletes your account and your memberships of every club. <a href="{% url 'races:delete_account' %}">Delete my account</a></p>
+{% endblock %}

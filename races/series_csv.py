@@ -3,6 +3,10 @@
 It holds exactly what the series page shows, from the same ``score_series``,
 formatted the same way, and no owner names or persons on board, like every
 public page. Python's own csv module; no new dependency.
+
+The public download (``results/views.py``) and the club's data export
+(``races/club_export.py``, slice 11 part 5) both use it, so it lives here:
+``races`` never imports from ``results``.
 """
 
 import csv
@@ -10,11 +14,22 @@ import io
 
 from django.utils import timezone
 
-from races.templatetags.racing import hms, points, tcf
+from .templatetags.racing import hms, points, tcf
 
 # Excel only reads a CSV as UTF-8 if it starts with a byte-order mark;
 # without one, accented boat names come out garbled.
 BOM = "﻿"
+
+# A spreadsheet runs a cell starting with one of these as a formula. Text people
+# typed (a boat's name, a note) could start with one, so it gets a leading
+# apostrophe, which spreadsheets show as text and don't display.
+FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
+
+
+def typed(value):
+    """Text someone typed, made safe to open in a spreadsheet."""
+    value = "" if value is None else str(value)
+    return f"'{value}" if value.startswith(FORMULA_START) else value
 
 
 def series_csv(series, results):
@@ -24,7 +39,7 @@ def series_csv(series, results):
     writer = csv.writer(out)
     row = writer.writerow
 
-    row([series.name])
+    row([typed(series.name)])
     if series.is_final:
         row([f"Final standings (declared {_day(timezone.localtime(series.declared_final_at))})"])
     else:
@@ -51,7 +66,7 @@ def series_csv(series, results):
                 for cell in standing.scores
             ]
             boat = standing.entry.boat
-            row([standing.position, boat.sail_number, boat.name, *cells, points(standing.total)])
+            row([standing.position, typed(boat.sail_number), typed(boat.name), *cells, points(standing.total)])
 
     for race_results in results.races:
         race = race_results.race
@@ -64,8 +79,8 @@ def series_csv(series, results):
             finish_time = line.finish.finish_time if line.finish else None
             row([
                 result.position or "",
-                boat.sail_number,
-                boat.name,
+                typed(boat.sail_number),
+                typed(boat.name),
                 f"{finish_time:%H:%M:%S}" if finish_time else "",
                 hms(result.elapsed_seconds),
                 tcf(result.tcf_used),

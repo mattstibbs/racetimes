@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Delete your account - Race Times{% endblock %}
+{% block content %}
+<h1>Delete your account</h1>
+{% if operator %}
+<p class="note">The service's operator account can't be deleted here.</p>
+{% elif blocking %}
+<div class="note"><p>You're the only administrator of {% for club in blocking %}<strong>{{ club.name }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.
+  A club always keeps an administrator, so make someone else one on the club's <strong>Members</strong> page first.</p></div>
+{% else %}
+<p>Deleting your account can't be undone. It deletes:</p>
+<ul>
+  <li>your account, <strong>{{ user.email }}</strong>, and your membership of every club;</li>
+  <li>your requests to the race committee.</li>
+</ul>
+<p>It keeps:</p>
+<ul>
+  <li>your boats, as each club's records, with no owner;</li>
+  <li>every result, exactly as it is. The change history says "a deleted account" wherever it named you.</li>
+</ul>
+<p>You may want to <a href="{% url 'races:download_my_data' %}">download your data</a> first.</p>
+<form method="post" class="stacked">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Delete my account</button>
+</form>
+{% endif %}
+<p><a href="{% url 'races:account' %}">Back to your account</a></p>
+{% endblock %}

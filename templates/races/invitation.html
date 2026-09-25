@@ -23,6 +23,8 @@
 <p>Make your Race Times account to accept. You'll log in with this email address.</p>
 <form method="post" class="stacked">{% csrf_token %}
   {{ form.as_p }}
+  <p class="muted">By making an account you agree to the <a href="{% url 'races:terms' %}">terms</a> and the
+    <a href="{% url 'races:privacy' %}">privacy notice</a>.</p>
   <button type="submit">Make my account and accept</button>
 </form>
 {% else %}

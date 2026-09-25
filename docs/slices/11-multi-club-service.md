@@ -1,7 +1,7 @@
 # Slice 11: Race Times as a service for many clubs
 
-**Status: planned, and ready to build. Every open question is answered, and
-the data model was approved by the project owner on 2026-09-25.**
+**Status: complete (2026-09-25). All five parts are built and merged; see
+`docs/plan.md`.**
 
 ## Goal
 Race Times today is one club's website. It assumes a single club throughout:
@@ -485,6 +485,205 @@ Sentry itself is checked only when the project owner has a DSN to try.
     pause in which to take the export.
 - **Retention:** nothing is deleted automatically. The notice says data is
   kept while the club uses the service, and deleted when it leaves.
+
+#### Planning part 5 *(written after part 4 was merged, 2026-09-25)*
+Parts 1 to 4 are on `main` (PRs #20 to #23). What the code already does,
+what part 5 adds, and the questions for the project owner.
+
+**What's there already:**
+- Every "who did this" field stores the person's login (their email) as
+  text, never their display name:
+  - `ScoringChange.user_name`;
+  - `decided_by_name` on requests and memberships;
+  - `Series.declared_final_by_name`;
+  - `ClubInvitation.invited_by_name`;
+  - `OperatorAction.who`.
+
+  Because a login is unique, deleting an account can find every one of them
+  exactly.
+- Deleting a `User` already does most of the right things:
+  - memberships and the requests they made are deleted (`CASCADE`);
+  - boats lose their owner (`SET_NULL`);
+  - change history rows lose the link to them but keep the change
+    (`SET_NULL`).
+- Deleting a `Club` does **not** work as it stands. `SeriesEntry.boat` is
+  `PROTECT`, so Django refuses (checked: `ProtectedError`). Deleting a club
+  must remove its series before its boats. That's done in code, in order,
+  in one transaction. No model change is needed for it.
+- Cookies:
+  - the site sets `sessionid` and `csrftoken`;
+  - Django's messages also set a `messages` cookie, because of their
+    default storage.
+- There's no account page yet. **My boats** is per club, and people still
+  waiting to join a club can't use it.
+- The series CSV (slice 10) doesn't guard against spreadsheet formulas. A
+  cell starting with `=` could run as a formula when opened in Excel.
+
+**Build order.** Each step is one commit, with its tests, and leaves the site
+working.
+1. **Privacy notice, terms and cookies:**
+   - `/privacy/` and `/terms/` (see question 1), from templates in
+     `templates/legal/`. Each has a "Draft" banner until it's reviewed.
+   - The notice covers:
+     - the club as controller and the service as processor;
+     - what's held and why;
+     - the lawful basis (running the club's racing);
+     - who else processes it: the host, the email provider and Sentry,
+       named once hosting is chosen;
+     - retention (kept while the club uses the service, deleted when it
+       leaves);
+     - people's rights, and how to download or delete their data;
+     - cookies;
+     - who to contact.
+   - A footer on every page links to both. `templates/500.html` gets the
+     same links, written inline.
+   - Sign-up says "By signing up you agree to the terms and the privacy
+     notice". Nothing new is stored.
+   - Messages move to the session (`MESSAGE_STORAGE`), so the only cookies
+     are the session and the CSRF token.
+   - **Tests:**
+     - every page, as every role, sets no cookie but those two;
+     - both pages work on a club's address and on the service's own;
+     - every page has the footer links.
+2. **The account page** (`/account/`, on a club's address, for anyone
+   logged in, including people still waiting to join):
+   - their name and email;
+   - their membership at every club, with its role or status;
+   - **Download my data** and **Delete my account**.
+
+   The header gets an **Account** link.
+3. **Download my data** (`races/my_data.py`, `/account/data.json`): a JSON
+   file with:
+   - the account;
+   - their memberships at every club;
+   - the boats they own at each club;
+   - their boat and entry requests;
+   - the change history entries they made.
+
+   It includes every club, since it's all their own data.
+   - **Tests:** exactly their rows. The two-club isolation fixture shows it
+     holds nothing of other people's.
+4. **Deleting an account** (`/account/delete/`: a page, then a POST with
+   their password):
+   - **Refused for:**
+     - a club's last administrator, naming the club and saying to hand the
+       role on first;
+     - the operator (a superuser), whose account is managed outside the
+       site.
+   - **The password check** is limited by the failed-login lock (part 4),
+     so the page can't be used to guess.
+   - **In one transaction:**
+     - every text field holding their login becomes "a deleted account"
+       (question 2);
+     - then the account is deleted, which takes their memberships and
+       requests with it and leaves their boats with no owner.
+   - **Then** they're logged out, and taken to the club's home page with
+     "Your account has been deleted". One email confirms it (question 3).
+   - **Tests:**
+     - what goes;
+     - what stays: boats, results, history, and scores unchanged;
+     - no stored text still names them;
+     - the two refusals;
+     - a wrong password.
+5. **A club's data export** (`races/club_export.py`):
+   - a ZIP, built in memory with `zipfile` and `csv`, of:
+     - `boats.csv`;
+     - `members.csv` (name, email, role, status);
+     - `series.csv` (settings, final or not);
+     - `results/<series>.csv`, one per series, the slice 10 file;
+     - `finishes.csv` (every recorded time and code);
+     - `boat_requests.csv` and `entry_requests.csv`;
+     - `history.csv`;
+   - the club administrator downloads it from the **Members** page;
+   - the operator downloads it from the club's operator page, including
+     while the club is suspended (question 4);
+   - the slice 10 CSV builder moves from `results/export.py` into
+     `races/` so both can use it. `races` still never imports `results`;
+   - every cell someone typed that starts with `=`, `+`, `-` or `@` gets a
+     leading apostrophe, so a spreadsheet shows it as text rather than
+     running it as a formula. That applies to the series CSV too, since it's
+     the same code;
+   - **Tests:** every file holds only this club's rows; the formula guard;
+     and a round trip of the ZIP.
+6. **Deleting a club** (the operator's club page, then a confirmation page):
+   - **Refused:**
+     - while the club is active;
+     - for the club named by `SINGLE_CLUB`, since the address would then
+       lead nowhere;
+     - unless the subdomain is typed exactly.
+   - **In one transaction** (`races/club_deletion.py`):
+     - history, requests, series (with their races, start sheets and
+       finishes);
+     - then boats, invitations and memberships;
+     - then the club.
+   - It's logged in the operator log with the counts of what went.
+   - **Tests:**
+     - everything of that club goes and nothing of another's;
+     - accounts stay;
+     - the three refusals;
+     - it works on PostgreSQL as well.
+7. **Isolation, docs and manual:**
+   - the new addresses join the every-URL, every-role test, and the new
+     modules join the source check;
+   - **Manual:**
+     - "Joining a club" becomes "Joining a club, and your data" (download,
+       delete);
+     - "Running your club" gains downloading the club's data;
+     - screenshots: the account page, the delete confirmation, and the
+       Members page with its download link;
+   - `docs/operating.md`: exporting and deleting a club;
+   - `docs/decisions.md`, `docs/plan.md` (part 5 and slice 11 complete),
+     the README and `CLAUDE.md`.
+
+**Data model:** one small change, which needs your approval (question 4).
+`OperatorAction.Action` gains **Exported a club's data** and **Deleted a
+club**. It's a choices-only migration: no table changes.
+
+**Manual check:**
+- as a member: download my data, then delete my account;
+- as a club administrator: take the export and open it in a spreadsheet;
+- as the operator: suspend, export, then delete a club;
+- the cookies in the browser's storage panel.
+
+**Questions for the project owner:**
+1. **Where the privacy notice and terms live.** The spec puts them at
+   `racetimes.co.uk`. But the Render test site has no service address, so a
+   footer link there would lead off the site. **Proposal:** the same pages
+   at `/privacy/` and `/terms/` on every address, the service's and each
+   club's, with the footer linking to the one on the address you're on.
+   The text is the same everywhere.
+2. **What deleting an account anonymises.** The spec names the change
+   history. The person's login is also stored as text in:
+   - who decided a request or a membership;
+   - who declared a series final;
+   - who sent an invitation;
+   - the operator log, including its details (e.g. "ann@example.com as club
+     administrator");
+   - invitations sent to their address.
+
+   **Proposal:** replace it with "a deleted account" in all of them. The
+   history's free-text reasons can't be searched reliably for a name, so
+   they're left as they are; the notice says so.
+3. **A confirmation email after deleting an account.** **Proposal:** yes,
+   one short email to the address that was deleted: "Your Race Times
+   account has been deleted", from the club it was deleted at. It's the
+   last thing sent to it.
+4. **The club export and the operator.** A suspended club's administrators
+   can't reach its site, so for the pause before deletion to be useful, the
+   operator must be able to take the export. **Proposal:**
+   - the operator can download it from the club's operator page;
+   - each download by the operator, and each deletion, is logged in the
+     operator log;
+   - that needs the two new operator log actions above. Approve that
+     model change?
+5. **The notice's contact details.** Who the service is, as a legal entity,
+   and its postal address aren't known yet. **Proposal:** leave marked
+   placeholders, e.g. "[the operator's legal name]", in the draft. The
+   contact email is `SERVICE_CONTACT_EMAIL`. Filling them in is part of the
+   legal review, which is already an open requirement.
+
+**The owner's answers (2026-09-25):** all five proposals agreed, including
+the model change in question 4 (two new operator log actions).
 
 ## Data model *(approved by the project owner, 2026-09-25)*
 

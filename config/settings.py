@@ -195,6 +195,11 @@ else:
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Race Times <noreply@example.com>')
 
 
+# Messages ("Saved") travel in the session, not in a cookie of their own, so
+# the only cookies are the session and the CSRF token, both essential: no
+# cookie banner is needed (slice 11 part 5; the privacy notice lists them).
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
 # One login page for everyone; see races/member_views.py.
 LOGIN_URL = 'races:login'
 LOGIN_REDIRECT_URL = 'races:my_boats'

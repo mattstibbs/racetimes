@@ -13,7 +13,9 @@ to its club, so any of Harbour's names turning up at Demo Club is a leak.
 - A source check fails if a page queries a club's rows without for_club.
 """
 
+import io
 import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -116,7 +118,18 @@ def urls_for(data, kind=None):
         "races:operator_clubs": [], "races:operator_create_club": [], "races:operator_log": [],
         "races:operator_club": [data["club"].pk], "races:operator_invite": [data["club"].pk],
         "races:operator_club_status": [data["club"].pk],
+        # Slice 11 part 5: the privacy notice and terms, the same at every address.
+        "races:privacy": [], "races:terms": [],
+        # The account's own pages, which cover every club the person belongs to.
+        "races:account": [], "races:download_my_data": [], "races:delete_account": [],
+        "races:export_club_data": [],
+        "races:operator_export_club": [data["club"].pk], "races:operator_delete_club": [data["club"].pk],
     }
+
+
+# A person's own account pages show their memberships and data at every club,
+# since it's all theirs (slice 11 part 5). They're checked separately below.
+OWN_DATA = {"races:account", "races:download_my_data", "races:delete_account"}
 
 
 def all_url_names():
@@ -135,6 +148,14 @@ def test_every_url_is_covered(clubs):
 
 def leaks(html):
     return [name for name in HARBOUR_ONLY if name in html]
+
+
+def text_of(response):
+    """A response's text; for a ZIP (the club's data export), every file in it."""
+    if response["Content-Type"] == "application/zip":
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            return "\n".join(archive.read(name).decode("utf-8-sig") for name in archive.namelist())
+    return response.content.decode()
 
 
 def log_in(client, role, clubs):
@@ -157,10 +178,12 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
     extras = {"results:home": "?q=GBR", "races:race_day": "?view=start", "results:series": "?detail=1"}
     shown = {}
     for name, args in urls_for(clubs["demo"]).items():
+        if name in OWN_DATA:
+            continue
         url = reverse(name, args=args) + extras.get(name, "")
         response = client.get(url, HTTP_HOST=DEMO)
         if response.status_code == 200:
-            shown[name] = leaks(response.content.decode())
+            shown[name] = leaks(text_of(response))
         # The race day page's other view, and the boat search as a fragment.
     for url, headers in [
         (reverse("races:race_day", args=[clubs["demo"]["races"][0].pk]) + "?view=finish", {}),
@@ -171,6 +194,8 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
             shown[url] = leaks(response.content.decode())
     assert shown and all(found == [] for found in shown.values()), {k: v for k, v in shown.items() if v}
     assert "results:series_csv" in shown and "results:home" in shown
+    if role == "administrator":
+        assert "races:export_club_data" in shown  # the club's data export was read, and is clean
 
 
 def test_a_member_of_both_clubs_sees_only_this_clubs_boats_and_requests(client, clubs):
@@ -304,6 +329,26 @@ def test_publishing_at_one_club_emails_only_its_owners(client, clubs, run_on_com
                for m in mail.outbox)
 
 
+# --- A person's own data, across their clubs (slice 11 part 5) ---------------------------------
+
+
+def test_someone_at_one_club_sees_nothing_of_another_on_their_account_pages(client, clubs):
+    client.force_login(make_committee())
+    for name in OWN_DATA:
+        response = client.get(reverse(name), HTTP_HOST=DEMO)
+        assert leaks(response.content.decode()) == [], name
+
+
+def test_a_member_of_both_clubs_downloads_their_own_data_there_and_nobody_elses(client, clubs):
+    client.force_login(clubs["shared"])
+    text = client.get(reverse("races:download_my_data"), HTTP_HOST=DEMO).content.decode()
+    # Their own boat, requests and membership at Harbour are theirs to have...
+    assert "Harbour Sailing Club" in text and "Booby" in text and "Black Tern" in text
+    # ...but nothing of other people's, at either club.
+    for other in ("bea@example.com", "Bittern", "ann@example.com", "Avocet", "black.waiting@example.com"):
+        assert other not in text, other
+
+
 # --- The code keeps to for_club -----------------------------------------------------------------
 
 CLUB_MODELS = "Boat|Series|SeriesEntry|Race|RaceEntry|Finish|ScoringChange|BoatRequest|EntryRequest"
@@ -312,8 +357,8 @@ CLUB_MODELS = "Boat|Series|SeriesEntry|Race|RaceEntry|Finish|ScoringChange|BoatR
 # rows these have already found, so they don't need to.
 REQUEST_MODULES = [
     "races/views.py", "races/member_views.py", "races/admin.py", "races/context_processors.py",
-    "results/views.py", "results/export.py", "races/forms.py", "races/approvals.py",
-    "races/membership_views.py", "races/invitations.py",
+    "results/views.py", "races/series_csv.py", "races/forms.py", "races/approvals.py",
+    "races/membership_views.py", "races/invitations.py", "races/account_views.py",
 ]
 # Not races/operator_views.py: the operator's pages are the service's, across
 # every club, and only on the service's own address, where there's no club.

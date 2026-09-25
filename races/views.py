@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from . import approvals, audit, final, notifications, publishing, race_day, start_sheet
 from .forms import DecisionForm, FinishForm, StartSheetRowForm
@@ -20,6 +20,20 @@ from .scoring import score_series
 def ping(request):
     """Example HTMX endpoint: returns an HTML fragment, not a full page."""
     return HttpResponse('pong (htmx)' if request.htmx else 'pong')
+
+
+# The privacy notice and terms (slice 11 part 5): the same text on every
+# address, the service's and each club's, so the footer's links never leave
+# the site you're on.
+
+@require_GET
+def privacy(request):
+    return render(request, "legal/privacy.html", {"contact_email": settings.SERVICE_CONTACT_EMAIL})
+
+
+@require_GET
+def terms(request):
+    return render(request, "legal/terms.html", {"contact_email": settings.SERVICE_CONTACT_EMAIL})
 
 
 @committee_required

@@ -51,6 +51,17 @@
 {% endif %}
 </section>
 
+<section aria-labelledby="data">
+<h2 id="data">The club's data</h2>
+<p><a href="{% url 'races:operator_export_club' club.pk %}" download>Download everything {{ club.name }} holds (ZIP)</a>:
+  boats, members, series, results, requests and history, as CSV files. Each download is logged.</p>
+{% if club.is_active %}
+<p class="muted">To delete the club, suspend it first.</p>
+{% else %}
+<p><a href="{% url 'races:operator_delete_club' club.pk %}">Delete {{ club.name }}…</a></p>
+{% endif %}
+</section>
+
 <h2>Operator log for this club</h2>
 {% include "operator/_log.html" with actions=log %}
 {% endblock %}
