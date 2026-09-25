@@ -65,9 +65,10 @@ It is built for:
 | 9 | The race day page | **Complete** |
 | 10 | Final results and CSV export | **Complete** |
 | 11 | Race Times as a service for many clubs | **Complete** |
+| 12 | Production hosting at `racetimes.co.uk` | Built; the launch steps in `docs/production.md` are next |
 
-Production hosting at `racetimes.co.uk` is a later slice. Until then the test
-site on Render runs Demo Club. See [`docs/plan.md`](docs/plan.md) for what each
+Production runs on Render in Frankfurt, deployed by hand, beside the free test
+site, which runs Demo Club with sample data. See [`docs/plan.md`](docs/plan.md) for what each
 slice covers, and [`docs/decisions.md`](docs/decisions.md) for open
 requirements, such as the legal review needed before the first paying club.
 
@@ -153,6 +154,7 @@ collected nothing and reported success, which is worse than failing.
 | [`docs/decisions.md`](docs/decisions.md) | Decisions taken and why, open questions, and open requirements |
 | [`manual/`](manual/index.md) | The user manual, for members, the race committee and club administrators |
 | [`docs/deploying-manual.md`](docs/deploying-manual.md) | Publishing the user manual on Read the Docs |
+| [`docs/production.md`](docs/production.md) | Running production at `racetimes.co.uk`: set-up, deploying, backups and restoring, alerts |
 | [`docs/deploying.md`](docs/deploying.md) | Hosting the test site on Render, which redeploys on every push to `main`; how clubs and roles work there; email, error reports and the production settings |
 | [`docs/reference/`](docs/reference/) | The RYA NHC calculation spec and the Racing Rules of Sailing |
 | [`CLAUDE.md`](CLAUDE.md) | How the code is organised, and the project's rules for working on it |

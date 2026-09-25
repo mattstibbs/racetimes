@@ -47,3 +47,23 @@ def test_refuses_a_weak_password(credentials, monkeypatch):
     with pytest.raises(CommandError, match="too common"):
         call_command("ensure_superuser")
     assert not get_user_model().objects.exists()
+
+
+def test_series_summary_prints_each_series_standings_without_names():
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    from races.testing import enter, make_boat, make_club, make_member, make_race, make_series, record
+
+    series = make_series("Autumn", discards=0)
+    fast = enter(series, make_boat("GBR1", owner=make_member("pat@example.com", first_name="Pat")))
+    slow = enter(series, make_boat("GBR2", base_number="0.900"))
+    race = make_race(series, 1)
+    record(race, fast, "19:00:00")
+    record(race, slow, "19:30:00")
+    make_series("Empty", club=make_club("harbour"))
+    out = StringIO()
+    call_command("series_summary", stdout=out)
+    assert out.getvalue().splitlines() == ["demo | Autumn | GBR1 1, GBR2 2", "harbour | Empty | nothing scored"]
+    assert "Pat" not in out.getvalue() and "pat@" not in out.getvalue()

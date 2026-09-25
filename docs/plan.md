@@ -520,7 +520,7 @@ With part 5, every acceptance criterion in the spec is met. Production
 hosting is the next slice; the legal review stays an open requirement before
 the first paying club.
 
-## Slice 12: production hosting. **Status: planning (2026-09-25)**
+## Slice 12: production hosting. **Status: built; launch steps with the owner (2026-09-25)**
 
 Spec: `docs/slices/12-production-hosting.md`. Race Times live at
 `racetimes.co.uk`: the host and region, the wildcard domain and certificate,
@@ -529,3 +529,25 @@ an uptime monitor, and a runbook. Most of it is setting up accounts, which only
 the project owner can do; the code's part is the deploy configuration, the
 `www` redirect and checks that prove each piece works. Seven questions for the
 project owner, starting with the host.
+
+**Built (2026-09-25),** on the owner's answers (Render in Frankfurt, Postmark,
+production deployed by hand, off-site backups now, production starts empty,
+DNS at Gandi):
+- `render.yaml`: production's web service and database in Frankfurt, deployed
+  only when Deploy is pressed, database steps as the pre-deploy command
+  (`release.sh`), `/health/` as Render's health check; the test site as it
+  was.
+- `backup/`: a nightly Render cron job that copies the database off-site,
+  encrypted, to S3-compatible storage, and `restore.sh` to read one back.
+  Rehearsed on PostgreSQL 16: every series scores the same after a restore.
+- `www` redirects to the service's address; `scripts/check_live.py` checks the
+  live site; `manage.py series_summary` compares a restored database with
+  production.
+- `docs/production.md`, the runbook: Gandi DNS, Postmark, Sentry, Backblaze,
+  UptimeRobot, the first deploy, launch checks, deploying, restoring, alerts.
+  The privacy notice names the processors.
+
+**Still to do, by the owner, following `docs/production.md`:** create the
+accounts, set the DNS, deploy, and run and record the launch checks,
+including one restore. The slice is complete when that table is filled in.
+

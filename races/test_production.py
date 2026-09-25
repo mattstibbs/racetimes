@@ -140,3 +140,36 @@ def test_backups_are_encrypted_before_they_leave_and_never_logged():
     backup = (ROOT / "backup" / "backup.sh").read_text()
     assert backup.index("gpg") < backup.index("aws s3 cp")
     assert "--symmetric --cipher-algo AES256" in backup and 'echo "$BACKUP_PASSPHRASE' not in backup
+
+
+# --- scripts/check_live.py (slice 12) ----------------------------------------------------------
+
+sys.path.insert(0, str(ROOT / "scripts"))
+import check_live  # noqa: E402
+
+
+def test_the_live_checks_judge_answers_correctly():
+    assert check_live.healthy(200, {}, "ok\n") and not check_live.healthy(503, {}, "error")
+    assert not check_live.healthy(200, {}, "<html>")  # a page, not the health check
+    to_apex = check_live.redirects_to("https://racetimes.co.uk/")
+    assert to_apex(301, {"Location": "https://racetimes.co.uk/"}, "")
+    assert not to_apex(302, {"Location": "https://racetimes.co.uk/"}, "")  # temporary isn't enough
+    assert not to_apex(301, {"Location": "http://racetimes.co.uk/"}, "")
+    good = {"Strict-Transport-Security": "max-age=3600; includeSubDomains", "X-Frame-Options": "DENY",
+            "Referrer-Policy": "same-origin"}
+    assert check_live.secure_headers(200, good, "")
+    assert not check_live.secure_headers(200, {**good, "Strict-Transport-Security": "max-age=3600"}, "")
+
+
+def test_the_live_checks_cover_every_address_including_a_made_up_one():
+    urls = [url for _, url, _ in check_live.checks("racetimes.co.uk", "demo")]
+    assert "https://racetimes.co.uk/health/" in urls and "https://demo.racetimes.co.uk/health/" in urls
+    assert "http://racetimes.co.uk/" in urls and "https://www.racetimes.co.uk/" in urls
+    made_up = [u for u in urls if u.startswith("https://check-")]
+    assert len(made_up) == 1 and made_up[0].endswith(".racetimes.co.uk/health/")
+
+
+def test_the_live_check_uses_nothing_but_the_standard_library():
+    source = (ROOT / "scripts" / "check_live.py").read_text()
+    imports = {line.split()[1].split(".")[0] for line in source.splitlines() if line.startswith(("import ", "from "))}
+    assert imports <= set(sys.stdlib_module_names), imports - set(sys.stdlib_module_names)

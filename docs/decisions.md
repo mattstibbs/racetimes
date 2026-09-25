@@ -1431,8 +1431,9 @@ Things that must be done before a stated milestone, but aren't code.
   - Clubs will also need a data processing agreement: the club is the
     controller of its members' data, and Race Times is its processor.
   - The drafts have marked placeholders to fill in: the operator's legal
-    name and postal address, the hosting and email providers (once hosting
-    is chosen), and the terms' limits of liability.
+    name and postal address, and the terms' limits of liability. (The
+    processors are named since slice 12: Render, Postmark, Backblaze and
+    Sentry.)
   - None of this blocks building or testing slice 11. It blocks taking on a
     paying club.
 

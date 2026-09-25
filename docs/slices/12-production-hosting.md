@@ -1,7 +1,8 @@
 # Slice 12: production hosting
 
-**Status: building. The project owner answered every question on 2026-09-25
-(see the end).**
+**Status: built (2026-09-25). What's left is the launch itself, which the
+project owner does by following `docs/production.md`; the slice is complete
+when its checks are recorded there.**
 
 ## Goal
 Slice 11 made Race Times a service for many clubs, and kept the code
