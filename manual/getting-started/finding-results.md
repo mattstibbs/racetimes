@@ -68,5 +68,5 @@ you are following, so you can bookmark it or send the link to your crew.
 | **Provisional** | The race committee has not published this race yet. Its results may still change while they check the finish sheet. |
 | **Published** | The committee has checked and published the results, and emailed them to boat owners. |
 | **Amended** | Something in this race was corrected after the results first appeared, on the date shown. |
-| **Last Updated** | Under the series standings: the date of the latest correction that could have changed them. |
+| **Last updated** | Under the series standings: the date of the latest correction that could have changed them. |
 | **Amended since published** | A published race has been corrected, and the committee has not yet sent the updated results. The page shows the results as they now stand. |
