@@ -76,10 +76,23 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # `check --deploy` also suggests SECURE_SSL_REDIRECT and HSTS. Both are
-    # left off on purpose: the host already redirects HTTP to HTTPS, and HSTS
-    # makes browsers refuse plain HTTP for months, which is hard to undo on a
-    # test site.
+    # Slice 11 part 4: a service for paying clubs is HTTPS only. (These were
+    # left off for the test site, whose host already redirects to HTTPS; see
+    # docs/decisions.md.) Browsers are told to use HTTPS for every club's
+    # address (HSTS), for an hour to begin with; raise SECURE_HSTS_SECONDS
+    # once hosting is settled, without a code change.
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # Not on browsers' HSTS preload list: that's hard to undo, and belongs with
+    # choosing hosting. So its deploy-check warning is silenced (agreed by the
+    # project owner).
+    SILENCED_SYSTEM_CHECKS = ['security.W021']
+
+# Set explicitly, so a Django upgrade can't loosen them: no page may be shown
+# in another site's frame, and links out send only this site's address.
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'same-origin'
 
 
 # Application definition
@@ -98,6 +111,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # First, so /health/ answers on any address, over plain HTTP, before the
+    # host check, the HTTPS redirect or the club lookup (races/health.py).
+    'races.health.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # Serves the CSS and HTMX files in production, straight after security as
     # WhiteNoise's docs require. With DEBUG on, runserver serves them instead.

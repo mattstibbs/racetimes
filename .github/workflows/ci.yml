@@ -46,6 +46,31 @@ jobs:
         # CLAUDE.md's definition of done includes "migrations created".
         run: python manage.py makemigrations --check --dry-run
 
+  deploy-settings:
+    # Django's deployment checklist, against the production settings (slice 11
+    # part 4). --fail-level WARNING matters: without it the check reports its
+    # warnings and still passes. The secret key is a throwaway for this job.
+    name: production settings pass the deploy check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: manage.py check --deploy
+        env:
+          DJANGO_DEBUG: "0"
+          DJANGO_SECRET_KEY: ci-only-not-a-real-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+        run: python manage.py check --deploy --fail-level WARNING
+
   vendorable:
     # The nhc package promises to be standard-library only, so that anyone can
     # copy it into another project. tests/test_package_purity.py checks that by
