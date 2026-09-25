@@ -60,7 +60,7 @@ def test_finish_entry_needs_staff(client, race_night):
 def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_night):
     _, race, *_ = race_night
     client.force_login(django_user_model.objects.create_user("member"))
-    assert client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).status_code == 302
+    assert client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).status_code == 403
 
 
 # --- Finish entry: the page ------------------------------------------------

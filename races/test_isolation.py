@@ -207,8 +207,10 @@ def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
         url = reverse(name, args=args)
         for method in (client.get, client.post):
             response = method(url, HTTP_HOST=DEMO)
-            if response.status_code == 302 and "login" in response["Location"]:
-                continue  # a page for a role this person hasn't: sent to log in before any lookup
+            if response.status_code == 403 or (response.status_code == 302 and "login" in response["Location"]):
+                # A page for a role this person hasn't: refused (or, in the
+                # admin, sent to its login) before any lookup, whatever the id.
+                continue
             assert response.status_code in (404, 405), (name, method.__name__, response.status_code)
             if response.status_code == 404:
                 checked.append(name)

@@ -186,8 +186,7 @@ def test_removing_someone_takes_their_access_and_emails_them(client, admin, run_
     assert membership_of(person).status == "REMOVED"
     assert mail.outbox[0].subject == "You are no longer a member of Demo Club on Race Times"
     client.force_login(person)
-    response = client.get(reverse("races:requests"))
-    assert response.status_code == 302 and "login" in response["Location"]
+    assert client.get(reverse("races:requests")).status_code == 403
 
 
 def test_nobody_can_change_their_own_membership(client, admin, run_on_commit):
@@ -223,8 +222,7 @@ def test_a_stale_decision_changes_nothing(client, admin, run_on_commit):
 
 def test_only_administrators_open_the_members_page(client):
     client.force_login(make_committee())
-    response = client.get(reverse("races:members"))
-    assert response.status_code == 302 and "login" in response["Location"]
+    assert client.get(reverse("races:members")).status_code == 403
 
 
 # --- Club emails go to approved members only ------------------------------------------
@@ -266,10 +264,27 @@ def test_the_old_group_and_staff_flag_open_nothing(client):
     person = make_member("staff@example.com", club=None, is_staff=True)
     person.groups.add(Group.objects.get(name="Race committee"))
     client.force_login(person)
-    assert client.get(reverse("races:requests")).status_code == 302
-    assert client.get(reverse("admin:index")).status_code == 302
+    assert client.get(reverse("races:requests")).status_code == 403
+    assert client.get(reverse("admin:index")).status_code == 302  # to the admin login, which refuses
 
 
 def test_each_clubs_login_is_its_own():
     # No cookie domain: the browser keeps a separate login for each club's address.
     assert settings.SESSION_COOKIE_DOMAIN is None
+
+
+def test_the_operator_gives_memberships_in_the_admin_on_the_services_address(client, settings):
+    settings.SINGLE_CLUB = ""
+    client.force_login(make_operator())
+    person = make_member("first@example.com", club=None)
+    response = client.post(reverse("admin:races_clubmembership_add"), {
+        "user": person.pk, "club": default_club().pk, "role": "ADMINISTRATOR", "status": "APPROVED",
+        "created_at_0": "2026-09-25", "created_at_1": "10:00:00", "decided_by_name": "", "decided_at_0": "",
+        "decided_at_1": "",
+    }, HTTP_HOST="localhost")
+    assert response.status_code == 302
+    assert membership_of(person).role == "ADMINISTRATOR"
+
+
+def test_a_club_administrator_cant_give_memberships_in_the_admin(client, admin):
+    assert client.get(reverse("admin:races_clubmembership_changelist")).status_code == 403

@@ -186,7 +186,7 @@ def test_only_the_committee_can_publish(client, club, run_on_commit):
     client.force_login(club["pat"])
     with run_on_commit():
         response = client.post(reverse("races:publish_results", args=[club["race"].pk]))
-    assert response.status_code == 302 and "login" in response["Location"]
+    assert response.status_code == 403  # refused, not a login loop (slice 11)
     assert not mail.outbox
 
 

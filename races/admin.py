@@ -112,6 +112,32 @@ class ClubAdmin(admin.ModelAdmin):
         return False  # part 5: deleting a club is a deliberate step of its own
 
 
+@admin.register(ClubMembership)
+class ClubMembershipAdmin(admin.ModelAdmin):
+    """The operator's way to give someone a role at a club, e.g. a new club's
+    first administrator. Club administrators use their club's Members page.
+    Part 3 of slice 11 replaces this with an emailed invitation."""
+
+    list_display = ["user", "club", "role", "status"]
+    list_filter = ["club", "role", "status"]
+    autocomplete_fields = ["user"]
+
+    def has_module_permission(self, request):
+        return _operator_here(request)
+
+    def has_view_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_add_permission(self, request):
+        return _operator_here(request)
+
+    def has_change_permission(self, request, obj=None):
+        return _operator_here(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return _operator_here(request)
+
+
 def _operator_here(request):
     """The operator, on the service's own address (which belongs to no club)."""
     return request.club is None and request.user.is_active and request.user.is_superuser

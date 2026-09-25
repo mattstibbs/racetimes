@@ -158,7 +158,11 @@ def pages():
     boat = make_boat()
     enter(series, boat)
     everyone = [SEES] * 6
-    committee = [TO_LOGIN, TO_LOGIN, SEES, SEES, TO_LOGIN, TO_LOGIN]
+    # The public is sent to log in; anyone logged in without the role is
+    # refused (sending them to log in looped, since they're logged in already).
+    # The admin sends everyone without access to its own login first.
+    committee = [TO_LOGIN, REFUSED, SEES, SEES, REFUSED, REFUSED]
+    admin_committee = [TO_LOGIN, TO_LOGIN, SEES, SEES, TO_LOGIN, TO_LOGIN]
     return {
         "home": (reverse("results:home"), everyone),
         "results": (reverse("results:series", args=[series.pk]), everyone),
@@ -166,17 +170,17 @@ def pages():
         "download (CSV)": (reverse("results:series_csv", args=[series.pk]), everyone),
         # Anyone logged in gets My boats; someone not a member here is offered Join this club.
         "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES, SEES, SEES]),
-        "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES, TO_LOGIN, TO_LOGIN]),
+        "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES, REFUSED, REFUSED]),
         "requests": (reverse("races:requests"), committee),
         "start sheet": ((reverse("races:race_day", args=[race.pk]) + "?view=start"), committee),
         "finish entry": ((reverse("races:race_day", args=[race.pk]) + "?view=finish"), committee),
         "history": (reverse("races:series_history", args=[series.pk]), committee),
         "final results": (reverse("races:final", args=[series.pk]), committee),
-        "members": (reverse("races:members"), [TO_LOGIN, TO_LOGIN, TO_LOGIN, SEES, TO_LOGIN, TO_LOGIN]),
-        "admin: boats": (reverse("admin:races_boat_changelist"), committee),
-        "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), committee),
-        "admin: series": (reverse("admin:races_series_changelist"), committee),
-        "admin: requests": (reverse("admin:races_boatrequest_changelist"), committee),
+        "members": (reverse("races:members"), [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED]),
+        "admin: boats": (reverse("admin:races_boat_changelist"), admin_committee),
+        "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), admin_committee),
+        "admin: series": (reverse("admin:races_series_changelist"), admin_committee),
+        "admin: requests": (reverse("admin:races_boatrequest_changelist"), admin_committee),
         # Accounts span clubs: the operator's alone, on the service's own address.
         "admin: accounts": (reverse("admin:auth_user_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),
         "admin: groups": (reverse("admin:auth_group_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),

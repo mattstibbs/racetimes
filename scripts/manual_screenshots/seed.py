@@ -7,11 +7,9 @@ against a real one. Every account's password is PASSWORD.
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
-from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from races.models import Boat, BoatRequest, Club, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
-from races.roles import COMMITTEE_GROUP
 from races.testing import make_member
 
 # Everything belongs to Demo Club, which the migrations create (slice 11).
@@ -27,15 +25,16 @@ def account(email, first, last, **fields):
     return user
 
 
-account("admin@example.com", "Chris", "Admin", is_staff=True, is_superuser=True)
-officer = account("officer@example.com", "Alex", "Officer", is_staff=True)
-officer.groups.add(Group.objects.get(name=COMMITTEE_GROUP))
+# Roles are Demo Club memberships (slice 11): Chris is the club's administrator,
+# Alex is on the race committee, and the rest are members.
+account("admin@example.com", "Chris", "Admin", role="ADMINISTRATOR")
+officer = account("officer@example.com", "Alex", "Officer", role="COMMITTEE")
 pat = account("pat@example.com", "Pat", "Jones")
 sam = account("sam@example.com", "Sam", "Taylor")
 jo = account("jo@example.com", "Jo", "Smith")
-# Two sign-ups waiting for the administrator.
-account("robin@example.com", "Robin", "Hale", is_active=False)
-account("kim@example.com", "Kim", "Park", is_active=False)
+# Two people waiting for the club's administrator to approve them joining.
+account("robin@example.com", "Robin", "Hale", status="WAITING")
+account("kim@example.com", "Kim", "Park", status="WAITING")
 
 # Pat's boat, entered in a series that already has a result.
 kittiwake = Boat.objects.create(club=club,

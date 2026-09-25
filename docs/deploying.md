@@ -42,26 +42,30 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
 - **Locally**, open `http://demo.localhost:8000/`: every current browser
   sends `*.localhost` to your own machine with no setup.
   `http://127.0.0.1:8000/` shows Demo Club too, if you set `SINGLE_CLUB=demo`.
-- **More clubs:** as the superuser, add a club in the admin under **Clubs**.
-  Until part 2 of slice 11 lands, the race committee and administrator roles
-  are still site-wide, not per club. So don't give a second club real users
-  yet: its committee would also be committee at Demo Club.
+- **More clubs:** as the operator, add a club in the admin under **Clubs**,
+  on the service's own address. Part 3 of slice 11 will add proper operator
+  pages, including inviting a club's first administrator. Until then, give
+  that person a membership in the admin by hand.
 - **Production hosting** needs a wildcard DNS record and certificate for
   `*.racetimes.co.uk`. That's a later slice.
 
 ## Day to day
 
-- **What's waiting.** The admin's front page lists what is waiting for you:
-  members' boat and entry requests for the race committee (linking to the
-  Requests page), and, for the administrator, new accounts.
-- **Accounts.** Members sign up on the site and wait for approval. As the
-  administrator, the admin's front page tells you how many are waiting; follow
-  its "Review and approve" link (or filter **Users** by "Waiting for
-  approval"), tick them, and choose "Approve selected accounts".
-- **Making someone race committee.** In the admin, open their account, tick
-  "Staff status", and add them to the **Race committee** group. Staff status
-  alone is not enough: the committee pages check the group, which is what
-  gives access to the racing parts of the admin and nothing about accounts.
+- **What's waiting.** At a club, the admin's front page lists what is
+  waiting for you. For the race committee, that's members' boat and entry
+  requests (linking to the Requests page); for club administrators, it's also
+  people waiting to join (linking to the Members page).
+- **People and roles** (slice 11). Anyone signs up at a club's address and
+  confirms their email; a club administrator then approves them on the
+  club's **Members** page, choosing their role (member, race committee or
+  club administrator). Roles are per club. The Django admin no longer
+  approves accounts, and staff status and the old "Race committee" group
+  mean nothing.
+- **The operator.** The superuser that `build.sh` creates is the service's
+  operator. It has no role at a club unless it has a membership there. The
+  migration gave the existing superuser Demo Club's administrator membership,
+  so on the test site it still runs Demo Club. On the service's own address,
+  `/admin/` is the operator's: clubs and accounts.
 
 - **To update the site,** merge a pull request into `main`. Render builds and
   deploys it; if the build fails, the previous version stays live.

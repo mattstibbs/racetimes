@@ -16,6 +16,7 @@ more. Every check takes the club, which pages get from ``request.club``.
 from functools import wraps
 
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 
 from .models import ClubMembership
 
@@ -63,15 +64,18 @@ def _requiring(check):
         def wrapped(request, *args, **kwargs):
             if check(request.user, request.club):
                 return view(request, *args, **kwargs)
-            # The public, and anyone logged in without the role at this club,
-            # go to the login page, which offers a different account.
+            if request.user.is_authenticated:
+                # Logged in without the role here: say so (templates/403.html).
+                # Sending them to log in would loop, since the login page sends
+                # anyone already logged in straight back.
+                raise PermissionDenied
             return redirect_to_login(request.get_full_path())
         return wrapped
     return decorator
 
 
 def member_required(view):
-    """Only approved members of this club; anyone else is sent to log in."""
+    """Only approved members of this club. The public is sent to log in; anyone else is refused."""
     return _requiring(is_member)(view)
 
 

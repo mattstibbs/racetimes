@@ -440,5 +440,20 @@ of any particular host.
   source check. Removing the scoping from any of three pages makes it fail.
 - The tests also pass on PostgreSQL 16, run by hand.
 
-Roles are still site-wide until part 2, so a second real club shouldn't be
-set up before then.
+**Part 2, people and roles per club: complete (2026-09-25).**
+- **Memberships:** a `ClubMembership` per person per club holds their role.
+  Migration 0015 gives every existing account its Demo Club membership,
+  checked on the manual's sample data migrated from `main`.
+- **Joining:** sign-up confirms the email, then waits for the club;
+  **Join this club** works for anyone already logged in.
+- **The Members page:** approve, don't approve, change a role or remove,
+  each emailing the person. Nobody changes their own membership, and a
+  club always keeps an administrator.
+- **The admin** is for the club's committee and administrators; accounts
+  are the operator's alone.
+- **Tests:** every page as six roles, including the operator and another
+  club's committee.
+- **Found in the browser check and fixed:** a logged-in person without a
+  role was sent to log in, which looped. They're refused with a clear page
+  instead.
+- The tests also pass on PostgreSQL 16, run by hand.
