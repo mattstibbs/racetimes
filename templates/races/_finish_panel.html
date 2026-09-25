@@ -5,13 +5,13 @@
 <div id="finish-panel" hx-get="{{ page_url }}?view=finish&amp;since={{ version }}"
      hx-trigger="every 5s [!document.querySelector('#finish-panel details[open]')]" hx-swap="outerHTML">
 {% include "races/_race_note.html" %}
-{% include "races/_publishing.html" %}
+{% if not locked %}{% include "races/_publishing.html" %}{% endif %}
 {% if panel_error %}<p class="panel-message error" role="alert">{{ panel_error }}</p>
 {% elif panel_message %}<p class="panel-message" role="status">{{ panel_message }}</p>{% endif %}
 
 <section aria-labelledby="still-racing">
   <h2 id="still-racing">Still racing ({{ still_racing|length }})</h2>
-  {% if not can_tap and still_racing %}
+  {% if not can_tap and still_racing and not locked %}
   <p class="muted">The Finished button appears on {{ race.date|date:"j F" }} from {{ race.start_time|time:"H:i" }}.
     Until then, or afterwards from a paper sheet, open a boat's &hellip; to type its time or code.</p>
   {% endif %}
@@ -19,14 +19,14 @@
   <div class="racing-row{% if row.open %} has-errors{% endif %}" id="racing-{{ row.entry.pk }}">
     <div class="boat"><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}
       {% if row.race_entry.persons_on_board %}<span class="muted">{{ row.race_entry.persons_on_board }} on board</span>{% endif %}</div>
-    {% if can_tap %}
+    {% if can_tap and not locked %}
     {% url 'races:tap_finish' race.pk row.entry.pk as tap_url %}
     <form method="post" action="{{ tap_url }}" hx-post="{{ tap_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
           hx-sync="#finish-panel:replace" class="tap">{% csrf_token %}
       <button type="submit" class="finished">Finished</button>
     </form>
     {% endif %}
-    {% include "races/_finish_form.html" with summary="&hellip;" label="Type a time or a code" %}
+    {% if not locked %}{% include "races/_finish_form.html" with summary="&hellip;" label="Type a time or a code" %}{% endif %}
   </div>
   {% empty %}
   <p class="muted">{% if finished %}Every boat on the start sheet has a result.{% else %}No boats are on the <a href="{{ start_url }}">start sheet</a> yet.{% endif %}</p>
@@ -41,14 +41,14 @@
     <div class="order">{% if row.order %}{{ row.order }}.{% endif %}</div>
     <div class="boat"><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
     <div class="time">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }} <span class="muted">elapsed {{ row.finish.elapsed_seconds|hms }}</span>{% else %}<strong>{{ row.finish.status }}</strong>{% endif %}</div>
-    {% if row.can_undo %}
+    {% if row.can_undo and not locked %}
     {% url 'races:undo_finish' race.pk row.entry.pk as undo_url %}
     <form method="post" action="{{ undo_url }}" hx-post="{{ undo_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
           hx-sync="#finish-panel:replace" class="undo">{% csrf_token %}
       <button type="submit" class="secondary">Undo</button>
     </form>
     {% endif %}
-    {% include "races/_finish_form.html" with summary="Edit" label="Correct this finish" %}
+    {% if not locked %}{% include "races/_finish_form.html" with summary="Edit" label="Correct this finish" %}{% endif %}
   </div>
   {% empty %}
   <p class="muted">No boat has finished yet.</p>

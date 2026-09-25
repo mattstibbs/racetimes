@@ -24,7 +24,7 @@
 
 {% for history in histories %}
 <section class="boat-series">
-  <h2><a href="{% url 'results:series' history.series.pk %}?boat={{ boat.pk }}">{{ history.series }}</a></h2>
+  <h2><a href="{% url 'results:series' history.series.pk %}?boat={{ boat.pk }}">{{ history.series }}</a>{% if history.series.is_final %} <span class="final-badge">Final</span>{% endif %}</h2>
   {% if history.standing %}
   <p><strong>{{ history.standing.position|ordinal }} of {{ history.fleet }}</strong>, {{ history.standing.total|points }} point{{ history.standing.total|pluralize }}.</p>
   {% endif %}

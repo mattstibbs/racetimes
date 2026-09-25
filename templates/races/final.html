@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block title %}Final results: {{ series }} - Race Times{% endblock %}
+{% block content %}
+<h1>{{ series }}: final results</h1>
+<p class="muted">
+  <a href="{% url 'results:series' series.pk %}">Results</a>
+  &middot; <a href="{% url 'races:series_history' series.pk %}">Correction history</a>
+</p>
+
+<div id="final-state" class="card publishing">
+{% if series.is_final %}
+  <p><strong>Final.</strong> Declared {{ series.declared_final_at|date:"j M Y H:i" }} by {{ series.declared_final_by_name }}.
+    The series is locked: finishes, start sheets, races, entries and settings can't be changed.</p>
+{% elif blockers %}
+  <p><strong>Not final yet.</strong> Before declaring the series final:</p>
+  <ul class="blockers">{% for problem in blockers %}<li>{{ problem }}</li>{% endfor %}</ul>
+{% else %}
+  <p><strong>Ready to declare final.</strong> Declaring locks the series, keeps these standings as its
+    final places, and emails every owner their boat's final place. You can reopen it later if a mistake turns up.</p>
+{% endif %}
+{% if not_sailed %}
+  <p class="muted">Not sailed, so left out of the {% if series.is_final %}final {% endif %}standings:
+    {% for race in not_sailed %}race {{ race.number }} ({{ race.date|date:"j M" }}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+{% endif %}
+{% if series.is_final %}
+  {% if series.final_results_sent_at %}
+  <p>Final standings emailed to the owners {{ series.final_results_sent_at|date:"j M Y H:i" }}.</p>
+  {% else %}
+  <p>The final standings have not been emailed: sending failed. Try again:</p>
+  <form method="post" action="{% url 'races:send_final' series.pk %}">{% csrf_token %}
+    <button type="submit">Send final standings</button>
+  </form>
+  {% endif %}
+{% elif not blockers %}
+  <form method="post" action="{% url 'races:declare_final' series.pk %}">{% csrf_token %}
+    <button type="submit">Declare final</button>
+  </form>
+{% endif %}
+</div>
+
+<h2>{% if series.is_final %}Final standings{% else %}Standings as they stand now{% endif %}</h2>
+{% if results.standings %}
+<div class="table-scroll"><table>
+  <thead><tr><th class="num">Pos</th><th>Boat</th><th class="num">Total</th></tr></thead>
+  <tbody>{% for row in results.standings %}
+    <tr><td class="num">{{ row.position }}</td><td>{{ row.entry.boat }}</td><td class="num">{{ row.total|points }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<p class="muted">{{ results.error|default:"Nothing is scored in this series yet." }}</p>
+{% endif %}
+
+{% if series.is_final %}
+<h2>Reopen the series</h2>
+<p>If a mistake turns up, reopen the series to correct it, then declare it final again.
+  Reopening emails nobody; declaring final again sends the owners the updated final standings.</p>
+<form method="post" action="{% url 'races:reopen_series' series.pk %}" class="reopen{% if reopen_error %} has-errors{% endif %}">{% csrf_token %}
+  <label for="reopen-reason">Reason for reopening</label>
+  <input type="text" name="reason" id="reopen-reason" maxlength="500" required>
+  {% if reopen_error %}<ul class="errorlist"><li>{{ reopen_error }}</li></ul>{% endif %}
+  <button type="submit" class="secondary">Reopen</button>
+</form>
+{% endif %}
+
+{% if history %}
+<h2>Declared final and reopened</h2>
+<ul>{% for change in history %}
+  <li>{{ change.timestamp|date:"j M Y H:i" }}: {{ change.description }}, by {{ change.user_name }}{% if change.reason %} - {{ change.reason }}{% endif %}</li>
+{% endfor %}</ul>
+{% endif %}
+{% endblock %}

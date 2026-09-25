@@ -1,0 +1,15 @@
+{% load racing %}{% autoescape off %}{% if updated %}Updated final standings: {% else %}Final standings: {% endif %}{{ series }}
+Hello {{ user.first_name|default:user.get_username }},
+
+{% if updated %}The race committee reopened {{ series }} to correct it, and has declared it final again. These are the updated final standings.{% else %}{{ series }} is over: the race committee has declared its results final. These are the final standings.{% endif %}
+{% for row in own_rows %}
+{{ row.entry.boat }} finished {{ row.position|ordinal }} of {{ standings|length }}, with {{ row.total|points }} point{{ row.total|pluralize }}.
+{% endfor %}
+Final standings:
+{% for row in standings %}{{ row.position|stringformat:"3d" }}  {{ row.entry.boat }} - {{ row.total|points }} pt{{ row.total|pluralize }}
+{% endfor %}
+Every race's results, and a file to download:
+{{ results_url }}
+
+You are receiving this because you own a boat entered in {{ series }}.
+{% endautoescape %}

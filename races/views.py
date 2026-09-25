@@ -10,9 +10,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import approvals, audit, notifications, publishing, race_day, start_sheet
+from . import approvals, audit, final, notifications, publishing, race_day, start_sheet
 from .forms import DecisionForm, FinishForm, StartSheetRowForm
-from .models import NOT_ON_START_SHEET, Boat, BoatRequest, EntryRequest, Finish, Race, Series
+from .models import NOT_ON_START_SHEET, Boat, BoatRequest, EntryRequest, Finish, Race, ScoringChange, Series
 from .roles import committee_required
 from .scoring import score_series
 
@@ -98,6 +98,7 @@ def _race_day_context(race, view, **extra):
         "start_ms": int(race_day.start_moment(race).timestamp() * 1000),
         "now": at,
         "time_zone": settings.TIME_ZONE,
+        "locked": race.series.is_final,
         # The race clock is shown only on the race's own date.
         "is_race_date": at.date() == race.date,
     }
@@ -180,6 +181,8 @@ def tap_finish(request, race_pk, entry_pk):
     """The Finished button: record this boat as finishing now."""
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    if race.series.is_final:
+        return _finish_or_page(request, race, error=final.LOCKED)
     try:
         finish = race_day.tap(race, entry, request.user)
     except ValidationError as refused:
@@ -195,6 +198,8 @@ def undo_finish(request, race_pk, entry_pk):
     """Undo a finish saved in the last two minutes: the boat is racing again."""
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    if race.series.is_final:
+        return _finish_or_page(request, race, error=final.LOCKED)
     try:
         race_day.undo(race, entry, request.user)
     except ValidationError as refused:
@@ -208,6 +213,8 @@ def save_finish(request, race_pk, entry_pk):
     """A typed finish time or code, from either list. Each row saves alone."""
     race = get_object_or_404(Race.objects.select_related("series"), pk=race_pk)
     entry = get_object_or_404(race.series.entries.select_related("boat"), pk=entry_pk)
+    if race.series.is_final:
+        return _finish_or_page(request, race, error=final.LOCKED)
     if not request.htmx and not race.race_entries.filter(entry=entry).exists():
         # The page offers no form for a boat that is not racing, so this is a
         # stale page or a hand-made request. With HTMX, the row shows the
@@ -254,7 +261,9 @@ def save_start_sheet_row(request, race_pk, entry_pk):
     entry = get_object_or_404(race.series.entries.select_related("boat__owner"), pk=entry_pk)
     form = StartSheetRowForm(request.POST, prefix=_prefix(entry))
     message = refused = ""
-    if form.is_valid():
+    if race.series.is_final:
+        refused, form = final.LOCKED, None
+    elif form.is_valid():
         try:
             message = start_sheet.save_row(
                 race,
@@ -309,6 +318,68 @@ def _start_sheet_context(race, bound_form=None, bound_entry=None, refused=""):
             "refused": refused if this_row else "",
         })
     return {"race": race, "rows": rows, "racing_count": len(racing), "entry_count": len(rows)}
+
+
+# --- Final results (slice 10) ----------------------------------------------------
+
+
+@committee_required
+def final_page(request, pk):
+    series = get_object_or_404(Series, pk=pk)
+    return render(request, "races/final.html", _final_context(series))
+
+
+def _final_context(series, reopen_error=""):
+    results = score_series(series)
+    return {
+        "series": series,
+        "results": results,
+        "blockers": [] if series.is_final else final.blockers(series, results),
+        "not_sailed": final.not_sailed(results),
+        "history": series.scoring_changes.filter(kind=ScoringChange.Kind.FINAL),
+        "reopen_error": reopen_error,
+    }
+
+
+@committee_required
+@require_POST
+def declare_final(request, pk):
+    series = get_object_or_404(Series, pk=pk)
+    try:
+        count = final.declare(series, request.user, request)
+    except ValidationError as refused:
+        for message in refused.messages:
+            messages.error(request, message)
+    else:
+        messages.success(request, f"{series} is final. Final standings sent to {_owners(count)}.")
+    return redirect("races:final", series.pk)
+
+
+@committee_required
+@require_POST
+def reopen_series(request, pk):
+    series = get_object_or_404(Series, pk=pk)
+    try:
+        final.reopen(series, request.user, request.POST.get("reason", ""))
+    except ValidationError as refused:
+        return render(request, "races/final.html", _final_context(series, " ".join(refused.messages)))
+    messages.success(request, f"{series} is reopened. Declare it final again when the corrections are done.")
+    return redirect("races:final", series.pk)
+
+
+@committee_required
+@require_POST
+def send_final(request, pk):
+    """Send the final standings again, after a sending failure."""
+    series = get_object_or_404(Series, pk=pk)
+    if not series.is_final:
+        messages.error(request, final.NOT_FINAL)
+    else:
+        count = final.send(series, request, updated=False)
+        series.refresh_from_db()
+        if series.final_results_sent_at is not None:
+            messages.success(request, f"Final standings sent to {_owners(count)}.")
+    return redirect("races:final", series.pk)
 
 
 # --- The committee's requests page -------------------------------------------
@@ -387,7 +458,9 @@ def _request_row(kind, member_request):
 def publish_results(request, pk):
     race = get_object_or_404(Race.objects.select_related("series"), pk=pk)
     missing = start_sheet.unrecorded(race)
-    if missing:
+    if race.series.is_final:
+        messages.error(request, final.LOCKED)
+    elif missing:
         messages.error(request, UNRECORDED.format(boats=", ".join(str(entry.boat) for entry in missing)))
     elif score_series(race.series).for_race(race) is None:
         messages.error(request, "There are no results to publish yet: nothing is scored in this race.")

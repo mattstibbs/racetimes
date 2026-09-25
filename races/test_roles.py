@@ -157,6 +157,8 @@ def pages():
         "start sheet": ((reverse("races:race_day", args=[race.pk]) + "?view=start"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "finish entry": ((reverse("races:race_day", args=[race.pk]) + "?view=finish"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "history": (reverse("races:series_history", args=[series.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
+        "final results": (reverse("races:final", args=[series.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
+        "download (CSV)": (reverse("results:series_csv", args=[series.pk]), [SEES] * 4),
         "admin: boats": (reverse("admin:races_boat_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), [TO_LOGIN, TO_LOGIN, SEES, SEES]),
         "admin: series": (reverse("admin:races_series_changelist"), [TO_LOGIN, TO_LOGIN, SEES, SEES]),

@@ -13,15 +13,17 @@ from urllib.parse import urlencode
 
 from django.db.models import F, Max, Q, Value
 from django.db.models.functions import Replace, Upper
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.cache import patch_vary_headers
 from django.views.decorators.http import require_safe
 
-from races.models import Boat, Series
+from races.models import Boat, ScoringChange, Series
 from races.publishing import amended_since_sent
 from races.roles import is_member
 from races.scoring import score_series
+
+from . import export
 
 # The home page shows the latest race of this many series, most recent first.
 LATEST_SERIES = 5
@@ -133,6 +135,7 @@ def series(request, pk):
         "section": _race_section(race, results) if race else None,
         # Any correction can move the standings, so the latest of them all.
         "standings_amended": series.scoring_changes.filter(is_correction=True)
+        .exclude(kind=ScoringChange.Kind.FINAL)
         .aggregate(Max("timestamp"))["timestamp__max"],
     }
     # Choosing a race, following a boat and showing more detail all swap the
@@ -189,6 +192,17 @@ class RaceLine:
     row: object = None  # the boat's BoatRaceResult, if the race is scored
     points_discarded: bool = False
     note: str = ""  # why the race has no results, if it has none
+
+
+@require_safe
+def series_csv(request, pk):
+    """The series' standings and every race's results as one CSV file, for anyone."""
+    series = get_object_or_404(Series, pk=pk)
+    response = HttpResponse(
+        export.series_csv(series, score_series(series)), content_type="text/csv; charset=utf-8"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{export.filename(series)}"'
+    return response
 
 
 @require_safe

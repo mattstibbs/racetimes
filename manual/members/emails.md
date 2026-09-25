@@ -11,6 +11,8 @@ with.
 | **Your Race Times account is approved** | The club's administrator has approved your account, and you can log in. |
 | **Results** | The race committee has published a race's results, in a series you have a boat entered in. |
 | **Updated results** | The race committee has corrected a race's results after sending them, and is sending them again as they now stand. |
+| **Final standings** | The race committee has declared a series you have a boat in final. It gives the final standings and your boat's final place. |
+| **Updated final standings** | The committee reopened a final series to correct it, and has declared it final again. These are the new final standings. |
 | **Approved** / **Not approved**: your request… | The race committee has decided one of your requests: registering a boat, changing a boat's details, being recorded as a boat's owner, or entering a series. It says what changed, or, if your request was not approved, the committee's note explaining why. |
 | **Your boat is entered in a series** | The race committee entered your boat in a series themselves. (If you asked to enter it, the "Approved" email is your confirmation instead.) |
 | **Your boat is no longer entered in a series** | The race committee removed your boat from a series. It is no longer scored in it. |

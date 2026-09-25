@@ -28,4 +28,5 @@ nav:
   - Race committee:
       - "Race day: the start sheet and finishes": committee/race-day.md
       - Publishing results: committee/publishing-results.md
+      - "Ending a series: final results": committee/ending-a-series.md
       - Reviewing waiting requests: committee/reviewing-requests.md

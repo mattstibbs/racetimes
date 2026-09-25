@@ -7,7 +7,9 @@ template can show a boat's sail number rather than an id.
 
 Results are computed here on every call and never stored. Replaying a series
 is microseconds of arithmetic, and a stored result could go stale when a
-finish is corrected; see docs/decisions.md.
+finish is corrected; see docs/decisions.md. The one exception is a series
+declared final (slice 10): it is locked, and scored from the copy of the
+engine's output saved when it was declared (``races/final.py``).
 """
 
 import logging
@@ -15,6 +17,7 @@ from dataclasses import dataclass
 
 import nhc
 
+from . import final
 from .models import Finish, Race, Series, SeriesEntry
 
 logger = logging.getLogger(__name__)
@@ -168,7 +171,13 @@ def score_series(series):
         return SeriesResults(series=series, races=(), standings=(), unscored=tuple(unscored))
 
     try:
-        outcome = nhc.score_series(build_engine_series(series, entries, scored))
+        if series.final_results is not None:
+            # A final series is locked, so its races, entries and finishes are
+            # as they were when declared. Only its boats can have changed, and
+            # the copy keeps their base numbers as they were then.
+            outcome = final.load(series.final_results)
+        else:
+            outcome = nhc.score_series(build_engine_series(series, entries, scored))
     except nhc.InvalidInput as error:
         # Validation should stop any input the engine refuses from being saved.
         # If some route slips past it, the pages say so rather than crash.
@@ -215,6 +224,14 @@ def score_series(series):
         standings=standings,
         unscored=tuple(unscored),
     )
+
+
+def engine_outcome(series):
+    """The engine's own output for the series, replayed live: what a final series copies."""
+    entries = list(series.entries.select_related("boat"))
+    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
+    scored, _ = _scorable_races(series, races)
+    return nhc.score_series(build_engine_series(series, entries, scored))
 
 
 def _scorable_races(series, races):

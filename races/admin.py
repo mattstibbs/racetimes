@@ -172,7 +172,9 @@ class SeriesAdmin(ReasonInAdminHistoryMixin, admin.ModelAdmin):
         if not series.pk:
             return ""
         return format_html(
-            '<a href="{}">Scoring history</a>', reverse("races:series_history", args=[series.pk])
+            '<a href="{}">Scoring history</a> &middot; <a href="{}">Final results</a>',
+            reverse("races:series_history", args=[series.pk]),
+            reverse("races:final", args=[series.pk]),
         )
 
     def save_model(self, request, obj, form, change):

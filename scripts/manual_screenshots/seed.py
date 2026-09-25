@@ -4,7 +4,7 @@ Run only by run.sh, against a throwaway SQLite database it creates, never
 against a real one. Every account's password is PASSWORD.
 """
 
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import Group
@@ -73,6 +73,21 @@ race_4 = Race.objects.create(series=autumn, number=4, date=started.date(),
 RaceEntry.objects.create(race=race_4, entry=entries[0], persons_on_board=3)
 RaceEntry.objects.create(race=race_4, entry=entries[2], persons_on_board=4)
 wednesdays = Series.objects.create(name="Wednesday Evenings")
+
+# A finished summer series, every race published and sent, ready to be
+# declared final (slice 10). Race 3 was cancelled for weather: nothing recorded.
+summer = Series.objects.create(name="Summer 2026 Series")
+summer_entries = [SeriesEntry.objects.create(series=summer, boat=boat) for boat in (kittiwake, tern, serendipity)]
+summer_finishes = {1: [time(19, 12, 40), time(19, 15, 2), time(19, 14, 21)],
+                   2: [time(19, 20, 5), time(19, 18, 33), time(19, 21, 50)]}
+sent = timezone.make_aware(datetime(2026, 7, 20, 21, 0))
+for number, day in [(1, 1), (2, 8), (3, 15)]:
+    race = Race.objects.create(series=summer, number=number, date=date(2026, 7, day), start_time=time(18, 30))
+    if number in summer_finishes:
+        for entry, finish in zip(summer_entries, summer_finishes[number]):
+            RaceEntry.objects.create(race=race, entry=entry)
+            Finish.objects.create(race=race, entry=entry, finish_time=finish)
+        Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
 # One request of each kind, waiting.
 BoatRequest.objects.create(

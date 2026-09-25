@@ -34,7 +34,7 @@
   {% if series_list %}
   <ul class="link-list">
     {% for series in series_list %}
-    <li><a href="{% url 'results:series' series.pk %}">{{ series.name }}</a></li>
+    <li><a href="{% url 'results:series' series.pk %}">{{ series.name }}</a>{% if series.is_final %} <span class="final-badge">Final</span>{% endif %}</li>
     {% endfor %}
   </ul>
   {% else %}

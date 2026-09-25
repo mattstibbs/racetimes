@@ -194,6 +194,7 @@ tr.followed td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
    which some browsers show depending on their language. */
 .finish-row { grid-template-columns: 10rem 11.5rem 11rem 1fr auto; }
 .start-row { grid-template-columns: 11rem 7rem 10rem auto; }
+fieldset.start-rows { border: 0; margin: 0; padding: 0; min-width: 0; }
 .finish-row.has-errors, .start-row.has-errors { background: var(--err-bg); border-color: var(--err); }
 .finish-row.saved, .start-row.saved { background: var(--ok-bg); border-color: var(--ok); }
 .finish-row .figures, .start-row .figures { grid-column: 1 / -1; font-size: 0.9rem; }
@@ -225,6 +226,14 @@ ul.link-list a:hover { background: var(--accent-soft); }
 ol.podium { margin: 0.25rem 0 0; padding-left: 1.5rem; }
 ol.podium li { padding: 0.1rem 0; }
 .card h3 .provisional { margin-left: 0.3rem; }
+/* Slice 10: a series declared final, in the published colours. */
+.final-badge {
+  display: inline-block; vertical-align: middle;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+  padding: 0.1rem 0.55rem; border-radius: 999px;
+  color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok);
+}
+.series-links { margin-top: -0.25rem; }
 form.follow {
   display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 1.5rem 0 0.5rem; padding: 0.8rem 1rem;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);

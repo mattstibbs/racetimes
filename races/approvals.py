@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.text import capfirst
 
-from . import audit
+from . import audit, final
 from .models import Boat, BoatRequest, EntryRequest, Request, Series, SeriesEntry
 from .scoring import score_series
 
@@ -56,6 +56,10 @@ def approve(request, user, reason=""):
     """Apply the request, record it, and return a message for the committee."""
     reason = reason.strip()
     with transaction.atomic():
+        if isinstance(request, EntryRequest):
+            # Slice 10: a final series takes no new entries. Checked first, so
+            # the committee is told that rather than asked for a reason.
+            final.check_series_open(request.series_id)
         _claim_decision(request, user, Request.Status.APPROVED)
         changes = _audited_changes(request)
         if audit.needs_reason(changes) and not reason:

@@ -1163,6 +1163,33 @@ except in text.
 
 ---
 
+## 2026-09-25 - Slice 10: a final series is locked, and keeps a copy of its results
+
+**Context.** The brief's user journey 5 has the committee produce final
+series places, shown on screen and exportable as a file. Results are never
+stored: every page replays the series (slice 1). A boat's base number is
+shared by every series it sails in, so correcting it would change a season
+that has already ended.
+
+**Decision.** Agreed with the project owner:
+- **Declaring a series final locks it.** Finishes, start sheets, races,
+  entries, settings and publishing are all refused until the committee
+  reopens it with a reason, which is recorded in the change history. Boats,
+  including their base numbers, and the series' name stay editable.
+- **A final series keeps a copy of the engine's results,** as JSON, and is
+  scored from that copy rather than replayed. This bends slice 1's "nothing
+  derived is stored" rule for final series only; reopening drops the copy.
+  Boat names and sail numbers aren't copied.
+- **Declaring emails every owner** their final place. Declaring again after
+  reopening sends an "updated" email. Reopening sends nothing.
+- **Anyone can download any series as one CSV,** final or provisional, using
+  Python's csv module. It contains no owner names and no persons on board.
+
+**Consequence.** Four proposed fields on `Series`, awaiting approval. Every
+write path checks one function in `races/final.py`, tested path by path.
+
+---
+
 ## Open questions
 
 Carried from the slice 0 planning pass. These need answers before the affected
