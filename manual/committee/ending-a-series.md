@@ -3,8 +3,7 @@
 *For the race committee and the administrator.*
 
 When a series is over, you **declare it final**. Its standings become the
-final places, it is labelled **Final** on the results pages (**Final Results
-Published** in the front page's list of series), and every owner
+final places, it is labelled **Final Results** on the results pages, and every owner
 is emailed their boat's final place. A final series is locked: nothing in it
 can change unless you reopen it.
 
@@ -47,7 +46,7 @@ Press **Declare final**. Then:
   the standings and their boat's place. As with results, only owners with an
   account on the site get it. If sending fails, the page says so and offers
   **Send final standings** to try again.
-- The results pages label the series **Final**, and say when it was
+- The results pages label the series **Final Results**, and say when it was
   declared.
 
 ![The Final results page after declaring: final, locked, emailed to the owners, with a box to reopen it](../images/final-declared.png)

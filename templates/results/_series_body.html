@@ -1,6 +1,6 @@
 {% load racing %}
 <div id="series-body">
-<h2>Series Standings{% if series.is_final %} <span class="final-badge">Final</span>{% endif %}</h2>
+<h2>Series Standings{% if series.is_final %} <span class="final-badge">Final Results</span>{% endif %}</h2>
 {% if series.is_final %}<p class="muted">Declared final on {{ series.declared_final_at|date:"j F Y" }}. These are the final places.</p>{% endif %}
 {% if standings_amended %}<p class="standings-updated">Last updated {{ standings_amended|date:"j F Y" }}</p>{% endif %}
 {% if results.standings %}
