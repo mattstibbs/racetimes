@@ -1481,6 +1481,29 @@ from Race Times as it publishes, without changing anything for anyone else.
 
 ---
 
+## 2026-09-26 - Slice 14: re-entering another club's race may differ by 0.001
+
+**Decision.** No change. Re-creating the MCC race in the site with each
+boat's base number set to the handicap it raced on gives next handicaps
+about 0.0007 lower than MCC's published ones with realignment on, which
+often shows as 0.001 lower. It is not rounding. Realignment makes the
+finishers' handicaps total their base numbers: 7.292 if base numbers equal
+the handicaps raced on, but MCC's figures imply 7.297, so some of their real
+base numbers differ from the handicaps those boats raced on. The site can't
+say "raced on 0.930, base number 0.935": a boat's first race in a series is
+always sailed on its base number. Given the fixture's base numbers, the
+engine matches all four of the spec's columns exactly.
+
+A starting handicap per series entry (defaulting to the base number) would
+remove the difference, and let a club carry handicaps over from last season.
+It changes the data model, so it would be its own slice if clubs ask for it.
+
+**Why.** With a club's real base numbers and a series that starts from them,
+the results are right. Only re-creating a race from partway through another
+club's season can't match exactly.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
