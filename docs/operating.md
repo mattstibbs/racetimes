@@ -51,7 +51,7 @@ club's own address, which lasts **7 days** and works once:
   **Accept**.
 
 Either way they become the club's administrator (an approved membership), and
-from then on the club manages its own people on its **Members** page. The
+from then on the club manages its own people on its **Club members** page. The
 club's page lists every invitation and whether it was accepted. If a link
 expires, send another; nothing needs cancelling. A suspended club can't be
 sent invitations.
@@ -59,14 +59,14 @@ sent invitations.
 ## People waiting to join
 
 Normally a club's own administrators approve people joining, on the club's
-**Members** page. When they can't (a new club before its administrator has
+**Club members** page. When they can't (a new club before its administrator has
 accepted the invitation, one whose only administrator is away, or Demo Club),
 the club's page here has **Waiting to join**:
 - choose a role (member, race committee or club administrator) and press
   **Approve**, or press **Don't approve**;
 - the person is emailed from the club, with links to the club's address,
   exactly as when the club decides;
-- the club sees "Approved by the Race Times operator" on its Members page,
+- the club sees "Approved by the Race Times operator" on its Club members page,
   and in its data export, not your login;
 - each decision is in the operator log, with your login.
 
@@ -91,7 +91,7 @@ When a club leaves Race Times:
 1. **Suspend it** (above), so its members see the site is paused.
 2. **Download its data.** On the club's page, under "The club's data",
    **Download everything <club> holds (ZIP)** gives the same ZIP the club's
-   administrators get from their Members page: boats, members, series,
+   administrators get from their Club members page: boats, members, series,
    entries, races, start sheets, finishes, each series' results, requests and
    the change history, as CSV files. It works while the club is suspended,
    which is the point: its administrators can't reach its site then. Send it
@@ -108,7 +108,7 @@ An active club can't be deleted. With `SINGLE_CLUB` set (the test site),
 there are no operator pages at all, so the club it shows can't be deleted
 from the site.
 
-People delete their own accounts, from **Account** at any club; the
+People delete their own accounts, from **My account** at any club; the
 operator's own account can't be deleted that way. See the manual's "Joining a
 club, and your data".
 

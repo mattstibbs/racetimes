@@ -107,7 +107,7 @@ def test_races_not_sailed_are_listed_and_dont_block(client, committee, season):
 @pytest.mark.parametrize("problem, expected", [
     ("unpublished", "Race 2 has results but isn&#x27;t published yet."),
     ("amended", "Race 2 has been corrected since its results were sent"),
-    ("not recorded", "Race 3: nothing recorded yet for GBR7 Tern."),
+    ("not recorded", "Race 3: nothing recorded yet for Tern (GBR7)."),
 ])
 def test_declaring_is_refused_while_a_race_isnt_settled(client, committee, season, problem, expected):
     race_1, race_2, race_3 = season["races"]
@@ -384,7 +384,7 @@ def test_each_owner_gets_one_email_with_their_place(client, committee, season, r
     assert message.subject == "Final standings: Autumn 2026"
     place = next(r for r in score_series(refreshed(season["series"])).standings if r.entry == season["entries"][0])
     ordinal = {1: "1st", 2: "2nd", 3: "3rd"}[place.position]
-    assert f"GBR42 Kittiwake finished {ordinal} of 3" in message.body
+    assert f"Kittiwake (GBR42) finished {ordinal} of 3" in message.body
     assert reverse("results:series", args=[season["series"].pk]) in message.body
     assert refreshed(season["series"]).final_results_sent_at is not None
 

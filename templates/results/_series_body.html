@@ -27,7 +27,7 @@
   </tbody>
 </table>
 </div>
-<p class="muted">Discarded scores are in brackets.</p>
+{% if series.discards %}<p class="muted"><em>Discarded scores are in brackets.</em></p>{% endif %}
 {% elif not boats %}
 <p class="muted">No boats are entered in this series yet.</p>
 {% elif not results.error %}
@@ -53,4 +53,10 @@
   {% if followed %}<a href="{% url 'results:boat' followed.pk %}">All results for {{ followed }}</a>{% endif %}
 </form>
 {% endif %}
+
+{# Slice 15: at the bottom, out of the way of the results (the project owner's choice). #}
+<p class="end-links">
+  <a href="{% url 'results:series_csv' series.pk %}" download>Download (CSV)</a>
+  {% if is_committee %}&middot; <a href="{% url 'races:series_history' series.pk %}">Series history</a>{% endif %}
+</p>
 </div>

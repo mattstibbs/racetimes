@@ -8,7 +8,7 @@ Everyone who uses your club's site has a **role** there:
 |---|---|
 | **Member** | Register their boats, ask for changes, ask to enter series, and see their requests. |
 | **Race committee** | Everything a member can, and approve requests, set up boats, series and races, enter finishes and publish results. |
-| **Club administrator** | Everything the race committee can, and manage the club's people on the **Members** page. |
+| **Club administrator** | Everything the race committee can, and manage the club's people on the **Club members** page. |
 
 A role belongs to the person *at your club*. Someone who also sails at
 another club using Race Times has one login, and a separate role there that
@@ -26,7 +26,7 @@ in it within 7 days. It goes to your club's own address.
 - **If you already have one,** from another club, log in with it, and press
   **Accept**.
 
-Either way, you land on your club's **Members** page as its administrator.
+Either way, you land on your club's **Club members** page as its administrator.
 The link works once. If it has expired, ask for a new invitation.
 
 ![Accepting an invitation to run the club: the email address it was sent to, and a form to make an account](../images/invitation.png)
@@ -42,11 +42,11 @@ public results and nothing more. Someone who already has a Race Times login,
 from another club, asks with **Join this club** instead.
 
 The admin's front page tells you when people are waiting. Follow **Review
-members**, or open **Members** at the top of any page.
+members**, or open **Club members** at the top of any page.
 
 ![The admin's front page notices: requests waiting for the race committee, and people waiting to join the club](../images/front-page-administrator.png)
 
-![The Members page: two people waiting to join, each with a role to choose and Approve and Don't approve buttons, then the club's members with their roles](../images/members-page.png)
+![The Club members page: two people waiting to join, each with a role to choose and Approve and Don't approve buttons, then the club's members with their roles](../images/members-page.png)
 
 For each person waiting:
 
@@ -59,7 +59,7 @@ Either way, they're emailed straight away to say what you decided.
 If your club has no administrator yet, or yours is away, the service's
 operator can also approve or turn down people waiting, at your club's
 request. Anyone the operator approved shows "Approved by the Race Times
-operator" on the Members page.
+operator" on the Club members page.
 
 ![The message after approving Robin Hale: approved and emailed](../images/members-approved.png)
 
@@ -89,8 +89,8 @@ two administrators.
 
 ## Downloading the club's data
 
-**Download everything the club holds (ZIP)**, at the top of the **Members**
-page, gives you a ZIP file of spreadsheet (CSV) files:
+**Download everything the club holds (ZIP)**, at the bottom of the **Club
+members** page, gives you a ZIP file of spreadsheet (CSV) files:
 
 | File | Holds |
 |---|---|

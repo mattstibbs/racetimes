@@ -300,7 +300,7 @@ def test_the_admins_boat_search_offers_only_this_clubs_boats(client, clubs):
         "app_label": "races", "model_name": "seriesentry", "field_name": "boat", "term": "GBR",
     }, HTTP_HOST=DEMO)
     names = {result["text"] for result in response.json()["results"]}
-    assert names and all(name.split(" ", 1)[1] in ("Avocet", "Auk", "Albatross") for name in names)
+    assert names and all(name.split(" (", 1)[0] in ("Avocet", "Auk", "Albatross") for name in names)
 
 
 def test_the_admin_wont_enter_another_clubs_boat(client, clubs):

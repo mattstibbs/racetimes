@@ -362,7 +362,7 @@ def test_the_owner_is_told_when_their_boat_is_put_on(client, committee, race_day
         tick(client, race, kittiwake)
     [message] = mail.outbox
     assert message.to == ["pat@example.com"]
-    assert message.subject == "GBR42 Kittiwake is entered in race 1 of Autumn 2026"
+    assert message.subject == "Kittiwake (GBR42) is entered in race 1 of Autumn 2026"
     assert "Wednesday 23 September 2026, starting at 18:30" in message.body
     assert f"/series/{race.series.pk}/?race=1" in message.body
 
@@ -383,9 +383,9 @@ def test_taking_a_boat_off_and_back_on_sends_each_email(client, committee, race_
         tick(client, race, kittiwake, racing=False)
         tick(client, race, kittiwake)
     assert [message.subject for message in mail.outbox] == [
-        "GBR42 Kittiwake is entered in race 1 of Autumn 2026",
-        "GBR42 Kittiwake is no longer entered in race 1 of Autumn 2026",
-        "GBR42 Kittiwake is entered in race 1 of Autumn 2026",
+        "Kittiwake (GBR42) is entered in race 1 of Autumn 2026",
+        "Kittiwake (GBR42) is no longer entered in race 1 of Autumn 2026",
+        "Kittiwake (GBR42) is entered in race 1 of Autumn 2026",
     ]
     assert "It is scored DNC" in mail.outbox[1].body
 
@@ -395,7 +395,7 @@ def test_a_boat_added_after_the_race_still_gets_its_email(client, committee, sai
     with run_on_commit():
         tick(client, sailed["race"], visitor)
     [message] = mail.outbox
-    assert message.subject == "GBR8 Gannet is entered in race 1 of Autumn 2026"
+    assert message.subject == "Gannet (GBR8) is entered in race 1 of Autumn 2026"
 
 
 @pytest.mark.parametrize("entry", ["puffin", "tern"])  # an inactive account, and no account
@@ -454,7 +454,7 @@ def test_removing_a_boat_from_a_series_tells_the_owner_once(client, race_day, ru
     assert response.status_code == 302
     [message] = mail.outbox  # one email, not one per start sheet as well
     assert message.to == ["pat@example.com"]
-    assert message.subject == "GBR42 Kittiwake is no longer entered in Autumn 2026"
+    assert message.subject == "Kittiwake (GBR42) is no longer entered in Autumn 2026"
     assert not series.entries.filter(pk=kittiwake.pk).exists()
     assert not RaceEntry.objects.exists()
 

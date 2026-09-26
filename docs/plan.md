@@ -607,7 +607,7 @@ Both are off by default, so every existing series scores exactly as before.
   in all four combinations. The manual gains "A series' scoring rules", with
   a screenshot.
 
-## Slice 15: general UI improvements. **Status: planned (2026-09-26)**
+## Slice 15: general UI improvements. **Status: complete (2026-09-26)**
 
 Spec: `docs/slices/15-ui-improvements.md`. Fourteen small changes the owner
 asked for, all presentation only (no model, migration, dependency or
@@ -624,5 +624,7 @@ JavaScript):
   boats page's links.
 - **The menu:** a new Club results item, Club setup, and a new order.
 
-Waiting for the owner's answers to four questions at the end of the spec.
+The owner agreed every recommendation in the spec's four questions: bolder
+headings on all tables, "Reopen results" once a series is final, the admin's
+links renamed to match, and "Register a new boat" as that page's heading.
 

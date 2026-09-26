@@ -237,7 +237,7 @@ def test_my_boats_shows_boats_entries_and_requests(client, member):
     BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR7", name="Puffin",
                                requested_by=member, status="REJECTED", committee_note="Wrong base number")
     page = client.get(reverse("races:my_boats")).content.decode()
-    for text in ["GBR42 Kittiwake", "Autumn 2026", "Rejected", "Wrong base number"]:
+    for text in ["Kittiwake (GBR42)", "Autumn 2026", "Rejected", "Wrong base number"]:
         assert text in page
 
 

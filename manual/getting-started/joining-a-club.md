@@ -38,14 +38,14 @@ committee at one club gives you nothing at another.
 
 ## Your account
 
-**Account**, at the top of every page once you're logged in, shows your name
+**My account**, at the top of every page once you're logged in, shows your name
 and email address, and your role at each club you've joined or asked to join.
 
-![Your account: your name and email, your clubs with your role and status at each, and links to download your data and delete your account](../images/account.png)
+![The My account page: your name and email, your club memberships with your role and status at each, and links to download your data and delete your account](../images/account.png)
 
 ## Downloading your data
 
-**Download my data**, on your Account page, gives you a file of everything
+**Download my data**, on your My account page, gives you a file of everything
 Race Times holds about you, at every club: your account, your memberships,
 the boats you own, your requests to the race committee, and any changes
 you've made to results. It's a JSON file, a plain text format that other
@@ -55,7 +55,7 @@ It doesn't include other people's details, such as who approved you.
 
 ## Deleting your account
 
-**Delete my account**, on your Account page, deletes your account and your
+**Delete my account**, on your My account page, deletes your account and your
 membership of every club. You confirm with your password.
 
 ![Deleting your account: what goes, what stays, and your password to confirm](../images/delete-account.png)

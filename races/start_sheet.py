@@ -55,7 +55,7 @@ def save_row(race, entry, *, racing, persons_on_board, request):
         if race_entry is None:
             return "Saved; nothing changed."
         if Finish.objects.filter(race=race, entry=entry).exists():
-            raise ValidationError(HAS_RESULT.format(boat=entry.boat))
+            raise ValidationError(HAS_RESULT.format(boat=entry.boat.race_day_label))
         race_entry.delete()
         notifications.start_sheet_changed(race, entry, request, racing=False)
         return _emailed("Taken off the start sheet.", entry)

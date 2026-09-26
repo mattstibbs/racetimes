@@ -2,7 +2,7 @@
 JavaScript; it opens by itself when the save was refused, to show why.{% endcomment %}
 {% url 'races:save_finish' race.pk row.entry.pk as save_url %}
 <details class="finish-form"{% if row.open %} open{% endif %}>
-  <summary aria-label="{{ label }}: {{ row.entry.boat }}">{{ summary|safe }}</summary>
+  <summary aria-label="{{ label }}: {{ row.entry.boat.race_day_label }}">{{ summary|safe }}</summary>
   <form method="post" action="{{ save_url }}" hx-post="{{ save_url }}" hx-target="#finish-panel" hx-swap="outerHTML"
         hx-sync="#finish-panel:replace" id="finish-{{ row.entry.pk }}">{% csrf_token %}
     <label>Finish time {{ row.form.finish_time }}</label>

@@ -149,7 +149,7 @@ def test_the_results_say_which_options_were_used_and_mark_capped_boats(client):
     assert "Handicaps adjusted with extreme-result capping and realignment to base handicaps." in page
     rows = page.split('class="race-results')[1].split("</tbody>")[0].split("</tr>")
     capped = [row.split("</a>")[0].rsplit(">", 1)[1] for row in rows if "Result capped as extreme" in row]
-    assert capped == ["Lanternledger Lanternledger", "Saltwake Saltwake"]  # sail number and name, both the boat's name here
+    assert capped == ["Lanternledger (Lanternledger)", "Saltwake (Saltwake)"]  # name and sail number, both the boat's name here
 
 
 def test_realignment_alone_says_so_without_the_capping_footnote(client):

@@ -2,7 +2,7 @@
 
 *For the race committee.*
 
-Each series has its own scoring rules. Set them in **Setup (admin)**: open
+Each series has its own scoring rules. Set them in **Club setup**: open
 **Series**, choose the series, and find the **Scoring rules** section. Set
 them before the first race if you can. Once a series has results, changing a
 rule asks for a reason, and the change is recorded in the series' history.

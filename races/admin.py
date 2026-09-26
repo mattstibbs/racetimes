@@ -250,9 +250,10 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
         if not series.pk:
             return ""
         return format_html(
-            '<a href="{}">Scoring history</a> &middot; <a href="{}">Final results</a>',
+            '<a href="{}">Series history</a> &middot; <a href="{}">{}</a>',
             reverse("races:series_history", args=[series.pk]),
             reverse("races:final", args=[series.pk]),
+            "Reopen results" if series.is_final else "Finalise results",
         )
 
     def save_model(self, request, obj, form, change):
@@ -281,7 +282,7 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
             messages.info(request, f"Correction recorded. {effect}")
 
 
-# --- Members' requests: read-only here, decided on the Requests page ----------
+# --- Members' requests: read-only here, decided on the Change requests page ----------
 
 
 class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
@@ -300,7 +301,7 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         messages.info(request, format_html(
-            'Requests are approved or rejected on the <a href="{}">Requests page</a>.',
+            'Requests are approved or rejected on the <a href="{}">Change requests page</a>.',
             reverse("races:requests"),
         ))
         return super().changelist_view(request, extra_context)

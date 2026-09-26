@@ -21,7 +21,6 @@ from django.views.decorators.http import require_safe
 from races.models import Boat, ScoringChange, Series
 from races import series_csv as csv_file  # the view below is called series_csv
 from races.publishing import amended_since_sent
-from races.roles import is_member
 from races.scoring import score_series
 
 
@@ -66,9 +65,13 @@ def home(request):
             series_list=Series.objects.for_club(request.club).annotate(latest=Max("races__date")).order_by(
                 F("latest").desc(nulls_last=True), "name"
             ),
-            my_boats=request.user.boats.filter(club=request.club) if is_member(request.user, request.club) else None,
         )
     return _render(request, "results/home.html", {"boat-matches": "results/_boat_matches.html"}, context)
+
+
+def by_name(boat):
+    """Sort key for lists people pick a boat from: by name, or sail number for a boat with none (slice 15)."""
+    return ((boat.name or boat.sail_number).casefold(), boat.sail_number)
 
 
 def search_boats(club, query):
@@ -111,7 +114,7 @@ def series(request, pk):
     results = score_series(series)
     races = list(series.races.order_by("number"))
     boats = sorted((entry.boat for entry in series.entries.select_related("boat")),
-                   key=lambda boat: boat.sail_number)
+                   key=by_name)
 
     race = _chosen_race(request, races, results)
     followed = _chosen_boat(request, boats)

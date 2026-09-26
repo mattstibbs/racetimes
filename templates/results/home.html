@@ -3,15 +3,6 @@
 {% block content %}
 <h1>Results</h1>
 
-{% if my_boats %}
-<section aria-labelledby="my-boats">
-  <h2 id="my-boats">My boats</h2>
-  <ul class="link-list">
-    {% for boat in my_boats %}<li><a href="{% url 'results:boat' boat.pk %}">{{ boat }}</a></li>{% endfor %}
-  </ul>
-</section>
-{% endif %}
-
 {% if latest %}
 <section aria-labelledby="latest-results">
   <h2 id="latest-results">Latest results</h2>

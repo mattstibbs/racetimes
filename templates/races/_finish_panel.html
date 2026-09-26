@@ -58,7 +58,7 @@
 {% if not_racing %}
 <details class="not-racing">
   <summary>Not racing (scored DNC): {{ not_racing|length }} boat{{ not_racing|length|pluralize }}</summary>
-  <ul>{% for entry in not_racing %}<li>{{ entry.boat }}</li>{% endfor %}</ul>
+  <ul>{% for entry in not_racing %}<li>{{ entry.boat.race_day_label }}</li>{% endfor %}</ul>
   <p class="muted">A boat that did race is added on the <a href="{{ start_url }}">start sheet</a> first.</p>
 </details>
 {% endif %}

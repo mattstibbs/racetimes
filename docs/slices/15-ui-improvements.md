@@ -1,7 +1,7 @@
 # Slice 15: general UI improvements
 
-**Status: planned (2026-09-26); waiting for the owner's answers to the
-questions at the end.**
+**Status: complete (2026-09-26). The owner agreed every recommendation
+(see the end).**
 
 ## Goal
 A round of small improvements the project owner asked for after using the
@@ -236,3 +236,11 @@ becomes **Club setup** on club sites.
    **Recommended:** "Register a boat" → **Register a new boat**, matching
    its link; leave "Enter Kittiwake (GBR 1234) in a series" and "Request a
    change: Kittiwake (GBR 1234)", which name the boat.
+
+**The owner's answers (2026-09-26):**
+1. **All tables** get the bolder headings.
+2. **Reopen results** while a series is final; **Finalise results** otherwise.
+3. **Yes:** the admin's series page reads **Series history · Finalise results**
+   (or **Reopen results**), and the manual follows.
+4. **Register a new boat** as that page's heading; the other two pages keep
+   theirs.

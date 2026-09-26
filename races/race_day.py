@@ -60,7 +60,7 @@ def tap(race, entry, user):
         raise ValidationError(NOT_RACE_DAY)
     existing = Finish.objects.filter(race=race, entry=entry).first()
     if existing is not None:
-        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat, result=describe(existing)))
+        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat.race_day_label, result=describe(existing)))
     finish = Finish(
         race=race,
         entry=entry,
@@ -76,7 +76,7 @@ def tap(race, entry, user):
     except IntegrityError:
         # Another device saved this boat's finish in the same instant.
         existing = Finish.objects.get(race=race, entry=entry)
-        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat, result=describe(existing)))
+        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat.race_day_label, result=describe(existing)))
     return finish
 
 

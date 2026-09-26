@@ -114,16 +114,14 @@ def test_home_has_no_latest_results_before_any_race_is_sailed(client):
     assert "Latest results" not in home(client)
 
 
-def test_a_member_sees_their_own_boats_on_home(client):
+def test_home_has_no_my_boats_section_for_anyone(client):
+    # Slice 15: people reach their boats from "My boats" in the menu instead.
     member = make_member()
-    boat = make_boat("GBR42", name="Kittiwake", owner=member)
-    make_boat("GBR7", name="Tern")
+    make_boat("GBR42", name="Kittiwake", owner=member)
     assert "My boats" not in home(client).split("</header>")[1]
     client.force_login(member)
     page = home(client).split("</header>")[1]
-    assert "My boats" in page
-    assert reverse("results:boat", args=[boat.pk]) in page
-    assert "Tern" not in page
+    assert "My boats" not in page and "Kittiwake" not in page
 
 
 # --- Finding a boat ------------------------------------------------------------
@@ -230,7 +228,7 @@ def test_following_a_boat_highlights_it_in_the_standings_and_the_race(client, th
     page = series_page(client, series, boat=entries[1].boat.pk)
     assert page.count('<tr class="followed">') == 2
     for row in page.split('<tr class="followed">')[1:]:
-        assert "GBR2 Blue Moon" in row.split("</tr>")[0]
+        assert "Blue Moon (GBR2)" in row.split("</tr>")[0]
     assert f'<option value="{entries[1].boat.pk}" selected>' in page
 
 

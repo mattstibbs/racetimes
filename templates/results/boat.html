@@ -56,7 +56,7 @@
     </tbody>
   </table>
   </div>
-  {% if history.standing %}<p class="muted">Discarded scores are in brackets.</p>{% endif %}
+  {% if history.standing and history.series.discards %}<p class="muted"><em>Discarded scores are in brackets.</em></p>{% endif %}
   {% if history.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
   {% if history.has_provisional %}<p class="muted">* Provisional: may still change until the race committee publishes it.</p>{% endif %}
   {% else %}

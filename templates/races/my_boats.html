@@ -16,18 +16,20 @@
     {% for entry in boat.series_entries.all %}{% if forloop.first %}Entered in: {% endif %}<a href="{% url 'results:series' entry.series.pk %}?boat={{ boat.pk }}">{{ entry.series }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="muted">Not entered in any series.</span>{% endfor %}
   </p>
   <p>
+    <a href="{% url 'races:enter_series' boat.pk %}">Register to enter a series</a>
+  </p>
+  <p>
     {% if boat.pk in pending_boats %}
       <span class="muted">A request for this boat is waiting for the race committee.</span>
     {% else %}
-      <a href="{% url 'races:change_boat' boat.pk %}">Request a change</a> &middot;
+      <a href="{% url 'races:change_boat' boat.pk %}">Request a change to this boat's information</a>
     {% endif %}
-    <a href="{% url 'races:enter_series' boat.pk %}">Enter a series</a>
   </p>
 </section>
 {% empty %}
 <p class="muted">You have no boats recorded yet.</p>
 {% endfor %}
-<p><a href="{% url 'races:register_boat' %}">Register a boat</a></p>
+<p><a href="{% url 'races:register_boat' %}">Register a new boat</a></p>
 
 <h2>My requests</h2>
 {% if boat_requests or entry_requests %}

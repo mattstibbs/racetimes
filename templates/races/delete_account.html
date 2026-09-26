@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Delete your account - Race Times{% endblock %}
+{% block title %}Delete my account - Race Times{% endblock %}
 {% block content %}
-<h1>Delete your account</h1>
+<h1>Delete my account</h1>
 {% if operator %}
 <p class="note">The service's operator account can't be deleted here.</p>
 {% elif blocking %}
@@ -24,5 +24,5 @@
   <button type="submit">Delete my account</button>
 </form>
 {% endif %}
-<p><a href="{% url 'races:account' %}">Back to your account</a></p>
+<p><a href="{% url 'races:account' %}">Back to my account</a></p>
 {% endblock %}

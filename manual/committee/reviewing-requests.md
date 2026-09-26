@@ -13,7 +13,7 @@ with it.
 
 ## Finding out what is waiting
 
-Log in and open **Setup (admin)** from the top of any page. If anything is
+Log in and open **Club setup** from the top of any page. If anything is
 waiting for you, the admin's front page says so at the top, with a link
 straight to it:
 
@@ -23,15 +23,15 @@ You only see what you can act on:
 
 | Notice | Who sees it | The link takes you to |
 |---|---|---|
-| Boat and entry requests waiting for the race committee | The race committee and club administrators | The **Requests** page |
-| People waiting to join the club | Club administrators only | The **Members** page |
+| Boat and entry requests waiting for the race committee | The race committee and club administrators | The **Change requests** page |
+| People waiting to join the club | Club administrators only | The **Club members** page |
 
-If nothing is waiting, there is no notice. You can also open the Requests
-page at any time from **Requests** at the top of the site.
+If nothing is waiting, there is no notice. You can also open the Change
+requests page at any time from **Change requests** at the top of the site.
 
-## The Requests page
+## The Change requests page
 
-The Requests page lists every waiting request, oldest first, so they can be
+The Change requests page lists every waiting request, oldest first, so they can be
 dealt with in the order members asked. Below them are the requests decided
 most recently.
 
@@ -130,5 +130,5 @@ Nothing is changed when an approval is refused.
 ## People joining the club (club administrators)
 
 People asking to join the club, and each person's role, are managed by the
-club's administrators on the **Members** page. See
+club's administrators on the **Club members** page. See
 [Running your club: members and roles](members-and-roles.md).
