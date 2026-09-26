@@ -100,8 +100,16 @@ def test_production_deploys_only_when_asked_in_frankfurt_with_checks():
     assert production["autoDeploy"] is False and production["region"] == "frankfurt"
     assert production["preDeployCommand"] == "./release.sh" and production["healthCheckPath"] == "/health/"
     assert "migrate" not in production["buildCommand"]  # database changes wait for the pre-deploy step
-    assert DATABASES["racetimes-production-db"]["region"] == "frankfurt"
-    assert DATABASES["racetimes-production-db"]["plan"] != "free"
+
+
+
+def test_every_database_production_uses_is_in_frankfurt_and_paid():
+    # Whatever it's called: the first production database was created in
+    # Oregon by mistake, and replaced by a new one under a new name.
+    for name in ("racetimes-production", "racetimes-backup"):
+        database = DATABASES[env(SERVICES[name])["DATABASE_URL"]["fromDatabase"]["name"]]
+        assert database["region"] == "frankfurt" and database["plan"] != "free", name
+    assert "racetimes-production-db" not in DATABASES  # the Oregon one, not to be brought back
 
 
 def test_production_is_every_club_at_its_own_address_with_no_secret_in_the_file():

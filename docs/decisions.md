@@ -1420,6 +1420,22 @@ subdomains, which come with production hosting.
 
 ---
 
+## 2026-09-26 - Slice 12: production's database replaced, in Frankfurt
+
+**Decision.** The first production database was created in Oregon, though
+`render.yaml` asked for Frankfurt and the web service is there: probably
+created before the Blueprint's region applied. A Render database can't change
+region, so `render.yaml` names a new one, `racetimes-production-db-fra`, in
+Frankfurt, and the Oregon one is deleted by hand. Production was still empty,
+so nothing was copied; the first deploy sets it up again.
+`races/test_production.py` checks that every database production uses is in
+Frankfurt, whatever it's called, and that the old name doesn't come back.
+
+**Why.** Personal data stays in the EU, as agreed for slice 12, and the web
+service and its database sit together rather than across the Atlantic.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
