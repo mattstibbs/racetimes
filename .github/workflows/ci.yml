@@ -46,6 +46,31 @@ jobs:
         # CLAUDE.md's definition of done includes "migrations created".
         run: python manage.py makemigrations --check --dry-run
 
+  lint:
+    # Ruff, configured in pyproject.toml (slice 17): the linter, and the
+    # formatter in check mode, which fails if any file isn't formatted.
+    name: ruff lint and format
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install Ruff
+        # Only Ruff, at the version requirements-dev.txt pins.
+        run: python -m pip install --disable-pip-version-check "$(grep '^ruff==' requirements-dev.txt)"
+
+      - name: ruff check
+        run: ruff check --output-format=github .
+
+      - name: ruff format --check
+        run: ruff format --check .
+
   deploy-settings:
     # Django's deployment checklist, against the production settings (slice 11
     # part 4). --fail-level WARNING matters: without it the check reports its

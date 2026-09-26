@@ -8,10 +8,10 @@ I'm a capable amateur in Python; explain non-obvious decisions briefly in commit
 
 ## Stack and versions
 
-Python 3.11, Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary). pytest (with `pytest-django`) is the test framework for the whole project - both the Django app and the scoring engine. Write tests as plain functions with bare `assert`s, not `unittest.TestCase` subclasses.
+Python 3.11, Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary). Ruff is the linter and formatter (configured in `pyproject.toml`: 88-character lines, migrations excluded). pytest (with `pytest-django`) is the test framework for the whole project - both the Django app and the scoring engine. Write tests as plain functions with bare `assert`s, not `unittest.TestCase` subclasses.
 
 ## Definition of done
-New behaviour has tests. No linter errors. All tests pass. Migrations created. Manual checks completed. User-facing changes update the user manual (`manual/`), including its screenshots.
+New behaviour has tests. `ruff check .` and `ruff format --check .` pass. All tests pass. Migrations created. Manual checks completed. User-facing changes update the user manual (`manual/`), including its screenshots.
 
 ## Guardrails (never / ask first)
 Ask before changing the data model. Don't install new dependencies without asking.
@@ -63,10 +63,21 @@ User manual (MkDocs; see `docs/deploying-manual.md`):
 scripts/manual_screenshots/run.sh          # regenerate manual/images/ (needs Node.js + Playwright)
 ```
 
-No linter is configured yet.
+Lint and format (Ruff, configured in `pyproject.toml`):
+
+```bash
+.venv/bin/ruff check .                     # lint
+.venv/bin/ruff check --fix .               # lint, fixing what Ruff can safely fix
+.venv/bin/ruff format .                    # format every file (Black style, 88 characters)
+.venv/bin/ruff format --check .            # what CI runs: fails if a file needs formatting
+```
+
+Format before committing. The one-off commit that first formatted the codebase
+is listed in `.git-blame-ignore-revs`; use `git blame --ignore-revs-file
+.git-blame-ignore-revs` (GitHub skips it automatically).
 
 CI runs on every pull request (`.github/workflows/ci.yml`): the test suite on
-Python 3.11 and 3.12, `manage.py check`, `manage.py check --deploy` with
+Python 3.11 and 3.12, Ruff's lint and format checks, `manage.py check`, `manage.py check --deploy` with
 production settings, a check for missing migrations, a job that imports `nhc` with nothing installed, to prove the package really is
 standard-library only, and a strict build of the user manual.
 

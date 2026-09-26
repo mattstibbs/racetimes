@@ -23,3 +23,7 @@ PyYAML==6.0.3
 # the PDF's text is font-subset encoded, so it is not greppable without a
 # library. Only needed when checking a scoring question against the rules.
 pypdf==6.19.0
+
+# Linter and formatter (slice 17), configured in pyproject.toml. CI runs
+# `ruff check .` and `ruff format --check .`.
+ruff==0.16.9

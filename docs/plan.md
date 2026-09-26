@@ -643,3 +643,12 @@ address:
 
 No model, migration, dependency or JavaScript. The owner agreed all four
 recommendations. The manual gains "Changing your password".
+
+
+## Slice 17: code tidy-up and linting. **Status: in progress**
+
+Spec: `docs/slices/17-code-tidy-and-linting.md`. Ruff for linting and
+formatting (88-character lines, run in CI), and a review of the whole codebase
+for readability: `races/views.py` and `races/forms.py` split by area, shared
+test fixtures moved into `conftest.py`, and the longest functions broken up.
+Nothing a user sees changes.
