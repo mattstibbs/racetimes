@@ -628,3 +628,18 @@ The owner agreed every recommendation in the spec's four questions: bolder
 headings on all tables, "Reopen results" once a series is final, the admin's
 links renamed to match, and "Register a new boat" as that page's heading.
 
+
+## Slice 16: changing your password. **Status: planned (2026-09-26)**
+
+Spec: `docs/slices/16-change-password.md`. A **Change my password** page at
+`/account/password/`, linked from My account, for anyone logged in at any
+address:
+- the current password is checked and limited like a login
+  (`races/throttle.py`);
+- the new one must pass the site's password rules;
+- this browser stays logged in and every other one is logged out;
+- an email confirms the change, from the club, with a link to reset the
+  password if it wasn't them.
+
+No model, migration, dependency or JavaScript. Waiting on the owner's answers
+to the spec's four questions.
