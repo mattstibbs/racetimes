@@ -17,7 +17,8 @@ the note in ``nhc/domain.py``.
 
 The public interface is exported from here and is not yet complete; it is being
 built out slice by slice against the fixtures in ``tests/fixtures/``. So far it
-covers the domain types, race scoring, club-series handicap adjustment,
+covers the domain types, race scoring, club-series handicap adjustment (with
+its optional extreme-result capping and realignment to base numbers),
 Appendix A race points, replaying a whole series, series standings and
 end-of-series realignment, and regatta scoring.
 """
@@ -36,6 +37,7 @@ from .domain import (
 )
 from .errors import InvalidInput
 from .handicap import adjustment_scale, compute_club_adjustment
+from .options import capped_elapsed_times, realign_to_base_numbers, realignment_factor
 from .points import points_for_place, score_points
 from .regatta import clamp_to_base_number, compute_regatta_adjustment
 from .realignment import realign_series, realigned_boats, realignment_entries
@@ -72,14 +74,17 @@ __all__ = [
     "SeriesRace",
     "SeriesType",
     "adjustment_scale",
+    "capped_elapsed_times",
     "clamp_to_base_number",
     "compute_club_adjustment",
     "compute_regatta_adjustment",
     "compute_standings",
     "points_for_place",
     "realign_series",
+    "realign_to_base_numbers",
     "realigned_boats",
     "realignment_entries",
+    "realignment_factor",
     "score_points",
     "score_series",
     "corrected_time",

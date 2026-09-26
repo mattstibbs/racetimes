@@ -85,7 +85,8 @@ class Series:
     ``progression`` is ignored for a regatta: spec section 4 requires every boat
     to start a regatta on its published Base Number, so that is what happens
     regardless. ``minimum_finishers`` is a club-series option and is refused on
-    a regatta rather than silently ignored.
+    a regatta rather than silently ignored, and so are ``cap_extremes`` and
+    ``realign_to_base``, the optional extra steps in ``nhc/options.py``.
     """
 
     boats: tuple[Boat, ...]
@@ -95,6 +96,8 @@ class Series:
     minimum_finishers: int = 0
     apply_a5_3: bool = False
     discards: int = 1
+    cap_extremes: bool = False
+    realign_to_base: bool = False
 
     def __init__(
         self,
@@ -105,6 +108,8 @@ class Series:
         minimum_finishers: int = 0,
         apply_a5_3: bool = False,
         discards: int = 1,
+        cap_extremes: bool = False,
+        realign_to_base: bool = False,
     ) -> None:
         object.__setattr__(self, "boats", tuple(boats))
         object.__setattr__(self, "races", tuple(races))
@@ -113,6 +118,8 @@ class Series:
         object.__setattr__(self, "minimum_finishers", minimum_finishers)
         object.__setattr__(self, "apply_a5_3", apply_a5_3)
         object.__setattr__(self, "discards", discards)
+        object.__setattr__(self, "cap_extremes", cap_extremes)
+        object.__setattr__(self, "realign_to_base", realign_to_base)
         self.__post_init__()
 
     def __post_init__(self) -> None:
@@ -141,6 +148,11 @@ class Series:
             raise InvalidInput(
                 "minimum_finishers is a club-series option; a regatta races too "
                 "few times to skip an adjustment, and every boat is in the sums"
+            )
+        if (self.cap_extremes or self.realign_to_base) and self.series_type is SeriesType.REGATTA:
+            raise InvalidInput(
+                "cap_extremes and realign_to_base are club-series options; a regatta "
+                "uses its own formulas and clamps to base numbers instead"
             )
 
         boat_ids = [boat.boat_id for boat in self.boats]
@@ -279,7 +291,10 @@ def _score_one_race(
         results = compute_regatta_adjustment(race_input)
     else:
         results = compute_club_adjustment(
-            race_input, minimum_finishers=series.minimum_finishers
+            race_input,
+            minimum_finishers=series.minimum_finishers,
+            cap_extremes=series.cap_extremes,
+            realign_to_base=series.realign_to_base,
         )
     return score_points(
         results,
