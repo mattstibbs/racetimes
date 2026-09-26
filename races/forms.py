@@ -4,7 +4,7 @@ import re
 from django import forms
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db.models import Q, Value
@@ -284,6 +284,36 @@ class DeleteAccountForm(forms.Form):
         with throttle.guard(self.request, user.get_username(), password):
             if not user.check_password(password):
                 raise ValidationError("That isn't your password.", code="invalid_login")
+        return password
+
+
+class ChangePasswordForm(PasswordChangeForm):
+    """Changing your own password, from My account (slice 16).
+
+    Django's form, with the site's labels. The current password is checked
+    inside the login throttle (races/throttle.py), as for deleting an account,
+    so someone at an unattended, logged-in computer can't use this form to
+    guess the password.
+    """
+
+    error_messages = {
+        **PasswordChangeForm.error_messages,
+        "password_incorrect": "That isn't your current password.",
+    }
+
+    def __init__(self, *args, request, **kwargs):
+        super().__init__(request.user, *args, **kwargs)
+        self.request = request
+        self.fields["old_password"].label = "Current password"
+        self.fields["new_password1"].label = "New password"
+        self.fields["new_password2"].label = "New password again"
+
+    def clean_old_password(self):
+        password = self.cleaned_data["old_password"]
+        with throttle.guard(self.request, self.user.get_username(), password):
+            if not self.user.check_password(password):
+                # "invalid_login" is the code the throttle counts as a failed login.
+                raise ValidationError(self.error_messages["password_incorrect"], code="invalid_login")
         return password
 
 

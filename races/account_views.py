@@ -5,9 +5,10 @@ club's membership, not just the club whose address they're on.
 """
 
 import json
+import logging
 
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -16,11 +17,16 @@ from django.utils import timezone
 from . import notifications
 from .account_deletion import clubs_needing_them, delete_account
 from .clubs import club_address
-from .forms import DeleteAccountForm
+from .forms import ChangePasswordForm, DeleteAccountForm
 from .models import ClubMembership
 from .my_data import my_data
 
+logger = logging.getLogger(__name__)
+
 DELETED = "Your account has been deleted."
+PASSWORD_CHANGED = (
+    "Your password has been changed. Any other devices logged in to your account have been logged out."
+)
 OPERATOR = "The service's operator account can't be deleted here."
 
 
@@ -58,3 +64,23 @@ def delete_my_account(request):
     return render(request, "races/delete_account.html", {
         "form": form, "blocking": blocking, "operator": user.is_superuser,
     })
+
+
+@login_required
+def change_password(request):
+    """Change your own password, given the current one (slice 16).
+
+    Every other browser logged in to the account is logged out: Django keeps a
+    hash of the password in each session and ends any session whose hash no
+    longer matches. update_session_auth_hash keeps this browser logged in.
+    """
+    form = ChangePasswordForm(data=request.POST or None, request=request)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        logger.info("user %s changed their password", user.pk)
+        notifications.send([notifications.password_changed(user, request)], request)
+        messages.success(request, PASSWORD_CHANGED)
+        # My account is a club page; on the service's own address the operator goes back to their clubs.
+        return redirect("races:account" if request.club else "races:operator_clubs")
+    return render(request, "races/change_password.html", {"form": form})

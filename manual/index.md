@@ -40,6 +40,8 @@ way every boat, entry and result has been checked by someone on the committee.
   up, confirming your email, waiting for the club to approve you, and
   downloading your data or deleting your account.
 - [Forgotten your password?](getting-started/forgotten-password.md)
+- [Changing your password](getting-started/changing-your-password.md): from
+  My account, with your current password.
 
 **Members**
 

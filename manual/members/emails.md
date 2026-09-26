@@ -28,6 +28,7 @@ reply goes to the club's contact address, not to Race Times.
 | **Your boat is no longer entered in a race** | The race committee took your boat off a race's start sheet. It is scored DNC (did not come to the start) in that race. If it was a mistake, tell the committee. |
 | **Your boat's details have been updated** | The race committee changed your boat's details, showing each change old and new. (If you asked for the change, the "Approved" email tells you instead.) You also get this if your boat is recorded as belonging to someone else. |
 | **Reset your Race Times password** | You asked for a password reset. See [Forgotten your password?](../getting-started/forgotten-password.md) |
+| **Your Race Times password was changed** | You changed your password from My account. If you didn't, reset it straight away. See [Changing your password](../getting-started/changing-your-password.md). |
 
 You only get one email for each thing that happens. For example, when the
 committee approves your request to change your boat's details, you get the

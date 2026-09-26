@@ -18,6 +18,9 @@
 <p class="muted">You haven't joined a club yet.</p>
 {% endif %}
 
+<h2>My password</h2>
+<p><a href="{% url 'races:change_password' %}">Change my password</a></p>
+
 <h2>My data</h2>
 <p>Everything Race Times holds about you, at every club: your account, your memberships, the boats you own, your
   requests and any changes you've made to results. See the <a href="{% url 'races:privacy' %}">privacy notice</a>.</p>
