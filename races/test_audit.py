@@ -149,7 +149,7 @@ def test_correcting_a_finish_records_old_new_who_and_reason(staff_client, staff_
     assert change.reason == "Misread the sheet"
     assert change.is_correction
     assert change.series == series and change.race == races[1]
-    assert change.description == "GBR1 Serendipity, Race 2"
+    assert change.description == "Serendipity (GBR1), Race 2"
     assert change.timestamp is not None
 
 
@@ -221,7 +221,7 @@ def test_adding_a_race_and_an_entry_is_recorded(staff_client, unsailed):
     staff_client.post(reverse("admin:races_series_change", args=[series.pk]), data)
     added = {c.kind: c for c in ScoringChange.objects.all()}
     assert set(added) == {"ENTRY", "RACE"}
-    assert added["ENTRY"].description == "GBR7 Puffin"
+    assert added["ENTRY"].description == "Puffin (GBR7)"
     assert added["RACE"].race == Race.objects.get(series=series, number=2)
     assert added["RACE"].changes == {"Number": ["", "2"], "Start time": ["", "18:30:00"]}
     assert not any(c.is_correction for c in added.values())
@@ -241,7 +241,7 @@ def test_removing_an_entry_is_recorded(staff_client, unsailed):
     series, _, entry = unsailed
     post_series(staff_client, series, **{"entries-0-DELETE": "on"})
     change = only_change()
-    assert (change.kind, change.action, change.description) == ("ENTRY", "REMOVED", "GBR1 Serendipity")
+    assert (change.kind, change.action, change.description) == ("ENTRY", "REMOVED", "Serendipity (GBR1)")
 
 
 def test_a_base_number_is_recorded_in_every_series_the_boat_is_in(staff_client, sailed):
@@ -415,7 +415,7 @@ def test_history_survives_its_race_and_finishes_being_deleted(staff_client, sail
     races[0].delete()
     change = only_change()
     assert change.race is None
-    assert change.description == "GBR1 Serendipity, Race 1"
+    assert change.description == "Serendipity (GBR1), Race 1"
 
 
 def test_history_is_deleted_with_its_series(staff_client, sailed):
@@ -588,7 +588,7 @@ def test_removing_an_entry_with_results_is_explained_and_refused(staff_client, s
     response = post_series(staff_client, series, reason="Withdrew", **{"entries-0-DELETE": "on"})
     assert response.status_code == 200
     html = response.content.decode()
-    assert "GBR1 Serendipity cannot be removed from this series" in html
+    assert "Serendipity (GBR1) cannot be removed from this series" in html
     assert "results in races 1-4" in html
     assert "protected related objects" not in html
     assert series.entries.filter(pk=entries[0].pk).exists()

@@ -46,7 +46,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(card(officer, 'Register a boat'), 'request-register.png');
   await shot(card(officer, 'Change a boat'), 'request-change.png');
   await shot(card(officer, 'Own a boat on record'), 'request-claim.png');
-  await shot(card(officer, 'Enter GBR 42'), 'request-entry.png');
+  await shot(card(officer, 'Enter Kittiwake (GBR 42)'), 'request-entry.png');
 
   // Approving the change without a reason, then rejecting the registration.
   // HTMX swaps each card for its updated version, so wait for the new one.

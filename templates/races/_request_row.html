@@ -1,7 +1,7 @@
-{% with r=row.request %}
+{% load racing %}{% with r=row.request %}
 <section class="card request{% if error %} has-errors{% elif message %} saved{% endif %}" id="request-{{ row.kind }}-{{ r.pk }}">
   <h3>
-    {% if row.kind == "entry" %}Enter {{ r.boat }} in {{ r.series }}{% else %}{{ r.get_kind_display }}: {% if r.boat %}{{ r.boat }}{% else %}{{ r.sail_number }} {{ r.name }}{% endif %}{% endif %}
+    {% if row.kind == "entry" %}Enter {{ r.boat|boat }} in {{ r.series }}{% else %}{{ r.get_kind_display }}: {% if r.boat %}{{ r.boat|boat }}{% else %}{{ r.sail_number }} {{ r.name }}{% endif %}{% endif %}
   </h3>
   <p class="muted">
     From {{ r.requested_by.get_full_name|default:r.requested_by.get_username }} ({{ r.requested_by.email }}),

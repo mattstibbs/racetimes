@@ -1504,6 +1504,39 @@ club's season can't match exactly.
 
 ---
 
+## 2026-09-26 - Slice 15: page names, and boats named "Name (Sail number)"
+
+**Decision.** From the owner's list of UI improvements
+(`docs/slices/15-ui-improvements.md`):
+- **Only the first word is capitalised** in menu items, page titles and
+  headings: "Club results", "Club members", "My account", "Change requests".
+- **A boat is "Name (Sail number)",** or just its sail number if it has no
+  name. `Boat.__str__` does this, so every page, email and admin choice
+  follows. There are three exceptions:
+  - **The race day page** keeps the sail number first, in bold, and so do its
+    messages (`Boat.race_day_label`). The committee reads sail numbers off
+    boats on the water.
+  - **The CSV download** and the admin's list of boats keep separate
+    columns.
+  - **History rows** store a description written at the time of the change,
+    so rows from before slice 15 keep "GBR 42 Kittiwake".
+- **Pages never wrap a boat inside its sail number.** The `boat` template
+  filter (`races/templatetags/racing.py`) makes the sail number's spaces
+  non-breaking. On a phone, "Kittiwake" can wrap onto one line and
+  "(GBR 42)" the next, but never "(GBR" and "42)". Emails, the CSV and
+  stored text are unchanged.
+- **Follow a boat lists boats by name,** ignoring case. A boat with no name
+  sorts by its sail number. Other lists keep their order.
+- **Page addresses don't change** when pages are renamed (`/members/`,
+  `/account/`, `/requests/`), so bookmarks and links in emails still work.
+- **The privacy notice and terms** now say "your My account page", only a
+  change of name. The legal review is still open (see "Open requirements").
+
+**Why.** People know boats by name; the sail number tells two boats with the
+same name apart. On the water, it's the other way round.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
@@ -1524,6 +1557,8 @@ Things that must be done before a stated milestone, but aren't code.
     spec (`docs/slices/12-production-hosting.md`) and in
     `docs/production.md` step 9. That includes signing each provider's
     data processing agreement.
+  - Slice 15 renamed the account page, so both drafts now say "your My
+    account page". Only the name changed.
 
 ## Open questions
 

@@ -70,6 +70,7 @@ It is built for:
 | 12 | Production hosting at `racetimes.co.uk` | Built; the launch steps in `docs/production.md` are next |
 | 13 | The operator approves people waiting to join a club | **Complete** |
 | 14 | Optional NHC steps: capping extreme results, realigning to base handicaps | **Complete** |
+| 15 | General UI improvements: results pages, boat names, page names and the menu | **Complete** |
 
 Production runs on Render in Frankfurt, deployed by hand, beside the free test
 site, which runs Demo Club with sample data. See [`docs/plan.md`](docs/plan.md) for what each

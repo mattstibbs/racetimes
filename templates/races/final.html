@@ -44,7 +44,7 @@
 <div class="table-scroll"><table>
   <thead><tr><th class="num">Pos</th><th>Boat</th><th class="num">Total</th></tr></thead>
   <tbody>{% for row in results.standings %}
-    <tr><td class="num">{{ row.position }}</td><td>{{ row.entry.boat }}</td><td class="num">{{ row.total|points }}</td></tr>
+    <tr><td class="num">{{ row.position }}</td><td>{{ row.entry.boat|boat }}</td><td class="num">{{ row.total|points }}</td></tr>
   {% endfor %}</tbody>
 </table></div>
 {% else %}

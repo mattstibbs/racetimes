@@ -152,7 +152,7 @@ def test_the_results_email_has_the_results_and_a_link(client, committee, club, r
     message = next(m for m in mail.outbox if m.to == ["pat@example.com"])
     assert message.subject == "Results: Autumn 2026 Series, race 1"
     assert "Hello Pat" in message.body
-    for text in ["GBR42 Kittiwake", "GBR77 Puffin", "GBR7 Tern", "Series standings",
+    for text in ["Kittiwake (GBR42)", "Puffin (GBR77)", "Tern (GBR7)", "Series standings",
                  reverse("results:series", args=[club["series"].pk])]:
         assert text in message.body
     assert "&amp;" not in message.body and "&#x27;" not in message.body
@@ -319,7 +319,7 @@ def test_an_approved_change_emails_what_changed_and_nothing_else(client, committ
         decide(client, request, "approve")
     [message] = mail.outbox  # no separate "boat updated" email
     assert message.to == ["pat@example.com"]
-    assert message.subject == "Approved: your request to change the details of GBR42 Kittiwake"
+    assert message.subject == "Approved: your request to change the details of Kittiwake (GBR42)"
     assert "Name: Kittiwake -> Kittiwake II" in message.body
     assert "Make:" not in message.body  # only what changed
 
@@ -350,7 +350,7 @@ def test_an_approved_entry_is_one_email(client, committee, club, run_on_commit):
     with run_on_commit():
         decide(client, request, "approve")
     [message] = mail.outbox  # the approval is the entry confirmation
-    assert message.subject == "Approved: your request to enter GBR42 Kittiwake in Wednesdays"
+    assert message.subject == "Approved: your request to enter Kittiwake (GBR42) in Wednesdays"
 
 
 def test_an_approved_claim_tells_the_previous_owner(client, committee, club, run_on_commit):
@@ -386,7 +386,7 @@ def test_a_committee_edit_emails_the_owner_what_changed(admin_client, club, run_
                           boat_form(boat, name="Kittiwake II", owner=boat.owner_id))
     [message] = mail.outbox
     assert message.to == ["pat@example.com"]
-    assert message.subject == "Your boat's details have been updated: GBR42 Kittiwake II"
+    assert message.subject == "Your boat's details have been updated: Kittiwake II (GBR42)"
     assert "Name: Kittiwake -> Kittiwake II" in message.body
 
 
@@ -415,7 +415,7 @@ def test_a_boat_entered_in_the_admin_emails_its_owner(admin_client, club, run_on
         admin_client.post(reverse("admin:races_series_change", args=[series.pk]), data)
     [message] = mail.outbox  # the visitor's boat has no owner to tell
     assert message.to == ["pat@example.com"]
-    assert message.subject == "GBR42 Kittiwake is entered in Wednesdays"
+    assert message.subject == "Kittiwake (GBR42) is entered in Wednesdays"
 
 
 # --- Password reset --------------------------------------------------------------

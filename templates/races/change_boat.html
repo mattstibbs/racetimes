@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load racing %}
 {% block title %}Change {{ boat }} - Race Times{% endblock %}
 {% block content %}
-<h1>Request a change: {{ boat }}</h1>
+<h1>Request a change: {{ boat|boat }}</h1>
 <p class="muted">Edit whatever is wrong. The race committee sees your changes
   against the current details, and nothing changes until they approve.</p>
 <form method="post" class="stacked">

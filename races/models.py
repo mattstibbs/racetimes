@@ -237,6 +237,14 @@ class Boat(models.Model):
         ]
 
     def __str__(self):
+        # Slice 15: the name people know a boat by, then its sail number. The
+        # race day page shows the sail number first, since that's what the
+        # committee reads off a boat on the water.
+        return f"{self.name} ({self.sail_number})" if self.name else self.sail_number
+
+    @property
+    def race_day_label(self):
+        """The boat as the race day page names it: sail number first (slice 15)."""
         return f"{self.sail_number} {self.name}".strip()
 
     @property

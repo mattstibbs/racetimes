@@ -18,9 +18,8 @@ appear as you type. Spaces and capital letters in sail numbers do not matter:
 
 Choose your boat to open its own page. It is worth bookmarking.
 
-If you have an account and have logged in, your own boats are listed on the
-front page under **My boats**, and on your **My boats** page each boat has a
-**Results** link.
+If you have an account and have logged in, **My boats** at the top of every
+page lists your own boats, each with a **Results** link.
 
 ## Your boat's page
 
@@ -76,7 +75,7 @@ you are following, so you can bookmark it or send the link to your crew.
 
 ## Downloading a series' results
 
-Every series' page has a **Download (CSV)** link near the top. It gives you
+Every series' page has a **Download (CSV)** link at the bottom. It gives you
 one file with the series standings, then each race's results: place, boat,
 finish time, elapsed time, handicap, corrected time, points and any code
 (such as DNF). It opens in Excel, Numbers or Google Sheets.
@@ -84,4 +83,4 @@ finish time, elapsed time, handicap, corrected time, points and any code
 The file says at the top whether the standings are final or provisional,
 and when you downloaded it. Like every page, it never shows owners' names.
 
-![The Summer 2026 Series page: the Download (CSV) link, and the series standings marked Final Results](../images/results-final.png)
+![The Summer 2026 Series page: the series standings marked Final Results](../images/results-final.png)

@@ -202,7 +202,7 @@ def tap_finish(request, race_pk, entry_pk):
     except ValidationError as refused:
         return _finish_or_page(request, race, error=" ".join(refused.messages))
     return _finish_or_page(
-        request, race, touched=entry, message=f"{entry.boat} {race_day.describe(finish)}."
+        request, race, touched=entry, message=f"{entry.boat.race_day_label} {race_day.describe(finish)}."
     )
 
 
@@ -218,7 +218,7 @@ def undo_finish(request, race_pk, entry_pk):
         race_day.undo(race, entry, request.user)
     except ValidationError as refused:
         return _finish_or_page(request, race, error=" ".join(refused.messages))
-    return _finish_or_page(request, race, touched=entry, message=f"Undone: {entry.boat} is racing again.")
+    return _finish_or_page(request, race, touched=entry, message=f"Undone: {entry.boat.race_day_label} is racing again.")
 
 
 @committee_required
@@ -248,7 +248,7 @@ def save_finish(request, race_pk, entry_pk):
     with transaction.atomic():
         form.save()
         recorded = audit.record(form.scoring_changes, request.user, form.cleaned_data["reason"])
-    message = f"{entry.boat}: {_saved_message(recorded, before, score_series(race.series))}"
+    message = f"{entry.boat.race_day_label}: {_saved_message(recorded, before, score_series(race.series))}"
     return _finish_or_page(request, race, touched=entry, message=message)
 
 
@@ -293,7 +293,7 @@ def save_start_sheet_row(request, race_pk, entry_pk):
     failed = bool(refused) or (form is not None and form.errors)
     if not request.htmx:
         if not failed:
-            messages.success(request, f"{entry.boat}: {message}")
+            messages.success(request, f"{entry.boat.race_day_label}: {message}")
             return redirect(_race_day_url(race, "start"))
         return render(request, "races/race_day.html", _race_day_context(
             race, "start", bound_form=form, bound_entry=entry, refused=refused))
@@ -475,7 +475,7 @@ def publish_results(request, pk):
     if race.series.is_final:
         messages.error(request, final.LOCKED)
     elif missing:
-        messages.error(request, UNRECORDED.format(boats=", ".join(str(entry.boat) for entry in missing)))
+        messages.error(request, UNRECORDED.format(boats=", ".join(entry.boat.race_day_label for entry in missing)))
     elif score_series(race.series).for_race(race) is None:
         messages.error(request, "There are no results to publish yet: nothing is scored in this race.")
     else:

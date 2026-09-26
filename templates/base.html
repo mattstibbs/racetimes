@@ -20,15 +20,15 @@
       {% endif %}
       {% if request.club %}
       <nav aria-label="Site">
+        {# Slice 15: the club's results first, then the club's pages, then the person's own. #}
+        <a href="{% url 'results:home' %}">Club results</a>
         {% if user.is_authenticated %}
+          {% if is_committee %}<a href="{% url 'admin:index' %}">Club setup</a>{% endif %}
+          {% if is_club_administrator %}<a href="{% url 'races:members' %}">Club members</a>{% endif %}
+          {% if is_committee %}<a href="{% url 'races:requests' %}">Change requests</a>{% endif %}
           {% if is_member %}<a href="{% url 'races:my_boats' %}">My boats</a>
           {% else %}<a href="{% url 'races:my_boats' %}">{% if club_membership.status == "WAITING" %}Waiting to join{% else %}Join this club{% endif %}</a>{% endif %}
-          {% if is_committee %}
-            <a href="{% url 'races:requests' %}">Requests</a>
-            <a href="{% url 'admin:index' %}">Setup (admin)</a>
-          {% endif %}
-          {% if is_club_administrator %}<a href="{% url 'races:members' %}">Members</a>{% endif %}
-          <a href="{% url 'races:account' %}">Account</a>
+          <a href="{% url 'races:account' %}">My account</a>
           <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
             <button type="submit" class="link">Log out</button>
           </form>
