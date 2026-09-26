@@ -428,12 +428,12 @@ def test_final_series_are_labelled_on_the_public_pages(client, committee, season
     declare(client, season["series"])
     client.logout()
     series_page = client.get(reverse("results:series", args=[season["series"].pk])).content.decode()
-    assert 'Series Standings <span class="final-badge">Final</span>' in series_page
+    assert 'Series Standings <span class="final-badge">Final Results</span>' in series_page
     assert f"Declared final on {timezone.localdate():%-d %B %Y}" in series_page
     home = client.get(reverse("results:home")).content.decode()
-    assert 'Autumn 2026</a> <span class="final-badge">Final</span>' in home
+    assert 'Autumn 2026 <span class="final-badge">Final Results</span></a>' in home
     boat_page = client.get(reverse("results:boat", args=[season["entries"][0].boat.pk])).content.decode()
-    assert '<span class="final-badge">Final</span>' in boat_page
+    assert '<span class="final-badge">Final Results</span>' in boat_page
 
 
 def test_a_series_that_isnt_final_has_no_final_label(client, season):
