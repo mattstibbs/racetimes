@@ -45,13 +45,14 @@
       <td class="num detail">{{ row.result.tcf_used|tcf }}</td>
       <td class="num">{{ row.result.corrected_time|hms }}</td>
       <td class="num">{{ row.result.points|points }}</td>
-      <td class="num detail">{{ row.result.effective_next_tcf|tcf }}</td>
+      <td class="num detail">{{ row.result.effective_next_tcf|tcf }}{% if row.result.capped %}<abbr title="Result capped as extreme">&dagger;</abbr>{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 </div>
 {% if race_results.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
+{% if race.series.nhc_options %}<p class="muted">Handicaps adjusted with: {{ race.series.nhc_options|join:", " }}.{% if race.series.nhc_cap_extremes %} &dagger; Result capped as extreme when working out the next handicap (shown with More detail).{% endif %}</p>{% endif %}
 {% else %}
 <p class="muted">{{ section.note }}</p>
 {% endif %}

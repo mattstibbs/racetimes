@@ -586,3 +586,24 @@ only, logged, refused while suspended, no email to the club):
   test. `docs/operating.md`, the manual's "Running your club" and the
   privacy notice mention it.
 
+## Slice 14: optional NHC capping and realignment. **Status: complete (2026-09-26)**
+
+Spec: `docs/slices/14-nhc-capping-realignment-spec.md`. Two optional steps in
+the club-series handicap calculation, as some clubs publish (Medway Cruising
+Club, via HalSail), each a setting in a series' "Scoring rules":
+- **Cap extreme results:** a finisher more than one sample standard deviation
+  from the fleet's mean corrected time gets its achieved handicap from the
+  band-edge time.
+- **Realign to base handicaps:** the finishers' new handicaps are scaled so
+  they total their base numbers.
+
+Both are off by default, so every existing series scores exactly as before.
+- **Engine:** `nhc/options.py`, called by `compute_club_adjustment` only when
+  asked. Full precision is kept between races, as agreed. Club series only.
+- **Site:** migration 0019; the settings are recorded in the history; the
+  results show a note and † for capped results, and the series header and
+  CSV name the options.
+- **Tests:** the MCC race is a fixture, and its published figures reproduce
+  in all four combinations. The manual gains "A series' scoring rules", with
+  a screenshot.
+

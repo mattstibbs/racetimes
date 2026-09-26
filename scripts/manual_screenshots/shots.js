@@ -37,6 +37,11 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const officer = await logIn(browser, 'officer@example.com');
   await officer.goto(`${BASE}/admin/`);
   await shot(officer.locator('#content'), 'front-page-committee.png');
+  // A series' scoring rules, in the admin (slice 14).
+  await officer.goto(`${BASE}/admin/races/series/`);
+  await officer.click('text=Autumn 2026 Series');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('fieldset', { hasText: 'Scoring rules' }), 'series-scoring-rules.png');
   await officer.goto(`${BASE}/requests/`);
   await shot(card(officer, 'Register a boat'), 'request-register.png');
   await shot(card(officer, 'Change a boat'), 'request-change.png');

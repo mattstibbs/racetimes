@@ -147,6 +147,9 @@ def build_engine_series(series, entries, races):
         minimum_finishers=series.minimum_finishers,
         apply_a5_3=series.apply_a5_3,
         discards=series.discards,
+        # Slice 14: the optional extra NHC steps, both off unless the series asks.
+        cap_extremes=series.nhc_cap_extremes,
+        realign_to_base=series.nhc_realign_to_base,
     )
 
 

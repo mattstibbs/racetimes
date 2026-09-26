@@ -87,7 +87,7 @@ a series entrant for the whole series whether she turns up or not.
 | `Boat(boat_id, base_number, current_tcf, name="")` | A boat's published rating (BN) and the handicap it carries into its next race |
 | `Finish(boat_id, status, elapsed_seconds=None)` | One recorded outcome: a time, or a scoring code |
 | `SeriesRace(race_id, finishes)` | One race's finishes. No handicaps - they are derived |
-| `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1)` | The races, the boats, and the rules they are scored under |
+| `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1, cap_extremes=False, realign_to_base=False)` | The races, the boats, and the rules they are scored under |
 | `SeriesType` | `CLUB` or `REGATTA` |
 | `HandicapProgression` | `CARRY_OVER` starts a series on each boat's `current_tcf`; `RESET` starts it on `base_number` |
 | `RaceStatus` | `FINISHED`, `DNC`, `DNS`, `DNF` |
@@ -110,7 +110,8 @@ date is yours to manage, and two races on one evening still have an order.
 `RaceResult` carries, per boat: `status`, `tcf_used`, `elapsed_seconds`,
 `corrected_time`, `position`, `points`, `adjustment_scale` (AS),
 `achieved_handicap` (TCFr), `performance`, `next_tcf` (TCFn),
-`next_tcf_clamped`, `elapsed_seconds_used`, and `effective_next_tcf`.
+`next_tcf_clamped`, `elapsed_seconds_used`, `realignment_factor`,
+`effective_next_tcf`, and `capped`.
 
 A `None` handicap field means *this pass did not compute it*, which is distinct
 from a genuine zero - a boat that did not finish earns an `adjustment_scale` of
@@ -126,7 +127,7 @@ to drive the steps yourself.
 | `RaceEntry(boat_id, status, tcf_used, elapsed_seconds=None, base_number=None)` | One boat in a race, with the handicap it raced under |
 | `RaceInput(series_type, entries, is_first_race_of_regatta=False)` | A race ready to score |
 | `score_race(race)` | Corrected times and finishing places |
-| `compute_club_adjustment(race, *, minimum_finishers=0)` | Scores a club race and computes next handicaps |
+| `compute_club_adjustment(race, *, minimum_finishers=0, cap_extremes=False, realign_to_base=False)` | Scores a club race and computes next handicaps |
 | `compute_regatta_adjustment(race)` | The same for a regatta |
 | `score_points(results, *, series_entry_count, apply_a5_3=False)` | RRS Appendix A race points |
 | `compute_standings(races, *, discards=1)` | The series table |
@@ -160,6 +161,26 @@ next_series = Series(boats=realigned_boats(series, results), races=[...])
 | `adjustment_scale(elapsed_seconds)` | `AS = 100 / E` |
 | `points_for_place(place, boats_tied=1)` | A4 points, shared across an A7 tie |
 | `clamp_to_base_number(tcf, base_number)` | Holds a handicap within 10% of a base number |
+
+### Optional extra steps for a club series
+
+Some clubs publish with a fuller method than the RYA's (HalSail documents it;
+Medway Cruising Club uses it). It adds two steps, each off unless a series asks
+for it, and each in `options.py` on its own:
+
+| Name | What it is |
+| --- | --- |
+| `cap_extremes=True` | Step A. A finisher whose corrected time is more than one sample standard deviation from the fleet's mean has its achieved handicap worked from the band-edge time instead. Needs at least 3 finishers. The fleet ratio, times, places and points don't change |
+| `realign_to_base=True` | Step B. Every finisher's TCFn is scaled by one factor so their total equals their base numbers' total. Skipped if a finisher has no base number |
+| `capped_elapsed_times(finishers)` | Step A on its own: the time each finisher's achieved handicap is worked from |
+| `realignment_factor(finishers, next_tcfs)` | Step B's factor: sum of base numbers over sum of TCFn |
+| `realign_to_base_numbers(results, finishers)` | Step B applied to a race's results |
+
+A capped result shows as `elapsed_seconds_used` differing from
+`elapsed_seconds` (`RaceResult.capped`), and a realigned one carries its
+`realignment_factor`. Both are refused on a regatta, which has its own formulas
+and clamps to base numbers instead. With both off, results are exactly the
+RYA's.
 
 ### Errors
 
@@ -201,6 +222,7 @@ that are quietly wrong.
 | --- | --- |
 | Corrected time, `C = E x TCF` | `scoring.py` |
 | Club handicap adjustment (spec s3) | `handicap.py` |
+| Optional capping of extreme results, and realignment to base numbers (HalSail's fuller method) | `options.py` |
 | Regatta adjustment, back-calculation and clamp (spec s4) | `regatta.py` |
 | End-of-series realignment (spec s5) | `realignment.py` |
 | RRS A4 low point, A5.2, A5.3, A7 ties | `points.py` |

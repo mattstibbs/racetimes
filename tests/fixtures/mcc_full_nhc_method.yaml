@@ -1,0 +1,59 @@
+# One real race, scored with and without the optional extra NHC steps (slice 14).
+#
+# SOURCE: docs/slices/14-nhc-capping-realignment-spec.md, section 7. A Medway
+# Cruising Club race whose published results are known. MCC scores with the
+# full NHC method HalSail documents (capping extreme results, then realigning
+# to base handicaps); the "both" column is MCC's published next handicaps.
+#
+# BOAT NAMES are made up, generated at random, so that no real boat is named;
+# the spec's section 7 table uses the same ones.
+#
+# PROVENANCE OF EACH FIGURE
+# - elapsed_seconds, handicap, status: the race as MCC recorded it.
+# - expected.both: MCC's published next handicaps (3 d.p.).
+# - expected.off, expected.cap_only, expected.realign_only: the spec's worked
+#   values for the other three combinations of the two settings (3 d.p.).
+# - base_number: a TEST FIXTURE, not MCC's real base numbers, which aren't
+#   known. They equal each boat's handicap except Brindledene's, set to 0.935 so
+#   the finishers' base total is 7.297, the total MCC's published figures
+#   imply. Don't treat these as RYA base numbers.
+# - intermediate: the spec's values with capping on (corrected times use each
+#   boat's handicap), for checking the arithmetic step by step.
+#
+# These are 3 d.p. published figures, so compare the engine's full-precision
+# handicaps to them after rounding to 3 d.p. Non-finishers (DNC) carry their
+# handicap forward unchanged in every mode.
+
+race: "MCC race, 2026"
+intermediate:
+  mean_corrected_seconds: 9889.787
+  sample_sd_corrected_seconds: 1894.688
+  k: 9597.275               # sum(handicap) / sum(1 / elapsed), over finishers
+  realignment_factor:
+    realign_only: 0.99154
+    both: 0.99082
+  capped_boats: ["Lanternledger", "Saltwake"]
+
+boats:
+  - {boat_id: "Lanternledger",      status: FINISHED, elapsed_seconds: 8527,  handicap: 0.909, base_number: 0.909,
+     expected: {"off": 0.974, cap_only: 0.964, realign_only: 0.966, both: 0.955}}
+  - {boat_id: "Nettlesong",       status: FINISHED, elapsed_seconds: 8937,  handicap: 0.934, base_number: 0.934,
+     expected: {"off": 0.976, cap_only: 0.976, realign_only: 0.968, both: 0.967}}
+  - {boat_id: "Lanternfold",        status: FINISHED, elapsed_seconds: 9932,  handicap: 0.902, base_number: 0.902,
+     expected: {"off": 0.921, cap_only: 0.921, realign_only: 0.913, both: 0.913}}
+  - {boat_id: "Brindledene",        status: FINISHED, elapsed_seconds: 10020, handicap: 0.930, base_number: 0.935,
+     expected: {"off": 0.938, cap_only: 0.938, realign_only: 0.930, both: 0.930}}
+  - {boat_id: "Fenstar",         status: FINISHED, elapsed_seconds: 11477, handicap: 0.865, base_number: 0.865,
+     expected: {"off": 0.861, cap_only: 0.861, realign_only: 0.853, both: 0.853}}
+  - {boat_id: "Lanternmere",          status: FINISHED, elapsed_seconds: 10568, handicap: 0.940, base_number: 0.940,
+     expected: {"off": 0.935, cap_only: 0.935, realign_only: 0.927, both: 0.927}}
+  - {boat_id: "Cobbledene", status: FINISHED, elapsed_seconds: 11589, handicap: 0.952, base_number: 0.952,
+     expected: {"off": 0.933, cap_only: 0.933, realign_only: 0.926, both: 0.925}}
+  - {boat_id: "Saltwake",         status: FINISHED, elapsed_seconds: 16103, handicap: 0.860, base_number: 0.860,
+     expected: {"off": 0.820, cap_only: 0.836, realign_only: 0.813, both: 0.828}}
+  - {boat_id: "Wrenwake",        status: DNC, elapsed_seconds: null, handicap: 0.770, base_number: 0.770,
+     expected: {"off": 0.770, cap_only: 0.770, realign_only: 0.770, both: 0.770}}
+  - {boat_id: "Nettlemere",        status: DNC, elapsed_seconds: null, handicap: 0.934, base_number: 0.934,
+     expected: {"off": 0.934, cap_only: 0.934, realign_only: 0.934, both: 0.934}}
+  - {boat_id: "Gorsestar",         status: DNC, elapsed_seconds: null, handicap: 0.963, base_number: 0.963,
+     expected: {"off": 0.963, cap_only: 0.963, realign_only: 0.963, both: 0.963}}

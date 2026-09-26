@@ -25,6 +25,7 @@ from dataclasses import replace
 
 from .domain import Performance, RaceInput, RaceResult, SeriesType
 from .errors import InvalidInput
+from .options import capped_elapsed_times, realign_to_base_numbers
 from .scoring import score_race
 
 #: Numerator of the adjustment scale, AS = 100 / E (spec section 3, step 1).
@@ -86,7 +87,11 @@ def next_tcf(raced_under: float, achieved: float, performance: Performance) -> f
 
 
 def compute_club_adjustment(
-    race: RaceInput, *, minimum_finishers: int = 0
+    race: RaceInput,
+    *,
+    minimum_finishers: int = 0,
+    cap_extremes: bool = False,
+    realign_to_base: bool = False,
 ) -> tuple[RaceResult, ...]:
     """Score a club race and work out everyone's handicap for the next one.
 
@@ -107,6 +112,12 @@ def compute_club_adjustment(
 
     A race with no finishers at all is handled the same way as a below-threshold
     one - there is nothing to divide by - rather than raising.
+
+    ``cap_extremes`` and ``realign_to_base`` switch on the two optional extra
+    steps in ``nhc/options.py`` (capping extreme results, and realigning the
+    finishers' new handicaps to their base numbers). Both are off by default,
+    which is exactly the RYA calculation above. They don't run in a race that
+    falls below ``minimum_finishers``, where nothing is adjusted at all.
     """
     if race.series_type is not SeriesType.CLUB:
         # Applying club rules to a regatta silently produces plausible-looking
@@ -131,6 +142,14 @@ def compute_club_adjustment(
     total_scale = sum(adjustment_scale(entry.elapsed_seconds) for entry in finishers)
     ratio = total_tcf / total_scale
 
+    # Optional step A: the elapsed time each achieved handicap is worked from.
+    # Off, that's every finisher's real time; on, extremes are capped. The
+    # ratio above always uses the real times.
+    if cap_extremes:
+        elapsed_used = capped_elapsed_times(finishers)
+    else:
+        elapsed_used = {entry.boat_id: entry.elapsed_seconds for entry in finishers}
+
     adjusted = []
     for result in scored:
         if not result.status.is_finisher:
@@ -139,18 +158,22 @@ def compute_club_adjustment(
             )
             continue
 
-        scale = adjustment_scale(result.elapsed_seconds)
+        used = elapsed_used[result.boat_id]
+        scale = adjustment_scale(used)
         achieved = ratio * scale
         performance = classify_performance(achieved, result.tcf_used)
         adjusted.append(
             replace(
                 result,
                 adjustment_scale=scale,
-                elapsed_seconds_used=result.elapsed_seconds,
+                elapsed_seconds_used=used,
                 achieved_handicap=achieved,
                 performance=performance,
                 next_tcf=next_tcf(result.tcf_used, achieved, performance),
             )
         )
 
+    # Optional step B: rescale the finishers' new handicaps to their base numbers.
+    if realign_to_base:
+        return realign_to_base_numbers(adjusted, finishers)
     return tuple(adjusted)

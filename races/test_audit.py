@@ -92,8 +92,9 @@ def series_form(series, **changes):
         "minimum_finishers": series.minimum_finishers,
         "reason": "",
     }
-    if series.apply_a5_3:
-        data["apply_a5_3"] = "on"
+    for flag in ("apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base"):
+        if getattr(series, flag):
+            data[flag] = "on"
     entries = list(series.entries.all())
     races = list(series.races.all())
     for prefix, rows in [("entries", entries), ("races", races)]:
@@ -178,6 +179,9 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
         ("discards", "0", "Discards", "1", "0"),
         ("minimum_finishers", "3", "Minimum finishers", "0", "3"),
         ("apply_a5_3", "on", "Use RRS A5.3", "No", "Yes"),
+        # Slice 14: the optional extra NHC steps.
+        ("nhc_cap_extremes", "on", "Cap extreme results", "No", "Yes"),
+        ("nhc_realign_to_base", "on", "Realign to base handicaps", "No", "Yes"),
     ],
 )
 def test_series_settings_are_recorded(staff_client, sailed, field, value, label, old, new):
@@ -289,7 +293,9 @@ def test_every_audited_field_is_covered_by_a_test_above():
     assert audit.AUDITED_FIELDS == {
         Finish: ["status", "finish_time"],
         Race: ["number", "start_time"],
-        Series: ["series_type", "discards", "minimum_finishers", "apply_a5_3"],
+        Series: [
+            "series_type", "discards", "minimum_finishers", "apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base",
+        ],
         audit.SeriesEntry: [],
         Boat: ["base_number"],
     }

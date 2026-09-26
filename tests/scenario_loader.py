@@ -97,3 +97,32 @@ def race_boat_params(field):
                 params.append((scenario, boat["boat_id"]))
                 ids.append(f"{scenario['scenario_id']}-{boat['boat_id']}")
     return params, ids
+
+
+# --- Slice 14: one MCC race, scored with the optional extra NHC steps --------------------------
+
+MCC_FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"
+MCC_RACE = load_scenarios(MCC_FIXTURE_PATH)
+
+#: The four combinations of the two settings, as named in the fixture's
+#: ``expected`` columns: (cap_extremes, realign_to_base).
+MCC_MODES = {
+    "off": (False, False),
+    "cap_only": (True, False),
+    "realign_only": (False, True),
+    "both": (True, True),
+}
+
+
+def build_mcc_entries(race=MCC_RACE, *, with_base_numbers=True):
+    """The MCC race's boats as RaceEntry objects, for the club-series adjustment."""
+    return [
+        RaceEntry(
+            boat_id=boat["boat_id"],
+            status=RaceStatus(boat["status"]),
+            tcf_used=boat["handicap"],
+            elapsed_seconds=boat["elapsed_seconds"],
+            base_number=boat["base_number"] if with_base_numbers else None,
+        )
+        for boat in race["boats"]
+    ]

@@ -235,7 +235,11 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     list_display = ["name", "series_type", "discards"]
     fieldsets = [
         (None, {"fields": ["name", "series_type"]}),
-        ("Scoring rules", {"fields": ["discards", "minimum_finishers", "apply_a5_3"]}),
+        ("Scoring rules", {"fields": [
+            "discards", "minimum_finishers", "apply_a5_3",
+            # Slice 14: the optional extra NHC steps (nhc/options.py).
+            "nhc_cap_extremes", "nhc_realign_to_base",
+        ]}),
         ("Corrections", {"fields": ["reason", "history_link"]}),
     ]
     readonly_fields = ["history_link"]

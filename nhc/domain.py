@@ -282,7 +282,14 @@ class RaceResult:
     ``elapsed_seconds_used`` is the E the adjustment worked from. In a club race
     that is the recorded time, or None for a boat with none. In a regatta every
     boat needs a usable E, so a non-finisher's is back-calculated (spec section
-    4, step 1) and this is where that shows.
+    4, step 1) and this is where that shows. With the optional capping of
+    extreme results (``nhc/options.py``, step A) it is the capped time, so
+    ``capped`` tells the two apart.
+
+    ``realignment_factor`` is the common factor a finisher's TCFn was scaled by
+    in the optional realignment to base numbers (``nhc/options.py``, step B),
+    or None when that step didn't run. ``next_tcf`` is already realigned; the
+    unrealigned value is ``next_tcf / realignment_factor``.
 
     ``points`` is filled by a third pass, ``score_points``, and stays None until
     then. It is separate because it needs something a single race does not
@@ -303,6 +310,16 @@ class RaceResult:
     next_tcf_clamped: float | None = None
     points: float | None = None
     elapsed_seconds_used: float | None = None
+    realignment_factor: float | None = None
+
+    @property
+    def capped(self) -> bool:
+        """Whether this finisher's result was capped as extreme (``nhc/options.py``, step A)."""
+        return (
+            self.elapsed_seconds is not None
+            and self.elapsed_seconds_used is not None
+            and self.elapsed_seconds_used != self.elapsed_seconds
+        )
 
     @property
     def effective_next_tcf(self) -> float | None:

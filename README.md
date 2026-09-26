@@ -23,7 +23,9 @@ It is built for:
 ## What it does
 
 - **Scoring:** every race is scored under NHC and RRS Appendix A, and results
-  are recalculated from the finishes on every page. A correction to any finish
+  are recalculated from the finishes on every page. A series can also use the
+  fuller NHC method some clubs publish with (capping extreme results,
+  realigning to base handicaps). A correction to any finish
   flows through to every later race and the standings, and is recorded with
   who, when and why.
 - **Race day:** one page per race for the committee. Tick who's racing, tap
@@ -66,6 +68,8 @@ It is built for:
 | 10 | Final results and CSV export | **Complete** |
 | 11 | Race Times as a service for many clubs | **Complete** |
 | 12 | Production hosting at `racetimes.co.uk` | Built; the launch steps in `docs/production.md` are next |
+| 13 | The operator approves people waiting to join a club | **Complete** |
+| 14 | Optional NHC steps: capping extreme results, realigning to base handicaps | **Complete** |
 
 Production runs on Render in Frankfurt, deployed by hand, beside the free test
 site, which runs Demo Club with sample data. See [`docs/plan.md`](docs/plan.md) for what each

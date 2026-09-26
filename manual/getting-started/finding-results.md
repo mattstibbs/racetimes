@@ -70,6 +70,8 @@ you are following, so you can bookmark it or send the link to your crew.
 | **Amended** | Something in this race was corrected after the results first appeared, on the date shown. |
 | **Last updated** | Under the series standings: the date of the latest correction that could have changed them. |
 | **Amended since published** | A published race has been corrected, and the committee has not yet sent the updated results. The page shows the results as they now stand. |
+| **Handicaps adjusted with: ...** | Under a race's results: the series uses one or both of the optional NHC steps when working out the next handicaps. See [A series' scoring rules](../committee/scoring-rules.md). |
+| **†** | Next to a boat's next handicap (with More detail): its result was capped as extreme when working out that handicap. Its times, place and points are as recorded. |
 | **Final Results** | The race committee has declared the series over. Its standings are the final places, and it can no longer change. |
 
 ## Downloading a series' results

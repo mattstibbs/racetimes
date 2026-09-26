@@ -1457,6 +1457,30 @@ database by hand.
 
 ---
 
+## 2026-09-26 - Slice 14: optional capping and realignment, at full precision
+
+**Decision.** Two optional steps from the fuller NHC method (HalSail, as
+Medway Cruising Club publishes), each a setting on a series, off by default:
+capping extreme results, and realigning finishers' new handicaps to their
+base numbers. Agreed with the project owner where the spec and the code
+differed:
+- **No rounding between races,** unlike the spec's "round to 3 d.p.": the
+  RYA reference says rounding is for display only, and it keeps "both off"
+  identical to before. A long season may differ from MCC's published figures
+  in the last decimal.
+- **Club series only,** refused on a regatta.
+- **In the existing "Scoring rules" section,** not a new heading.
+- **Two new Series fields,** approved.
+
+The steps live in `nhc/options.py`, apart from the RYA calculation in
+`nhc/handicap.py`, which only calls them when asked. The MCC race is a
+fixture; its base numbers are the spec's test values, not MCC's.
+
+**Why.** So a club that scores with the fuller method gets the same handicaps
+from Race Times as it publishes, without changing anything for anyone else.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
