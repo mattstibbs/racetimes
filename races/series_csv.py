@@ -49,6 +49,8 @@ def series_csv(series, results):
         settings.append("Scored under RRS A5.3")
     if series.minimum_finishers:
         settings.append(f"No handicap changes with fewer than {series.minimum_finishers} finishers")
+    if series.nhc_options:
+        settings.append(f"Handicaps adjusted with {' and '.join(series.nhc_options)}")
     row(settings)
     row([f"Downloaded {_day(timezone.localtime())} {timezone.localtime():%H:%M}"])
 

@@ -26,7 +26,9 @@ AUDITED_FIELDS = {
     Finish: ["status", "finish_time"],
     # A race's date moves nothing: elapsed time is measured within the day.
     Race: ["number", "start_time"],
-    Series: ["series_type", "discards", "minimum_finishers", "apply_a5_3"],
+    Series: [
+        "series_type", "discards", "minimum_finishers", "apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base",
+    ],
     SeriesEntry: [],  # only being added or removed matters (the A5.2 entry count)
     Boat: ["base_number"],
 }

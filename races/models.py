@@ -287,6 +287,25 @@ class Series(models.Model):
             "Only if the notice of race says so; off is RRS A5.2."
         ),
     )
+    # Slice 14: two optional extra steps in the club-series handicap
+    # calculation (nhc/options.py), from the fuller NHC method some clubs use.
+    # Off, a series is scored exactly as the RYA's club-series rules say.
+    nhc_cap_extremes = models.BooleanField(
+        "cap extreme results",
+        default=False,
+        help_text=(
+            "Results more than one standard deviation from the fleet's mean corrected time are "
+            "limited to the band edge before the handicap is adjusted (RYA NHC). Club series only."
+        ),
+    )
+    nhc_realign_to_base = models.BooleanField(
+        "realign to base handicaps",
+        default=False,
+        help_text=(
+            "After adjustment, the finishers' new handicaps are rescaled so their total matches "
+            "the total of their base handicaps (RYA NHC). Club series only."
+        ),
+    )
     # Slice 10: a series declared final is locked, and scored from a copy of
     # the engine's results saved when it was declared (races/final.py).
     declared_final_at = models.DateTimeField(null=True, blank=True, editable=False)
@@ -305,18 +324,34 @@ class Series(models.Model):
     def is_final(self):
         return self.declared_final_at is not None
 
+    @property
+    def nhc_options(self):
+        """The optional extra NHC steps this series uses, as named with its results (slice 14)."""
+        named = [
+            (self.nhc_cap_extremes, "extreme-result capping"),
+            (self.nhc_realign_to_base, "realignment to base handicaps"),
+        ]
+        return [name for used, name in named if used]
+
     def get_absolute_url(self):
         # Also gives the admin its "View on site" button.
         return reverse("results:series", args=[self.pk])
 
     def clean(self):
-        # The engine refuses this combination outright. Catching it here puts
+        # The engine refuses these combinations outright. Catching them here puts
         # the error on the form where it can be fixed, rather than on the
         # results page where it cannot.
-        if self.series_type == self.SeriesType.REGATTA and self.minimum_finishers:
-            raise ValidationError(
-                {"minimum_finishers": "A regatta has no minimum-finisher threshold; set this to 0."}
-            )
+        if self.series_type != self.SeriesType.REGATTA:
+            return
+        errors = {}
+        if self.minimum_finishers:
+            errors["minimum_finishers"] = "A regatta has no minimum-finisher threshold; set this to 0."
+        # The NHC options follow the club-series formula; a regatta has its own (slice 14).
+        for field in ("nhc_cap_extremes", "nhc_realign_to_base"):
+            if getattr(self, field):
+                errors[field] = "This is a club-series option; a regatta uses its own handicap rules."
+        if errors:
+            raise ValidationError(errors)
 
 
 class SeriesEntry(models.Model):

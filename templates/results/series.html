@@ -7,6 +7,7 @@
   {{ series.discards }} discard{{ series.discards|pluralize }}.
   {% if series.apply_a5_3 %}Scored under RRS A5.3.{% endif %}
   {% if series.minimum_finishers %}No handicap changes with fewer than {{ series.minimum_finishers }} finishers.{% endif %}
+  {% if series.nhc_options %}Handicaps adjusted with {{ series.nhc_options|join:" and " }}.{% endif %}
 </p>
 <p class="series-links">
   <a href="{% url 'results:series_csv' series.pk %}" download>Download (CSV)</a>
