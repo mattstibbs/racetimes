@@ -7,6 +7,9 @@ from .forms import ClubPasswordResetForm
 
 app_name = 'races'
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 urlpatterns = [
     path('ping/', views.ping, name='ping'),
     path('privacy/', views.privacy, name='privacy'),
@@ -77,4 +80,5 @@ urlpatterns = [
     ),
     path('races/<int:race_pk>/finishes/<int:entry_pk>/tap/', views.tap_finish, name='tap_finish'),
     path('races/<int:race_pk>/finishes/<int:entry_pk>/undo/', views.undo_finish, name='undo_finish'),
+    path('sentry-debug/', trigger_error),
 ]
