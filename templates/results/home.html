@@ -12,7 +12,7 @@
     <h3><a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">{{ race.series }}, race {{ race.number }}</a>{% if not race.published_at %} <span class="provisional">Provisional</span>{% endif %}</h3>
     <p class="muted">{{ race.date|date:"l j F Y" }}</p>
     <ol class="podium">
-      {% for row in item.podium %}{% if row.result.position %}<li value="{{ row.result.position }}"><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat }}</a> <span class="muted">{{ row.result.corrected_time|hms }}</span></li>{% endif %}{% endfor %}
+      {% for row in item.podium %}{% if row.result.position %}<li value="{{ row.result.position }}"><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat|boat }}</a> <span class="muted">{{ row.result.corrected_time|hms }}</span></li>{% endif %}{% endfor %}
     </ol>
   </div>
   {% endwith %}

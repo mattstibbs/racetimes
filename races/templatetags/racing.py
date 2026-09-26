@@ -5,6 +5,8 @@ round only what a person reads.
 """
 
 from django import template
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -46,3 +48,15 @@ def ordinal(number):
     else:
         suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
     return f"{number}{suffix}"
+
+
+@register.filter
+def boat(value):
+    """A boat as a page shows it, "Kittiwake (GBR 42)", never wrapped inside its sail number.
+
+    The sail number's spaces become non-breaking, so on a phone a long name
+    can wrap before the brackets but never splits "GBR" from "42" (slice 15).
+    """
+    text = conditional_escape(str(value))
+    sail_number = conditional_escape(value.sail_number)
+    return mark_safe(text.replace(sail_number, sail_number.replace(" ", "&nbsp;")))

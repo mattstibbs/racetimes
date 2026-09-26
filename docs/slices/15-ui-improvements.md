@@ -107,6 +107,9 @@ Under a race's results, with the options on and **More detail** on:
   - **The CSV download** keeps separate "Sail number" and "Boat" columns.
   - **The admin's list of boats** keeps its separate columns.
   - Log lines, which name ids, not boats.
+- **Found while building (owner agreed):** on a phone, a name could wrap
+  inside its sail number, "(GBR" / "42)". Pages now show a boat through the
+  `boat` template filter, which makes the sail number's spaces non-breaking.
 - **Follow a boat** lists boats by name (then sail number, for boats with the
   same name or none). Other lists keep their order.
 - **Tests:** a test of `Boat.__str__`, with and without a name; the Follow a

@@ -2,7 +2,7 @@
 {% load racing %}
 {% block title %}{{ boat }} - Race Times{% endblock %}
 {% block content %}
-<h1>{{ boat }}</h1>
+<h1>{{ boat|boat }}</h1>
 <p class="muted">
   {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
   Base number {{ boat.base_number|tcf }}.

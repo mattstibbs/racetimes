@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load racing %}
 {% block title %}My boats - Race Times{% endblock %}
 {% block content %}
 <h1>My boats</h1>
@@ -7,7 +8,7 @@
 
 {% for boat in boats %}
 <section class="card">
-  <h2>{{ boat }} <small><a href="{% url 'results:boat' boat.pk %}">Results</a></small></h2>
+  <h2>{{ boat|boat }} <small><a href="{% url 'results:boat' boat.pk %}">Results</a></small></h2>
   <p class="muted">
     {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
     NHC base number {{ boat.base_number }}.

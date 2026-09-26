@@ -1520,6 +1520,11 @@ club's season can't match exactly.
     columns.
   - **History rows** store a description written at the time of the change,
     so rows from before slice 15 keep "GBR 42 Kittiwake".
+- **Pages never wrap a boat inside its sail number.** The `boat` template
+  filter (`races/templatetags/racing.py`) makes the sail number's spaces
+  non-breaking. On a phone, "Kittiwake" can wrap onto one line and
+  "(GBR 42)" the next, but never "(GBR" and "42)". Emails, the CSV and
+  stored text are unchanged.
 - **Follow a boat lists boats by name,** ignoring case. A boat with no name
   sorts by its sail number. Other lists keep their order.
 - **Page addresses don't change** when pages are renamed (`/members/`,

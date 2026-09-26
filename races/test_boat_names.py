@@ -36,3 +36,14 @@ def test_follow_a_boat_lists_boats_by_name(client):
     listed = re.findall(r'<option value="\d+">([^<]*)</option>', picker)
     # Case doesn't matter; a boat with no name sorts by its sail number.
     assert listed == ["avocet (GBR2)", "GBR3", "Merlin (GBR4)", "Zephyr (GBR1)"]
+
+
+def test_pages_never_wrap_a_boat_inside_its_sail_number(client):
+    from races.templatetags.racing import boat
+
+    assert boat(make_boat("GBR 1234", name="Serendipity")) == "Serendipity (GBR&nbsp;1234)"
+    assert boat(make_boat("IRL 7", name="")) == "IRL&nbsp;7"
+    assert boat(make_boat("GBR 1", name="<b>")) == "&lt;b&gt; (GBR&nbsp;1)"  # still escaped
+    kittiwake = make_boat("GBR 42", name="Kittiwake")
+    html = client.get(reverse("results:boat", args=[kittiwake.pk])).content.decode()
+    assert "<h1>Kittiwake (GBR&nbsp;42)</h1>" in html
