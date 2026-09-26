@@ -204,12 +204,9 @@ def test_the_club_keeps_at_least_one_administrator(client, run_on_commit):
     decide(client, second, "remove")
     assert membership_of(second).status == "REMOVED"
     # The rule is checked on its own too, in case a club ever has no administrator left to act.
-    from races.membership_views import _decide
-    from django.test import RequestFactory
-    request = RequestFactory().post("/")
-    request.user, request.club = second, default_club()
+    from races.membership_views import decide as decide_directly
     with pytest.raises(Exception, match="at least one administrator"):
-        _decide(request, membership_of(first), "role", "MEMBER")
+        decide_directly(default_club(), membership_of(first), "role", "MEMBER", second)
     assert membership_of(first).role == "ADMINISTRATOR"
 
 

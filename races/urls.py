@@ -31,6 +31,8 @@ urlpatterns = [
     path('operator/clubs/<int:pk>/status/', operator_views.change_status, name='operator_club_status'),
     path('operator/clubs/<int:pk>/export.zip', operator_views.export_club, name='operator_export_club'),
     path('operator/clubs/<int:pk>/delete/', operator_views.delete_club, name='operator_delete_club'),
+    path('operator/clubs/<int:pk>/members/<int:membership_pk>/', operator_views.decide_joining,
+         name='operator_decide_joining'),
     path('operator/log/', operator_views.operator_log, name='operator_log'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # Django's own password reset: a signed, time-limited link by email.

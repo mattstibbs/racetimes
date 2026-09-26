@@ -56,6 +56,11 @@ For each person waiting:
 
 Either way, they're emailed straight away to say what you decided.
 
+If your club has no administrator yet, or yours is away, the service's
+operator can also approve or turn down people waiting, at your club's
+request. Anyone the operator approved shows "Approved by the Race Times
+operator" on the Members page.
+
 ![The message after approving Robin Hale: approved and emailed](../images/members-approved.png)
 
 ## Changing someone's role

@@ -27,6 +27,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
 
+from .clubs import club_address
 from .models import BoatRequest, ClubMembership, EntryRequest
 from .scoring import score_series
 
@@ -165,13 +166,23 @@ def confirm_email(user, club, request, link):
 
 
 def membership_decided(membership, request, change):
-    """Tell a person what the club's administrator decided about their membership.
+    """Tell a person what was decided about their membership of a club.
 
-    ``change`` is "approved", "rejected", "role" or "removed".
+    ``change`` is "approved", "rejected", "role" or "removed". The links go to
+    the club's own address even when the operator decided, on the service's
+    address (slice 13).
     """
-    send([email(membership.user, "membership_decided", request, membership=membership, club=membership.club,
-                change=change, site_link=_link(request, "results:home"),
-                my_boats_link=_link(request, "races:my_boats"))], request)
+    club = membership.club
+    send([email(membership.user, "membership_decided", request, membership=membership, club=club,
+                change=change, site_link=_club_link(request, club, "results:home"),
+                my_boats_link=_club_link(request, club, "races:my_boats"))], request)
+
+
+def _club_link(request, club, name):
+    """A link to a page on the club's address: this request's, if it's the club's own."""
+    if getattr(request, "club", None) == club:
+        return _link(request, name)
+    return club_address(request, club, reverse(name))
 
 
 def account_deleted(user, request):

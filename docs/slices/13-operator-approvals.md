@@ -1,7 +1,6 @@
 # Slice 13: the operator approves people joining a club
 
-**Status: planning. The questions at the end need the project owner's answers
-before building starts.**
+**Status: complete (2026-09-26).**
 
 ## Goal
 Today only a club's own administrators can approve someone asking to join it,
@@ -86,10 +85,14 @@ do this at the club's request (question 5).
      (question 4);
    - the operator's page says what happened: "Kim Park: approved and
      emailed."
-4. **The club can see it was the operator.** The club's Members page already
-   shows who decided. An operator's decision reads "approved by the Race
-   Times operator", not the operator's personal login, which means nothing to
-   the club (question 3).
+4. **The club can see it was the operator.**
+   - An operator's decision is recorded on the membership as "the Race Times
+     operator", not the operator's personal login, which means nothing to
+     the club. The operator log keeps the login.
+   - The club's data export already has a "decided by" column.
+   - The Members page doesn't show who decided today (this spec first said
+     it did), so it gains a small note on anyone the operator approved:
+     "approved by the Race Times operator".
 5. **Tests** (in `races/test_operator.py` and `races/test_isolation.py`):
    - the list shows exactly the club's waiting people, and none from
      another club;
@@ -162,3 +165,15 @@ do this at the club's request (question 5).
    club. The privacy notice gains one sentence: the operator may admit
    people to a club at the club's request. That wording goes into the legal
    review.
+
+**The owner's answers (2026-09-26):**
+1. **Any of the three roles,** defaulting to member.
+2. **Waiting requests only.**
+3. **Yes to both:**
+   - the two new operator log actions, a choices-only migration (approved);
+   - "the Race Times operator" as who decided, as seen by the club.
+4. **Refused while the club is suspended.**
+5. **No email to the club's administrators.** The privacy notice gains one
+   sentence saying the operator may admit people to a club at the club's
+   request, for the legal review to check.
+

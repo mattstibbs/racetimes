@@ -33,12 +33,13 @@
     <td>{{ m.user.get_full_name|default:m.user.username }}</td>
     <td>{{ m.user.email }}</td>
     {% if m.user == request.user %}
-    <td>{{ m.get_role_display }}</td><td class="muted">You</td>
+    <td>{{ m.get_role_display }}{% if m.decided_by_name == operator_name %}<br><span class="muted">Approved by the Race Times operator</span>{% endif %}</td><td class="muted">You</td>
     {% else %}
     <td><form method="post" action="{% url 'races:decide_membership' m.pk %}" class="inline">{% csrf_token %}
       <input type="hidden" name="action" value="role">
       <select name="role" aria-label="Role for {{ m.user.get_full_name|default:m.user.username }}">{% for value, label in roles %}<option value="{{ value }}"{% if value == m.role %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-      <button type="submit" class="secondary">Change</button></form></td>
+      <button type="submit" class="secondary">Change</button></form>
+      {% if m.decided_by_name == operator_name %}<br><span class="muted">Approved by the Race Times operator</span>{% endif %}</td>
     <td><form method="post" action="{% url 'races:decide_membership' m.pk %}" class="inline">{% csrf_token %}
       <button type="submit" name="action" value="remove" class="secondary">Remove</button></form></td>
     {% endif %}

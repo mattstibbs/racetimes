@@ -558,7 +558,7 @@ listed in the slice 12 spec and `docs/production.md`, and it's an open
 requirement in `docs/decisions.md`.
 
 
-## Slice 13: the operator approves people joining a club. **Status: planning (2026-09-26)**
+## Slice 13: the operator approves people joining a club. **Status: complete (2026-09-26)**
 
 Spec: `docs/slices/13-operator-approvals.md`. A "Waiting to join" list on the
 operator's club page, where the operator approves or turns down people
@@ -571,3 +571,18 @@ data-model change (two operator log actions).
 
 Slice 12's launch steps are still with the owner; this slice is planned
 alongside, and built once they're answered.
+
+**Built (2026-09-26),** on the owner's answers (any role, waiting requests
+only, logged, refused while suspended, no email to the club):
+- `membership_views.decide` takes the club, so the Members page and the
+  operator's page share one decision (same rules, locking and record).
+- The operator's club page has "Waiting to join", with a role, Approve and
+  Don't approve (`operator_views.decide_joining`). The club sees "the Race
+  Times operator" as who decided; the operator log keeps the login. Migration
+  0018 adds the two log actions.
+- The person's email links go to the club's address even when decided from
+  the service's (`notifications._club_link`).
+- Tests in `races/test_operator.py`; the new address is in the isolation
+  test. `docs/operating.md`, the manual's "Running your club" and the
+  privacy notice mention it.
+

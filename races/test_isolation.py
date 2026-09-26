@@ -124,6 +124,8 @@ def urls_for(data, kind=None):
         "races:account": [], "races:download_my_data": [], "races:delete_account": [],
         "races:export_club_data": [],
         "races:operator_export_club": [data["club"].pk], "races:operator_delete_club": [data["club"].pk],
+        # Slice 13: the operator deciding who's waiting to join.
+        "races:operator_decide_joining": [data["club"].pk, data["membership"].pk],
     }
 
 

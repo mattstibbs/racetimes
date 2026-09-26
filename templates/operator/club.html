@@ -21,6 +21,25 @@
 {% endif %}
 </section>
 
+<section aria-labelledby="waiting">
+<h2 id="waiting">Waiting to join ({{ waiting|length }})</h2>
+<p class="muted">Normally the club's administrators decide. Decide here when they can't, e.g. before the club has
+  one. The person is emailed from the club, and the club sees it was decided by the Race Times operator.</p>
+{% for m in waiting %}
+<form method="post" action="{% url 'races:operator_decide_joining' club.pk m.pk %}" class="card member-row" id="member-{{ m.pk }}">{% csrf_token %}
+  <div><strong>{{ m.user.get_full_name|default:m.user.username }}</strong><br><span class="muted">{{ m.user.email }} &middot; asked {{ m.created_at|date:"j M Y" }}</span></div>
+  <label>As <select name="role">{% for value, label in roles %}<option value="{{ value }}"{% if value == "MEMBER" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <div class="buttons">
+    <button type="submit" name="action" value="approve"{% if not club.is_active %} disabled{% endif %}>Approve</button>
+    <button type="submit" name="action" value="reject" class="secondary"{% if not club.is_active %} disabled{% endif %}>Don't approve</button>
+  </div>
+</form>
+{% empty %}
+<p class="muted">Nobody is waiting.</p>
+{% endfor %}
+{% if waiting and not club.is_active %}<p class="muted">Reactivate the club to decide.</p>{% endif %}
+</section>
+
 <section aria-labelledby="administrators">
 <h2 id="administrators">Administrators</h2>
 {% if administrators %}
