@@ -431,7 +431,7 @@ def test_final_series_are_labelled_on_the_public_pages(client, committee, season
     assert 'Series Standings <span class="final-badge">Final</span>' in series_page
     assert f"Declared final on {timezone.localdate():%-d %B %Y}" in series_page
     home = client.get(reverse("results:home")).content.decode()
-    assert 'Autumn 2026</a> <span class="final-badge">Final</span>' in home
+    assert 'Autumn 2026 <span class="final-badge">Final Results Published</span></a>' in home
     boat_page = client.get(reverse("results:boat", args=[season["entries"][0].boat.pk])).content.decode()
     assert '<span class="final-badge">Final</span>' in boat_page
 
