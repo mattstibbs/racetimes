@@ -91,7 +91,8 @@ per season (slice 4's estimate) fits a small plan.
 
 1. **`render.yaml` gains production** (if Render is chosen):
    - a second web service, `racetimes-production`, and database,
-     `racetimes-production-db`, both in `frankfurt` on paid plans;
+     `racetimes-production-db-fra` (the first, made in Oregon by mistake, was
+     replaced), both in `frankfurt` on paid plans;
    - auto-deploy off;
    - environment:
      - `DJANGO_DEBUG=0` and `TRUSTED_PROXIES=1`;

@@ -16,7 +16,7 @@ still hold.
 | Part | Where | What for |
 |---|---|---|
 | `racetimes-production` | Render web service, Frankfurt | The site. Deploys only when **Deploy** is pressed. |
-| `racetimes-production-db` | Render PostgreSQL 16, Frankfurt | The data. Render keeps point-in-time recovery for it. |
+| `racetimes-production-db-fra` | Render PostgreSQL 16, Frankfurt | The data. Render keeps point-in-time recovery for it. |
 | `racetimes-backup` | Render cron job, nightly at 02:17 UTC | An encrypted copy of the database, off-site. |
 | Gandi | DNS for `racetimes.co.uk` | Sends the domain and every subdomain to Render; email records. |
 | Postmark | Email | Sends every club's email from `noreply@racetimes.co.uk`. |
@@ -38,10 +38,11 @@ manager as you go.
 
 ### 1. Create the services on Render
 1. In Render, open the Blueprint for this repository and **sync** it. It
-   lists what it will add: `racetimes-production`, `racetimes-production-db`
-   and `racetimes-backup`, all in Frankfurt. Check the plans it shows; if Render
-   has renamed a plan, change it in `render.yaml` (by pull request) and sync
-   again.
+   lists what it will add: `racetimes-production`,
+   `racetimes-production-db-fra` and `racetimes-backup`. **Check each one
+   says Frankfurt before applying:** a database or service can't change
+   region once created. Check the plans it shows too; if Render has renamed a
+   plan, change it in `render.yaml` (by pull request) and sync again.
 2. Render asks for the values marked `sync: false`. Fill in what you have
    now and come back for the rest as later steps give them to you:
    - `DJANGO_SUPERUSER_USERNAME` and `DJANGO_SUPERUSER_PASSWORD`: the
@@ -178,6 +179,32 @@ that knows the pages are drafts, can go ahead before that.
 Log in at `https://racetimes.co.uk/admin/login/` as the operator, then follow
 `docs/operating.md`: create the club, invite its administrator.
 
+## Moving production's database to Frankfurt (once, September 2026)
+The first production database, `racetimes-production-db`, was created in
+Oregon, while the web service is in Frankfurt. A Render database can't change
+region, so `render.yaml` now names a new one, `racetimes-production-db-fra`,
+in Frankfurt. Production was still empty, so nothing needs copying: the
+first deploy against the new database sets everything up again.
+
+1. **Sync the Blueprint.** Check that the preview adds
+   `racetimes-production-db-fra` **in Frankfurt**, and points
+   `racetimes-production`'s and `racetimes-backup`'s `DATABASE_URL` at it.
+2. **Put back `DJANGO_SUPERUSER_USERNAME` and `DJANGO_SUPERUSER_PASSWORD`**
+   on `racetimes-production`, so the operator's login is made in the new
+   database.
+3. **Deploy** `racetimes-production` (**Manual Deploy → Deploy latest
+   commit**). `release.sh` creates the tables, the cache table, Demo Club
+   (empty) and the operator's login. Check the pre-deploy log.
+4. **Remove the two superuser settings again,** and check you can log in at
+   `https://racetimes.co.uk/admin/login/`.
+5. **Delete the Oregon database,** `racetimes-production-db`, in the
+   dashboard (the database's **Settings → Delete**). The Blueprint doesn't
+   delete it for you, and it's billed until you do.
+
+If anything had been created in production that should be kept, copy it
+first instead: `pg_dump` from the old database's external URL and
+`pg_restore` into the new one (as in "Backups and restoring"), before step 3.
+
 ## Deploying a change
 1. Merge the pull request. The test site redeploys by itself.
 2. Check the change on the test site.
@@ -195,7 +222,7 @@ something, its pull request says so and how to roll back.
 ## Backups and restoring
 Two kinds, for different disasters:
 - **Point-in-time recovery (Render):** any moment in the last 3 days (7 on
-  Pro). For a mistake or a bad deploy. On `racetimes-production-db`,
+  Pro). For a mistake or a bad deploy. On `racetimes-production-db-fra`,
   **Recovery → restore**, which makes a **new** database at that moment.
 - **The nightly off-site copy (B2):** 30 days of copies, outside Render. For
   losing the Render account or region.

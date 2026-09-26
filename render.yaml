@@ -13,7 +13,10 @@ databases:
     plan: free
   # Production's database. Paid, so Render keeps point-in-time recovery for it;
   # a nightly encrypted copy also goes off-site (racetimes-backup, below).
-  - name: racetimes-production-db
+  # "-fra": the first one, racetimes-production-db, was created in Oregon, and
+  # a Render database can't change region, so this new name makes the
+  # Blueprint create a new one in Frankfurt (docs/decisions.md).
+  - name: racetimes-production-db-fra
     databaseName: racetimes
     user: racetimes
     plan: basic-256mb
@@ -75,7 +78,7 @@ services:
         value: 3.11.9
       - key: DATABASE_URL
         fromDatabase:
-          name: racetimes-production-db
+          name: racetimes-production-db-fra
           property: connectionString
       - key: DJANGO_SECRET_KEY
         generateValue: true
@@ -123,7 +126,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: racetimes-production-db
+          name: racetimes-production-db-fra
           property: connectionString
       - key: BACKUP_BUCKET
         sync: false
