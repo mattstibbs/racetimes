@@ -6,12 +6,20 @@ import io
 import pytest
 from django.urls import reverse
 
-from races.models import Finish
 from races.scoring import score_series
 from races.templatetags.racing import hms, points, tcf
-from races.test_final import declare, publish, season  # noqa: F401 (fixtures)
 from races.test_audit import post_boat
-from races.testing import enter, make_boat, make_committee, make_member, make_race, make_series, record, start
+from races.test_final import declare, publish, season  # noqa: F401 (fixtures)
+from races.testing import (
+    enter,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 from results.test_scen_005 import scen_005  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.django_db

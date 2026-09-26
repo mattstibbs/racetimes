@@ -8,8 +8,15 @@ from django.urls import reverse
 from races.models import BoatRequest, EntryRequest
 from races.roles import is_club_administrator, is_committee, is_member
 from races.testing import (
-    default_club, join,
-    make_administrator, make_boat, make_club, make_committee, make_member, make_operator, make_series,
+    default_club,
+    join,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_series,
 )
 
 pytestmark = pytest.mark.django_db

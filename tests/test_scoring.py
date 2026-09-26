@@ -9,7 +9,12 @@ import pytest
 
 from nhc import InvalidInput, RaceEntry, RaceInput, RaceStatus, SeriesType, score_race
 from nhc.scoring import TIE_TOLERANCE_SECONDS, corrected_time
-from tests.scenario_loader import TOLERANCE, build_race_input, expected_for, race_boat_params
+from tests.scenario_loader import (
+    TOLERANCE,
+    build_race_input,
+    expected_for,
+    race_boat_params,
+)
 
 CORRECTED_PARAMS, CORRECTED_IDS = race_boat_params("corrected_seconds")
 RANK_PARAMS, RANK_IDS = race_boat_params("rank")

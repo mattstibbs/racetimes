@@ -19,8 +19,8 @@ club's contact email. See ``sender``.
 import logging
 from email.utils import formataddr, parseaddr
 
-from django.contrib import messages
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage, get_connection
 from django.db import transaction

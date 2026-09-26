@@ -11,7 +11,16 @@ from django.urls import reverse
 
 from races import approvals, audit
 from races.models import Boat, BoatRequest, EntryRequest, ScoringChange, SeriesEntry
-from races.testing import default_club, enter, make_boat, make_committee, make_member, make_race, make_series, record
+from races.testing import (
+    default_club,
+    enter,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
+)
 
 pytestmark = pytest.mark.django_db
 

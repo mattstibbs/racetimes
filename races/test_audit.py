@@ -15,7 +15,16 @@ from django.urls import reverse
 from races import audit
 from races.models import Boat, Finish, Race, ScoringChange, Series
 from races.scoring import score_series
-from races.testing import default_club, join, enter, make_boat, make_race, make_series, record, start
+from races.testing import (
+    default_club,
+    enter,
+    join,
+    make_boat,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -290,7 +299,7 @@ def test_creating_a_boat_or_series_is_not_recorded(staff_client):
 
 def test_every_audited_field_is_covered_by_a_test_above():
     # Adding a field to AUDITED_FIELDS should come with a test that changes it.
-    assert audit.AUDITED_FIELDS == {
+    assert {
         Finish: ["status", "finish_time"],
         Race: ["number", "start_time"],
         Series: [
@@ -298,7 +307,7 @@ def test_every_audited_field_is_covered_by_a_test_above():
         ],
         audit.SeriesEntry: [],
         Boat: ["base_number"],
-    }
+    } == audit.AUDITED_FIELDS
 
 
 # --- A correction without a reason is refused, and nothing is saved ---------

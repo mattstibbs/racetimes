@@ -10,8 +10,18 @@ import statistics
 import pytest
 
 from nhc import (
-    Boat, Finish, InvalidInput, RaceInput, RaceStatus, Series, SeriesRace, SeriesType, capped_elapsed_times,
-    compute_club_adjustment, realignment_factor, score_series,
+    Boat,
+    Finish,
+    InvalidInput,
+    RaceInput,
+    RaceStatus,
+    Series,
+    SeriesRace,
+    SeriesType,
+    capped_elapsed_times,
+    compute_club_adjustment,
+    realignment_factor,
+    score_series,
 )
 from tests.scenario_loader import MCC_MODES, MCC_RACE, build_mcc_entries
 

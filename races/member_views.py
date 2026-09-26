@@ -9,14 +9,18 @@ the pages do not even confirm that another member's boat or request exists.
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import approvals
 from .forms import (
-    BoatChangeForm, BoatRegistrationForm, EntryRequestForm, LoginForm, SignUpForm,
+    BoatChangeForm,
+    BoatRegistrationForm,
+    EntryRequestForm,
+    LoginForm,
+    SignUpForm,
 )
 from .membership_views import send_confirmation
 from .models import Boat, BoatRequest, ClubMembership, EntryRequest

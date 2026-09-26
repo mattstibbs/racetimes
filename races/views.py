@@ -12,7 +12,16 @@ from django.views.decorators.http import require_GET, require_POST
 
 from . import approvals, audit, final, notifications, publishing, race_day, start_sheet
 from .forms import DecisionForm, FinishForm, StartSheetRowForm
-from .models import NOT_ON_START_SHEET, Boat, BoatRequest, EntryRequest, Finish, Race, ScoringChange, Series
+from .models import (
+    NOT_ON_START_SHEET,
+    Boat,
+    BoatRequest,
+    EntryRequest,
+    Finish,
+    Race,
+    ScoringChange,
+    Series,
+)
 from .roles import committee_required
 from .scoring import score_series
 

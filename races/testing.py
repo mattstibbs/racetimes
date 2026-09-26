@@ -7,7 +7,16 @@ as the situation it sets up.
 from datetime import date, time
 from decimal import Decimal
 
-from races.models import Boat, Club, ClubMembership, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.models import (
+    Boat,
+    Club,
+    ClubMembership,
+    Finish,
+    Race,
+    RaceEntry,
+    Series,
+    SeriesEntry,
+)
 
 
 def default_club():

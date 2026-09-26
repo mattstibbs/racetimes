@@ -9,7 +9,15 @@ from django.db import IntegrityError
 from django.db.models import ProtectedError, RestrictedError
 
 from races.models import Boat, Finish, Race, Series, SeriesEntry
-from races.testing import default_club, enter, make_boat, make_race, make_series, record, start
+from races.testing import (
+    default_club,
+    enter,
+    make_boat,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 
 pytestmark = pytest.mark.django_db
 

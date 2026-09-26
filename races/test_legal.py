@@ -3,7 +3,12 @@
 import pytest
 from django.urls import reverse
 
-from races.test_isolation import DEMO, clubs, log_in, urls_for  # noqa: F401 (clubs is a fixture)
+from races.test_isolation import (  # noqa: F401 (clubs is a fixture)
+    DEMO,
+    clubs,
+    log_in,
+    urls_for,
+)
 from races.test_members import PASSWORD
 from races.testing import make_member
 

@@ -3,8 +3,8 @@ import json
 from django.contrib import admin, messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
@@ -18,7 +18,15 @@ from .forms import (
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, BoatRequest, ClubMembership, EntryRequest, Race, Series, SeriesEntry
+from .models import (
+    Boat,
+    BoatRequest,
+    ClubMembership,
+    EntryRequest,
+    Race,
+    Series,
+    SeriesEntry,
+)
 from .roles import is_committee
 from .scoring import score_series
 

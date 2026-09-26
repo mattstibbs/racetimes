@@ -26,11 +26,29 @@ from django.utils import timezone
 from races import notifications
 from races.invitations import token_for
 from races.models import (
-    Boat, BoatRequest, Club, ClubInvitation, EntryRequest, Finish, RaceEntry, ScoringChange, Series, SeriesEntry,
+    Boat,
+    BoatRequest,
+    ClubInvitation,
+    EntryRequest,
+    Finish,
+    RaceEntry,
+    ScoringChange,
+    Series,
+    SeriesEntry,
 )
 from races.testing import (
-    default_club, enter, join, make_administrator, make_boat, make_club, make_committee, make_member, make_operator,
-    make_race, make_series, record,
+    default_club,
+    enter,
+    join,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db

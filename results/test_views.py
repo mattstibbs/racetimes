@@ -8,7 +8,13 @@ from django.utils import timezone
 
 from races.models import Finish, Race
 from races.testing import (
-    enter, make_boat, make_committee, make_member, make_race, make_series, record,
+    enter,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db

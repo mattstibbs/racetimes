@@ -9,7 +9,6 @@ every page as each role in races/test_roles.py. This file covers:
 - the admin's door at a club.
 """
 
-from datetime import timedelta
 from html import escape
 
 import pytest
@@ -23,11 +22,20 @@ from django.urls import reverse
 from django.utils import timezone
 
 from races import notifications
-from races.membership_views import LAST_ADMINISTRATOR, OWN_MEMBERSHIP
+from races.membership_views import OWN_MEMBERSHIP
 from races.models import ClubMembership
 from races.testing import (
-    default_club, enter, join, make_administrator, make_boat, make_club, make_committee, make_member,
-    make_operator, make_race, make_series, record,
+    default_club,
+    enter,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db
@@ -273,6 +281,7 @@ def test_each_clubs_login_is_its_own():
 def test_clubs_and_memberships_are_not_in_the_admin():
     # The operator's pages (slice 11 part 3) and the Members page replace them.
     from django.contrib import admin as django_admin
+
     from races.models import Club
 
     assert not django_admin.site.is_registered(Club)

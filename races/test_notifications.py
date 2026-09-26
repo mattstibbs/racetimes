@@ -17,11 +17,18 @@ from django.urls import reverse
 from django.utils import timezone
 
 from races import notifications, publishing
-from races.models import BoatRequest, EntryRequest, Finish, Race
+from races.models import BoatRequest, EntryRequest, Race
 from races.test_audit import boat_form, series_form
 from races.testing import (
     default_club,
-    enter, make_administrator, make_boat, make_committee, make_member, make_race, make_series, record,
+    enter,
+    make_administrator,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db
@@ -330,7 +337,7 @@ def test_an_approved_registration_lists_the_details(client, committee, club, run
     with run_on_commit():
         decide(client, request, "approve")
     [message] = mail.outbox
-    assert "Approved: your request to register GBR5 Gannet" == message.subject
+    assert message.subject == "Approved: your request to register GBR5 Gannet"
     assert "NHC base number: 0.880" in message.body
 
 

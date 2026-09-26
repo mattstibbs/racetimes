@@ -10,13 +10,35 @@ from django.urls import reverse
 
 from races.club_deletion import delete_club
 from races.models import (
-    Boat, BoatRequest, Club, ClubInvitation, ClubMembership, EntryRequest, Finish, OperatorAction, Race, RaceEntry,
-    ScoringChange, Series, SeriesEntry,
+    Boat,
+    BoatRequest,
+    Club,
+    ClubInvitation,
+    ClubMembership,
+    EntryRequest,
+    Finish,
+    OperatorAction,
+    Race,
+    RaceEntry,
+    ScoringChange,
+    Series,
+    SeriesEntry,
 )
 from races.scoring import score_series
 from races.series_csv import typed
-from races.test_isolation import DEMO, HARBOUR, clubs, leaks  # noqa: F401 (clubs is a fixture)
-from races.testing import default_club, make_administrator, make_committee, make_member, make_operator
+from races.test_isolation import (  # noqa: F401 (clubs is a fixture)
+    DEMO,
+    HARBOUR,
+    clubs,
+    leaks,
+)
+from races.testing import (
+    default_club,
+    make_administrator,
+    make_committee,
+    make_member,
+    make_operator,
+)
 
 pytestmark = pytest.mark.django_db
 

@@ -17,7 +17,6 @@ from django.db.models.functions import Replace, Upper
 from django.urls import reverse
 from django.utils import timezone
 
-
 # --- Clubs (slice 11) ----------------------------------------------------------------
 
 

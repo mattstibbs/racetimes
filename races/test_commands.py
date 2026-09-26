@@ -54,7 +54,15 @@ def test_series_summary_prints_each_series_standings_without_names():
 
     from django.core.management import call_command
 
-    from races.testing import enter, make_boat, make_club, make_member, make_race, make_series, record
+    from races.testing import (
+        enter,
+        make_boat,
+        make_club,
+        make_member,
+        make_race,
+        make_series,
+        record,
+    )
 
     series = make_series("Autumn", discards=0)
     fast = enter(series, make_boat("GBR1", owner=make_member("pat@example.com", first_name="Pat")))

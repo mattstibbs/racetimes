@@ -13,7 +13,16 @@ from django.utils import timezone
 
 from races import race_day
 from races.models import Finish, ScoringChange
-from races.testing import enter, make_boat, make_committee, make_member, make_race, make_series, record, start
+from races.testing import (
+    enter,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 
 pytestmark = pytest.mark.django_db
 

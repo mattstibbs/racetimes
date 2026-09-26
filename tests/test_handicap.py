@@ -16,7 +16,12 @@ from nhc import (
     compute_club_adjustment,
 )
 from nhc.handicap import adjustment_scale, classify_performance
-from tests.scenario_loader import TOLERANCE, build_race_input, expected_for, race_boat_params
+from tests.scenario_loader import (
+    TOLERANCE,
+    build_race_input,
+    expected_for,
+    race_boat_params,
+)
 
 SCALE_PARAMS, SCALE_IDS = race_boat_params("adjustment_scale")
 ACHIEVED_PARAMS, ACHIEVED_IDS = race_boat_params("achieved_handicap")

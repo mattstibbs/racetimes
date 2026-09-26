@@ -1,13 +1,20 @@
 """The finish-entry page. The public results pages are tested in results/."""
 
-from datetime import time
 
 import pytest
 from django.template.loader import render_to_string
 from django.urls import reverse
 
 from races.models import Finish, Series
-from races.testing import enter, make_boat, make_committee, make_race, make_series, record, start
+from races.testing import (
+    enter,
+    make_boat,
+    make_committee,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -49,7 +56,7 @@ def row_data(entry, finish_time="", status="FINISHED", reason=""):
 
 def test_finish_entry_needs_staff(client, race_night):
     _, race, a, _ = race_night
-    response = client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish"))
+    response = client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish")
     assert response.status_code == 302
     assert response["Location"].startswith(reverse("races:login"))
     response = client.post(save_url(race, a), row_data(a, "19:10:00"))
@@ -60,7 +67,7 @@ def test_finish_entry_needs_staff(client, race_night):
 def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_night):
     _, race, *_ = race_night
     client.force_login(django_user_model.objects.create_user("member"))
-    assert client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).status_code == 403
+    assert client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").status_code == 403
 
 
 # --- Finish entry: the page ------------------------------------------------
@@ -68,7 +75,7 @@ def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_n
 
 def test_finish_entry_lists_every_boat_on_the_start_sheet(staff_client, race_night):
     _, race, a, b = race_night
-    page = staff_client.get((reverse("races:race_day", args=[race.pk]) + "?view=finish")).content.decode()
+    page = staff_client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").content.decode()
     assert save_url(race, a) in page
     assert save_url(race, b) in page
     assert 'value="19:00:00"' in page
@@ -178,7 +185,7 @@ def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
     assert staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
-    page = staff_client.get((reverse("races:race_day", args=[race_2.pk]) + "?view=finish"))
+    page = staff_client.get(reverse("races:race_day", args=[race_2.pk]) + "?view=finish")
     assert page.status_code == 200
     assert "No boats are on the" in page.content.decode()
 

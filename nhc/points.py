@@ -25,8 +25,8 @@ took a finishing place and then lost it. DNC, DNS and DNF never held one.
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import replace
-from typing import Sequence
 
 from .domain import RaceResult, RaceStatus
 from .errors import InvalidInput

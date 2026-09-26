@@ -21,10 +21,10 @@ from nhc import (
 )
 from nhc.domain import Boat
 from tests.scenario_loader import (
-    RACE_SCENARIOS,
     RACE_SCENARIO_IDS,
-    REALIGNMENT_SCENARIOS,
+    RACE_SCENARIOS,
     REALIGNMENT_SCENARIO_IDS,
+    REALIGNMENT_SCENARIOS,
     build_race_input,
     build_realignment_entries,
 )

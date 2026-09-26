@@ -19,8 +19,16 @@ from races import notifications
 from races.invitations import invitation_from, token_for
 from races.models import Club, ClubInvitation, ClubMembership, OperatorAction
 from races.testing import (
-    default_club, enter, make_administrator, make_boat, make_club, make_member, make_operator, make_race,
-    make_series, record,
+    default_club,
+    enter,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_member,
+    make_operator,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db

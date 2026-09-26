@@ -10,13 +10,31 @@ from django.urls import reverse
 from races import notifications, throttle
 from races.account_deletion import DELETED
 from races.models import (
-    Boat, BoatRequest, ClubInvitation, ClubMembership, EntryRequest, Finish, OperatorAction, ScoringChange, Series,
+    Boat,
+    BoatRequest,
+    ClubInvitation,
+    ClubMembership,
+    EntryRequest,
+    Finish,
+    OperatorAction,
+    ScoringChange,
+    Series,
 )
 from races.scoring import score_series
 from races.test_members import PASSWORD
 from races.testing import (
-    default_club, enter, join, make_administrator, make_boat, make_club, make_committee, make_member,
-    make_operator, make_race, make_series, record,
+    default_club,
+    enter,
+    join,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db

@@ -18,11 +18,10 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.cache import patch_vary_headers
 from django.views.decorators.http import require_safe
 
-from races.models import Boat, ScoringChange, Series
 from races import series_csv as csv_file  # the view below is called series_csv
+from races.models import Boat, ScoringChange, Series
 from races.publishing import amended_since_sent
 from races.scoring import score_series
-
 
 # The home page shows the latest race of this many series, most recent first.
 LATEST_SERIES = 5

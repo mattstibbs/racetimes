@@ -1,8 +1,14 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from django.contrib.auth import views as auth_views
-
-from . import account_views, invitations, member_views, membership_views, operator_views, views
+from . import (
+    account_views,
+    invitations,
+    member_views,
+    membership_views,
+    operator_views,
+    views,
+)
 from .forms import ClubPasswordResetForm
 
 app_name = 'races'

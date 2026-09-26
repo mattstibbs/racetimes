@@ -15,9 +15,14 @@ from django.urls import reverse
 from races.forms import BoatRegistrationForm
 from races.models import Boat, Club, Finish, SeriesEntry
 from races.scoring import score_series
-from races.test_start_sheet import _scores
 from races.testing import (
-    default_club, enter, make_boat, make_club, make_committee, make_member, make_race, make_series, record,
+    default_club,
+    enter,
+    make_boat,
+    make_club,
+    make_committee,
+    make_race,
+    make_series,
 )
 
 pytestmark = pytest.mark.django_db
@@ -47,6 +52,7 @@ def test_the_migration_moves_existing_rows_into_the_first_club():
         ("Series", "Boat", "SeriesEntry", "Race", "RaceEntry", "Finish", "BoatRequest", "ScoringChange")
     )
     from datetime import date, time
+
     from django.contrib.auth import get_user_model
     member = old.get_model(*get_user_model()._meta.label.split(".")).objects.create(username="pat@example.com")
     series = Series.objects.create(name="Autumn 2026")
@@ -63,7 +69,10 @@ def test_the_migration_moves_existing_rows_into_the_first_club():
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())
 
-    from races.models import Boat as NewBoat, BoatRequest as NewRequest, ScoringChange as NewChange, Series as NewSeries
+    from races.models import Boat as NewBoat
+    from races.models import BoatRequest as NewRequest
+    from races.models import ScoringChange as NewChange
+    from races.models import Series as NewSeries
     demo = Club.objects.get(subdomain="demo")
     assert Club.objects.count() == 1
     for model in (NewBoat, NewSeries, NewRequest, NewChange):

@@ -39,9 +39,9 @@ from .errors import InvalidInput
 from .handicap import adjustment_scale, compute_club_adjustment
 from .options import capped_elapsed_times, realign_to_base_numbers, realignment_factor
 from .points import points_for_place, score_points
-from .regatta import clamp_to_base_number, compute_regatta_adjustment
 from .realignment import realign_series, realigned_boats, realignment_entries
-from .standings import BoatStanding, RaceScore, compute_standings
+from .regatta import clamp_to_base_number, compute_regatta_adjustment
+from .scoring import corrected_time, score_race
 from .series import (
     HandicapProgression,
     RaceOutcome,
@@ -50,7 +50,7 @@ from .series import (
     SeriesRace,
     score_series,
 )
-from .scoring import corrected_time, score_race
+from .standings import BoatStanding, RaceScore, compute_standings
 
 __version__ = "0.0.0"
 
@@ -64,8 +64,8 @@ __all__ = [
     "RaceEntry",
     "RaceInput",
     "RaceOutcome",
-    "RaceScore",
     "RaceResult",
+    "RaceScore",
     "RaceStatus",
     "RealignmentEntry",
     "RealignmentResult",
@@ -79,6 +79,7 @@ __all__ = [
     "compute_club_adjustment",
     "compute_regatta_adjustment",
     "compute_standings",
+    "corrected_time",
     "points_for_place",
     "realign_series",
     "realign_to_base_numbers",
@@ -86,7 +87,6 @@ __all__ = [
     "realignment_entries",
     "realignment_factor",
     "score_points",
-    "score_series",
-    "corrected_time",
     "score_race",
+    "score_series",
 ]

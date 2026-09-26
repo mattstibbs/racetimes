@@ -22,7 +22,16 @@ from django.utils import timezone
 
 from . import series_csv
 from .models import (
-    Boat, BoatRequest, ClubMembership, EntryRequest, Finish, Race, RaceEntry, ScoringChange, Series, SeriesEntry,
+    Boat,
+    BoatRequest,
+    ClubMembership,
+    EntryRequest,
+    Finish,
+    Race,
+    RaceEntry,
+    ScoringChange,
+    Series,
+    SeriesEntry,
 )
 from .scoring import score_series
 from .series_csv import BOM, typed

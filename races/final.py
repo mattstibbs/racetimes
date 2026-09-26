@@ -11,10 +11,11 @@ results are stored; see docs/decisions.md.
 from dataclasses import fields, is_dataclass
 from enum import Enum
 
-import nhc
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+
+import nhc
 
 from . import notifications, publishing, start_sheet
 from .models import ScoringChange, Series

@@ -5,7 +5,13 @@ import re
 import pytest
 from django.urls import reverse
 
-from races.test_race_day import clock, committee, local, racing, tap  # noqa: F401 (fixtures)
+from races.test_race_day import (  # noqa: F401 (fixtures)
+    clock,
+    committee,
+    local,
+    racing,
+    tap,
+)
 from races.testing import enter, make_boat, make_series
 
 pytestmark = pytest.mark.django_db

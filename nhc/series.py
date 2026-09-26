@@ -23,11 +23,19 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-from .domain import Boat, Finish, RaceEntry, RaceInput, RaceResult, RaceStatus, SeriesType
+from .domain import (
+    Boat,
+    Finish,
+    RaceEntry,
+    RaceInput,
+    RaceResult,
+    RaceStatus,
+    SeriesType,
+)
 from .errors import InvalidInput
 from .handicap import compute_club_adjustment
-from .regatta import compute_regatta_adjustment
 from .points import score_points
+from .regatta import compute_regatta_adjustment
 from .standings import BoatStanding, compute_standings
 
 

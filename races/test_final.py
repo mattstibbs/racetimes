@@ -5,20 +5,34 @@ results/test_export.py.
 """
 
 from datetime import date
-from decimal import Decimal
 
 import pytest
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 
-import nhc
 from races import final, notifications
-from races.models import EntryRequest, Finish, RaceEntry, ScoringChange, Series, SeriesEntry
+from races.models import (
+    EntryRequest,
+    Finish,
+    RaceEntry,
+    ScoringChange,
+    Series,
+    SeriesEntry,
+)
 from races.scoring import engine_outcome, score_series
 from races.test_approvals import decide
 from races.test_audit import post_boat, post_series, series_form
-from races.testing import enter, make_boat, make_committee, make_member, make_race, make_series, record, start
+from races.testing import (
+    enter,
+    make_boat,
+    make_committee,
+    make_member,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 from tests.scenario_loader import SCENARIOS
 
 pytestmark = pytest.mark.django_db

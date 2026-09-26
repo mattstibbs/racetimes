@@ -18,7 +18,13 @@ removing a name changes no result.
 from django.db import transaction
 
 from .models import (
-    BoatRequest, ClubInvitation, ClubMembership, EntryRequest, OperatorAction, ScoringChange, Series,
+    BoatRequest,
+    ClubInvitation,
+    ClubMembership,
+    EntryRequest,
+    OperatorAction,
+    ScoringChange,
+    Series,
 )
 
 DELETED = "a deleted account"

@@ -12,7 +12,18 @@ from django.urls import reverse
 from django.utils import timezone
 
 from races.invitations import token_for
-from races.models import Boat, BoatRequest, Club, ClubInvitation, EntryRequest, Finish, Race, RaceEntry, Series, SeriesEntry
+from races.models import (
+    Boat,
+    BoatRequest,
+    Club,
+    ClubInvitation,
+    EntryRequest,
+    Finish,
+    Race,
+    RaceEntry,
+    Series,
+    SeriesEntry,
+)
 from races.testing import make_member
 
 # Everything belongs to Demo Club, which the migrations create (slice 11).

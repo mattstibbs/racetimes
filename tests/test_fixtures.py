@@ -10,12 +10,12 @@ they can be mistaken for engine failures.
 import pytest
 
 from tests.scenario_loader import (
-    RACE_SCENARIOS,
     RACE_SCENARIO_IDS,
-    REALIGNMENT_SCENARIOS,
+    RACE_SCENARIOS,
     REALIGNMENT_SCENARIO_IDS,
-    SCENARIOS,
+    REALIGNMENT_SCENARIOS,
     SCENARIO_IDS,
+    SCENARIOS,
     VALID_STATUSES,
 )
 

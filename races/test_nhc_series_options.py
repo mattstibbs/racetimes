@@ -12,14 +12,18 @@ numbers). Realignment is checked against the engine given the same boats.
 
 from datetime import datetime, timedelta
 
-import nhc
 import pytest
 from django.urls import reverse
 
+import nhc
 from races import final
 from races.models import Series
 from races.scoring import engine_outcome, score_series
-from races.test_audit import post_series, staff_client, staff_user  # noqa: F401 (fixtures)
+from races.test_audit import (  # noqa: F401 (fixtures)
+    post_series,
+    staff_client,
+    staff_user,
+)
 from races.testing import enter, make_boat, make_race, make_series, record
 from tests.scenario_loader import MCC_RACE
 
