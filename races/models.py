@@ -136,6 +136,9 @@ class OperatorAction(models.Model):
         # Slice 11 part 5.
         EXPORTED = "EXPORTED", "Downloaded a club's data"
         DELETED = "DELETED", "Deleted a club"
+        # Slice 13.
+        APPROVED_JOIN = "APPROVED_JOIN", "Approved someone joining"
+        TURNED_DOWN = "TURNED_DOWN", "Turned down someone joining"
 
     who = models.CharField(max_length=150)
     action = models.CharField(max_length=15, choices=Action.choices)

@@ -111,8 +111,12 @@ def members_page(request):
         "approved": [m for m in memberships if m.status == Status.APPROVED],
         "removed": [m for m in memberships if m.status == Status.REMOVED],
         "roles": Role.choices,
+        "operator_name": OPERATOR_NAME,
     })
 
+
+# How the club sees a decision the service's operator made (slice 13).
+OPERATOR_NAME = "the Race Times operator"
 
 OWN_MEMBERSHIP = "You can't change your own membership. Ask another of the club's administrators."
 LAST_ADMINISTRATOR = "The club must keep at least one administrator. Make someone else an administrator first."
@@ -125,7 +129,7 @@ def decide_membership(request, pk):
     target = get_object_or_404(request.club.memberships.select_related("user"), pk=pk)
     action = request.POST.get("action")
     try:
-        change = _decide(request, target, action, request.POST.get("role", ""))
+        change = decide(request.club, target, action, request.POST.get("role", ""), request.user)
     except ValidationError as refused:
         messages.error(request, " ".join(refused.messages))
     else:
@@ -144,8 +148,16 @@ CHANGE_MESSAGES = {
 }
 
 
-def _decide(request, target, action, role):
-    if target.user_id == request.user.pk:
+def decide(club, target, action, role, by, by_name=None):
+    """Approve, turn down, change the role of, or remove one person at ``club``.
+
+    The one place a membership is decided: the club's Members page, and the
+    operator's club page for people waiting (slice 13), both come here.
+    ``by`` is who decided; ``by_name`` is how the club sees them, their login
+    unless given. Returns the change ("approved", ...), or None if there was
+    nothing to change (e.g. a stale page).
+    """
+    if target.user_id == by.pk:
         raise ValidationError(OWN_MEMBERSHIP)
     with transaction.atomic():
         target = ClubMembership.objects.select_for_update().get(pk=target.pk)
@@ -163,10 +175,10 @@ def _decide(request, target, action, role):
         else:
             return None  # a stale page, or nothing to change
         if was_administrator and not (target.is_approved and target.role == Role.ADMINISTRATOR):
-            administrators = request.club.memberships.filter(status=Status.APPROVED, role=Role.ADMINISTRATOR)
+            administrators = club.memberships.filter(status=Status.APPROVED, role=Role.ADMINISTRATOR)
             if administrators.exclude(pk=target.pk).count() == 0:
                 raise ValidationError(LAST_ADMINISTRATOR)
-        target.decided_by_name = request.user.get_username()
+        target.decided_by_name = by_name or by.get_username()
         target.decided_at = timezone.now()
         target.save()
     return change

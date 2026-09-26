@@ -56,6 +56,25 @@ club's page lists every invitation and whether it was accepted. If a link
 expires, send another; nothing needs cancelling. A suspended club can't be
 sent invitations.
 
+## People waiting to join
+
+Normally a club's own administrators approve people joining, on the club's
+**Members** page. When they can't (a new club before its administrator has
+accepted the invitation, one whose only administrator is away, or Demo Club),
+the club's page here has **Waiting to join**:
+- choose a role (member, race committee or club administrator) and press
+  **Approve**, or press **Don't approve**;
+- the person is emailed from the club, with links to the club's address,
+  exactly as when the club decides;
+- the club sees "Approved by the Race Times operator" on its Members page,
+  and in its data export, not your login;
+- each decision is in the operator log, with your login.
+
+Only people **waiting** can be decided here. Changing someone's role or
+removing them stays with the club. Nothing can be decided while the club is
+suspended. This is a deliberate exception to "clubs decide their own
+members" (`docs/decisions.md`), so use it at the club's request.
+
 ## Suspending and reactivating a club
 
 On the club's page, **Suspend** pauses its site: everyone who opens it sees

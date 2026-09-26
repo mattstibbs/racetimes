@@ -21,7 +21,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from . import club_deletion, club_export, invitations
+from . import club_deletion, club_export, invitations, membership_views, notifications
 from .clubs import club_address
 from .forms import ClubForm, InvitationForm
 from .models import Club, ClubMembership, OperatorAction
@@ -94,6 +94,9 @@ def _club_context(request, club, form):
         "administrators": club.memberships.filter(
             status=ClubMembership.Status.APPROVED, role=ClubMembership.Role.ADMINISTRATOR
         ).select_related("user"),
+        "waiting": club.memberships.filter(status=ClubMembership.Status.WAITING).select_related("user")
+        .order_by("created_at"),
+        "roles": ClubMembership.Role.choices,
         "invitations": club.invitations.all(),
         "form": form,
         "lasts_days": invitations.LASTS.days,
@@ -178,3 +181,41 @@ def delete_club(request, pk):
             return redirect("races:operator_clubs")
     return render(request, "operator/delete_club.html", {"club": club, "refused": refused, "error": error},
                   status=400 if error else 200)
+
+
+# --- People waiting to join (slice 13) -----------------------------------------------------------
+
+NOT_WHILE_SUSPENDED_TO_JOIN = "Reactivate the club first: nobody can use its site while it's paused."
+
+
+@operator_required
+@require_POST
+def decide_joining(request, pk, membership_pk):
+    """Approve, or turn down, one person waiting to join this club.
+
+    The one exception to "clubs decide their own members" (docs/decisions.md):
+    only people waiting, never a role change or a removal. It goes through the
+    same code as the club's Members page, and emails the person from the club.
+    """
+    club = get_object_or_404(Club, pk=pk)
+    target = get_object_or_404(club.memberships.select_related("user"), pk=membership_pk)
+    action = request.POST.get("action")
+    if not club.is_active:
+        messages.error(request, NOT_WHILE_SUSPENDED_TO_JOIN)
+    elif action in ("approve", "reject") and target.status == ClubMembership.Status.WAITING:
+        with transaction.atomic():
+            change = membership_views.decide(club, target, action, request.POST.get("role", ""), request.user,
+                                             by_name=membership_views.OPERATOR_NAME)
+            if change:
+                target.refresh_from_db()
+                if change == "approved":
+                    log(request, Action.APPROVED_JOIN, club,
+                        f"{target.user.email} as {target.get_role_display().lower()}")
+                else:
+                    log(request, Action.TURNED_DOWN, club, target.user.email)
+        if change:
+            notifications.membership_decided(target, request, change)
+            name = target.user.get_full_name() or target.user.get_username()
+            messages.success(request, f"{name}: {membership_views.CHANGE_MESSAGES[change]}")
+    return redirect(reverse("races:operator_club", args=[club.pk]) + "#waiting")
+

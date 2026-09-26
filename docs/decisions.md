@@ -1436,6 +1436,27 @@ service and its database sit together rather than across the Atlantic.
 
 ---
 
+## 2026-09-26 - Slice 13: the operator may decide who's waiting to join a club
+
+**Decision.** An exception to slice 11's "clubs make their own membership
+decisions", agreed with the project owner:
+- the operator can approve (as member, race committee or club
+  administrator) or turn down anyone **waiting** to join a club, from the
+  club's operator page;
+- nothing more: changing roles and removing people stay the club's;
+- refused while the club is suspended;
+- recorded on the membership as "the Race Times operator" (the club sees
+  that, not a personal login), and in the operator log with the login;
+- no email to the club's administrators; the person's email comes from the
+  club as usual.
+
+**Why.** A new club before its administrator has joined, a club whose only
+administrator is away, and Demo Club in production would otherwise leave
+people waiting with nobody able to let them in, short of changing the
+database by hand.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

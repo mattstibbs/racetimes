@@ -347,3 +347,115 @@ def test_the_log_survives_the_club_and_the_account(client, operator):
     assert "Created a club" in page and "exesc" in page
     assert "old@example.com" in page and "gone" in page
     assert "Suspended a club" in client.get(reverse("races:operator_clubs"), **SERVICE).content.decode()
+
+
+# --- People waiting to join (slice 13) ----------------------------------------------------------
+
+
+def waiting_at(club, email="kim@example.com", first_name="Kim"):
+    person = make_member(email, first_name=first_name, last_name="Park", club=club, status="WAITING")
+    return person.memberships.get(club=club)
+
+
+def decide_joining(client, membership, action, role="MEMBER", host=SERVICE):
+    url = reverse("races:operator_decide_joining", args=[membership.club.pk, membership.pk])
+    return client.post(url, {"action": action, "role": role}, **host)
+
+
+def test_the_club_page_lists_only_that_clubs_people_waiting(client, operator):
+    demo, harbour = default_club(), make_club("harbour", "Harbour Sailing Club")
+    waiting_at(demo)
+    waiting_at(harbour, "bea@example.com", "Bea")
+    make_member("sam@example.com", first_name="Sam", club=demo)  # already a member
+    page = client.get(reverse("races:operator_club", args=[demo.pk]), **SERVICE).content.decode()
+    waiting = page.split('id="waiting"')[1].split('id="administrators"')[0]
+    assert "Waiting to join (1)" in page and "Kim Park" in waiting and "kim@example.com" in waiting
+    assert "Bea" not in waiting and "Sam" not in waiting
+
+
+@pytest.mark.parametrize("role", ["MEMBER", "COMMITTEE", "ADMINISTRATOR"])
+def test_approving_someone_waiting_as_any_role(client, operator, run_on_commit, role):
+    membership = waiting_at(default_club())
+    response = decide_joining(client, membership, "approve", role)
+    assert response["Location"].endswith(reverse("races:operator_club", args=[default_club().pk]) + "#waiting")
+    membership.refresh_from_db()
+    assert (membership.status, membership.role) == ("APPROVED", role)
+    assert membership.decided_by_name == "the Race Times operator" and membership.decided_at is not None
+    [action] = OperatorAction.objects.all()
+    assert (action.action, action.club_subdomain, action.who) == ("APPROVED_JOIN", "demo", "operator@example.com")
+    assert action.detail.startswith("kim@example.com as ")
+
+
+def test_the_person_is_emailed_from_the_club_with_links_to_the_club(client, operator, run_on_commit):
+    decide_joining(client, waiting_at(default_club()), "approve")
+    [message] = mail.outbox
+    assert message.to == ["kim@example.com"] and message.subject == "Welcome to Demo Club on Race Times"
+    assert "Demo Club via Race Times" in message.from_email
+    assert "http://demo.localhost/my/boats/" in message.body
+    assert "http://localhost/my" not in message.body  # not the service's own address
+
+
+def test_turning_someone_down(client, operator, run_on_commit):
+    membership = waiting_at(default_club())
+    page = client.get(reverse("races:operator_club", args=[default_club().pk]), **SERVICE)
+    assert "Don&#x27;t approve" in page.content.decode() or "Don't approve" in page.content.decode()
+    decide_joining(client, membership, "reject")
+    membership.refresh_from_db()
+    assert membership.status == "REMOVED" and mail.outbox[0].subject == "Your request to join Demo Club"
+    assert OperatorAction.objects.get().action == "TURNED_DOWN"
+
+
+def test_only_people_waiting_never_a_role_change_or_removal(client, operator, run_on_commit):
+    member = make_member("sam@example.com", club=default_club()).memberships.get()
+    for action, role in (("role", "COMMITTEE"), ("remove", ""), ("approve", "ADMINISTRATOR")):
+        decide_joining(client, member, action, role)
+    member.refresh_from_db()
+    assert (member.status, member.role) == ("APPROVED", "MEMBER")
+    waiting = waiting_at(default_club())
+    decide_joining(client, waiting, "remove")
+    waiting.refresh_from_db()
+    assert waiting.status == "WAITING" and not mail.outbox and not OperatorAction.objects.exists()
+
+
+def test_another_clubs_membership_isnt_reached_through_this_club(client, operator, run_on_commit):
+    harbour = make_club("harbour", "Harbour Sailing Club")
+    theirs = waiting_at(harbour, "bea@example.com", "Bea")
+    url = reverse("races:operator_decide_joining", args=[default_club().pk, theirs.pk])
+    assert client.post(url, {"action": "approve", "role": "MEMBER"}, **SERVICE).status_code == 404
+    theirs.refresh_from_db()
+    assert theirs.status == "WAITING"
+
+
+def test_not_while_the_club_is_suspended(client, operator, run_on_commit):
+    club = default_club()
+    club.status = Club.Status.SUSPENDED
+    club.save()
+    membership = waiting_at(club)
+    response = decide_joining(client, membership, "approve")
+    page = client.get(response["Location"], **SERVICE).content.decode()
+    assert "Reactivate the club first" in page
+    membership.refresh_from_db()
+    assert membership.status == "WAITING" and not mail.outbox and not OperatorAction.objects.exists()
+
+
+def test_only_the_operator_on_the_services_own_address(client, run_on_commit):
+    membership = waiting_at(default_club())
+    for person, expected in ((make_administrator(), 403), (make_member("m@example.com"), 403)):
+        client.force_login(person)
+        assert decide_joining(client, membership, "approve").status_code == expected
+    client.logout()
+    assert decide_joining(client, membership, "approve")["Location"].startswith(reverse("admin:login"))
+    client.force_login(make_operator())
+    assert decide_joining(client, membership, "approve", host=at("demo")).status_code == 404
+    membership.refresh_from_db()
+    assert membership.status == "WAITING"
+
+
+def test_the_club_sees_the_operator_approved_them(client, settings, run_on_commit):
+    membership = waiting_at(default_club())
+    client.force_login(make_operator())
+    decide_joining(client, membership, "approve")
+    client.force_login(make_administrator())
+    page = client.get(reverse("races:members"), **at("demo")).content.decode()
+    row = page.split(f'id="member-{membership.pk}"')[1].split("</tr>")[0]
+    assert "Approved by the Race Times operator" in row
