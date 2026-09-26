@@ -39,7 +39,9 @@ def run_on_commit(monkeypatch):
     """Use as ``with run_on_commit():`` around anything that sends email."""
     from contextlib import nullcontext
 
-    monkeypatch.setattr(notifications.transaction, "on_commit", lambda func, *a, **kw: func())
+    monkeypatch.setattr(
+        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
+    )
     return nullcontext
 
 
@@ -58,20 +60,31 @@ def club():
     series = make_series("Autumn 2026 Series")
     kittiwake = make_boat("GBR42", name="Kittiwake", base_number="0.805", owner=pat)
     puffin = make_boat("GBR77", name="Puffin", base_number="0.842", owner=sam)
-    visitor = make_boat("GBR7", name="Tern", base_number="0.900", owner_name="M. Visitor")
+    visitor = make_boat(
+        "GBR7", name="Tern", base_number="0.900", owner_name="M. Visitor"
+    )
     entries = [enter(series, boat) for boat in (kittiwake, puffin, visitor)]
     elsewhere = make_member("jo@example.com")
     enter(make_series("Other"), make_boat("GBR99", owner=elsewhere))
     race = make_race(series, 1, start="18:30:00")
     for entry, finish in zip(entries, ["19:31:12", "19:40:05", "19:28:40"]):
         record(race, entry, finish)
-    return {"series": series, "race": race, "entries": entries, "pat": pat, "sam": sam,
-            "kittiwake": kittiwake, "puffin": puffin}
+    return {
+        "series": series,
+        "race": race,
+        "entries": entries,
+        "pat": pat,
+        "sam": sam,
+        "kittiwake": kittiwake,
+        "puffin": puffin,
+    }
 
 
 def publish(client, race, send=None):
     data = {"send": send} if send else {}
-    return client.post(reverse("races:publish_results", args=[race.pk]), data, follow=True)
+    return client.post(
+        reverse("races:publish_results", args=[race.pk]), data, follow=True
+    )
 
 
 def recipients():
@@ -82,10 +95,14 @@ def recipients():
 
 
 def test_an_unpublished_race_is_labelled_provisional(client, club):
-    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
+    page = client.get(
+        reverse("results:series", args=[club["series"].pk])
+    ).content.decode()
     assert "Provisional" in page
     Race.objects.update(published_at=timezone.now())
-    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
+    page = client.get(
+        reverse("results:series", args=[club["series"].pk])
+    ).content.decode()
     assert "Provisional" not in page
 
 
@@ -94,7 +111,9 @@ def results_page(client, series):
 
 
 def test_a_provisional_race_explains_what_that_means(client, club):
-    assert "may still change until the race committee publishes them" in results_page(client, club["series"])
+    assert "may still change until the race committee publishes them" in results_page(
+        client, club["series"]
+    )
 
 
 def test_a_published_race_says_when(client, club):
@@ -109,10 +128,15 @@ def test_a_published_race_corrected_since_says_the_update_is_unsent(client, publ
     correct(client, published["race"], published["entries"][0], "19:32:00")
     page = results_page(client, published["series"])
     assert "Published " in page
-    assert "Amended since published; the race committee has not yet sent the updated results." in page
+    assert (
+        "Amended since published; the race committee has not yet sent the updated results."
+        in page
+    )
 
 
-def test_the_amended_since_published_note_goes_once_the_update_is_sent(client, published):
+def test_the_amended_since_published_note_goes_once_the_update_is_sent(
+    client, published
+):
     correct(client, published["race"], published["entries"][0], "19:32:00")
     publish(client, published["race"], send="updated")
     page = results_page(client, published["series"])
@@ -130,14 +154,18 @@ def test_an_unpublished_correction_keeps_the_plain_amended_note(client, club):
 
 def test_a_race_with_nothing_recorded_is_not_labelled_provisional(client, club):
     make_race(club["series"], 2)
-    page = client.get(reverse("results:series", args=[club["series"].pk])).content.decode()
+    page = client.get(
+        reverse("results:series", args=[club["series"].pk])
+    ).content.decode()
     assert page.count("Provisional") == 1  # race 1 only
 
 
 # --- Publishing emails the owners in the series, and nobody else ---------------
 
 
-def test_publishing_emails_each_owner_in_the_series(client, committee, club, run_on_commit):
+def test_publishing_emails_each_owner_in_the_series(
+    client, committee, club, run_on_commit
+):
     with run_on_commit():
         response = publish(client, club["race"])
     assert recipients() == ["pat@example.com", "sam@example.com"]
@@ -153,14 +181,21 @@ def test_each_owner_gets_their_own_email(client, committee, club, run_on_commit)
     assert not any(message.cc or message.bcc for message in mail.outbox)
 
 
-def test_the_results_email_has_the_results_and_a_link(client, committee, club, run_on_commit):
+def test_the_results_email_has_the_results_and_a_link(
+    client, committee, club, run_on_commit
+):
     with run_on_commit():
         publish(client, club["race"])
     message = next(m for m in mail.outbox if m.to == ["pat@example.com"])
     assert message.subject == "Results: Autumn 2026 Series, race 1"
     assert "Hello Pat" in message.body
-    for text in ["Kittiwake (GBR42)", "Puffin (GBR77)", "Tern (GBR7)", "Series standings",
-                 reverse("results:series", args=[club["series"].pk])]:
+    for text in [
+        "Kittiwake (GBR42)",
+        "Puffin (GBR77)",
+        "Tern (GBR7)",
+        "Series standings",
+        reverse("results:series", args=[club["series"].pk]),
+    ]:
         assert text in message.body
     assert "&amp;" not in message.body and "&#x27;" not in message.body
 
@@ -172,14 +207,18 @@ def test_an_owner_with_two_boats_gets_one_email(client, committee, club, run_on_
     assert recipients() == ["pat@example.com", "sam@example.com"]
 
 
-def test_waiting_and_deactivated_owners_get_nothing(client, committee, club, run_on_commit):
+def test_waiting_and_deactivated_owners_get_nothing(
+    client, committee, club, run_on_commit
+):
     get_user_model().objects.filter(pk=club["sam"].pk).update(is_active=False)
     with run_on_commit():
         publish(client, club["race"])
     assert recipients() == ["pat@example.com"]
 
 
-def test_a_race_with_nothing_to_publish_is_refused(client, committee, club, run_on_commit):
+def test_a_race_with_nothing_to_publish_is_refused(
+    client, committee, club, run_on_commit
+):
     race_2 = make_race(club["series"], 2)
     with run_on_commit():
         response = publish(client, race_2)
@@ -212,17 +251,25 @@ def correct(client, race, entry, finish_time, reason="Misread the sheet"):
     prefix = f"entry-{entry.pk}"
     return client.post(
         reverse("races:save_finish", args=[race.pk, entry.pk]),
-        {f"{prefix}-finish_time": finish_time, f"{prefix}-status": "FINISHED", f"{prefix}-reason": reason},
+        {
+            f"{prefix}-finish_time": finish_time,
+            f"{prefix}-status": "FINISHED",
+            f"{prefix}-reason": reason,
+        },
         HTTP_HX_REQUEST="true",
     )
 
 
-def test_a_correction_marks_the_race_amended_and_sends_nothing(client, published, run_on_commit):
+def test_a_correction_marks_the_race_amended_and_sends_nothing(
+    client, published, run_on_commit
+):
     race = published["race"]
     assert not publishing.amended_since_sent(race)
     with run_on_commit():
         response = correct(client, race, published["entries"][0], "19:32:00")
-    assert "Amended since results were sent" in response.content.decode()  # swapped in by HTMX
+    assert (
+        "Amended since results were sent" in response.content.decode()
+    )  # swapped in by HTMX
     race.refresh_from_db()
     assert publishing.amended_since_sent(race)
     assert not mail.outbox
@@ -234,13 +281,17 @@ def test_sending_updated_results(client, published, run_on_commit):
     with run_on_commit():
         response = publish(client, race, send="updated")
     assert "Updated results sent to 2 boat owners." in response.content.decode()
-    assert {m.subject for m in mail.outbox} == {"Updated results: Autumn 2026 Series, race 1"}
+    assert {m.subject for m in mail.outbox} == {
+        "Updated results: Autumn 2026 Series, race 1"
+    }
     assert "have been updated" in mail.outbox[0].body
     race.refresh_from_db()
     assert not publishing.amended_since_sent(race)
 
 
-def test_a_correction_to_an_earlier_race_amends_later_ones(client, published, run_on_commit):
+def test_a_correction_to_an_earlier_race_amends_later_ones(
+    client, published, run_on_commit
+):
     series, race_1 = published["series"], published["race"]
     race_2 = make_race(series, 2, start="18:30:00")
     record(race_2, published["entries"][0], "19:30:00")
@@ -262,8 +313,10 @@ def test_a_change_to_a_later_race_does_not_amend_an_earlier_one(client, publishe
 def test_a_series_setting_amends_every_race(client, published):
     admin = make_administrator()
     client.force_login(admin)
-    client.post(reverse("admin:races_series_change", args=[published["series"].pk]),
-                series_form(published["series"], discards="0", reason="Notice of race"))
+    client.post(
+        reverse("admin:races_series_change", args=[published["series"].pk]),
+        series_form(published["series"], discards="0", reason="Notice of race"),
+    )
     race = published["race"]
     race.refresh_from_db()
     assert publishing.amended_since_sent(race)
@@ -276,7 +329,10 @@ def test_a_series_setting_amends_every_race(client, published):
 def mail_server_down(monkeypatch):
     def fail(self, messages):
         raise ConnectionRefusedError("mail server unreachable")
-    monkeypatch.setattr("django.core.mail.backends.locmem.EmailBackend.send_messages", fail)
+
+    monkeypatch.setattr(
+        "django.core.mail.backends.locmem.EmailBackend.send_messages", fail
+    )
 
 
 def test_a_failed_send_keeps_the_publish_and_offers_to_retry(
@@ -293,12 +349,16 @@ def test_a_failed_send_keeps_the_publish_and_offers_to_retry(
     assert "Could not send" in caplog.text
 
 
-def test_a_rolled_back_change_sends_nothing(club, django_capture_on_commit_callbacks, rf):
+def test_a_rolled_back_change_sends_nothing(
+    club, django_capture_on_commit_callbacks, rf
+):
     request = rf.get("/")
     with django_capture_on_commit_callbacks(execute=True):
         try:
             with transaction.atomic():
-                notifications.membership_decided(club["pat"].memberships.get(), request, "approved")
+                notifications.membership_decided(
+                    club["pat"].memberships.get(), request, "approved"
+                )
                 raise RuntimeError("the change failed")
         except RuntimeError:
             pass
@@ -313,27 +373,48 @@ def test_a_rolled_back_change_sends_nothing(club, django_capture_on_commit_callb
 
 def decide(client, member_request, decision, reason="", note=""):
     kind = "entry" if isinstance(member_request, EntryRequest) else "boat"
-    return client.post(reverse("races:decide_request", args=[kind, member_request.pk]),
-                       {"decision": decision, "reason": reason, "note": note}, HTTP_HX_REQUEST="true")
+    return client.post(
+        reverse("races:decide_request", args=[kind, member_request.pk]),
+        {"decision": decision, "reason": reason, "note": note},
+        HTTP_HX_REQUEST="true",
+    )
 
 
-def test_an_approved_change_emails_what_changed_and_nothing_else(client, committee, club, run_on_commit):
+def test_an_approved_change_emails_what_changed_and_nothing_else(
+    client, committee, club, run_on_commit
+):
     boat = club["kittiwake"]
     values = {name: getattr(boat, name) for name in BoatRequest.PROPOSED_FIELDS}
-    request = BoatRequest.objects.create(club=default_club(), kind="CHANGE", boat=boat, requested_by=club["pat"],
-                                         **{**values, "name": "Kittiwake II"})
+    request = BoatRequest.objects.create(
+        club=default_club(),
+        kind="CHANGE",
+        boat=boat,
+        requested_by=club["pat"],
+        **{**values, "name": "Kittiwake II"},
+    )
     with run_on_commit():
         decide(client, request, "approve")
     [message] = mail.outbox  # no separate "boat updated" email
     assert message.to == ["pat@example.com"]
-    assert message.subject == "Approved: your request to change the details of Kittiwake (GBR42)"
+    assert (
+        message.subject
+        == "Approved: your request to change the details of Kittiwake (GBR42)"
+    )
     assert "Name: Kittiwake -> Kittiwake II" in message.body
     assert "Make:" not in message.body  # only what changed
 
 
-def test_an_approved_registration_lists_the_details(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
-                                         sail_number="GBR5", name="Gannet", base_number="0.880")
+def test_an_approved_registration_lists_the_details(
+    client, committee, club, run_on_commit
+):
+    request = BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        requested_by=club["sam"],
+        sail_number="GBR5",
+        name="Gannet",
+        base_number="0.880",
+    )
     with run_on_commit():
         decide(client, request, "approve")
     [message] = mail.outbox
@@ -341,27 +422,47 @@ def test_an_approved_registration_lists_the_details(client, committee, club, run
     assert "NHC base number: 0.880" in message.body
 
 
-def test_a_rejection_carries_the_committees_note(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
-                                         sail_number="GBR5", name="Gannet", base_number="0.880")
+def test_a_rejection_carries_the_committees_note(
+    client, committee, club, run_on_commit
+):
+    request = BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        requested_by=club["sam"],
+        sail_number="GBR5",
+        name="Gannet",
+        base_number="0.880",
+    )
     with run_on_commit():
-        decide(client, request, "reject", note="Base number does not match the RYA list")
+        decide(
+            client, request, "reject", note="Base number does not match the RYA list"
+        )
     [message] = mail.outbox
     assert message.subject.startswith("Not approved:")
     assert "Base number does not match the RYA list" in message.body
 
 
 def test_an_approved_entry_is_one_email(client, committee, club, run_on_commit):
-    request = EntryRequest.objects.create(series=make_series("Wednesdays"), boat=club["kittiwake"],
-                                          requested_by=club["pat"])
+    request = EntryRequest.objects.create(
+        series=make_series("Wednesdays"),
+        boat=club["kittiwake"],
+        requested_by=club["pat"],
+    )
     with run_on_commit():
         decide(client, request, "approve")
     [message] = mail.outbox  # the approval is the entry confirmation
-    assert message.subject == "Approved: your request to enter Kittiwake (GBR42) in Wednesdays"
+    assert (
+        message.subject
+        == "Approved: your request to enter Kittiwake (GBR42) in Wednesdays"
+    )
 
 
-def test_an_approved_claim_tells_the_previous_owner(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(club=default_club(), kind="CLAIM", boat=club["puffin"], requested_by=club["pat"])
+def test_an_approved_claim_tells_the_previous_owner(
+    client, committee, club, run_on_commit
+):
+    request = BoatRequest.objects.create(
+        club=default_club(), kind="CLAIM", boat=club["puffin"], requested_by=club["pat"]
+    )
     with run_on_commit():
         decide(client, request, "approve")
     by_recipient = {m.to[0]: m for m in mail.outbox}
@@ -370,8 +471,13 @@ def test_an_approved_claim_tells_the_previous_owner(client, committee, club, run
 
 
 def test_a_failed_decision_sends_nothing(client, committee, club, run_on_commit):
-    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=club["sam"],
-                                         sail_number="GBR5", base_number="0.880")
+    request = BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        requested_by=club["sam"],
+        sail_number="GBR5",
+        base_number="0.880",
+    )
     with run_on_commit():
         decide(client, request, "reject")  # no note: refused
     assert not mail.outbox
@@ -386,38 +492,57 @@ def admin_client(client):
     return client
 
 
-def test_a_committee_edit_emails_the_owner_what_changed(admin_client, club, run_on_commit):
+def test_a_committee_edit_emails_the_owner_what_changed(
+    admin_client, club, run_on_commit
+):
     boat = club["kittiwake"]
     with run_on_commit():
-        admin_client.post(reverse("admin:races_boat_change", args=[boat.pk]),
-                          boat_form(boat, name="Kittiwake II", owner=boat.owner_id))
+        admin_client.post(
+            reverse("admin:races_boat_change", args=[boat.pk]),
+            boat_form(boat, name="Kittiwake II", owner=boat.owner_id),
+        )
     [message] = mail.outbox
     assert message.to == ["pat@example.com"]
-    assert message.subject == "Your boat's details have been updated: Kittiwake II (GBR42)"
+    assert (
+        message.subject == "Your boat's details have been updated: Kittiwake II (GBR42)"
+    )
     assert "Name: Kittiwake -> Kittiwake II" in message.body
 
 
 def test_saving_a_boat_unchanged_sends_nothing(admin_client, club, run_on_commit):
     boat = club["kittiwake"]
     with run_on_commit():
-        admin_client.post(reverse("admin:races_boat_change", args=[boat.pk]),
-                          boat_form(boat, owner=boat.owner_id))
+        admin_client.post(
+            reverse("admin:races_boat_change", args=[boat.pk]),
+            boat_form(boat, owner=boat.owner_id),
+        )
     assert not mail.outbox
 
 
 def test_changing_the_owner_tells_both(admin_client, club, run_on_commit):
     boat = club["kittiwake"]
     with run_on_commit():
-        admin_client.post(reverse("admin:races_boat_change", args=[boat.pk]),
-                          boat_form(boat, owner=club["sam"].pk))
+        admin_client.post(
+            reverse("admin:races_boat_change", args=[boat.pk]),
+            boat_form(boat, owner=club["sam"].pk),
+        )
     assert recipients() == ["pat@example.com", "sam@example.com"]
 
 
-def test_a_boat_entered_in_the_admin_emails_its_owner(admin_client, club, run_on_commit):
+def test_a_boat_entered_in_the_admin_emails_its_owner(
+    admin_client, club, run_on_commit
+):
     series = make_series("Wednesdays")
     data = series_form(series)
-    data.update({"entries-TOTAL_FORMS": 2, "entries-0-boat": club["kittiwake"].pk, "entries-0-series": series.pk,
-                 "entries-1-boat": club["entries"][2].boat_id, "entries-1-series": series.pk})
+    data.update(
+        {
+            "entries-TOTAL_FORMS": 2,
+            "entries-0-boat": club["kittiwake"].pk,
+            "entries-0-series": series.pk,
+            "entries-1-boat": club["entries"][2].boat_id,
+            "entries-1-series": series.pk,
+        }
+    )
     with run_on_commit():
         admin_client.post(reverse("admin:races_series_change", args=[series.pk]), data)
     [message] = mail.outbox  # the visitor's boat has no owner to tell
@@ -429,31 +554,48 @@ def test_a_boat_entered_in_the_admin_emails_its_owner(admin_client, club, run_on
 
 
 def test_password_reset_emails_a_working_link(client, club, run_on_commit):
-    club["pat"].set_password("the-old-password-123")  # every member sets one when signing up
+    club["pat"].set_password(
+        "the-old-password-123"
+    )  # every member sets one when signing up
     club["pat"].save()
     with run_on_commit():
-        response = client.post(reverse("races:password_reset"), {"email": "PAT@example.com"}, follow=True)
+        response = client.post(
+            reverse("races:password_reset"), {"email": "PAT@example.com"}, follow=True
+        )
     assert "Check your email" in response.content.decode()
     [message] = mail.outbox
     assert message.subject == "Reset your Race Times password"
-    link = next(line for line in message.body.splitlines() if "/accounts/password-reset/" in line).strip()
+    link = next(
+        line
+        for line in message.body.splitlines()
+        if "/accounts/password-reset/" in line
+    ).strip()
     page = client.get(link, follow=True)
     new = "a-brand-new-sailing-password"
-    client.post(page.redirect_chain[-1][0], {"new_password1": new, "new_password2": new})
+    client.post(
+        page.redirect_chain[-1][0], {"new_password1": new, "new_password2": new}
+    )
     club["pat"].refresh_from_db()
     assert club["pat"].check_password(new)
 
 
 @pytest.mark.parametrize("email", ["nobody@example.com", "waiting@example.com"])
-def test_password_reset_does_not_reveal_who_has_an_account(client, email, run_on_commit):
+def test_password_reset_does_not_reveal_who_has_an_account(
+    client, email, run_on_commit
+):
     waiting = make_member("waiting@example.com", is_active=False)
     waiting.set_password("a-password-at-sign-up")
     waiting.save()
     with run_on_commit():
-        response = client.post(reverse("races:password_reset"), {"email": email}, follow=True)
+        response = client.post(
+            reverse("races:password_reset"), {"email": email}, follow=True
+        )
     assert "Check your email" in response.content.decode()
     assert not mail.outbox
 
 
 def test_the_login_page_links_to_password_reset(client):
-    assert reverse("races:password_reset") in client.get(reverse("races:login")).content.decode()
+    assert (
+        reverse("races:password_reset")
+        in client.get(reverse("races:login")).content.decode()
+    )

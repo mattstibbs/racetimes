@@ -44,11 +44,24 @@ def race_day():
     pat = make_member("pat@example.com", first_name="Pat")
     gone = make_member("gone@example.com", is_active=False)
     series = make_series("Autumn 2026")
-    kittiwake = enter(series, make_boat("GBR42", name="Kittiwake", base_number="0.805", owner=pat))
-    puffin = enter(series, make_boat("GBR77", name="Puffin", base_number="0.842", owner=gone))
-    tern = enter(series, make_boat("GBR7", name="Tern", base_number="0.900", owner_name="M. Visitor"))
+    kittiwake = enter(
+        series, make_boat("GBR42", name="Kittiwake", base_number="0.805", owner=pat)
+    )
+    puffin = enter(
+        series, make_boat("GBR77", name="Puffin", base_number="0.842", owner=gone)
+    )
+    tern = enter(
+        series,
+        make_boat("GBR7", name="Tern", base_number="0.900", owner_name="M. Visitor"),
+    )
     race = make_race(series, 1, start="18:30:00")
-    return {"series": series, "race": race, "kittiwake": kittiwake, "puffin": puffin, "tern": tern}
+    return {
+        "series": series,
+        "race": race,
+        "kittiwake": kittiwake,
+        "puffin": puffin,
+        "tern": tern,
+    }
 
 
 def row_url(race, entry):
@@ -70,13 +83,19 @@ def on_sheet(race):
 
 def finish_row(entry, finish_time="", status="FINISHED", reason=""):
     prefix = f"entry-{entry.pk}"
-    return {f"{prefix}-finish_time": finish_time, f"{prefix}-status": status, f"{prefix}-reason": reason}
+    return {
+        f"{prefix}-finish_time": finish_time,
+        f"{prefix}-status": status,
+        f"{prefix}-reason": reason,
+    }
 
 
 # --- The committee keeps the start sheet, one row at a time ----------------------
 
 
-def test_ticking_a_boat_puts_it_on_the_start_sheet(client, committee, race_day, run_on_commit):
+def test_ticking_a_boat_puts_it_on_the_start_sheet(
+    client, committee, race_day, run_on_commit
+):
     race, kittiwake = race_day["race"], race_day["kittiwake"]
     with run_on_commit():
         response = tick(client, race, kittiwake, persons="4")
@@ -99,18 +118,29 @@ def test_unticking_a_boat_takes_it_off(client, committee, race_day, run_on_commi
     assert on_sheet(race) == []
 
 
-def test_unticking_ignores_whatever_is_left_in_persons_on_board(client, committee, race_day):
+def test_unticking_ignores_whatever_is_left_in_persons_on_board(
+    client, committee, race_day
+):
     race, tern = race_day["race"], race_day["tern"]
     start(race, tern, persons_on_board=3)
-    assert "Taken off" in tick(client, race, tern, racing=False, persons="3").content.decode()
-    assert "Saved; nothing changed." in tick(client, race, tern, racing=False, persons="0").content.decode()
+    assert (
+        "Taken off"
+        in tick(client, race, tern, racing=False, persons="3").content.decode()
+    )
+    assert (
+        "Saved; nothing changed."
+        in tick(client, race, tern, racing=False, persons="0").content.decode()
+    )
     assert on_sheet(race) == []
 
 
 def test_persons_on_board_can_be_changed_and_cleared(client, committee, race_day):
     race, tern = race_day["race"], race_day["tern"]
     start(race, tern, persons_on_board=3)
-    assert "Persons on board saved." in tick(client, race, tern, persons="5").content.decode()
+    assert (
+        "Persons on board saved."
+        in tick(client, race, tern, persons="5").content.decode()
+    )
     assert RaceEntry.objects.get().persons_on_board == 5
     tick(client, race, tern, persons="")
     assert RaceEntry.objects.get().persons_on_board is None
@@ -124,7 +154,9 @@ def test_persons_on_board_can_be_changed_and_cleared(client, committee, race_day
         (True, "two", "Enter a whole number"),
     ],
 )
-def test_an_invalid_row_is_refused_and_saves_nothing(client, committee, race_day, racing, persons, error):
+def test_an_invalid_row_is_refused_and_saves_nothing(
+    client, committee, race_day, racing, persons, error
+):
     race, tern, kittiwake = race_day["race"], race_day["tern"], race_day["kittiwake"]
     start(race, kittiwake, persons_on_board=2)
     response = tick(client, race, tern, racing=racing, persons=persons)
@@ -135,14 +167,21 @@ def test_an_invalid_row_is_refused_and_saves_nothing(client, committee, race_day
     assert RaceEntry.objects.get().persons_on_board == 2
 
 
-def test_without_htmx_a_row_saves_and_returns_to_the_page(client, committee, race_day, run_on_commit):
+def test_without_htmx_a_row_saves_and_returns_to_the_page(
+    client, committee, race_day, run_on_commit
+):
     race, tern = race_day["race"], race_day["tern"]
     response = tick(client, race, tern, htmx=False)
     assert response.status_code == 302
-    assert response["Location"] == (reverse("races:race_day", args=[race.pk]) + "?view=start")
+    assert response["Location"] == (
+        reverse("races:race_day", args=[race.pk]) + "?view=start"
+    )
     assert on_sheet(race) == ["GBR7"]
     page = client.get(response["Location"]).content.decode()
-    assert "GBR7 Tern: Added to the start sheet. No email: the boat has no owner account." in page
+    assert (
+        "GBR7 Tern: Added to the start sheet. No email: the boat has no owner account."
+        in page
+    )
 
 
 def test_without_htmx_an_invalid_row_redisplays_the_page(client, committee, race_day):
@@ -156,12 +195,14 @@ def test_without_htmx_an_invalid_row_redisplays_the_page(client, committee, race
 def test_the_page_lists_every_boat_in_the_series(client, committee, race_day):
     race = race_day["race"]
     start(race, race_day["puffin"], persons_on_board=6)
-    page = client.get(reverse("races:race_day", args=[race.pk]) + "?view=start").content.decode()
+    page = client.get(
+        reverse("races:race_day", args=[race.pk]) + "?view=start"
+    ).content.decode()
     for entry in ("kittiwake", "puffin", "tern"):
         assert row_url(race, race_day[entry]) in page
     assert "1 of 3 boats racing" in page
     assert 'value="6"' in page
-    assert 'checked' in page
+    assert "checked" in page
     # The committee knows which owners it has to tell itself.
     assert page.count("No email: no owner account.") == 2
 
@@ -179,7 +220,9 @@ def test_saving_needs_post(client, committee, race_day):
 
 
 def test_a_finish_for_a_boat_not_on_the_start_sheet_is_refused(race_day):
-    finish = Finish(race=race_day["race"], entry=race_day["tern"], finish_time=time(19, 30))
+    finish = Finish(
+        race=race_day["race"], entry=race_day["tern"], finish_time=time(19, 30)
+    )
     with pytest.raises(ValidationError) as caught:
         finish.full_clean()
     assert "not on the race's start sheet" in str(caught.value)
@@ -195,11 +238,17 @@ def test_the_finish_page_refuses_a_boat_not_racing(client, committee, race_day):
     assert not Finish.objects.exists()
 
 
-def test_the_finish_page_only_offers_boats_on_the_start_sheet(client, committee, race_day):
+def test_the_finish_page_only_offers_boats_on_the_start_sheet(
+    client, committee, race_day
+):
     race = race_day["race"]
     start(race, race_day["kittiwake"], persons_on_board=4)
-    page = client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").content.decode()
-    assert reverse("races:save_finish", args=[race.pk, race_day["kittiwake"].pk]) in page
+    page = client.get(
+        reverse("races:race_day", args=[race.pk]) + "?view=finish"
+    ).content.decode()
+    assert (
+        reverse("races:save_finish", args=[race.pk, race_day["kittiwake"].pk]) in page
+    )
     assert reverse("races:save_finish", args=[race.pk, race_day["tern"].pk]) not in page
     assert "Not racing (scored DNC): 2 boats" in page
     assert "4 on board" in page
@@ -207,7 +256,9 @@ def test_the_finish_page_only_offers_boats_on_the_start_sheet(client, committee,
 
 
 def test_an_empty_start_sheet_says_where_to_start(client, committee, race_day):
-    page = client.get(reverse("races:race_day", args=[race_day["race"].pk]) + "?view=finish").content.decode()
+    page = client.get(
+        reverse("races:race_day", args=[race_day["race"].pk]) + "?view=finish"
+    ).content.decode()
     assert "No boats are on the" in page
 
 
@@ -220,7 +271,9 @@ def test_a_boat_with_a_result_cannot_be_taken_off(client, committee, race_day):
     assert "correct its result to DNC" in html
     assert "checked" in html and 'value="2"' in html  # shown as it really is
     assert on_sheet(race) == ["GBR7"]
-    page = client.post(row_url(race, tern), {}, follow=False)  # without HTMX: the page, with the error
+    page = client.post(
+        row_url(race, tern), {}, follow=False
+    )  # without HTMX: the page, with the error
     assert "has a result recorded" in page.content.decode()
     # Saving the row without unticking it is still fine.
     assert "has-errors" not in tick(client, race, tern).content.decode()
@@ -230,7 +283,11 @@ def test_a_boat_with_a_result_cannot_be_taken_off(client, committee, race_day):
 
 
 def test_the_migration_puts_every_boat_with_a_finish_on_its_start_sheet(race_day):
-    race, kittiwake, puffin = race_day["race"], race_day["kittiwake"], race_day["puffin"]
+    race, kittiwake, puffin = (
+        race_day["race"],
+        race_day["kittiwake"],
+        race_day["puffin"],
+    )
     race_2 = make_race(race_day["series"], 2, start="18:30:00")
     record(race, kittiwake, "19:31:12")
     record(race, puffin, status=Finish.Status.DNF)
@@ -238,7 +295,9 @@ def test_the_migration_puts_every_boat_with_a_finish_on_its_start_sheet(race_day
     before = score_series(race_day["series"])
     RaceEntry.objects.all().delete()  # as the database was before slice 6
 
-    migration = importlib.import_module("races.migrations.0008_start_sheets_for_past_races")
+    migration = importlib.import_module(
+        "races.migrations.0008_start_sheets_for_past_races"
+    )
     migration.fill_start_sheets(apps, None)
 
     assert on_sheet(race) == ["GBR42", "GBR77"]
@@ -252,8 +311,15 @@ def _scores(results):
     """Everything a result page shows: positions, points, times and handicaps."""
     return (
         [
-            (row.entry.pk, row.result.position, row.result.status, row.result.points,
-             row.result.corrected_time, row.result.tcf_used, row.result.effective_next_tcf)
+            (
+                row.entry.pk,
+                row.result.position,
+                row.result.status,
+                row.result.points,
+                row.result.corrected_time,
+                row.result.tcf_used,
+                row.result.effective_next_tcf,
+            )
             for race in results.races
             for row in race.rows
         ],
@@ -304,8 +370,10 @@ def test_public_pages_show_not_recorded(client, sailed, page):
 
 def test_the_finish_page_says_not_recorded_yet(client, committee, sailed):
     # Slice 9: a boat with nothing recorded is listed under "Still racing".
-    page = client.get(reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish").content.decode()
-    still_racing = page[page.index('id="still-racing"'):page.index('id="finished"')]
+    page = client.get(
+        reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish"
+    ).content.decode()
+    still_racing = page[page.index('id="still-racing"') : page.index('id="finished"')]
     assert "Still racing (1)" in still_racing and "GBR7" in still_racing
 
 
@@ -314,17 +382,26 @@ def test_the_finish_page_says_not_recorded_yet(client, committee, sailed):
 
 def publish(client, race, send=None):
     data = {"send": send} if send else {}
-    return client.post(reverse("races:publish_results", args=[race.pk]), data, follow=True)
+    return client.post(
+        reverse("races:publish_results", args=[race.pk]), data, follow=True
+    )
 
 
-def test_publishing_is_refused_while_a_boat_is_not_recorded(client, committee, sailed, run_on_commit):
+def test_publishing_is_refused_while_a_boat_is_not_recorded(
+    client, committee, sailed, run_on_commit
+):
     race = sailed["race"]
-    page = client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").content.decode()
+    page = client.get(
+        reverse("races:race_day", args=[race.pk]) + "?view=finish"
+    ).content.decode()
     assert "Still to record: GBR7 Tern." in page
     assert "Publish results</button>" not in page
     with run_on_commit():
         html = publish(client, race).content.decode()
-    assert "Not sent: record a time or a code for every boat on the start sheet first." in html
+    assert (
+        "Not sent: record a time or a code for every boat on the start sheet first."
+        in html
+    )
     assert "Still to record: GBR7 Tern." in html
     assert Race.objects.get(pk=race.pk).published_at is None
     assert not mail.outbox
@@ -335,12 +412,16 @@ def test_publishing_is_refused_while_a_boat_is_not_recorded(client, committee, s
     assert "Results published and sent" in html
 
 
-def test_a_boat_added_after_publishing_blocks_updated_results(client, committee, sailed, run_on_commit):
+def test_a_boat_added_after_publishing_blocks_updated_results(
+    client, committee, sailed, run_on_commit
+):
     race, tern = sailed["race"], sailed["tern"]
     record(race, tern, status=Finish.Status.DNF)
     with run_on_commit():
         publish(client, race)
-    visitor = enter(sailed["series"], make_boat("GBR8", name="Gannet"))  # forgotten on the day
+    visitor = enter(
+        sailed["series"], make_boat("GBR8", name="Gannet")
+    )  # forgotten on the day
     start(race, visitor)
     mail.outbox.clear()
     with run_on_commit():
@@ -353,7 +434,9 @@ def test_a_boat_added_after_publishing_blocks_updated_results(client, committee,
     url = reverse("races:save_finish", args=[race.pk, visitor.pk])
     client.post(url, finish_row(visitor, "19:35:00"), HTTP_HX_REQUEST="true")
     assert Finish.objects.filter(entry=visitor).exists()
-    page = client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").content.decode()
+    page = client.get(
+        reverse("races:race_day", args=[race.pk]) + "?view=finish"
+    ).content.decode()
     assert "Amended since results were sent" in page
     with run_on_commit():
         html = publish(client, race, send="updated").content.decode()
@@ -363,7 +446,9 @@ def test_a_boat_added_after_publishing_blocks_updated_results(client, committee,
 # --- The emails ------------------------------------------------------------------------
 
 
-def test_the_owner_is_told_when_their_boat_is_put_on(client, committee, race_day, run_on_commit):
+def test_the_owner_is_told_when_their_boat_is_put_on(
+    client, committee, race_day, run_on_commit
+):
     race, kittiwake = race_day["race"], race_day["kittiwake"]
     with run_on_commit():
         tick(client, race, kittiwake)
@@ -374,7 +459,9 @@ def test_the_owner_is_told_when_their_boat_is_put_on(client, committee, race_day
     assert f"/series/{race.series.pk}/?race=1" in message.body
 
 
-def test_saving_a_row_again_sends_nothing_more(client, committee, race_day, run_on_commit):
+def test_saving_a_row_again_sends_nothing_more(
+    client, committee, race_day, run_on_commit
+):
     race, kittiwake = race_day["race"], race_day["kittiwake"]
     with run_on_commit():
         tick(client, race, kittiwake)
@@ -383,7 +470,9 @@ def test_saving_a_row_again_sends_nothing_more(client, committee, race_day, run_
     assert len(mail.outbox) == 1
 
 
-def test_taking_a_boat_off_and_back_on_sends_each_email(client, committee, race_day, run_on_commit):
+def test_taking_a_boat_off_and_back_on_sends_each_email(
+    client, committee, race_day, run_on_commit
+):
     race, kittiwake = race_day["race"], race_day["kittiwake"]
     with run_on_commit():
         tick(client, race, kittiwake)
@@ -397,16 +486,25 @@ def test_taking_a_boat_off_and_back_on_sends_each_email(client, committee, race_
     assert "It is scored DNC" in mail.outbox[1].body
 
 
-def test_a_boat_added_after_the_race_still_gets_its_email(client, committee, sailed, run_on_commit):
-    visitor = enter(sailed["series"], make_boat("GBR8", name="Gannet", owner=make_member("g@example.com")))
+def test_a_boat_added_after_the_race_still_gets_its_email(
+    client, committee, sailed, run_on_commit
+):
+    visitor = enter(
+        sailed["series"],
+        make_boat("GBR8", name="Gannet", owner=make_member("g@example.com")),
+    )
     with run_on_commit():
         tick(client, sailed["race"], visitor)
     [message] = mail.outbox
     assert message.subject == "Gannet (GBR8) is entered in race 1 of Autumn 2026"
 
 
-@pytest.mark.parametrize("entry", ["puffin", "tern"])  # an inactive account, and no account
-def test_only_an_active_owner_account_is_emailed(client, committee, race_day, run_on_commit, entry):
+@pytest.mark.parametrize(
+    "entry", ["puffin", "tern"]
+)  # an inactive account, and no account
+def test_only_an_active_owner_account_is_emailed(
+    client, committee, race_day, run_on_commit, entry
+):
     race = race_day["race"]
     with run_on_commit():
         html = tick(client, race, race_day[entry]).content.decode()
@@ -415,13 +513,20 @@ def test_only_an_active_owner_account_is_emailed(client, committee, race_day, ru
     assert "No email: the boat has no owner account." in html
 
 
-def test_a_rolled_back_change_sends_nothing(race_day, django_capture_on_commit_callbacks, rf):
+def test_a_rolled_back_change_sends_nothing(
+    race_day, django_capture_on_commit_callbacks, rf
+):
     request = rf.get("/")
     with django_capture_on_commit_callbacks(execute=True):
         try:
             with transaction.atomic():
-                start_sheet.save_row(race_day["race"], race_day["kittiwake"], racing=True,
-                                     persons_on_board=None, request=request)
+                start_sheet.save_row(
+                    race_day["race"],
+                    race_day["kittiwake"],
+                    racing=True,
+                    persons_on_board=None,
+                    request=request,
+                )
                 raise RuntimeError("the change failed")
         except RuntimeError:
             pass
@@ -433,7 +538,10 @@ def test_a_rolled_back_change_sends_nothing(race_day, django_capture_on_commit_c
 def mail_server_down(monkeypatch):
     def fail(self, messages):
         raise ConnectionRefusedError("mail server unreachable")
-    monkeypatch.setattr("django.core.mail.backends.locmem.EmailBackend.send_messages", fail)
+
+    monkeypatch.setattr(
+        "django.core.mail.backends.locmem.EmailBackend.send_messages", fail
+    )
 
 
 def test_a_failed_send_keeps_the_boat_on_and_says_so(
@@ -448,16 +556,24 @@ def test_a_failed_send_keeps_the_boat_on_and_says_so(
     assert "Could not send" in caplog.text
 
 
-def test_removing_a_boat_from_a_series_tells_the_owner_once(client, race_day, run_on_commit):
+def test_removing_a_boat_from_a_series_tells_the_owner_once(
+    client, race_day, run_on_commit
+):
     client.force_login(make_administrator())
-    series, race, kittiwake = race_day["series"], race_day["race"], race_day["kittiwake"]
+    series, race, kittiwake = (
+        race_day["series"],
+        race_day["race"],
+        race_day["kittiwake"],
+    )
     start(race, kittiwake)
     start(make_race(series, 2), kittiwake)
     data = series_form(series)
     index = next(i for i in range(3) if data[f"entries-{i}-id"] == kittiwake.pk)
     data[f"entries-{index}-DELETE"] = "on"
     with run_on_commit():
-        response = client.post(reverse("admin:races_series_change", args=[series.pk]), data)
+        response = client.post(
+            reverse("admin:races_series_change", args=[series.pk]), data
+        )
     assert response.status_code == 302
     [message] = mail.outbox  # one email, not one per start sheet as well
     assert message.to == ["pat@example.com"]
@@ -466,14 +582,20 @@ def test_removing_a_boat_from_a_series_tells_the_owner_once(client, race_day, ru
     assert not RaceEntry.objects.exists()
 
 
-def test_a_boat_with_results_still_cannot_leave_the_series(client, sailed, run_on_commit):
+def test_a_boat_with_results_still_cannot_leave_the_series(
+    client, sailed, run_on_commit
+):
     client.force_login(make_administrator())
     series = sailed["series"]
     data = series_form(series, reason="Left the club")
-    index = next(i for i in range(3) if data[f"entries-{i}-id"] == sailed["kittiwake"].pk)
+    index = next(
+        i for i in range(3) if data[f"entries-{i}-id"] == sailed["kittiwake"].pk
+    )
     data[f"entries-{index}-DELETE"] = "on"
     with run_on_commit():
-        response = client.post(reverse("admin:races_series_change", args=[series.pk]), data)
+        response = client.post(
+            reverse("admin:races_series_change", args=[series.pk]), data
+        )
     assert "cannot be removed from this series" in response.content.decode()
     assert not mail.outbox
 
@@ -492,14 +614,18 @@ def test_persons_on_board_is_on_no_public_page(client, sailed):
         html = client.get(url).content.decode()
         assert marker not in html and "on board" not in html, url
     client.force_login(make_administrator())
-    committee_page = client.get(reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish").content.decode()
+    committee_page = client.get(
+        reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish"
+    ).content.decode()
     assert marker in committee_page
 
 
 # --- The change history is untouched --------------------------------------------------
 
 
-def test_start_sheet_changes_are_not_in_the_history(client, committee, sailed, run_on_commit):
+def test_start_sheet_changes_are_not_in_the_history(
+    client, committee, sailed, run_on_commit
+):
     race = sailed["race"]
     record(race, sailed["tern"], status=Finish.Status.DNF)
     with run_on_commit():
@@ -510,7 +636,9 @@ def test_start_sheet_changes_are_not_in_the_history(client, committee, sailed, r
     tick(client, race, visitor, persons="2")
     tick(client, race, visitor, racing=False)
     assert ScoringChange.objects.count() == changes
-    page = client.get(reverse("races:race_day", args=[race.pk]) + "?view=finish").content.decode()
+    page = client.get(
+        reverse("races:race_day", args=[race.pk]) + "?view=finish"
+    ).content.decode()
     assert "Amended since results were sent" not in page
 
 
@@ -526,7 +654,9 @@ def test_one_row_per_boat_per_race(race_day):
 @pytest.mark.parametrize("persons", [0, 100])
 def test_persons_on_board_is_between_1_and_99(race_day, persons):
     with pytest.raises(IntegrityError):
-        RaceEntry.objects.create(race=race_day["race"], entry=race_day["tern"], persons_on_board=persons)
+        RaceEntry.objects.create(
+            race=race_day["race"], entry=race_day["tern"], persons_on_board=persons
+        )
 
 
 def test_a_boat_from_another_series_is_refused_by_the_model(race_day):

@@ -88,7 +88,12 @@ def test_later_races_rate_over_performance_down_harder_than_under_performance_up
 def test_the_blend_is_always_tcf_plus_weight_times_the_gap(first):
     """TCFn = TCF + w x (TCFr - TCF), whichever w applies."""
     results = by_id(
-        regatta(entry("A", 0.95, 3600), entry("B", 1.05, 4000), entry("C", 1.0, 3800), first=first)
+        regatta(
+            entry("A", 0.95, 3600),
+            entry("B", 1.05, 4000),
+            entry("C", 1.0, 3800),
+            first=first,
+        )
     )
     for result in results.values():
         if first:
@@ -112,9 +117,9 @@ def three_finishers_plus(*extra):
     """Finishers with corrected times 3420, 3500, 3600 - median 3500, top-3
     average 3506.66666667."""
     return regatta(
-        entry("F1", 0.95, 3600),   # 3420
-        entry("F2", 1.00, 3500),   # 3500
-        entry("F3", 1.00, 3600),   # 3600
+        entry("F1", 0.95, 3600),  # 3420
+        entry("F2", 1.00, 3500),  # 3500
+        entry("F3", 1.00, 3600),  # 3600
         *extra,
     )
 
@@ -124,21 +129,25 @@ def test_a_boat_that_never_sailed_is_given_the_top_finishers_average(status):
     """Spec section 4 step 1: E = (average corrected time of the top 3
     finishers) / TCF."""
     results = by_id(three_finishers_plus(entry("ABSENT", 1.20, status=status)))
-    assert results["ABSENT"].elapsed_seconds_used == pytest.approx(3506.66666667 / 1.20, abs=TOL)
+    assert results["ABSENT"].elapsed_seconds_used == pytest.approx(
+        3506.66666667 / 1.20, abs=TOL
+    )
 
 
 def test_a_boat_that_retired_is_given_the_median_finishers_time():
     """Spec section 4 step 1: E = (corrected time of the median finisher) / TCF.
     Retiring is treated as a notional average result, not a good one."""
     results = by_id(three_finishers_plus(entry("RETIRED", 1.20, status=RaceStatus.DNF)))
-    assert results["RETIRED"].elapsed_seconds_used == pytest.approx(3500.0 / 1.20, abs=TOL)
+    assert results["RETIRED"].elapsed_seconds_used == pytest.approx(
+        3500.0 / 1.20, abs=TOL
+    )
 
 
 def test_the_median_of_an_even_fleet_averages_the_two_middle_boats():
     """Corrected times 3400, 3420, 3500, 3600 - median (3420 + 3500) / 2."""
     race = regatta(
         entry("F0", 1.00, 3400),
-        entry("F1", 0.95, 3600),   # 3420
+        entry("F1", 0.95, 3600),  # 3420
         entry("F2", 1.00, 3500),
         entry("F3", 1.00, 3600),
         entry("RETIRED", 1.00, status=RaceStatus.DNF),
@@ -149,9 +158,9 @@ def test_the_median_of_an_even_fleet_averages_the_two_middle_boats():
 def test_the_top_three_average_uses_only_the_best_three():
     race = regatta(
         entry("F0", 1.00, 3400),
-        entry("F1", 0.95, 3600),   # 3420
+        entry("F1", 0.95, 3600),  # 3420
         entry("F2", 1.00, 3500),
-        entry("F3", 1.00, 3600),   # excluded from the top three
+        entry("F3", 1.00, 3600),  # excluded from the top three
         entry("ABSENT", 1.00, status=RaceStatus.DNC),
     )
     assert by_id(race)["ABSENT"].elapsed_seconds_used == pytest.approx(3440.0, abs=TOL)
@@ -163,7 +172,9 @@ def test_with_fewer_than_three_finishers_it_averages_whatever_finished(finishers
     sailed = [entry("F1", 0.95, 3600), entry("F2", 1.00, 3500)][:finishers]
     expected = [3420.0, 3460.0][finishers - 1]
     race = regatta(*sailed, entry("ABSENT", 1.00, status=RaceStatus.DNC))
-    assert by_id(race)["ABSENT"].elapsed_seconds_used == pytest.approx(expected, abs=TOL)
+    assert by_id(race)["ABSENT"].elapsed_seconds_used == pytest.approx(
+        expected, abs=TOL
+    )
 
 
 def test_a_race_nobody_finished_is_an_explicit_error():
@@ -186,7 +197,9 @@ def test_finishers_keep_their_real_elapsed_time():
 def test_back_calculated_boats_still_get_no_corrected_time_or_place():
     """The back-calculated time is for the handicap sums only. A boat that did
     not finish did not finish, and takes no place."""
-    result = by_id(three_finishers_plus(entry("ABSENT", 1.0, status=RaceStatus.DNC)))["ABSENT"]
+    result = by_id(three_finishers_plus(entry("ABSENT", 1.0, status=RaceStatus.DNC)))[
+        "ABSENT"
+    ]
     assert result.corrected_time is None
     assert result.position is None
 
@@ -220,16 +233,18 @@ def test_every_boat_gets_an_adjustment_scale():
 @pytest.mark.parametrize(
     ("tcf", "base", "expected"),
     [
-        (1.00, 1.00, 1.00),    # inside the band
-        (1.20, 1.00, 1.10),    # above
-        (0.80, 1.00, 0.90),    # below
-        (1.10, 1.00, 1.10),    # exactly on the upper bound
-        (0.90, 1.00, 0.90),    # exactly on the lower bound
+        (1.00, 1.00, 1.00),  # inside the band
+        (1.20, 1.00, 1.10),  # above
+        (0.80, 1.00, 0.90),  # below
+        (1.10, 1.00, 1.10),  # exactly on the upper bound
+        (0.90, 1.00, 0.90),  # exactly on the lower bound
         (1.045, 0.95, 1.045),  # band scales with the boat's own base number
         (1.100, 0.95, 1.045),
     ],
 )
-def test_clamp_holds_a_handicap_within_ten_percent_of_its_base_number(tcf, base, expected):
+def test_clamp_holds_a_handicap_within_ten_percent_of_its_base_number(
+    tcf, base, expected
+):
     assert clamp_to_base_number(tcf, base) == pytest.approx(expected, abs=TOL)
 
 
@@ -249,13 +264,17 @@ def test_a_runaway_result_is_clamped():
 def test_the_pre_clamp_value_stays_visible():
     """Spec section 6 keeps TCFn and the clamped TCFn apart so the arithmetic
     can be checked."""
-    race = regatta(entry("FLYER", 1.0, 1800), entry("B", 1.0, 4000), entry("C", 1.0, 4200))
+    race = regatta(
+        entry("FLYER", 1.0, 1800), entry("B", 1.0, 4000), entry("C", 1.0, 4200)
+    )
     result = by_id(race)["FLYER"]
     assert result.next_tcf != result.next_tcf_clamped
 
 
 def test_effective_next_tcf_is_the_clamped_one():
-    race = regatta(entry("FLYER", 1.0, 1800), entry("B", 1.0, 4000), entry("C", 1.0, 4200))
+    race = regatta(
+        entry("FLYER", 1.0, 1800), entry("B", 1.0, 4000), entry("C", 1.0, 4200)
+    )
     result = by_id(race)["FLYER"]
     assert result.effective_next_tcf == result.next_tcf_clamped
 
@@ -264,7 +283,10 @@ def test_the_clamp_applies_on_the_first_race_too():
     """Spec section 4, step 4: "at every race of the regatta, not just the
     first"."""
     race = regatta(
-        entry("FLYER", 1.0, 1800), entry("B", 1.0, 4000), entry("C", 1.0, 4200), first=True
+        entry("FLYER", 1.0, 1800),
+        entry("B", 1.0, 4000),
+        entry("C", 1.0, 4200),
+        first=True,
     )
     assert by_id(race)["FLYER"].next_tcf_clamped == pytest.approx(1.1, abs=TOL)
 
@@ -301,7 +323,9 @@ def test_a_club_race_is_refused():
 
 def test_results_come_back_in_entry_order():
     race = regatta(
-        entry("Z", 1.0, 4000), entry("Y", 1.0, status=RaceStatus.DNC), entry("X", 1.0, 3600)
+        entry("Z", 1.0, 4000),
+        entry("Y", 1.0, status=RaceStatus.DNC),
+        entry("X", 1.0, 3600),
     )
     assert [r.boat_id for r in compute_regatta_adjustment(race)] == ["Z", "Y", "X"]
 

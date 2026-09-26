@@ -49,16 +49,25 @@ def decide(client, request, decision, reason="", note=""):
 
 
 def registration(member, **fields):
-    values = dict(sail_number="GBR42", name="Kittiwake", make="Westerly", model="Centaur",
-                  base_number=Decimal("0.805"))
+    values = dict(
+        sail_number="GBR42",
+        name="Kittiwake",
+        make="Westerly",
+        model="Centaur",
+        base_number=Decimal("0.805"),
+    )
     values.update(fields)
-    return BoatRequest.objects.create(club=default_club(), kind="REGISTER", requested_by=member, **values)
+    return BoatRequest.objects.create(
+        club=default_club(), kind="REGISTER", requested_by=member, **values
+    )
 
 
 def change(boat, member, **fields):
     values = {name: getattr(boat, name) for name in BoatRequest.PROPOSED_FIELDS}
     values.update(fields)
-    return BoatRequest.objects.create(club=default_club(), kind="CHANGE", boat=boat, requested_by=member, **values)
+    return BoatRequest.objects.create(
+        club=default_club(), kind="CHANGE", boat=boat, requested_by=member, **values
+    )
 
 
 @pytest.fixture
@@ -77,30 +86,45 @@ def sailed_series(member):
 # --- Approving applies exactly what was asked --------------------------------
 
 
-def test_approving_a_registration_creates_the_boat_owned_by_the_member(client, committee, member):
+def test_approving_a_registration_creates_the_boat_owned_by_the_member(
+    client, committee, member
+):
     request = registration(member)
     response = decide(client, request, "approve")
     boat = Boat.objects.get()
     assert (boat.sail_number, boat.name, boat.base_number, boat.owner) == (
-        "GBR42", "Kittiwake", Decimal("0.805"), member,
+        "GBR42",
+        "Kittiwake",
+        Decimal("0.805"),
+        member,
     )
     assert (request.status, request.decided_by, request.decided_by_name) == (
-        "APPROVED", committee, committee.get_username(),
+        "APPROVED",
+        committee,
+        committee.get_username(),
     )
     assert "registered to Pat Jones" in response.content.decode()
 
 
 def test_approving_a_change_applies_every_requested_field(client, committee, member):
     boat = make_boat("GBR42", owner=member, name="Kittiwake")
-    request = change(boat, member, name="Kittiwake II", make="Moody", sail_number="GBR 42A")
+    request = change(
+        boat, member, name="Kittiwake II", make="Moody", sail_number="GBR 42A"
+    )
     decide(client, request, "approve")
     boat.refresh_from_db()
-    assert (boat.name, boat.make, boat.sail_number) == ("Kittiwake II", "Moody", "GBR 42A")
+    assert (boat.name, boat.make, boat.sail_number) == (
+        "Kittiwake II",
+        "Moody",
+        "GBR 42A",
+    )
 
 
 def test_approving_a_claim_makes_the_member_the_owner(client, committee, member):
     boat = make_boat(owner_name="Previous owner")
-    request = BoatRequest.objects.create(club=default_club(), kind="CLAIM", boat=boat, requested_by=member)
+    request = BoatRequest.objects.create(
+        club=default_club(), kind="CLAIM", boat=boat, requested_by=member
+    )
     decide(client, request, "approve")
     boat.refresh_from_db()
     assert boat.owner == member
@@ -113,14 +137,20 @@ def test_approving_an_entry_enters_the_boat_and_records_it(client, committee, me
     decide(client, request, "approve")
     assert SeriesEntry.objects.filter(series=series, boat=boat).exists()
     change_row = ScoringChange.objects.get()
-    assert (change_row.kind, change_row.action, change_row.user) == ("ENTRY", "ADDED", committee)
+    assert (change_row.kind, change_row.action, change_row.user) == (
+        "ENTRY",
+        "ADDED",
+        committee,
+    )
     assert not change_row.is_correction  # the series has no results yet
 
 
 # --- Corrections need a reason, as in the admin -------------------------------
 
 
-def test_a_base_number_change_in_a_sailed_series_needs_a_reason(client, committee, member, sailed_series):
+def test_a_base_number_change_in_a_sailed_series_needs_a_reason(
+    client, committee, member, sailed_series
+):
     series, boat = sailed_series
     request = change(boat, member, base_number=Decimal("0.812"))
 
@@ -135,14 +165,24 @@ def test_a_base_number_change_in_a_sailed_series_needs_a_reason(client, committe
     boat.refresh_from_db()
     assert boat.base_number == Decimal("0.812")
     change_row = ScoringChange.objects.get()
-    assert (change_row.is_correction, change_row.reason, change_row.user, change_row.series) == (
-        True, "New RYA certificate", committee, series,
+    assert (
+        change_row.is_correction,
+        change_row.reason,
+        change_row.user,
+        change_row.series,
+    ) == (
+        True,
+        "New RYA certificate",
+        committee,
+        series,
     )
     assert change_row.changes == {"NHC base number": ["0.805", "0.812"]}
     assert "Autumn 2026:" in response.content.decode()  # says what moved
 
 
-def test_a_late_entry_into_a_sailed_series_needs_a_reason(client, committee, member, sailed_series):
+def test_a_late_entry_into_a_sailed_series_needs_a_reason(
+    client, committee, member, sailed_series
+):
     series, _ = sailed_series
     late = make_boat("GBR9", owner=member)
     request = EntryRequest.objects.create(series=series, boat=late, requested_by=member)
@@ -153,7 +193,9 @@ def test_a_late_entry_into_a_sailed_series_needs_a_reason(client, committee, mem
     assert ScoringChange.objects.get().reason == "Entry form arrived late"
 
 
-def test_the_page_asks_for_a_reason_only_where_one_is_needed(client, committee, member, sailed_series):
+def test_the_page_asks_for_a_reason_only_where_one_is_needed(
+    client, committee, member, sailed_series
+):
     _, boat = sailed_series
     change(boat, member, base_number=Decimal("0.812"))
     registration(member, sail_number="GBR77")
@@ -178,7 +220,10 @@ def test_rejecting_needs_a_note_the_member_will_see(client, committee, member):
     assert approvals.NOTE_REQUIRED in response.content.decode()
     assert request.status == "PENDING"
     decide(client, request, "reject", note="Base number does not match the RYA list")
-    assert (request.status, request.committee_note) == ("REJECTED", "Base number does not match the RYA list")
+    assert (request.status, request.committee_note) == (
+        "REJECTED",
+        "Base number does not match the RYA list",
+    )
     assert not Boat.objects.exists()
 
 
@@ -201,7 +246,9 @@ def test_a_withdrawn_request_cannot_be_approved(client, committee, member):
     assert not Boat.objects.exists()
 
 
-def test_a_registration_whose_sail_number_was_taken_since_is_refused(client, committee, member):
+def test_a_registration_whose_sail_number_was_taken_since_is_refused(
+    client, committee, member
+):
     request = registration(member, sail_number="GBR42")
     make_boat("gbr 42")  # the committee added it in the admin meanwhile
     response = decide(client, request, "approve")
@@ -226,7 +273,9 @@ def test_the_requests_page_shows_a_change_old_against_new(client, committee, mem
     boat = make_boat("GBR42", owner=member, name="Kittiwake")
     change(boat, member, name="Kittiwake II", member_note="Renamed her")
     page = client.get(reverse("races:requests")).content.decode()
-    assert "Kittiwake II" in page and "Renamed her" in page and "pat@example.com" in page
+    assert (
+        "Kittiwake II" in page and "Renamed her" in page and "pat@example.com" in page
+    )
     assert page.count('class="changed"') == 1
     assert "NHC base number" in page
 
@@ -234,7 +283,9 @@ def test_the_requests_page_shows_a_change_old_against_new(client, committee, mem
 def test_without_htmx_a_decision_redirects_with_a_message(client, committee, member):
     request = registration(member)
     response = client.post(
-        reverse("races:decide_request", args=["boat", request.pk]), {"decision": "approve"}, follow=True
+        reverse("races:decide_request", args=["boat", request.pk]),
+        {"decision": "approve"},
+        follow=True,
     )
     assert response.redirect_chain[-1][0] == reverse("races:requests")
     assert "registered to Pat Jones" in response.content.decode()

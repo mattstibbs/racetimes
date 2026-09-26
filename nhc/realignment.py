@@ -31,7 +31,9 @@ from .domain import Boat, RealignmentEntry, RealignmentResult
 from .errors import InvalidInput
 
 
-def realign_series(entries: Sequence[RealignmentEntry]) -> tuple[RealignmentResult, ...]:
+def realign_series(
+    entries: Sequence[RealignmentEntry],
+) -> tuple[RealignmentResult, ...]:
     """Realign a fleet's handicaps after the final race of a club series.
 
     Returns results in the order given.
@@ -99,9 +101,7 @@ def realigned_boats(series, results: Sequence[RealignmentResult]) -> tuple[Boat,
     realigned = {result.boat_id: result.realigned_tcf for result in results}
     missing = [boat.boat_id for boat in series.boats if boat.boat_id not in realigned]
     if missing:
-        raise InvalidInput(
-            f"no realigned handicap for: {', '.join(sorted(missing))}"
-        )
+        raise InvalidInput(f"no realigned handicap for: {', '.join(sorted(missing))}")
     return tuple(
         Boat(
             boat_id=boat.boat_id,

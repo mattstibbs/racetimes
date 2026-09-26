@@ -120,7 +120,9 @@ def test_a_fleet_that_drifted_up_is_pulled_back_down():
 
 def test_a_single_boat_returns_to_its_own_base_number():
     """With one boat the ratio is BN/EH, so the drift is undone exactly."""
-    assert realigned_by_id([entry("A", 0.90, 1.07)])["A"] == pytest.approx(0.90, abs=TOLERANCE)
+    assert realigned_by_id([entry("A", 0.90, 1.07)])["A"] == pytest.approx(
+        0.90, abs=TOLERANCE
+    )
 
 
 def test_results_come_back_in_the_order_given():
@@ -155,12 +157,22 @@ def sailed_series(progression=HandicapProgression.CARRY_OVER):
         Boat("CIRRUS", base_number=1.08, current_tcf=1.08),
     ]
     races = [
-        SeriesRace("R1", [Finish("ALBA", RaceStatus.FINISHED, 3600),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3700),
-                          Finish("CIRRUS", RaceStatus.FINISHED, 3500)]),
-        SeriesRace("R2", [Finish("ALBA", RaceStatus.FINISHED, 3650),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3600),
-                          Finish("CIRRUS", RaceStatus.FINISHED, 3550)]),
+        SeriesRace(
+            "R1",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3600),
+                Finish("BREEZE", RaceStatus.FINISHED, 3700),
+                Finish("CIRRUS", RaceStatus.FINISHED, 3500),
+            ],
+        ),
+        SeriesRace(
+            "R2",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3650),
+                Finish("BREEZE", RaceStatus.FINISHED, 3600),
+                Finish("CIRRUS", RaceStatus.FINISHED, 3550),
+            ],
+        ),
     ]
     series = Series(boats=boats, races=races, progression=progression)
     return series, score_series(series)
@@ -172,7 +184,9 @@ def test_realignment_entries_pair_base_numbers_with_ending_handicaps():
     assert [e.boat_id for e in entries] == ["ALBA", "BREEZE", "CIRRUS"]
     for e in entries:
         assert e.ending_handicap == outcome.ending_handicaps[e.boat_id]
-        assert e.base_number == next(b.base_number for b in series.boats if b.boat_id == e.boat_id)
+        assert e.base_number == next(
+            b.base_number for b in series.boats if b.boat_id == e.boat_id
+        )
 
 
 def test_realigning_a_series_with_no_races_is_a_no_op():

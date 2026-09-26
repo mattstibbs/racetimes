@@ -101,7 +101,9 @@ def race_boat_params(field):
 
 # --- Slice 14: one MCC race, scored with the optional extra NHC steps --------------------------
 
-MCC_FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"
+MCC_FIXTURE_PATH = (
+    Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"
+)
 MCC_RACE = load_scenarios(MCC_FIXTURE_PATH)
 
 #: The four combinations of the two settings, as named in the fixture's

@@ -25,12 +25,17 @@ def default_club():
 
 
 def make_club(subdomain, name=None, **fields):
-    return Club.objects.create(subdomain=subdomain, name=name or subdomain.capitalize(), **fields)
+    return Club.objects.create(
+        subdomain=subdomain, name=name or subdomain.capitalize(), **fields
+    )
 
 
 def make_boat(sail_number="GBR1234", base_number="0.964", club=None, **fields):
     return Boat.objects.create(
-        club=club or default_club(), sail_number=sail_number, base_number=Decimal(str(base_number)), **fields
+        club=club or default_club(),
+        sail_number=sail_number,
+        base_number=Decimal(str(base_number)),
+        **fields,
     )
 
 
@@ -76,8 +81,15 @@ def record(race, entry, finish_time=None, status=None):
 _DEFAULT = object()
 
 
-def make_member(email="member@example.com", first_name="Pat", last_name="Jones",
-                club=_DEFAULT, role="MEMBER", status="APPROVED", **fields):
+def make_member(
+    email="member@example.com",
+    first_name="Pat",
+    last_name="Jones",
+    club=_DEFAULT,
+    role="MEMBER",
+    status="APPROVED",
+    **fields,
+):
     """An active account, logged in by email, with an approved membership of Demo Club.
 
     Pass ``club`` for another club, or ``club=None`` for an account that
@@ -86,7 +98,11 @@ def make_member(email="member@example.com", first_name="Pat", last_name="Jones",
     from django.contrib.auth import get_user_model
 
     user = get_user_model().objects.create_user(
-        username=email, email=email, first_name=first_name, last_name=last_name, **fields
+        username=email,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        **fields,
     )
     if club is _DEFAULT:
         club = default_club()
@@ -99,21 +115,43 @@ def join(user, club, role="MEMBER", status="APPROVED"):
     """Give an existing account a membership of another club."""
     from races.roles import forget_memberships
 
-    forget_memberships(user)  # the user object may have looked up its memberships already
+    forget_memberships(
+        user
+    )  # the user object may have looked up its memberships already
     return ClubMembership.objects.create(user=user, club=club, role=role, status=status)
 
 
 def make_committee(email="officer@example.com", club=_DEFAULT, **fields):
     """A race committee member of Demo Club (or ``club``)."""
-    return make_member(email, first_name="Race", last_name="Officer", club=club, role="COMMITTEE", **fields)
+    return make_member(
+        email,
+        first_name="Race",
+        last_name="Officer",
+        club=club,
+        role="COMMITTEE",
+        **fields,
+    )
 
 
 def make_administrator(email="admin@example.com", club=_DEFAULT, **fields):
     """A club administrator of Demo Club (or ``club``). Not the operator."""
-    return make_member(email, first_name="Club", last_name="Admin", club=club, role="ADMINISTRATOR", **fields)
+    return make_member(
+        email,
+        first_name="Club",
+        last_name="Admin",
+        club=club,
+        role="ADMINISTRATOR",
+        **fields,
+    )
 
 
 def make_operator(email="operator@example.com"):
     """The service's operator: a superuser with no club membership."""
-    return make_member(email, first_name="Service", last_name="Operator", club=None,
-                       is_staff=True, is_superuser=True)
+    return make_member(
+        email,
+        first_name="Service",
+        last_name="Operator",
+        club=None,
+        is_staff=True,
+        is_superuser=True,
+    )

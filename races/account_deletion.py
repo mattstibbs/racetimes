@@ -41,7 +41,11 @@ def clubs_needing_them(user):
     )
     theirs = approved_administrators.filter(user=user).select_related("club")
     return sorted(
-        (m.club for m in theirs if approved_administrators.filter(club=m.club).count() == 1),
+        (
+            m.club
+            for m in theirs
+            if approved_administrators.filter(club=m.club).count() == 1
+        ),
         key=lambda club: club.name,
     )
 
@@ -52,11 +56,21 @@ def delete_account(user):
     with transaction.atomic():
         for name in names:
             ScoringChange.objects.filter(user_name=name).update(user_name=DELETED)
-            BoatRequest.objects.filter(decided_by_name=name).update(decided_by_name=DELETED)
-            EntryRequest.objects.filter(decided_by_name=name).update(decided_by_name=DELETED)
-            ClubMembership.objects.filter(decided_by_name=name).update(decided_by_name=DELETED)
-            Series.objects.filter(declared_final_by_name=name).update(declared_final_by_name=DELETED)
-            ClubInvitation.objects.filter(invited_by_name=name).update(invited_by_name=DELETED)
+            BoatRequest.objects.filter(decided_by_name=name).update(
+                decided_by_name=DELETED
+            )
+            EntryRequest.objects.filter(decided_by_name=name).update(
+                decided_by_name=DELETED
+            )
+            ClubMembership.objects.filter(decided_by_name=name).update(
+                decided_by_name=DELETED
+            )
+            Series.objects.filter(declared_final_by_name=name).update(
+                declared_final_by_name=DELETED
+            )
+            ClubInvitation.objects.filter(invited_by_name=name).update(
+                invited_by_name=DELETED
+            )
             ClubInvitation.objects.filter(email__iexact=name).update(email=DELETED)
             OperatorAction.objects.filter(who=name).update(who=DELETED)
             for action in OperatorAction.objects.filter(detail__icontains=name):

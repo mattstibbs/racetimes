@@ -84,7 +84,9 @@ def _check_positive(value: float | None, field: str, context: str) -> None:
     if not math.isfinite(value):
         raise InvalidInput(f"{context}: {field} must be a finite number, got {value!r}")
     if value <= 0:
-        raise InvalidInput(f"{context}: {field} must be greater than zero, got {value!r}")
+        raise InvalidInput(
+            f"{context}: {field} must be greater than zero, got {value!r}"
+        )
 
 
 def _check_status(status: object, context: str) -> None:
@@ -239,7 +241,9 @@ class RaceInput:
         seen: set[str] = set()
         for entry in self.entries:
             if entry.boat_id in seen:
-                raise InvalidInput(f"boat {entry.boat_id} is entered twice in the same race")
+                raise InvalidInput(
+                    f"boat {entry.boat_id} is entered twice in the same race"
+                )
             seen.add(entry.boat_id)
 
         if self.series_type is SeriesType.REGATTA:

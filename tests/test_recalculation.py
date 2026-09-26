@@ -121,7 +121,9 @@ def test_every_later_race_changes(index, boat_id):
     before = score_series(build())
     after = score_series(build(slower(index, boat_id)))
     for later in range(index + 1, len(RACES)):
-        assert after.races[later] != before.races[later], f"{RACES[later][0]} did not move"
+        assert after.races[later] != before.races[later], (
+            f"{RACES[later][0]} did not move"
+        )
 
 
 @pytest.mark.parametrize(("index", "boat_id"), FINISHERS, ids=FINISHER_IDS)
@@ -149,8 +151,13 @@ def test_a_correction_moves_the_other_boats_too(index, boat_id):
     """A handicap is computed from the whole fleet's times, so correcting one
     boat's finish is not local to that boat."""
     before = {r.boat_id: r for r in score_series(build()).races[index].results}
-    after = {r.boat_id: r for r in score_series(build(slower(index, boat_id))).races[index].results}
-    moved = [b for b in after if after[b].next_tcf != before[b].next_tcf and b != boat_id]
+    after = {
+        r.boat_id: r
+        for r in score_series(build(slower(index, boat_id))).races[index].results
+    }
+    moved = [
+        b for b in after if after[b].next_tcf != before[b].next_tcf and b != boat_id
+    ]
     assert moved, "only the corrected boat's handicap moved"
 
 
@@ -215,8 +222,8 @@ def test_the_same_swap_does_change_the_points_under_a5_3():
     as_dnc = score_series(build(change(2, "C", RaceStatus.DNC), apply_a5_3=True))
     as_dns = score_series(build(change(2, "C", RaceStatus.DNS), apply_a5_3=True))
 
-    assert points_for_c(as_dnc) == 5.0   # four boats entered, plus one
-    assert points_for_c(as_dns) == 4.0   # three came to the starting area, plus one
+    assert points_for_c(as_dnc) == 5.0  # four boats entered, plus one
+    assert points_for_c(as_dns) == 4.0  # three came to the starting area, plus one
 
 
 # --------------------------------------------------------------------------
@@ -312,7 +319,9 @@ def test_correcting_a_regatta_non_finisher_moves_the_fleet():
 
 
 def test_a_regatta_correction_keeps_the_clamped_chain_intact():
-    series = build(change(1, "A", 3000, regatta_races()), series_type=SeriesType.REGATTA)
+    series = build(
+        change(1, "A", 3000, regatta_races()), series_type=SeriesType.REGATTA
+    )
     outcome = score_series(series)
     for earlier, later in zip(outcome.races, outcome.races[1:]):
         produced = {r.boat_id: r.effective_next_tcf for r in earlier.results}

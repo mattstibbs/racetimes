@@ -20,7 +20,9 @@ SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
 
 
 def clock(start, elapsed_seconds):
-    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(seconds=elapsed_seconds)
+    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(
+        seconds=elapsed_seconds
+    )
     return moment.strftime("%H:%M:%S")
 
 
@@ -32,7 +34,9 @@ def scen_005():
     make_race(series, 2)
     boats = {}
     for boat in SCEN_005["boats"]:
-        entry = enter(series, make_boat(boat["boat_id"], base_number=boat["start_handicap"]))
+        entry = enter(
+            series, make_boat(boat["boat_id"], base_number=boat["start_handicap"])
+        )
         boats[boat["boat_id"]] = entry.boat
         if boat["status"] == "FINISHED":
             record(race, entry, clock("18:30:00", boat["elapsed_seconds"]))
@@ -44,7 +48,7 @@ def scen_005():
 def row_for(page, boat):
     """The table row that names this boat, from its link to the end of the row."""
     start = page.index(f'{reverse("results:boat", args=[boat.pk])}">{boat}</a>')
-    return page[start:page.index("</tr>", start)]
+    return page[start : page.index("</tr>", start)]
 
 
 def shown(boat):
@@ -61,10 +65,12 @@ def shown(boat):
 @pytest.mark.parametrize("boat", SCEN_005["boats"], ids=lambda b: b["boat_id"])
 def test_the_series_page_shows_the_worked_example(client, scen_005, boat):
     series, boats = scen_005
-    page = client.get(reverse("results:series", args=[series.pk]), {"race": 1}).content.decode()
-    page = page[page.index('id="race-1"'):]  # the race's table, not the standings
+    page = client.get(
+        reverse("results:series", args=[series.pk]), {"race": 1}
+    ).content.decode()
+    page = page[page.index('id="race-1"') :]  # the race's table, not the standings
     row = row_for(page, boats[boat["boat_id"]])
-    before = page[:page.index(row)].rsplit("<tr", 1)[1]
+    before = page[: page.index(row)].rsplit("<tr", 1)[1]
     figures = shown(boat)
     assert f'<td class="num">{figures["place"]}</td>' in before
     for key in ("handicap", "corrected", "next"):
@@ -74,11 +80,13 @@ def test_the_series_page_shows_the_worked_example(client, scen_005, boat):
 @pytest.mark.parametrize("boat", SCEN_005["boats"], ids=lambda b: b["boat_id"])
 def test_the_boat_page_shows_the_worked_example(client, scen_005, boat):
     _, boats = scen_005
-    page = client.get(reverse("results:boat", args=[boats[boat["boat_id"]].pk])).content.decode()
+    page = client.get(
+        reverse("results:boat", args=[boats[boat["boat_id"]].pk])
+    ).content.decode()
     figures = shown(boat)
-    race_row = page[page.index("?race=1&amp;"):]
-    race_row = race_row[:race_row.index("</tr>")]
+    race_row = page[page.index("?race=1&amp;") :]
+    race_row = race_row[: race_row.index("</tr>")]
     assert f'<td class="num">{figures["place"]}</td>' in race_row
     for key in ("handicap", "corrected", "next"):
         assert f">{figures[key]}</td>" in race_row
-    assert f'sails race 2 on <strong>{figures["next"]}</strong>.' in page
+    assert f"sails race 2 on <strong>{figures['next']}</strong>." in page

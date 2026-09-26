@@ -164,14 +164,18 @@ def score_series(series):
     the handicaps the one before produces. See docs/decisions.md.
     """
     entries = list(series.entries.select_related("boat"))
-    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
+    races = list(
+        series.races.order_by("number").prefetch_related("finishes", "race_entries")
+    )
     if not entries:
         # The engine refuses a series with no boats, and there is nothing to show.
         return SeriesResults(series=series, races=(), standings=())
 
     scored, unscored = _scorable_races(series, races)
     if not scored:
-        return SeriesResults(series=series, races=(), standings=(), unscored=tuple(unscored))
+        return SeriesResults(
+            series=series, races=(), standings=(), unscored=tuple(unscored)
+        )
 
     try:
         if series.final_results is not None:
@@ -201,7 +205,8 @@ def score_series(series):
                 entry=entry_by_id[result.boat_id],
                 finish=finishes.get(result.boat_id),
                 result=result,
-                not_recorded=result.boat_id in racing and result.boat_id not in finishes,
+                not_recorded=result.boat_id in racing
+                and result.boat_id not in finishes,
             )
             for result in race_outcome.results
         ]
@@ -214,7 +219,9 @@ def score_series(series):
             position=standing.position,
             total=standing.total,
             scores=tuple(
-                ScoreCell(race=race_by_id[s.race_id], points=s.points, discarded=s.discarded)
+                ScoreCell(
+                    race=race_by_id[s.race_id], points=s.points, discarded=s.discarded
+                )
                 for s in standing.scores
             ),
         )
@@ -232,7 +239,9 @@ def score_series(series):
 def engine_outcome(series):
     """The engine's own output for the series, replayed live: what a final series copies."""
     entries = list(series.entries.select_related("boat"))
-    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
+    races = list(
+        series.races.order_by("number").prefetch_related("finishes", "race_entries")
+    )
     scored, _ = _scorable_races(series, races)
     return nhc.score_series(build_engine_series(series, entries, scored))
 
@@ -259,4 +268,9 @@ def _scorable_races(series, races):
 
 def _finishing_order(row):
     position = row.result.position
-    return (position is None, position or 0, row.result.status, row.entry.boat.sail_number)
+    return (
+        position is None,
+        position or 0,
+        row.result.status,
+        row.entry.boat.sail_number,
+    )

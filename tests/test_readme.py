@@ -58,7 +58,9 @@ def test_the_quick_start_example_runs_and_prints_what_the_readme_says(readme):
 
 @pytest.mark.parametrize("name", sorted(nhc.__all__))
 def test_every_exported_name_is_documented(name, readme):
-    assert name in readme, f"{name} is exported from nhc but not mentioned in the README"
+    assert name in readme, (
+        f"{name} is exported from nhc but not mentioned in the README"
+    )
 
 
 def test_the_readme_does_not_document_names_that_no_longer_exist(readme):

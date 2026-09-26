@@ -104,7 +104,12 @@ def realign_to_base_numbers(
     results come back unchanged, with ``realignment_factor`` None.
     """
     factor = realignment_factor(
-        finishers, {result.boat_id: result.next_tcf for result in results if result.status.is_finisher}
+        finishers,
+        {
+            result.boat_id: result.next_tcf
+            for result in results
+            if result.status.is_finisher
+        },
     )
     if factor is None:
         return tuple(results)

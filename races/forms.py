@@ -114,7 +114,9 @@ class BoatAdminForm(_AdminReasonForm):
         # because club isn't one of its fields, so it's checked here instead.
         sail_number = self.cleaned_data["sail_number"]
         existing = boat_with_sail_number(
-            self.instance.club, sail_number, exclude=self.instance if self.instance.pk else None
+            self.instance.club,
+            sail_number,
+            exclude=self.instance if self.instance.pk else None,
         )
         if existing is not None:
             raise ValidationError("A boat with this sail number is already registered.")
@@ -145,7 +147,10 @@ class AuditedInlineFormSet(BaseInlineFormSet):
         for form in self.forms:
             if self._should_delete_form(form) and form.instance.pk:
                 self.removal_changes += audit.changes_to_delete(form.instance)
-        if audit.needs_reason(self.removal_changes) and not self.data.get("reason", "").strip():
+        if (
+            audit.needs_reason(self.removal_changes)
+            and not self.data.get("reason", "").strip()
+        ):
             raise ValidationError(audit.REASON_REQUIRED)
 
     def changes_to_record(self):
@@ -179,15 +184,23 @@ class RaceInlineFormSet(AuditedInlineFormSet):
             if moving:
                 spares = self._spare_numbers(len(moving))
                 for race, spare in zip(moving, spares):
-                    Race.objects.for_club(self.instance.club).filter(pk=race.pk).update(number=spare)
+                    Race.objects.for_club(self.instance.club).filter(pk=race.pk).update(
+                        number=spare
+                    )
         return super().save_existing_objects(commit)
 
     def _spare_numbers(self, count):
         # Counting down from 32767, the largest small positive integer on
         # both SQLite and PostgreSQL, skipping any number in use now or about
         # to be.
-        in_use = set(Race.objects.for_club(self.instance.club).filter(series=self.instance).values_list("number", flat=True))
-        in_use |= {form.cleaned_data.get("number") for form in self.forms if form.cleaned_data}
+        in_use = set(
+            Race.objects.for_club(self.instance.club)
+            .filter(series=self.instance)
+            .values_list("number", flat=True)
+        )
+        in_use |= {
+            form.cleaned_data.get("number") for form in self.forms if form.cleaned_data
+        }
         return [n for n in range(32767, 0, -1) if n not in in_use][:count]
 
 
@@ -222,7 +235,9 @@ class SignUpForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         User = get_user_model()
-        if User.objects.filter(Q(username__iexact=email) | Q(email__iexact=email)).exists():
+        if User.objects.filter(
+            Q(username__iexact=email) | Q(email__iexact=email)
+        ).exists():
             raise ValidationError(
                 "An account with this email address already exists. Log in, and use Join this club."
             )
@@ -246,8 +261,13 @@ class LoginForm(AuthenticationForm):
 
     def clean(self):
         if "username" in self.cleaned_data:
-            self.cleaned_data["username"] = _normalise_login(self.cleaned_data["username"])
-        username, password = self.cleaned_data.get("username"), self.cleaned_data.get("password")
+            self.cleaned_data["username"] = _normalise_login(
+                self.cleaned_data["username"]
+            )
+        username, password = (
+            self.cleaned_data.get("username"),
+            self.cleaned_data.get("password"),
+        )
         with throttle.guard(self.request, username, password):
             return self._check_password()
 
@@ -262,7 +282,12 @@ class LoginForm(AuthenticationForm):
             username = self.cleaned_data.get("username", "")
             password = self.cleaned_data.get("password", "")
             user = get_user_model().objects.filter(username=username).first()
-            if user and not user.is_active and user.last_login is None and user.check_password(password):
+            if (
+                user
+                and not user.is_active
+                and user.last_login is None
+                and user.check_password(password)
+            ):
                 self.unconfirmed = True
                 raise ValidationError(UNCONFIRMED, code="inactive")
             raise
@@ -277,7 +302,9 @@ class DeleteAccountForm(forms.Form):
     be used to guess a password either.
     """
 
-    password = forms.CharField(label="Your password", strip=False, widget=forms.PasswordInput)
+    password = forms.CharField(
+        label="Your password", strip=False, widget=forms.PasswordInput
+    )
 
     def __init__(self, *args, request, **kwargs):
         super().__init__(*args, **kwargs)
@@ -318,7 +345,9 @@ class ChangePasswordForm(PasswordChangeForm):
         with throttle.guard(self.request, self.user.get_username(), password):
             if not self.user.check_password(password):
                 # "invalid_login" is the code the throttle counts as a failed login.
-                raise ValidationError(self.error_messages["password_incorrect"], code="invalid_login")
+                raise ValidationError(
+                    self.error_messages["password_incorrect"], code="invalid_login"
+                )
         return password
 
 
@@ -326,7 +355,11 @@ class AdminLoginForm(AdminAuthenticationForm):
     """The admin's login on the service's own address, the operator's, with the same limit on guessing."""
 
     def clean(self):
-        with throttle.guard(self.request, self.cleaned_data.get("username"), self.cleaned_data.get("password")):
+        with throttle.guard(
+            self.request,
+            self.cleaned_data.get("username"),
+            self.cleaned_data.get("password"),
+        ):
             return super().clean()
 
 
@@ -342,18 +375,31 @@ class ClubPasswordResetForm(PasswordResetForm):
     reply_to = ()
 
     def save(self, *args, request=None, **kwargs):
-        kwargs["from_email"], self.reply_to = notifications.sender(getattr(request, "club", None))
+        kwargs["from_email"], self.reply_to = notifications.sender(
+            getattr(request, "club", None)
+        )
         return super().save(*args, request=request, **kwargs)
 
-    def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email,
-                  html_email_template_name=None):
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
         subject = "".join(render_to_string(subject_template_name, context).splitlines())
         body = render_to_string(email_template_name, context)
-        message = EmailMessage(subject, body, from_email, [to_email], reply_to=self.reply_to)
+        message = EmailMessage(
+            subject, body, from_email, [to_email], reply_to=self.reply_to
+        )
         try:
             message.send()
         except Exception:
-            logger.exception("Could not send a password reset email to user %s", context["user"].pk)
+            logger.exception(
+                "Could not send a password reset email to user %s", context["user"].pk
+            )
 
 
 # --- The operator (slice 11 part 3) -------------------------------------------
@@ -372,7 +418,7 @@ class ClubForm(forms.ModelForm):
         labels = {"subdomain": "Address", "contact_email": "Contact email"}
         help_texts = {
             "subdomain": "The club's address, e.g. exesc for exesc.racetimes.co.uk. "
-                         "Letters, digits and hyphens only. It can't be changed later.",
+            "Letters, digits and hyphens only. It can't be changed later.",
             "contact_email": "Replies to the club's emails go here.",
         }
 
@@ -388,7 +434,9 @@ class ClubForm(forms.ModelForm):
                 "Use only letters, digits and hyphens, not starting or ending with a hyphen."
             )
         if subdomain in RESERVED_SUBDOMAINS:
-            raise ValidationError(f"{subdomain} is reserved for the service. Choose another.")
+            raise ValidationError(
+                f"{subdomain} is reserved for the service. Choose another."
+            )
         return subdomain
 
 
@@ -455,9 +503,13 @@ class _BoatDetailsForm(forms.ModelForm):
 
     def clean_sail_number(self):
         sail_number = self.cleaned_data["sail_number"].strip()
-        self.existing_boat = boat_with_sail_number(self.club, sail_number, exclude=self.boat)
+        self.existing_boat = boat_with_sail_number(
+            self.club, sail_number, exclude=self.boat
+        )
         if self.existing_boat is not None:
-            raise ValidationError(f"{self.existing_boat} is already registered with the club.")
+            raise ValidationError(
+                f"{self.existing_boat} is already registered with the club."
+            )
         return sail_number
 
 
@@ -492,9 +544,12 @@ class BoatChangeForm(_BoatDetailsForm):
     def clean(self):
         cleaned = super().clean()
         if not self.errors and all(
-            cleaned.get(name) == getattr(self.boat, name) for name in BoatRequest.PROPOSED_FIELDS
+            cleaned.get(name) == getattr(self.boat, name)
+            for name in BoatRequest.PROPOSED_FIELDS
         ):
-            raise ValidationError("Nothing has changed. Edit the details that are wrong.")
+            raise ValidationError(
+                "Nothing has changed. Edit the details that are wrong."
+            )
         return cleaned
 
 
@@ -508,8 +563,13 @@ class EntryRequestForm(forms.Form):
         super().__init__(*args, **kwargs)
         # Series the boat is not in and has not already asked to join.
         # Only the boat's own club's series (slice 11).
-        self.fields["series"].queryset = Series.objects.for_club(boat.club).exclude(entries__boat=boat).exclude(
-            entry_requests__boat=boat, entry_requests__status=BoatRequest.Status.PENDING
+        self.fields["series"].queryset = (
+            Series.objects.for_club(boat.club)
+            .exclude(entries__boat=boat)
+            .exclude(
+                entry_requests__boat=boat,
+                entry_requests__status=BoatRequest.Status.PENDING,
+            )
         )
 
 

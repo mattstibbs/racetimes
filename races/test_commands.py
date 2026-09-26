@@ -65,7 +65,10 @@ def test_series_summary_prints_each_series_standings_without_names():
     )
 
     series = make_series("Autumn", discards=0)
-    fast = enter(series, make_boat("GBR1", owner=make_member("pat@example.com", first_name="Pat")))
+    fast = enter(
+        series,
+        make_boat("GBR1", owner=make_member("pat@example.com", first_name="Pat")),
+    )
     slow = enter(series, make_boat("GBR2", base_number="0.900"))
     race = make_race(series, 1)
     record(race, fast, "19:00:00")
@@ -73,5 +76,8 @@ def test_series_summary_prints_each_series_standings_without_names():
     make_series("Empty", club=make_club("harbour"))
     out = StringIO()
     call_command("series_summary", stdout=out)
-    assert out.getvalue().splitlines() == ["demo | Autumn | GBR1 1, GBR2 2", "harbour | Empty | nothing scored"]
+    assert out.getvalue().splitlines() == [
+        "demo | Autumn | GBR1 1, GBR2 2",
+        "harbour | Empty | nothing scored",
+    ]
     assert "Pat" not in out.getvalue() and "pat@" not in out.getvalue()

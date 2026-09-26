@@ -16,7 +16,17 @@ from .models import Boat, BoatRequest, ClubMembership, EntryRequest, ScoringChan
 
 # Never in the file: ids mean nothing outside the database, and the "decided
 # by" fields name other people.
-LEFT_OUT = {"id", "request_ptr", "club", "owner", "user", "user_name", "requested_by", "decided_by", "decided_by_name"}
+LEFT_OUT = {
+    "id",
+    "request_ptr",
+    "club",
+    "owner",
+    "user",
+    "user_name",
+    "requested_by",
+    "decided_by",
+    "decided_by_name",
+}
 
 
 def my_data(user):
@@ -32,23 +42,33 @@ def my_data(user):
         },
         "memberships": [
             {"club": m.club.name, **_fields(m)}
-            for m in ClubMembership.objects.filter(user=user).select_related("club").order_by("club__name")
+            for m in ClubMembership.objects.filter(user=user)
+            .select_related("club")
+            .order_by("club__name")
         ],
         "boats": [
             {"club": boat.club.name, **_fields(boat)}
-            for boat in Boat.objects.filter(owner=user).select_related("club").order_by("club__name", "sail_number")
+            for boat in Boat.objects.filter(owner=user)
+            .select_related("club")
+            .order_by("club__name", "sail_number")
         ],
         "boat_requests": [
             {"club": r.club.name, **_fields(r)}
-            for r in BoatRequest.objects.filter(requested_by=user).select_related("club", "boat")
+            for r in BoatRequest.objects.filter(requested_by=user).select_related(
+                "club", "boat"
+            )
         ],
         "entry_requests": [
             {"club": r.series.club.name, **_fields(r)}
-            for r in EntryRequest.objects.filter(requested_by=user).select_related("series__club", "boat")
+            for r in EntryRequest.objects.filter(requested_by=user).select_related(
+                "series__club", "boat"
+            )
         ],
         "changes_made": [
             {"club": change.club.name, **_fields(change)}
-            for change in ScoringChange.objects.filter(user=user).select_related("club", "series", "race")
+            for change in ScoringChange.objects.filter(user=user).select_related(
+                "club", "series", "race"
+            )
         ],
     }
 
@@ -71,7 +91,11 @@ def _fields(obj):
 
 def _value(value):
     if isinstance(value, datetime):
-        return timezone.localtime(value).isoformat() if timezone.is_aware(value) else value.isoformat()
+        return (
+            timezone.localtime(value).isoformat()
+            if timezone.is_aware(value)
+            else value.isoformat()
+        )
     if isinstance(value, date):
         return value.isoformat()
     if isinstance(value, Decimal):

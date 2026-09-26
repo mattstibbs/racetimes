@@ -2,8 +2,8 @@ from django.apps import AppConfig
 
 
 class RacesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'races'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "races"
 
     def ready(self):
         from django.core.signals import request_finished, request_started

@@ -37,6 +37,8 @@ def admin_user(django_user_model):
     """
     from races.testing import default_club, join
 
-    user = django_user_model.objects.create_superuser("admin", "admin@example.com", "password")
+    user = django_user_model.objects.create_superuser(
+        "admin", "admin@example.com", "password"
+    )
     join(user, default_club(), role="ADMINISTRATOR")
     return user

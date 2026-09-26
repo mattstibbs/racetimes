@@ -21,7 +21,9 @@ SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
 
 def clock(start, elapsed_seconds):
     """The clock time a boat finishes, elapsed_seconds after a start like "18:00:00"."""
-    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(seconds=elapsed_seconds)
+    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(
+        seconds=elapsed_seconds
+    )
     return moment.strftime("%H:%M:%S")
 
 
@@ -36,7 +38,9 @@ def test_rya_worked_example_reproduces_through_the_database():
     race = make_race(series, start="18:30:00")
     entries = {}
     for boat in SCEN_005["boats"]:
-        entry = enter(series, make_boat(boat["boat_id"], base_number=boat["start_handicap"]))
+        entry = enter(
+            series, make_boat(boat["boat_id"], base_number=boat["start_handicap"])
+        )
         entries[boat["boat_id"]] = entry
         if boat["status"] == "FINISHED":
             record(race, entry, clock("18:30:00", boat["elapsed_seconds"]))
@@ -53,13 +57,19 @@ def test_rya_worked_example_reproduces_through_the_database():
         if expected["corrected_seconds"] is None:
             assert row.result.corrected_time is None
         else:
-            assert row.result.corrected_time == pytest.approx(expected["corrected_seconds"], abs=TOLERANCE)
+            assert row.result.corrected_time == pytest.approx(
+                expected["corrected_seconds"], abs=TOLERANCE
+            )
         assert row.result.next_tcf == pytest.approx(
             expected["handicap_adjusted_next_race"], abs=TOLERANCE
         )
 
     assert [row.entry.boat.sail_number for row in results.rows] == [
-        "BOAT_4", "BOAT_3", "BOAT_1", "BOAT_2", "BOAT_5",
+        "BOAT_4",
+        "BOAT_3",
+        "BOAT_1",
+        "BOAT_2",
+        "BOAT_5",
     ]
 
 
@@ -171,7 +181,9 @@ def test_standings_follow_the_engine(three_boats):
 
     standings = score_series(series).standings
     assert [(row.entry.pk, row.position, row.total) for row in standings] == [
-        (a.pk, 1, 1), (b.pk, 2, 2), (c.pk, 3, 4),
+        (a.pk, 1, 1),
+        (b.pk, 2, 2),
+        (c.pk, 3, 4),
     ]
     assert standings[0].scores[0].race == race
 
@@ -275,7 +287,9 @@ def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
     # Bypass validation, as a bug or a direct database edit might.
-    Finish.objects.filter(race=race).update(finish_time=datetime(2026, 1, 1, 17, 0).time())
+    Finish.objects.filter(race=race).update(
+        finish_time=datetime(2026, 1, 1, 17, 0).time()
+    )
 
     results = score_series(series)
     assert results.races == () and results.standings == ()

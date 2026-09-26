@@ -62,11 +62,17 @@ def test_imports_cleanly_without_django_configured():
     django already imported, so an in-process check would prove nothing.
     """
     result = subprocess.run(
-        [sys.executable, "-c", "import sys; import nhc; print('django' in sys.modules)"],
+        [
+            sys.executable,
+            "-c",
+            "import sys; import nhc; print('django' in sys.modules)",
+        ],
         cwd=PACKAGE_ROOT.parent,
         capture_output=True,
         text=True,
         env={"PATH": "/usr/bin:/bin"},
     )
     assert result.returncode == 0, f"importing nhc failed:\n{result.stderr}"
-    assert result.stdout.strip() == "False", "importing nhc pulled django into sys.modules"
+    assert result.stdout.strip() == "False", (
+        "importing nhc pulled django into sys.modules"
+    )

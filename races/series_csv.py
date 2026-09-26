@@ -41,14 +41,27 @@ def series_csv(series, results):
 
     row([typed(series.name)])
     if series.is_final:
-        row([f"Final standings (declared {_day(timezone.localtime(series.declared_final_at))})"])
+        row(
+            [
+                f"Final standings (declared {_day(timezone.localtime(series.declared_final_at))})"
+            ]
+        )
     else:
-        row([f"Provisional standings as at {_day(timezone.localtime())} {timezone.localtime():%H:%M}"])
-    settings = [series.get_series_type_display(), f"{series.discards} discard{'s' if series.discards != 1 else ''}"]
+        row(
+            [
+                f"Provisional standings as at {_day(timezone.localtime())} {timezone.localtime():%H:%M}"
+            ]
+        )
+    settings = [
+        series.get_series_type_display(),
+        f"{series.discards} discard{'s' if series.discards != 1 else ''}",
+    ]
     if series.apply_a5_3:
         settings.append("Scored under RRS A5.3")
     if series.minimum_finishers:
-        settings.append(f"No handicap changes with fewer than {series.minimum_finishers} finishers")
+        settings.append(
+            f"No handicap changes with fewer than {series.minimum_finishers} finishers"
+        )
     if series.nhc_options:
         settings.append(f"Handicaps adjusted with {' and '.join(series.nhc_options)}")
     row(settings)
@@ -61,35 +74,72 @@ def series_csv(series, results):
     elif not results.standings:
         row(["Nothing is scored in this series yet."])
     else:
-        row(["Place", "Sail number", "Boat"] + [f"R{r.race.number}" for r in results.races] + ["Total"])
+        row(
+            ["Place", "Sail number", "Boat"]
+            + [f"R{r.race.number}" for r in results.races]
+            + ["Total"]
+        )
         for standing in results.standings:
             cells = [
                 f"({points(cell.points)})" if cell.discarded else points(cell.points)
                 for cell in standing.scores
             ]
             boat = standing.entry.boat
-            row([standing.position, typed(boat.sail_number), typed(boat.name), *cells, points(standing.total)])
+            row(
+                [
+                    standing.position,
+                    typed(boat.sail_number),
+                    typed(boat.name),
+                    *cells,
+                    points(standing.total),
+                ]
+            )
 
     for race_results in results.races:
         race = race_results.race
         row([])
-        state = f"Published {_day(timezone.localtime(race.published_at))}" if race.published_at else "Provisional"
-        row([f"Race {race.number}", _day(race.date), f"Start {race.start_time:%H:%M:%S}", state])
-        row(["Place", "Sail number", "Boat", "Finish time", "Elapsed", "Handicap", "Corrected", "Points", "Code"])
+        state = (
+            f"Published {_day(timezone.localtime(race.published_at))}"
+            if race.published_at
+            else "Provisional"
+        )
+        row(
+            [
+                f"Race {race.number}",
+                _day(race.date),
+                f"Start {race.start_time:%H:%M:%S}",
+                state,
+            ]
+        )
+        row(
+            [
+                "Place",
+                "Sail number",
+                "Boat",
+                "Finish time",
+                "Elapsed",
+                "Handicap",
+                "Corrected",
+                "Points",
+                "Code",
+            ]
+        )
         for line in race_results.rows:
             result, boat = line.result, line.entry.boat
             finish_time = line.finish.finish_time if line.finish else None
-            row([
-                result.position or "",
-                typed(boat.sail_number),
-                typed(boat.name),
-                f"{finish_time:%H:%M:%S}" if finish_time else "",
-                hms(result.elapsed_seconds),
-                tcf(result.tcf_used),
-                hms(result.corrected_time),
-                points(result.points),
-                "" if result.position else line.place,
-            ])
+            row(
+                [
+                    result.position or "",
+                    typed(boat.sail_number),
+                    typed(boat.name),
+                    f"{finish_time:%H:%M:%S}" if finish_time else "",
+                    hms(result.elapsed_seconds),
+                    tcf(result.tcf_used),
+                    hms(result.corrected_time),
+                    points(result.points),
+                    "" if result.position else line.place,
+                ]
+            )
     for race, note in results.unscored:
         row([])
         row([f"Race {race.number}", _day(race.date), note])
@@ -103,5 +153,8 @@ def _day(value):
 
 def filename(series):
     # Letters, digits, spaces and a few safe marks only, so no browser trips on it.
-    safe = "".join(c for c in series.name if c.isalnum() or c in " -_()").strip() or "Series"
+    safe = (
+        "".join(c for c in series.name if c.isalnum() or c in " -_()").strip()
+        or "Series"
+    )
     return f"{safe} results.csv"

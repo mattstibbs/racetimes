@@ -61,11 +61,16 @@ def home(request):
     if not (request.htmx and request.htmx.target == "boat-matches"):
         context.update(
             latest=latest_results(request.club),
-            series_list=Series.objects.for_club(request.club).annotate(latest=Max("races__date")).order_by(
-                F("latest").desc(nulls_last=True), "name"
-            ),
+            series_list=Series.objects.for_club(request.club)
+            .annotate(latest=Max("races__date"))
+            .order_by(F("latest").desc(nulls_last=True), "name"),
         )
-    return _render(request, "results/home.html", {"boat-matches": "results/_boat_matches.html"}, context)
+    return _render(
+        request,
+        "results/home.html",
+        {"boat-matches": "results/_boat_matches.html"},
+        context,
+    )
 
 
 def by_name(boat):
@@ -82,7 +87,8 @@ def search_boats(club, query):
     """
     squashed = query.replace(" ", "").upper()
     return list(
-        Boat.objects.for_club(club).annotate(squashed=Upper(Replace("sail_number", Value(" "), Value(""))))
+        Boat.objects.for_club(club)
+        .annotate(squashed=Upper(Replace("sail_number", Value(" "), Value(""))))
         .filter(Q(squashed__contains=squashed) | Q(name__icontains=query))
         .order_by("sail_number")[: MAX_MATCHES + 1]
     )
@@ -91,7 +97,8 @@ def search_boats(club, query):
 def latest_results(club):
     """Each series' most recent scored race, newest first, with its top three."""
     recent = (
-        Series.objects.for_club(club).annotate(sailed=Max("races__date", filter=Q(races__finishes__isnull=False)))
+        Series.objects.for_club(club)
+        .annotate(sailed=Max("races__date", filter=Q(races__finishes__isnull=False)))
         .filter(sailed__isnull=False)
         .order_by("-sailed", "name")[:LATEST_SERIES]
     )
@@ -112,8 +119,9 @@ def series(request, pk):
     series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     results = score_series(series)
     races = list(series.races.order_by("number"))
-    boats = sorted((entry.boat for entry in series.entries.select_related("boat")),
-                   key=by_name)
+    boats = sorted(
+        (entry.boat for entry in series.entries.select_related("boat")), key=by_name
+    )
 
     race = _chosen_race(request, races, results)
     followed = _chosen_boat(request, boats)
@@ -121,9 +129,11 @@ def series(request, pk):
 
     def link(**changes):
         """This page's URL with the given choices changed and the others kept."""
-        choices = {"race": race.number if race else None,
-                   "boat": followed.pk if followed else None,
-                   "detail": 1 if detail else None} | changes
+        choices = {
+            "race": race.number if race else None,
+            "boat": followed.pk if followed else None,
+            "detail": 1 if detail else None,
+        } | changes
         return "?" + urlencode({k: v for k, v in choices.items() if v is not None})
 
     context = {
@@ -132,7 +142,9 @@ def series(request, pk):
         "boats": boats,
         "followed": followed,
         "detail": detail,
-        "race_links": [{"race": r, "url": link(race=r.number), "current": r == race} for r in races],
+        "race_links": [
+            {"race": r, "url": link(race=r.number), "current": r == race} for r in races
+        ],
         "detail_url": link(detail=None if detail else 1),
         "section": _race_section(race, results) if race else None,
         # Any correction can move the standings, so the latest of them all.
@@ -142,7 +154,12 @@ def series(request, pk):
     }
     # Choosing a race, following a boat and showing more detail all swap the
     # whole of #series-body, so the choices in it can never disagree.
-    return _render(request, "results/series.html", {"series-body": "results/_series_body.html"}, context)
+    return _render(
+        request,
+        "results/series.html",
+        {"series-body": "results/_series_body.html"},
+        context,
+    )
 
 
 def _chosen_race(request, races, results):
@@ -179,7 +196,8 @@ def _race_section(race, results):
         "amended_on": corrections.aggregate(Max("timestamp"))["timestamp__max"],
         # Corrected since the owners were emailed: the version they have is out
         # of date until the committee sends the update.
-        "changed_since_sent": race.published_at is not None and amended_since_sent(race),
+        "changed_since_sent": race.published_at is not None
+        and amended_since_sent(race),
     }
 
 
@@ -201,9 +219,12 @@ def series_csv(request, pk):
     """The series' standings and every race's results as one CSV file, for anyone."""
     series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
     response = HttpResponse(
-        csv_file.series_csv(series, score_series(series)), content_type="text/csv; charset=utf-8"
+        csv_file.series_csv(series, score_series(series)),
+        content_type="text/csv; charset=utf-8",
     )
-    response["Content-Disposition"] = f'attachment; filename="{csv_file.filename(series)}"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="{csv_file.filename(series)}"'
+    )
     return response
 
 
@@ -214,16 +235,24 @@ def boat(request, pk):
     histories = [_history(entry) for entry in entries]
     # Newest series first. A series with no races yet goes at the top, as it
     # is the one about to start.
-    histories.sort(key=lambda h: (h["last_date"] is None, h["last_date"] or date.min), reverse=True)
-    return _render(request, "results/boat.html", {}, {"boat": boat, "histories": histories})
+    histories.sort(
+        key=lambda h: (h["last_date"] is None, h["last_date"] or date.min), reverse=True
+    )
+    return _render(
+        request, "results/boat.html", {}, {"boat": boat, "histories": histories}
+    )
 
 
 def _history(entry):
     series = entry.series
     results = score_series(series)
     races = list(series.races.order_by("number"))
-    standing = next((row for row in results.standings if row.entry.pk == entry.pk), None)
-    discarded = {cell.race.pk: cell.discarded for cell in standing.scores} if standing else {}
+    standing = next(
+        (row for row in results.standings if row.entry.pk == entry.pk), None
+    )
+    discarded = (
+        {cell.race.pk: cell.discarded for cell in standing.scores} if standing else {}
+    )
 
     lines = []
     for race in races:
@@ -231,15 +260,22 @@ def _history(entry):
         if race_results is None:
             lines.append(RaceLine(race=race, note=results.note_for(race)))
         else:
-            lines.append(RaceLine(race=race, row=race_results.for_entry(entry),
-                                  points_discarded=discarded.get(race.pk, False)))
+            lines.append(
+                RaceLine(
+                    race=race,
+                    row=race_results.for_entry(entry),
+                    points_discarded=discarded.get(race.pk, False),
+                )
+            )
     return {
         "series": series,
         "error": results.error,
         "standing": standing,
         "fleet": len(results.standings),
         "lines": lines,
-        "has_provisional": any(line.row and not line.race.published_at for line in lines),
+        "has_provisional": any(
+            line.row and not line.race.published_at for line in lines
+        ),
         "has_not_recorded": any(line.row and line.row.not_recorded for line in lines),
         "next": _next_handicap(entry, results, races),
         "last_date": races[-1].date if races else None,
@@ -256,7 +292,11 @@ def _next_handicap(entry, results, races):
     if results.error:
         return None
     if not results.races:
-        return {"race": races[0] if races else None, "tcf": entry.boat.base_number, "base": True}
+        return {
+            "race": races[0] if races else None,
+            "tcf": entry.boat.base_number,
+            "base": True,
+        }
     last = results.races[-1]
     later = [race for race in races if race.number > last.race.number]
     return {

@@ -32,23 +32,33 @@ def waiting_notices(user, club):
         return notices
     pending = Request.Status.PENDING
     counts = [
-        (BoatRequest.objects.for_club(club).filter(status=pending).count(), "boat request"),
-        (EntryRequest.objects.for_club(club).filter(status=pending).count(), "entry request"),
+        (
+            BoatRequest.objects.for_club(club).filter(status=pending).count(),
+            "boat request",
+        ),
+        (
+            EntryRequest.objects.for_club(club).filter(status=pending).count(),
+            "entry request",
+        ),
     ]
     if any(number for number, _ in counts):
-        notices.append({
-            "text": f"{_sentence(counts)} waiting for the race committee.",
-            "link": reverse("races:requests"),
-            "link_text": "Review requests",
-        })
+        notices.append(
+            {
+                "text": f"{_sentence(counts)} waiting for the race committee.",
+                "link": reverse("races:requests"),
+                "link_text": "Review requests",
+            }
+        )
     if is_club_administrator(user, club):
         joining = club.memberships.filter(status=ClubMembership.Status.WAITING).count()
         if joining:
-            notices.append({
-                "text": f"{_sentence([(joining, 'person')]).replace('persons', 'people')} waiting to join the club.",
-                "link": reverse("races:members"),
-                "link_text": "Review members",
-            })
+            notices.append(
+                {
+                    "text": f"{_sentence([(joining, 'person')]).replace('persons', 'people')} waiting to join the club.",
+                    "link": reverse("races:members"),
+                    "link_text": "Review members",
+                }
+            )
     return notices
 
 

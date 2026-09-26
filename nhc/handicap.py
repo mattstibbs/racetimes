@@ -127,7 +127,9 @@ def compute_club_adjustment(
             f"got {race.series_type.value}; use compute_regatta_adjustment"
         )
     if minimum_finishers < 0:
-        raise InvalidInput(f"minimum_finishers cannot be negative, got {minimum_finishers!r}")
+        raise InvalidInput(
+            f"minimum_finishers cannot be negative, got {minimum_finishers!r}"
+        )
 
     scored = score_race(race)
     finishers = race.finishers

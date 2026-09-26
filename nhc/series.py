@@ -157,7 +157,9 @@ class Series:
                 "minimum_finishers is a club-series option; a regatta races too "
                 "few times to skip an adjustment, and every boat is in the sums"
             )
-        if (self.cap_extremes or self.realign_to_base) and self.series_type is SeriesType.REGATTA:
+        if (
+            self.cap_extremes or self.realign_to_base
+        ) and self.series_type is SeriesType.REGATTA:
             raise InvalidInput(
                 "cap_extremes and realign_to_base are club-series options; a regatta "
                 "uses its own formulas and clamps to base numbers instead"
@@ -166,12 +168,16 @@ class Series:
         boat_ids = [boat.boat_id for boat in self.boats]
         duplicates = {i for i in boat_ids if boat_ids.count(i) > 1}
         if duplicates:
-            raise InvalidInput(f"boat entered twice in the series: {', '.join(sorted(duplicates))}")
+            raise InvalidInput(
+                f"boat entered twice in the series: {', '.join(sorted(duplicates))}"
+            )
 
         race_ids = [race.race_id for race in self.races]
         duplicate_races = {i for i in race_ids if race_ids.count(i) > 1}
         if duplicate_races:
-            raise InvalidInput(f"duplicate race_id: {', '.join(sorted(duplicate_races))}")
+            raise InvalidInput(
+                f"duplicate race_id: {', '.join(sorted(duplicate_races))}"
+            )
 
         entered = set(boat_ids)
         for race in self.races:

@@ -57,5 +57,7 @@ def test_every_screenshot_is_used():
         for page in PAGES
         for target in local_links(page)
     }
-    unused = [p.name for p in (MANUAL / "images").glob("*.png") if p.resolve() not in used]
+    unused = [
+        p.name for p in (MANUAL / "images").glob("*.png") if p.resolve() not in used
+    ]
     assert not unused, f"Screenshots no page uses: {unused}"

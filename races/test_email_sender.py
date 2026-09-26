@@ -40,7 +40,9 @@ SENDING_ADDRESS = "noreply@racetimes.example"
 @pytest.fixture(autouse=True)
 def tricky_club(settings, monkeypatch):
     settings.DEFAULT_FROM_EMAIL = f"Race Times <{SENDING_ADDRESS}>"
-    monkeypatch.setattr(notifications.transaction, "on_commit", lambda func, *a, **kw: func())
+    monkeypatch.setattr(
+        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
+    )
     club = default_club()
     club.name, club.contact_email = NAME, "secretary@bay.example"
     club.save()
@@ -49,13 +51,19 @@ def tricky_club(settings, monkeypatch):
 
 def sender_of(message):
     """The From header's name and address, and the Reply-To, as a mail program reads them."""
-    parsed = email.message_from_bytes(message.message().as_bytes(), policy=email.policy.default)
+    parsed = email.message_from_bytes(
+        message.message().as_bytes(), policy=email.policy.default
+    )
     [address] = parsed["From"].addresses
     return address.display_name, address.addr_spec, parsed["Reply-To"]
 
 
 def from_the_club(message):
-    return sender_of(message) == (f"{NAME} via Race Times", SENDING_ADDRESS, "secretary@bay.example")
+    return sender_of(message) == (
+        f"{NAME} via Race Times",
+        SENDING_ADDRESS,
+        "secretary@bay.example",
+    )
 
 
 def test_publishing_results(client):
@@ -79,7 +87,10 @@ def test_a_membership_decision(client):
     client.force_login(make_administrator())
     waiting = make_member("wait@example.com", status=ClubMembership.Status.WAITING)
     membership = waiting.memberships.get()
-    client.post(reverse("races:decide_membership", args=[membership.pk]), {"action": "approve", "role": "MEMBER"})
+    client.post(
+        reverse("races:decide_membership", args=[membership.pk]),
+        {"action": "approve", "role": "MEMBER"},
+    )
     [message] = mail.outbox
     assert message.to == ["wait@example.com"] and from_the_club(message)
 
@@ -90,14 +101,19 @@ def test_a_password_reset(client):
     pat.save()
     client.post(reverse("races:password_reset"), {"email": "pat@example.com"})
     [message] = mail.outbox
-    assert message.subject == "Reset your Race Times password" and from_the_club(message)
+    assert message.subject == "Reset your Race Times password" and from_the_club(
+        message
+    )
 
 
 def test_an_invitation_sent_from_the_service_comes_from_the_club(client, settings):
     settings.SINGLE_CLUB = ""
     client.force_login(make_operator())
-    client.post(reverse("races:operator_invite", args=[default_club().pk]), {"email": "ann@example.com"},
-                HTTP_HOST="localhost")
+    client.post(
+        reverse("races:operator_invite", args=[default_club().pk]),
+        {"email": "ann@example.com"},
+        HTTP_HOST="localhost",
+    )
     [message] = mail.outbox
     assert from_the_club(message)
 
@@ -113,7 +129,9 @@ def test_with_no_contact_email_there_is_no_reply_to(client, tricky_club):
 def test_the_service_itself_sends_as_before(rf, settings):
     request = rf.get("/")
     request.club = None
-    message = notifications.email(make_member(), "confirm_email", request, confirm_url="x")
+    message = notifications.email(
+        make_member(), "confirm_email", request, confirm_url="x"
+    )
     assert message.from_email == settings.DEFAULT_FROM_EMAIL and message.reply_to == []
 
 
@@ -124,7 +142,13 @@ def test_every_email_is_built_where_it_gets_the_club():
     for path in Path(__file__).parent.glob("*.py"):
         if path.name.startswith("test_"):
             continue
-        found = re.findall(r"(?<!def )\b(EmailMessage|EmailMultiAlternatives|send_mail|mail_admins)\(", path.read_text())
+        found = re.findall(
+            r"(?<!def )\b(EmailMessage|EmailMultiAlternatives|send_mail|mail_admins)\(",
+            path.read_text(),
+        )
         if found:
             builders[path.name] = found
-    assert builders == {"notifications.py": ["EmailMessage"], "forms.py": ["EmailMessage"]}
+    assert builders == {
+        "notifications.py": ["EmailMessage"],
+        "forms.py": ["EmailMessage"],
+    }

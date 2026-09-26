@@ -27,7 +27,9 @@ def sailed_series(**fields):
 
 
 def page(client, series, query=""):
-    html = client.get(reverse("results:series", args=[series.pk]) + query).content.decode()
+    html = client.get(
+        reverse("results:series", args=[series.pk]) + query
+    ).content.decode()
     return html.split("<main", 1)[1]
 
 
@@ -45,7 +47,11 @@ def test_the_csv_download_is_at_the_bottom_for_everyone(client):
     csv = reverse("results:series_csv", args=[series.pk])
     assert html.count(csv) == 1
     assert html.index("Follow a boat") < html.index(csv)
-    assert "Series history" not in html and "Race history" not in html and "Finalise results" not in html
+    assert (
+        "Series history" not in html
+        and "Race history" not in html
+        and "Finalise results" not in html
+    )
 
 
 def test_the_committee_s_links(client):
@@ -55,8 +61,14 @@ def test_the_committee_s_links(client):
     # "Finalise results" under the title, before the standings.
     assert html.index("Finalise results") < html.index("Series Standings")
     # "Race history" under the race's table; "Series history" at the bottom, after the CSV link.
-    assert html.index("</table>", html.index("race-results")) < html.index(f'{history}?race={race.pk}">Race history')
-    assert html.index("Follow a boat") < html.index("Download (CSV)") < html.index(f'{history}">Series history')
+    assert html.index("</table>", html.index("race-results")) < html.index(
+        f'{history}?race={race.pk}">Race history'
+    )
+    assert (
+        html.index("Follow a boat")
+        < html.index("Download (CSV)")
+        < html.index(f'{history}">Series history')
+    )
     # The old names are gone.
     assert ">History<" not in html and ">Final results<" not in html
 
@@ -74,12 +86,16 @@ def test_a_final_series_offers_to_reopen_the_results(client):
 
 
 @pytest.mark.parametrize("discards, shown", [(0, False), (1, True)])
-def test_the_discards_note_shows_only_when_the_series_has_discards(client, discards, shown):
+def test_the_discards_note_shows_only_when_the_series_has_discards(
+    client, discards, shown
+):
     series, _ = sailed_series(discards=discards)
     note = "<em>Discarded scores are in brackets.</em>"
     assert (note in page(client, series)) is shown
     boat = series.entries.first().boat
-    assert (note in client.get(reverse("results:boat", args=[boat.pk])).content.decode()) is shown
+    assert (
+        note in client.get(reverse("results:boat", args=[boat.pk])).content.decode()
+    ) is shown
 
 
 # --- Item 5: the capping footnote --------------------------------------------------------------
@@ -88,8 +104,12 @@ def test_the_discards_note_shows_only_when_the_series_has_discards(client, disca
 @pytest.mark.parametrize("detail", [False, True])
 def test_the_capping_footnote_is_its_own_line_and_only_with_more_detail(client, detail):
     series, race = sailed_series(nhc_cap_extremes=True)
-    html = page(client, series, f"?race={race.number}" + ("&detail=1" if detail else ""))
-    assert '<p class="muted">Handicaps adjusted with: extreme-result capping.</p>' in html
+    html = page(
+        client, series, f"?race={race.number}" + ("&detail=1" if detail else "")
+    )
+    assert (
+        '<p class="muted">Handicaps adjusted with: extreme-result capping.</p>' in html
+    )
     footnote = '<p class="muted">&dagger; Result capped as extreme when working out the next handicap.</p>'
     assert (footnote in html) is detail
     assert "shown with More detail" not in html

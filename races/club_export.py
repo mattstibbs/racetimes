@@ -44,19 +44,32 @@ LEFT_OUT = {"id", "request_ptr", "club", "final_results"}
 def club_export(club):
     """The ZIP file's bytes."""
     tables = {
-        "boats.csv": Boat.objects.for_club(club).select_related("owner").order_by("sail_number"),
+        "boats.csv": Boat.objects.for_club(club)
+        .select_related("owner")
+        .order_by("sail_number"),
         "members.csv": None,  # written by hand below: people's names aren't fields of the membership
         "series.csv": Series.objects.for_club(club).order_by("pk"),
-        "series_entries.csv": SeriesEntry.objects.for_club(club).select_related("series", "boat").order_by("pk"),
-        "races.csv": Race.objects.for_club(club).select_related("series").order_by("series", "number"),
-        "start_sheets.csv": RaceEntry.objects.for_club(club).select_related("race__series", "entry__boat")
+        "series_entries.csv": SeriesEntry.objects.for_club(club)
+        .select_related("series", "boat")
         .order_by("pk"),
-        "finishes.csv": Finish.objects.for_club(club).select_related("race__series", "entry__boat").order_by("pk"),
-        "boat_requests.csv": BoatRequest.objects.for_club(club).select_related("boat", "requested_by")
+        "races.csv": Race.objects.for_club(club)
+        .select_related("series")
+        .order_by("series", "number"),
+        "start_sheets.csv": RaceEntry.objects.for_club(club)
+        .select_related("race__series", "entry__boat")
         .order_by("pk"),
-        "entry_requests.csv": EntryRequest.objects.for_club(club).select_related("series", "boat", "requested_by")
+        "finishes.csv": Finish.objects.for_club(club)
+        .select_related("race__series", "entry__boat")
         .order_by("pk"),
-        "history.csv": ScoringChange.objects.for_club(club).select_related("series", "race").order_by("pk"),
+        "boat_requests.csv": BoatRequest.objects.for_club(club)
+        .select_related("boat", "requested_by")
+        .order_by("pk"),
+        "entry_requests.csv": EntryRequest.objects.for_club(club)
+        .select_related("series", "boat", "requested_by")
+        .order_by("pk"),
+        "history.csv": ScoringChange.objects.for_club(club)
+        .select_related("series", "race")
+        .order_by("pk"),
     }
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -69,7 +82,9 @@ def club_export(club):
             if name in used:  # two series with the same name
                 name = f"{series.pk} {name}"
             used.add(name)
-            archive.writestr(f"results/{name}", series_csv.series_csv(series, score_series(series)))
+            archive.writestr(
+                f"results/{name}", series_csv.series_csv(series, score_series(series))
+            )
     return out.getvalue()
 
 
@@ -83,10 +98,21 @@ def download(club):
 
 def _members(club):
     header = ["name", "email", "role", "status", "joined", "decided_by", "decided_at"]
-    memberships = ClubMembership.objects.filter(club=club).select_related("user").order_by("user__username")
+    memberships = (
+        ClubMembership.objects.filter(club=club)
+        .select_related("user")
+        .order_by("user__username")
+    )
     rows = [
-        [m.user.get_full_name(), m.user.email, m.get_role_display(), m.get_status_display(), m.created_at,
-         m.decided_by_name, m.decided_at]
+        [
+            m.user.get_full_name(),
+            m.user.email,
+            m.get_role_display(),
+            m.get_status_display(),
+            m.created_at,
+            m.decided_by_name,
+            m.decided_at,
+        ]
         for m in memberships
     ]
     return _csv(header, rows)
@@ -123,8 +149,11 @@ def _text(value):
     if isinstance(value, bool):
         return "Yes" if value else "No"
     if isinstance(value, datetime):
-        return timezone.localtime(value).isoformat(sep=" ", timespec="seconds") if timezone.is_aware(value) \
+        return (
+            timezone.localtime(value).isoformat(sep=" ", timespec="seconds")
+            if timezone.is_aware(value)
             else value.isoformat(sep=" ", timespec="seconds")
+        )
     if isinstance(value, (int, Decimal)):
         return str(value)
     if isinstance(value, (dict, list)):

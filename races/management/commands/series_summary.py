@@ -23,7 +23,11 @@ class Command(BaseCommand):
         for club in Club.objects.order_by("subdomain"):
             for series in Series.objects.for_club(club).order_by("pk"):
                 results = score_series(series)
-                standings = ", ".join(
-                    f"{row.entry.boat.sail_number} {points(row.total)}" for row in results.standings
-                ) or "nothing scored"
+                standings = (
+                    ", ".join(
+                        f"{row.entry.boat.sail_number} {points(row.total)}"
+                        for row in results.standings
+                    )
+                    or "nothing scored"
+                )
                 self.stdout.write(f"{club.subdomain} | {series.name} | {standings}")
