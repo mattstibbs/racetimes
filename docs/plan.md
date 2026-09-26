@@ -607,3 +607,22 @@ Both are off by default, so every existing series scores exactly as before.
   in all four combinations. The manual gains "A series' scoring rules", with
   a screenshot.
 
+## Slice 15: general UI improvements. **Status: planned (2026-09-26)**
+
+Spec: `docs/slices/15-ui-improvements.md`. Fourteen small changes the owner
+asked for, all presentation only (no model, migration, dependency or
+JavaScript):
+- **Results pages:**
+  - no "My boats" on the home page;
+  - bolder table headings;
+  - the CSV and history links moved down and renamed;
+  - the discards note only when a series has discards;
+  - the capping footnote on its own line, with More detail.
+- **Boats named "Name (Sail number)"** everywhere except the race day page,
+  the CSV and the admin's boat list.
+- **Pages renamed:** Club members, My account, Change requests, and the My
+  boats page's links.
+- **The menu:** a new Club results item, Club setup, and a new order.
+
+Waiting for the owner's answers to four questions at the end of the spec.
+
