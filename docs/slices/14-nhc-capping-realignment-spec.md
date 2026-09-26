@@ -2,7 +2,8 @@
 
 **App:** RaceTimes
 **Type:** Vertical slice (model → scoring → UI → results → tests)
-**Status:** Ready for implementation
+**Status:** Complete (2026-09-26). See "How it was built" at the end for the
+owner's decisions where the spec and the code differed.
 
 ## 1. Why
 
@@ -103,7 +104,7 @@ Hp     = Hp × factor                    # for each finisher
 
 ## 7. Tests (required)
 
-Use this real race. It's a Medway Cruising Club race where the published results are known.
+Use this real race. It's a Medway Cruising Club race where the published results are known. The boat names here are made up (generated at random), so no real boat is named; the times, handicaps and results are the race's own.
 
 | Boat | Elapsed | Elapsed (s) | Handicap | Base handicap (fixture) |
 |---|---|---|---|---|
@@ -170,3 +171,53 @@ Realignment factor: about 0.99154 (realign only) and about 0.99082 (both on).
 ## Reference
 
 - HalSail FAQ, "What is the detailed mathematical explanation of NHC?": https://halsail.com/Help/pdfFaq?Faqitem=NhcMaths
+
+## How it was built *(2026-09-26)*
+
+**Checked first.** A prototype of Steps A to C reproduces every column of
+the §7 table, the intermediate values (μ, σ, k) and the pstdev figure (0.950),
+and today's engine already gives the "Both off" column exactly.
+
+**Where the spec and the code differed, decided with the project owner:**
+1. **Rounding.** The spec rounds each new handicap to 3 d.p. RaceTimes never
+   rounds between races: it carries full precision and rounds only for
+   display, as the RYA reference requires (`docs/reference`, §7; the
+   precision note in `nhc/domain.py`). **Kept full precision.** The §7
+   expected values all match at 3 d.p., and "both off matches current
+   output" holds exactly. Over a long season, results may differ from MCC's
+   in the last decimal, since MCC carries its rounded figures forward.
+2. **Regattas.** Both settings are **club series only**, refused on a regatta
+   (in the model and in the engine), like "Minimum finishers". A regatta
+   uses the RYA's own regatta formulas and clamps to base numbers.
+3. **Where the settings go.** In the existing **"Scoring rules"** section of
+   a Series (the name kept), not a new "NHC handicap options" heading.
+4. **The data model change** (two boolean fields) was approved.
+
+**Also different from the spec, because of how RaceTimes works:**
+- **Base handicaps** are each boat's RYA base number (`Boat.base_number`),
+  which is required and must be above 0. A finisher with no base number (§5
+  Step B's guard, §7 case 7) can only arise using the engine directly, so it
+  is handled and tested there. The engine does no I/O, so it can't log; it
+  leaves `realignment_factor` as None instead.
+- **The admin is the series form.** There's no separate one.
+- **The results page** is the public series page. The note sits under each
+  race's results; the † appears with "More detail", where the next-handicap
+  column is shown. The series header and the CSV download name the options
+  too.
+- **In the site, a series starts on base numbers**, so the MCC race (where
+  one boat races on 0.930 with a base of 0.935) can't be set up exactly
+  there. The MCC figures are proven in the engine's tests; the site's tests
+  reproduce the "off" and "capping only" columns exactly, and compare
+  realignment with the engine for the same boats.
+
+**Where the code is:**
+- `nhc/options.py` holds the two steps, each on its own.
+- `nhc/handicap.py` calls them only when asked.
+- `RaceResult` records what happened: `elapsed_seconds_used`, `capped` and
+  `realignment_factor`.
+- The fixture is `tests/fixtures/mcc_full_nhc_method.yaml`. Its boat names
+  are made up at random, so that no real boat is named in the tests.
+- The tests are `tests/test_nhc_options.py` (the engine) and
+  `races/test_nhc_series_options.py` (the site).
+- The manual page is "A series' scoring rules".
+
