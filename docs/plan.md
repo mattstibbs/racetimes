@@ -557,3 +557,17 @@ processing agreement for clubs, and the providers' agreements signed). It's
 listed in the slice 12 spec and `docs/production.md`, and it's an open
 requirement in `docs/decisions.md`.
 
+
+## Slice 13: the operator approves people joining a club. **Status: planning (2026-09-26)**
+
+Spec: `docs/slices/13-operator-approvals.md`. A "Waiting to join" list on the
+operator's club page, where the operator approves or turns down people
+waiting to join that club: for a new club without an administrator yet, one
+whose administrator is away, or Demo Club. It goes through the same code as
+the club's Members page, emails the person from the club, and is logged. It's
+a deliberate exception to "clubs decide their own members", limited to
+waiting requests. Five questions for the project owner, one a small
+data-model change (two operator log actions).
+
+Slice 12's launch steps are still with the owner; this slice is planned
+alongside, and built once they're answered.
