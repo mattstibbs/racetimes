@@ -151,6 +151,9 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(sam.locator('main'), 'account.png');
   await sam.goto(`${BASE}/account/delete/`);
   await shot(sam.locator('main'), 'delete-account.png');
+  // Changing a password (slice 16; not submitted, so the seed's password stays).
+  await sam.goto(`${BASE}/account/password/`);
+  await shot(sam.locator('main'), 'change-password.png');
 
   // The administrator's view.
   const admin = await logIn(browser, 'admin@example.com');

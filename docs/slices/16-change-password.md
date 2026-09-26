@@ -1,7 +1,7 @@
 # Slice 16: changing your password
 
-**Status: planned (2026-09-26). Waiting on the owner's answers to the
-questions at the end.**
+**Status: complete (2026-09-26). The owner agreed every recommendation
+(see the end).**
 
 ## Goal
 A logged-in person can change their own password from **My account**, by
@@ -187,3 +187,23 @@ New tests, as plain pytest functions, mostly in a new
 4. **The manual.** **Recommended:** a new page, "Changing your password",
    next to "Forgotten your password?". Or a section added to the existing
    "Joining a club, and your data" page.
+
+**The owner's answers (2026-09-26):** all four recommendations.
+1. **Yes,** an email when the password changes.
+2. **Yes,** other devices are logged out, and the page says so.
+3. **A My password section** on My account, between My club memberships and
+   My data.
+4. **A new manual page,** "Changing your password", after "Forgotten your
+   password?".
+
+**Found while building:**
+- **The service's own address** only allows a fixed list of paths
+  (`races/clubs.SERVICE_PATHS`), so `/account/password/` is added to it. My
+  account and the reset page are club pages, so there the page leaves out
+  "Forgotten your current password?" and "Back to my account". After a
+  change, the operator goes back to their Clubs page. The email says "change
+  your password again straight away" instead of linking to a reset page.
+- **The log line is at INFO,** as specified, but the site's logging records
+  WARNING and above (`LOGGING` in `config/settings.py`), so it isn't kept in
+  the live logs. Tests check it's written and names only the user's id.
+  Keeping INFO lines would be a settings change for another slice.

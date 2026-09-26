@@ -122,6 +122,7 @@ def urls_for(data, kind=None):
         "races:privacy": [], "races:terms": [],
         # The account's own pages, which cover every club the person belongs to.
         "races:account": [], "races:download_my_data": [], "races:delete_account": [],
+        "races:change_password": [],
         "races:export_club_data": [],
         "races:operator_export_club": [data["club"].pk], "races:operator_delete_club": [data["club"].pk],
         # Slice 13: the operator deciding who's waiting to join.
@@ -131,7 +132,7 @@ def urls_for(data, kind=None):
 
 # A person's own account pages show their memberships and data at every club,
 # since it's all theirs (slice 11 part 5). They're checked separately below.
-OWN_DATA = {"races:account", "races:download_my_data", "races:delete_account"}
+OWN_DATA = {"races:account", "races:download_my_data", "races:delete_account", "races:change_password"}
 
 
 def all_url_names():

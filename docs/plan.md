@@ -629,7 +629,7 @@ headings on all tables, "Reopen results" once a series is final, the admin's
 links renamed to match, and "Register a new boat" as that page's heading.
 
 
-## Slice 16: changing your password. **Status: planned (2026-09-26)**
+## Slice 16: changing your password. **Status: complete (2026-09-26)**
 
 Spec: `docs/slices/16-change-password.md`. A **Change my password** page at
 `/account/password/`, linked from My account, for anyone logged in at any
@@ -641,5 +641,5 @@ address:
 - an email confirms the change, from the club, with a link to reset the
   password if it wasn't them.
 
-No model, migration, dependency or JavaScript. Waiting on the owner's answers
-to the spec's four questions.
+No model, migration, dependency or JavaScript. The owner agreed all four
+recommendations. The manual gains "Changing your password".

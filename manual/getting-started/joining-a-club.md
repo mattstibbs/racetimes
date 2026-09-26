@@ -40,8 +40,9 @@ committee at one club gives you nothing at another.
 
 **My account**, at the top of every page once you're logged in, shows your name
 and email address, and your role at each club you've joined or asked to join.
+Under **My password** you can [change your password](changing-your-password.md).
 
-![The My account page: your name and email, your club memberships with your role and status at each, and links to download your data and delete your account](../images/account.png)
+![The My account page: your name and email, your club memberships with your role and status at each, and links to change your password, download your data and delete your account](../images/account.png)
 
 ## Downloading your data
 

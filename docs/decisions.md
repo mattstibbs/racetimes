@@ -1537,6 +1537,28 @@ same name apart. On the water, it's the other way round.
 
 ---
 
+## 2026-09-26 - Slice 16: changing your password
+
+**Decision.** A logged-in person changes their password on **Change my
+password** (`/account/password/`), linked from a **My password** section on
+My account. The owner agreed all four recommendations:
+- **The current password is checked inside the login throttle.** A wrong one
+  counts as a failed login, so the form can't be used to guess a password at
+  an unattended computer. This is the same as deleting an account.
+- **Every other device is logged out.** This is Django's default: each
+  session holds a hash of the password. This browser stays logged in
+  (`update_session_auth_hash`).
+- **An email confirms the change,** from the club, never with the password,
+  and with a link to reset it if it wasn't them.
+- **It works on the service's own address** too, so the operator can use it
+  (added to `SERVICE_PATHS`). There, links to club-only pages are left out.
+
+**Why.** Before this, the only way to change a password was the reset email.
+If someone else might know your password, logging out their session and
+emailing you are what make changing it worth doing.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

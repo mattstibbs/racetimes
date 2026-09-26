@@ -19,6 +19,7 @@ urlpatterns = [
     path('account/', account_views.account, name='account'),
     path('account/data.json', account_views.download_my_data, name='download_my_data'),
     path('account/delete/', account_views.delete_my_account, name='delete_account'),
+    path('account/password/', account_views.change_password, name='change_password'),
     path('members/', membership_views.members_page, name='members'),
     path('members/<int:pk>/', membership_views.decide_membership, name='decide_membership'),
     path('members/export.zip', membership_views.export_club_data, name='export_club_data'),

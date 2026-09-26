@@ -26,6 +26,7 @@ from django.core.mail import EmailMessage, get_connection
 from django.db import transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 from .clubs import club_address
 from .models import BoatRequest, ClubMembership, EntryRequest
@@ -193,6 +194,17 @@ def account_deleted(user, request):
     """
     return email_to(user.email, "account_deleted", request, name=user.first_name or user.get_username(),
                     account_email=user.email)
+
+
+def password_changed(user, request):
+    """Tell the person their password was changed, in case it wasn't them (slice 16).
+
+    The reset link is on the club's address; the service's own address, where
+    only the operator changes a password, has no reset page.
+    """
+    reset_url = request.build_absolute_uri(reverse("races:password_reset")) if request.club else None
+    return email_to(user.email, "password_changed", request, name=user.first_name or user.get_username(),
+                    account_email=user.email, changed_at=timezone.localtime(), reset_url=reset_url)
 
 
 def invitation(invitation, request, link):
