@@ -26,8 +26,8 @@ from django.utils.http import urlencode
 from django.views.decorators.http import require_http_methods
 
 from . import notifications
+from .account_forms import InvitedSignUpForm
 from .clubs import club_address
-from .forms import InvitedSignUpForm
 from .models import ClubInvitation, ClubMembership
 from .roles import forget_memberships
 

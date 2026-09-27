@@ -11,7 +11,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from races.forms import UNCONFIRMED
+from races.account_forms import UNCONFIRMED
 from races.models import Boat, BoatRequest, EntryRequest, SeriesEntry
 from races.testing import (
     default_club,

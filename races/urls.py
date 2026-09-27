@@ -12,7 +12,7 @@ from . import (
     request_views,
     series_views,
 )
-from .forms import ClubPasswordResetForm
+from .account_forms import ClubPasswordResetForm
 
 app_name = "races"
 

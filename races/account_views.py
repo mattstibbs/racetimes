@@ -16,8 +16,8 @@ from django.utils import timezone
 
 from . import notifications
 from .account_deletion import clubs_needing_them, delete_account
+from .account_forms import ChangePasswordForm, DeleteAccountForm
 from .clubs import club_address
-from .forms import ChangePasswordForm, DeleteAccountForm
 from .models import ClubMembership
 from .my_data import my_data
 

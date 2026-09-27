@@ -10,8 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import approvals, notifications
-from .forms import DecisionForm
 from .models import Boat, BoatRequest, EntryRequest
+from .request_forms import DecisionForm
 from .roles import committee_required
 
 REQUEST_MODELS = {"boat": BoatRequest, "entry": EntryRequest}

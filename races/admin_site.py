@@ -31,7 +31,7 @@ class ClubAdminSite(admin.AdminSite):
     @property
     def login_form(self):
         # The operator's login, limited like the site's (races/throttle.py).
-        from .forms import AdminLoginForm
+        from .account_forms import AdminLoginForm
 
         return AdminLoginForm
 

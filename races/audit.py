@@ -180,6 +180,34 @@ def _display(obj, name):
     return str(value)
 
 
+# --- Forms that save audited fields ----------------------------------------------------
+
+
+class AuditedFormMixin:
+    """Works out, while validating, what saving this form would record.
+
+    ``_post_clean`` is where a ModelForm copies the cleaned values onto its
+    instance, so straight after it the instance holds the new values and the
+    database still holds the old ones. That is the moment to compare them. A
+    correction without a reason becomes a validation error, so nothing is saved.
+    """
+
+    scoring_changes = ()
+
+    def _post_clean(self):
+        super()._post_clean()
+        if self._errors:
+            return
+        self.scoring_changes = changes_to_save(self.instance)
+        if needs_reason(self.scoring_changes) and not self.correction_reason():
+            self.add_error(self.reason_error_field, REASON_REQUIRED)
+
+    reason_error_field = "reason"
+
+    def correction_reason(self):
+        return self.cleaned_data.get("reason", "")
+
+
 # --- What a change did to the results --------------------------------------
 
 

@@ -23,8 +23,8 @@ from django.views.decorators.http import require_POST
 
 from . import club_deletion, club_export, invitations, membership_views, notifications
 from .clubs import club_address
-from .forms import ClubForm, InvitationForm
 from .models import Club, ClubMembership, OperatorAction
+from .operator_forms import ClubForm, InvitationForm
 
 Action = OperatorAction.Action
 

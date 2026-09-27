@@ -150,5 +150,5 @@ def test_every_email_is_built_where_it_gets_the_club():
             builders[path.name] = found
     assert builders == {
         "notifications.py": ["EmailMessage"],
-        "forms.py": ["EmailMessage"],
+        "account_forms.py": ["EmailMessage"],
     }

@@ -12,8 +12,8 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.urls import reverse
 
-from races.forms import BoatRegistrationForm
 from races.models import Boat, Club, Finish, SeriesEntry
+from races.request_forms import BoatRegistrationForm
 from races.scoring import score_series
 from races.testing import (
     default_club,

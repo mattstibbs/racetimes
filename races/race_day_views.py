@@ -19,8 +19,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from . import audit, final, notifications, publishing, race_day, start_sheet
-from .forms import FinishForm, StartSheetRowForm
 from .models import NOT_ON_START_SHEET, Finish, Race
+from .race_day_forms import FinishForm, StartSheetRowForm
 from .roles import committee_required
 from .scoring import score_series
 

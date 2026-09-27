@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from . import audit, notifications
-from .forms import (
+from .admin_forms import (
     AuditedInlineForm,
     AuditedInlineFormSet,
     BoatAdminForm,

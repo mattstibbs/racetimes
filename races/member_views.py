@@ -15,15 +15,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import approvals
-from .forms import (
-    BoatChangeForm,
-    BoatRegistrationForm,
-    EntryRequestForm,
-    LoginForm,
-    SignUpForm,
-)
+from .account_forms import LoginForm, SignUpForm
 from .membership_views import send_confirmation
 from .models import Boat, BoatRequest, ClubMembership, EntryRequest
+from .request_forms import BoatChangeForm, BoatRegistrationForm, EntryRequestForm
 from .roles import is_member, member_required, membership
 
 PENDING_ALREADY = (
