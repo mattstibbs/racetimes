@@ -777,3 +777,15 @@ promise: its tests run on 3.11 in CI, and Ruff targets 3.11 for `nhc/` and
 - [x] After deploying, `scripts/check_live.py` passes against production
       (2026-09-27, 15:20 UTC: all 10 checks).
 
+
+
+## Slice 21: share results to WhatsApp. **Status: planned (2026-09-27)**
+
+Spec: `docs/slices/21-share-to-whatsapp.md`. Once a race is published (or
+corrected), or a series declared final, the committee gets a **Share to
+WhatsApp** button: a `wa.me` link that opens WhatsApp with a short message
+(the top three and a link to the club's results) for them to send to the
+club's group. The site sends nothing itself. No model, migration, dependency
+or JavaScript. Automatic messages to followers through Meta's WhatsApp
+Business Platform are out of scope, for a later slice if clubs want them.
+Waiting on the owner's answers to the spec's four questions.
