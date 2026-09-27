@@ -1,7 +1,8 @@
 # Slice 21: share results to WhatsApp
 
-**Status: planned (2026-09-27). Waiting on the project owner's answers at the
-end.**
+**Status: built (2026-09-27), awaiting review. The owner's answers are at the
+end; where they differ from the recommendations, this spec follows the
+answers.**
 
 ## Goal
 Most clubs already have a WhatsApp group, and that's where sailors look for
@@ -57,15 +58,15 @@ All three are for the committee only, since they're on committee pages.
 - The link is built on the server when the page is rendered, so it always
   holds the results as they stand at that moment.
 - Styled as the site's existing secondary link button (`a.button.secondary`,
-  already in `static/css/site.css`), so no new colours. No WhatsApp logo: it's a trademark, and the words
-  are clear enough. (See question 4.)
+  already in `static/css/site.css`), with WhatsApp's logo beside the words
+  (question 4): `static/img/whatsapp.svg`, its green inside the SVG file, so
+  the stylesheet gains no colour. It opens in a new tab.
 - After **Publish results** succeeds, the page already reloads onto the
   publishing card, so the share button is right there at the moment the
   committee wants it.
 
 ### 2. The messages
-Plain text, short enough to read in a group chat, with WhatsApp's own
-`*bold*` for the heading. Built from what `races.scoring.score_series`
+Plain text, with WhatsApp's own `*bold*` for the heading. Built from what `races.scoring.score_series`
 computes, like the emails. Boat names and sail numbers only, never owners.
 
 **Race results:**
@@ -75,6 +76,8 @@ computes, like the emails. Boat names and sail numbers only, never owners.
 1. Blue Moon (GBR 1234)
 2. Kestrel (4521)
 3. Wild Thing (GBR 88)
+4. Osprey (GBR 7)
+DNF: Curlew (GBR 311)
 
 Full results: https://harbour.racetimes.co.uk/series/12/?race=3
 ```
@@ -93,10 +96,11 @@ Full results: https://harbour.racetimes.co.uk/series/12/?race=3
 Final standings: https://harbour.racetimes.co.uk/series/12/
 ```
 
-- The top three places (question 1). Fewer if fewer boats scored; boats tied
-  on a place share it, as on the results page.
-- A race with no results to show (everyone DNC, say) just says the results
-  are published, with the link.
+- Every place (question 1), in the results page's order: boats with a place
+  numbered, boats tied on a place sharing it, then each code (`DNF:`,
+  `Not recorded:`). The final standings list every boat with its points.
+- A race with no results to show (nobody on its start sheet, say) just says
+  the results are published, with the link.
 - The link is the club's own address, built with
   `request.build_absolute_uri`, so it's always the right club's site.
 - The message text lives in a template, `templates/races/share/*.txt`, like
@@ -118,10 +122,9 @@ No model, migration, setting, dependency or JavaScript.
 - Each button shows only in the states in the table above, and never while
   provisional or before the series is final.
 - The message:
-  - names the series, race number and date, and the top three boats in
-    order, with sail numbers;
-  - handles fewer than three scored boats, ties, and a race with nothing to
-    show;
+  - names the series, race number and date, and every boat in order, with
+    sail numbers and codes;
+  - handles ties, and a race with nothing to show;
   - carries the final points on the final standings;
   - never contains an owner's name, typed or from an account;
   - links to the club's own address, and `?race=<n>` for a race.
@@ -185,3 +188,9 @@ One pull request.
    own style. Meta allows its logo on "click to chat" buttons under its brand
    rules, but it adds a green that's not one of our colour tokens and an
    image to keep. Or use the logo.
+
+**The owner's answers (2026-09-27):**
+1. What's in the message: all places, plus a link.
+2. Who gets the button: the race committee only.
+3. Copy message: not now (agreed).
+4. The button: WhatsApp's logo and the words.

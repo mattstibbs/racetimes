@@ -32,6 +32,7 @@
     <button type="submit">Send final standings</button>
   </form>
   {% endif %}
+  {% include "races/_share_whatsapp.html" with label="Share final standings to WhatsApp" %}
 {% elif not blockers %}
   <form method="post" action="{% url 'races:declare_final' series.pk %}">{% csrf_token %}
     <button type="submit">Declare final</button>

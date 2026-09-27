@@ -173,6 +173,10 @@ ul.messages li.info { background: var(--accent-soft); border-left-color: var(--a
 .card.publishing { border-left: 4px solid var(--accent); }
 .card.publishing p { margin-top: 0; }
 .card.publishing form > :last-child { margin-bottom: 0; }
+.card.publishing .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+/* Share to WhatsApp (slice 21): the site's secondary link button, with WhatsApp's glyph. */
+a.button.share-whatsapp { gap: 0.5rem; }
+a.button.share-whatsapp img { width: 1.25rem; height: 1.25rem; flex: none; }
 table.proposed { width: auto; box-shadow: none; }
 tr.changed td { font-weight: 600; background: var(--warn-bg); }
 form.decision input { width: 100%; max-width: 30rem; margin-top: 0.25rem; }

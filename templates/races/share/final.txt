@@ -1,0 +1,6 @@
+{% load racing %}{% autoescape off %}*{{ series }}* is final.
+{% if standings %}
+{% for row in standings %}{{ row.position }}. {{ row.entry.boat }}, {{ row.total|points }} pt{{ row.total|pluralize }}
+{% endfor %}{% endif %}
+Final standings: {{ results_url }}
+{% endautoescape %}
