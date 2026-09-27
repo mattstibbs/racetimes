@@ -791,7 +791,7 @@ out of scope, for a later slice if clubs want them. The owner's answers: every
 place plus a link; committee only; no Copy message; WhatsApp's logo and words
 on the button.
 
-## Slice 22: renaming a club. **Status: built (2026-09-27), awaiting review**
+## Slice 22: renaming a club. **Status: complete (2026-09-27)**
 
 Spec: `docs/slices/22-rename-a-club.md`. A "Club settings" section on the
 operator's page for a club, to rename it after it's live (and, if the owner
