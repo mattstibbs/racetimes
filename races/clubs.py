@@ -86,12 +86,9 @@ class ClubMiddleware:
         elif not request.path.startswith(SERVICE_PATHS):
             # The service's own address: its front page, and nothing of any club's.
             if request.path == "/":
-                return render(
-                    request,
-                    "clubs/service_home.html",
-                    {
-                        "contact_email": settings.SERVICE_CONTACT_EMAIL,
-                    },
-                )
+                # Imported here: service_views uses club_address from this module.
+                from .service_views import home
+
+                return home(request)
             return render(request, "clubs/no_club.html", status=404)
         return self.get_response(request)

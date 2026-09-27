@@ -1744,6 +1744,37 @@ This supersedes slice 1's "setup happens in the admin" for club users.
 
 ---
 
+## 2026-09-27 - Slice 19: the landing page's photo, and listing clubs
+
+**Decision.** The owner answered the spec's five questions:
+- **Search engines are left for now.** The landing page stays noindex, like
+  every other page, until the owner decides otherwise.
+- **A stock photo for now:** "Cowes Week 2019" by Peter Trimming, from
+  Geograph via Wikimedia Commons
+  (`File:Cowes_Week_2019_-_geograph.org.uk_-_6240990.jpg`), licensed CC BY-SA
+  2.0. The licence needs a credit, so the page credits it under the photo with
+  links to the photo's page and the licence. Our copy is resized, and stays
+  under the same licence.
+- **The bigger logo is on the service's own pages only.** On a club's site
+  the club's name leads.
+- **Find my club lists every active club,** by name and address and nothing
+  else. A club's site is public already. There's no opt-out; that would need
+  a new field, so it waits until a club asks. A suspended club isn't listed.
+- **The wording is a draft,** for the owner to edit.
+
+**Why this photo.** Unsplash's search sits behind a bot check and couldn't be
+reached from the build machine. Commons has an API that states each photo's
+licence. Of the freely licensed yacht racing photos there, Peter Trimming's
+Cowes Week series is British cruiser racing, which is who NHC is for. This
+one, with bright spinnakers against the sky, reads well behind text.
+
+**Also.** `django_htmx.middleware.HtmxMiddleware` moved before the club
+middleware, which answers the service's front page itself, so that page can
+tell an HTMX request from a normal one. It only adds `request.htmx`, so its
+position changes nothing else.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

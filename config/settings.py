@@ -142,11 +142,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Before the club lookup, which answers the service's front page itself
+    # (slice 19): that page's club search needs request.htmx too.
+    "django_htmx.middleware.HtmxMiddleware",
     # After authentication, so a suspended club's page can let the operator in.
     "races.clubs.ClubMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

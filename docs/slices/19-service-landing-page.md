@@ -1,7 +1,7 @@
 # Slice 19: a landing page that sells Race Times, and "Find my club"
 
-**Status: proposed (2026-09-27). Waiting for the owner's answers to the
-questions at the end; nothing is built yet.**
+**Status: built (2026-09-27), for the owner's review of the photo and the
+wording. The owner's answers are at the end.**
 
 ## Goal
 The service's own front page, `racetimes.co.uk`, is for two kinds of visitor:
@@ -64,9 +64,14 @@ site's one stylesheet: no new JavaScript, fonts or dependencies.
 
 ### 2. The photo
 - One photo of yacht racing, landscape, used in the hero.
-- **Source:** see question 2. If it's a stock photo, from Unsplash or Pexels,
-  whose licences allow commercial use without attribution. The photo's page,
-  photographer and licence are recorded in `docs/decisions.md`.
+- **Source:** a stock photo, for now (question 2): "Cowes Week 2019" by Peter
+  Trimming, CC BY-SA 2.0, from Wikimedia Commons (Geograph). Unsplash's search
+  couldn't be reached from the build machine; Commons records each photo's
+  licence. CC BY-SA needs a credit, so the page credits it under the photo,
+  with links to its page and the licence. Recorded in `docs/decisions.md`.
+- **Made by** `scripts/landing_images/make.js`, which uses Chromium (as the
+  manual's screenshots do) to resize the photo and crop the manual's
+  screenshots, so nothing is added to Python.
 - **Served from our own files** (`static/img/`), so the "loads only the
   site's own files" test keeps passing and visitors' browsers contact no
   one else:
@@ -74,8 +79,9 @@ site's one stylesheet: no new JavaScript, fonts or dependencies.
   - saved as WebP with a JPEG fallback (`<picture>` with `srcset`), each
     under about 200 KB;
   - `alt` text describing it.
-- **Text over the photo** sits on a dark navy overlay, a new colour token,
-  and its contrast is added to the WCAG test.
+- **Text over the photo** sits on a solid navy panel, so it reads the same
+  whatever the photo, with colours the WCAG test already checks. No new
+  colour was needed.
 
 ### 3. A bigger logo
 - On the landing page: the large logo in the hero (section 1).
@@ -111,8 +117,8 @@ know their club's name but not its address.
   address is which.
 
 ### 5. Search engines
-See question 1. As recommended there: the service's front page may be
-indexed; everything else, including every club site, stays noindex.
+Not in this slice (question 1): every page, this one included, stays
+noindex for now.
 
 ## Tests
 - The landing page:
@@ -128,13 +134,7 @@ indexed; everything else, including every club site, stays noindex.
   - shows the "no club" message;
   - returns only the matches over HTMX, and the whole page without it;
   - shows nothing about a club but its name and address.
-- The new overlay colour meets WCAG AA (`races/test_styles.py`).
-- Search engines, if question 1 is answered as recommended:
-  - the service's `/` has no noindex header;
-  - every other page, and every club page, still does;
-  - `robots.txt` on the service's address allows `/` and nothing else;
-  - `robots.txt` on a club's address is unchanged;
-  - `scripts/check_live.py` checks both.
+- The bigger header logo is on the service's own pages only.
 
 ## Manual
 The user manual is for clubs' own people, so it doesn't change, apart from a
@@ -163,10 +163,7 @@ clubs are listed in Find my club.
 - Changing club sites' home pages.
 
 ## Suggested parts
-One pull request is enough, but it splits cleanly if preferred:
-1. The landing page, photo and bigger logo.
-2. Find my club.
-3. Search engines (question 1).
+One pull request: the landing page, photo, bigger logo and Find my club.
 
 ## Questions for the project owner
 1. **Search engines.** This morning every site became noindex, the service's
@@ -193,3 +190,10 @@ One pull request is enough, but it splits cleanly if preferred:
 5. **Words.** Are you happy for me to draft the headline, cards and "How it
    works" copy in the style above, for you to edit in review? Or do you have
    wording you'd like used?
+
+**The owner's answers (2026-09-27):**
+1. Search engines: leave them for now. Every page stays noindex.
+2. Use a stock photo for now.
+3. A bigger logo on the service's own pages only: agreed.
+4. List every active club: agreed.
+5. Draft the wording for the owner to edit in review.

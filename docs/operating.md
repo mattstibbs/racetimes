@@ -114,6 +114,10 @@ club, and your data".
 
 ## Clubs at a glance
 
+The service's front page (slice 19) has **Find my club**: anyone can type part
+of a club's name or address and follow a link to its site. It lists active
+clubs only, by name and address; a suspended club disappears from it.
+
 **Clubs** lists every club, with its status, how many approved members and
 series it has, and when a result was last recorded there: a quick way to see
 which clubs are using the service.

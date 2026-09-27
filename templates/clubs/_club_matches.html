@@ -1,0 +1,15 @@
+<div id="club-matches" aria-live="polite">
+{% if matches is None %}
+  {% if searched %}<p class="muted">Type at least {{ min_query }} letters of your club's name.</p>{% endif %}
+{% elif matches %}
+  <ul class="matches">
+    {% for club, address in matches|slice:max_matches %}
+    <li><a href="{{ address }}">{{ club.name }}</a> <span class="muted">{{ club.subdomain }}.{{ service_domain }}</span></li>
+    {% endfor %}
+  </ul>
+  {% if matches|length > max_matches %}<p class="muted">Showing the first {{ max_matches }}. Type more to narrow it down.</p>{% endif %}
+{% else %}
+  <p class="muted">No club called &ldquo;{{ query }}&rdquo; uses Race Times yet. Check with your club,
+    or <a href="#get-race-times">tell them about us</a>.</p>
+{% endif %}
+</div>
