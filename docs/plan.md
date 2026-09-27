@@ -643,3 +643,33 @@ address:
 
 No model, migration, dependency or JavaScript. The owner agreed all four
 recommendations. The manual gains "Changing your password".
+
+
+## Slice 17: code tidy-up and linting. **Status: complete (2026-09-27)**
+
+Spec: `docs/slices/17-code-tidy-and-linting.md`. Nothing a user sees changes.
+
+- [x] **Ruff** lints and formats the codebase (88-character lines, config in
+      `pyproject.toml`), with a CI job running `ruff check .` and
+      `ruff format --check .`. Both pass. The one-off reformat is in
+      `.git-blame-ignore-revs`.
+- [x] **Every lint finding fixed,** including `zip(..., strict=True)` where both
+      sides must match, Django's model member order, and explicit field lists
+      on the admin's forms. `nhc/` had lint fixes only.
+- [x] **`races/views.py` and `races/forms.py` split** into one module per
+      area (`race_day_views`, `series_views`, `request_views`, `legal_views`;
+      `race_day_forms`, `admin_forms`, `request_forms`, `account_forms`,
+      `operator_forms`). The unused `ping` example view is gone.
+- [x] **Tests share fixtures through `conftest.py`** and helpers through
+      `races/testing.py`; no test module imports from another.
+      `run_on_commit` had been defined seven times.
+- [x] **The longest functions broken up:** the race day views, `score_series`
+      and the series CSV.
+- [x] Module docstrings where missing; class attributes above methods.
+
+1460 tests pass: the 1461 before, less `ping`'s own. No migration.
+
+Manual check: seeded the manual's sample data, ran the site, and drove every
+page the manual photographs in headless Chromium: 136 requests, none an error.
+The screenshots match the manual's own, apart from clock times and "sent at"
+times, which come from the moment the sample data is made.

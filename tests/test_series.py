@@ -5,6 +5,8 @@ handicaps the previous race produced. Everything else in the module exists to
 serve that.
 """
 
+from itertools import pairwise
+
 import pytest
 
 from nhc import (
@@ -23,7 +25,11 @@ FIN = RaceStatus.FINISHED
 
 
 def boat(boat_id, base=1.0, current=None):
-    return Boat(boat_id=boat_id, base_number=base, current_tcf=base if current is None else current)
+    return Boat(
+        boat_id=boat_id,
+        base_number=base,
+        current_tcf=base if current is None else current,
+    )
 
 
 def three_boats():
@@ -61,7 +67,7 @@ def test_each_race_is_scored_on_the_previous_races_handicaps():
     )
     outcome = score_series(series)
 
-    for earlier, later in zip(outcome.races, outcome.races[1:]):
+    for earlier, later in pairwise(outcome.races):
         produced = {r.boat_id: r.next_tcf for r in earlier.results}
         used = {r.boat_id: r.tcf_used for r in later.results}
         assert used == produced, f"{later.race_id} did not inherit {earlier.race_id}"
@@ -117,7 +123,10 @@ def test_correcting_a_finish_changes_that_race_and_every_later_one():
 
 def test_carry_over_starts_from_the_boats_current_handicap():
     series = Series(
-        boats=[boat("A", base=0.900, current=0.950), boat("B", base=1.000, current=1.020)],
+        boats=[
+            boat("A", base=0.900, current=0.950),
+            boat("B", base=1.000, current=1.020),
+        ],
         races=[race("R1", A=3600, B=4000)],
         progression=HandicapProgression.CARRY_OVER,
     )
@@ -127,7 +136,10 @@ def test_carry_over_starts_from_the_boats_current_handicap():
 
 def test_reset_starts_from_the_published_base_number():
     series = Series(
-        boats=[boat("A", base=0.900, current=0.950), boat("B", base=1.000, current=1.020)],
+        boats=[
+            boat("A", base=0.900, current=0.950),
+            boat("B", base=1.000, current=1.020),
+        ],
         races=[race("R1", A=3600, B=4000)],
         progression=HandicapProgression.RESET,
     )
@@ -136,7 +148,9 @@ def test_reset_starts_from_the_published_base_number():
 
 
 def test_carry_over_is_the_default():
-    series = Series(boats=[boat("A", base=0.9, current=0.95)], races=[race("R1", A=3600)])
+    series = Series(
+        boats=[boat("A", base=0.9, current=0.95)], races=[race("R1", A=3600)]
+    )
     assert score_series(series).races[0].results[0].tcf_used == 0.95
 
 
@@ -145,8 +159,12 @@ def test_the_two_progressions_agree_when_nothing_has_drifted():
     number starts there either way, so the whole series must come out the same."""
     boats = [boat("A", base=1.0, current=1.0), boat("B", base=1.0, current=1.0)]
     races = [race("R1", A=3600, B=4000), race("R2", A=3700, B=3900)]
-    carried = score_series(Series(boats=boats, races=races, progression=HandicapProgression.CARRY_OVER))
-    reset = score_series(Series(boats=boats, races=races, progression=HandicapProgression.RESET))
+    carried = score_series(
+        Series(boats=boats, races=races, progression=HandicapProgression.CARRY_OVER)
+    )
+    reset = score_series(
+        Series(boats=boats, races=races, progression=HandicapProgression.RESET)
+    )
     assert carried == reset
 
 
@@ -154,8 +172,12 @@ def test_a_drifted_handicap_makes_the_two_progressions_diverge_for_good():
     """Once they start apart they stay apart, because each race feeds the next."""
     boats = [boat("A", base=0.90, current=0.95), boat("B", base=1.00, current=1.02)]
     races = [race("R1", A=3600, B=4000), race("R2", A=3700, B=3900)]
-    carried = score_series(Series(boats=boats, races=races, progression=HandicapProgression.CARRY_OVER))
-    reset = score_series(Series(boats=boats, races=races, progression=HandicapProgression.RESET))
+    carried = score_series(
+        Series(boats=boats, races=races, progression=HandicapProgression.CARRY_OVER)
+    )
+    reset = score_series(
+        Series(boats=boats, races=races, progression=HandicapProgression.RESET)
+    )
     assert carried.races[0] != reset.races[0]
     assert carried.races[1] != reset.races[1]
 
@@ -202,7 +224,9 @@ def test_every_boat_gets_a_result_in_every_race():
 
 
 def test_an_explicit_code_is_kept_rather_than_overwritten():
-    series = Series(boats=three_boats(), races=[race("R1", A=3600, B=4000, C=RaceStatus.DNF)])
+    series = Series(
+        boats=three_boats(), races=[race("R1", A=3600, B=4000, C=RaceStatus.DNF)]
+    )
     assert results_by_id(score_series(series), "R1")["C"].status is RaceStatus.DNF
 
 
@@ -214,7 +238,9 @@ def test_an_explicit_code_is_kept_rather_than_overwritten():
 def test_minimum_finishers_reaches_the_adjustment():
     races = [race("R1", A=3600, B=4000, C=RaceStatus.DNF)]
     without = score_series(Series(boats=three_boats(), races=races))
-    with_threshold = score_series(Series(boats=three_boats(), races=races, minimum_finishers=3))
+    with_threshold = score_series(
+        Series(boats=three_boats(), races=races, minimum_finishers=3)
+    )
     assert results_by_id(without, "R1")["A"].next_tcf != 1.0
     assert results_by_id(with_threshold, "R1")["A"].next_tcf == 1.0
 
@@ -325,14 +351,21 @@ def test_a_regatta_carries_the_clamped_handicap_forward():
 def test_a_regatta_clamp_actually_bites_in_this_series():
     """Guards the test above against passing vacuously: A wins race 2 by so
     much that its new handicap is held at 1.1 x 0.95."""
-    result = {r.boat_id: r for r in score_series(regatta_series()).races[1].results}["A"]
+    result = {r.boat_id: r for r in score_series(regatta_series()).races[1].results}[
+        "A"
+    ]
     assert result.next_tcf > result.next_tcf_clamped
     assert result.next_tcf_clamped == pytest.approx(1.045)
 
 
 def test_a_regatta_refuses_the_club_only_finisher_threshold():
     with pytest.raises(InvalidInput, match="club-series option"):
-        Series(boats=three_boats(), races=[], series_type=SeriesType.REGATTA, minimum_finishers=3)
+        Series(
+            boats=three_boats(),
+            races=[],
+            series_type=SeriesType.REGATTA,
+            minimum_finishers=3,
+        )
 
 
 def test_a_regatta_race_nobody_finished_is_refused():

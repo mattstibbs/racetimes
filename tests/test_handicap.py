@@ -16,7 +16,12 @@ from nhc import (
     compute_club_adjustment,
 )
 from nhc.handicap import adjustment_scale, classify_performance
-from tests.scenario_loader import TOLERANCE, build_race_input, expected_for, race_boat_params
+from tests.scenario_loader import (
+    TOLERANCE,
+    build_race_input,
+    expected_for,
+    race_boat_params,
+)
 
 SCALE_PARAMS, SCALE_IDS = race_boat_params("adjustment_scale")
 ACHIEVED_PARAMS, ACHIEVED_IDS = race_boat_params("achieved_handicap")
@@ -37,7 +42,10 @@ RYA_PUBLISHED_TCFN = {
 
 def finisher(boat_id, tcf, elapsed):
     return RaceEntry(
-        boat_id=boat_id, status=RaceStatus.FINISHED, tcf_used=tcf, elapsed_seconds=elapsed
+        boat_id=boat_id,
+        status=RaceStatus.FINISHED,
+        tcf_used=tcf,
+        elapsed_seconds=elapsed,
     )
 
 
@@ -55,7 +63,9 @@ def adjusted_by_id(race, **kwargs):
 
 
 @pytest.mark.parametrize(("boat_id", "published"), sorted(RYA_PUBLISHED_TCFN.items()))
-def test_reproduces_the_rya_published_worked_example(scenarios_by_id, boat_id, published):
+def test_reproduces_the_rya_published_worked_example(
+    scenarios_by_id, boat_id, published
+):
     """Spec section 8. A failure here is a defect in the engine, never a
     fixture to adjust."""
     scenario = scenarios_by_id["SCEN-005_RYA_PUBLISHED_WORKED_EXAMPLE"]
@@ -152,7 +162,9 @@ def test_classification_is_not_fooled_by_float_noise():
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str)
+@pytest.mark.parametrize(
+    "status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str
+)
 def test_non_finishers_carry_their_handicap_forward_unchanged(status):
     race = club_race(
         finisher("A", tcf=0.95, elapsed=3600),
@@ -170,14 +182,22 @@ def test_a_non_finisher_cannot_move_anyone_elses_handicap():
     """Spec section 3: non-starters are excluded from the sums for every other
     boat's calculation. An absurd handicap on an absent boat must change
     nothing."""
-    racers = (finisher("A", tcf=0.95, elapsed=3600), finisher("B", tcf=1.00, elapsed=3800))
+    racers = (
+        finisher("A", tcf=0.95, elapsed=3600),
+        finisher("B", tcf=1.00, elapsed=3800),
+    )
     without = adjusted_by_id(club_race(*racers))
     with_absentee = adjusted_by_id(
-        club_race(*racers, RaceEntry(boat_id="GHOST", status=RaceStatus.DNC, tcf_used=99.0))
+        club_race(
+            *racers, RaceEntry(boat_id="GHOST", status=RaceStatus.DNC, tcf_used=99.0)
+        )
     )
     for boat_id in ("A", "B"):
         assert with_absentee[boat_id].next_tcf == without[boat_id].next_tcf
-        assert with_absentee[boat_id].achieved_handicap == without[boat_id].achieved_handicap
+        assert (
+            with_absentee[boat_id].achieved_handicap
+            == without[boat_id].achieved_handicap
+        )
 
 
 def test_a_race_nobody_finished_adjusts_nobody_and_does_not_divide_by_zero():
@@ -209,7 +229,9 @@ def test_a_sole_finisher_keeps_its_exact_handicap():
 
 
 def two_finisher_race():
-    return club_race(finisher("A", tcf=1.0, elapsed=3600), finisher("B", tcf=1.0, elapsed=4000))
+    return club_race(
+        finisher("A", tcf=1.0, elapsed=3600), finisher("B", tcf=1.0, elapsed=4000)
+    )
 
 
 def test_threshold_is_off_by_default():

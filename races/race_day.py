@@ -60,7 +60,11 @@ def tap(race, entry, user):
         raise ValidationError(NOT_RACE_DAY)
     existing = Finish.objects.filter(race=race, entry=entry).first()
     if existing is not None:
-        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat.race_day_label, result=describe(existing)))
+        raise ValidationError(
+            ALREADY_FINISHED.format(
+                boat=entry.boat.race_day_label, result=describe(existing)
+            )
+        )
     finish = Finish(
         race=race,
         entry=entry,
@@ -76,7 +80,11 @@ def tap(race, entry, user):
     except IntegrityError:
         # Another device saved this boat's finish in the same instant.
         existing = Finish.objects.get(race=race, entry=entry)
-        raise ValidationError(ALREADY_FINISHED.format(boat=entry.boat.race_day_label, result=describe(existing)))
+        raise ValidationError(
+            ALREADY_FINISHED.format(
+                boat=entry.boat.race_day_label, result=describe(existing)
+            )
+        ) from None
     return finish
 
 
@@ -94,7 +102,9 @@ def undo(race, entry, user):
     rather than a correction, so it needs no reason.
     """
     with transaction.atomic():
-        finish = Finish.objects.select_for_update().filter(race=race, entry=entry).first()
+        finish = (
+            Finish.objects.select_for_update().filter(race=race, entry=entry).first()
+        )
         if finish is None or not can_undo(finish, race):
             raise ValidationError(UNDO_GONE)
         changes = audit.changes_to_delete(finish)
@@ -118,9 +128,20 @@ def version(race):
         (f.entry_id, f.status, str(f.finish_time), can_undo(f, race, at))
         for f in Finish.objects.filter(race=race)
     )
-    racing = sorted(RaceEntry.objects.filter(race=race).values_list("entry_id", flat=True))
-    latest_change = (
-        ScoringChange.objects.filter(series=race.series).order_by("-pk").values_list("pk", flat=True).first()
+    racing = sorted(
+        RaceEntry.objects.filter(race=race).values_list("entry_id", flat=True)
     )
-    parts = [finishes, racing, str(race.published_at), str(race.results_sent_at), latest_change]
+    latest_change = (
+        ScoringChange.objects.filter(series=race.series)
+        .order_by("-pk")
+        .values_list("pk", flat=True)
+        .first()
+    )
+    parts = [
+        finishes,
+        racing,
+        str(race.published_at),
+        str(race.results_sent_at),
+        latest_change,
+    ]
     return hashlib.sha1(repr(parts).encode()).hexdigest()[:12]

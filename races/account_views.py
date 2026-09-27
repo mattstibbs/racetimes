@@ -16,26 +16,32 @@ from django.utils import timezone
 
 from . import notifications
 from .account_deletion import clubs_needing_them, delete_account
+from .account_forms import ChangePasswordForm, DeleteAccountForm
 from .clubs import club_address
-from .forms import ChangePasswordForm, DeleteAccountForm
 from .models import ClubMembership
 from .my_data import my_data
 
 logger = logging.getLogger(__name__)
 
 DELETED = "Your account has been deleted."
-PASSWORD_CHANGED = (
-    "Your password has been changed. Any other devices logged in to your account have been logged out."
-)
+PASSWORD_CHANGED = "Your password has been changed. Any other devices logged in to your account have been logged out."
 OPERATOR = "The service's operator account can't be deleted here."
 
 
 @login_required
 def account(request):
-    memberships = ClubMembership.objects.filter(user=request.user).select_related("club").order_by("club__name")
-    return render(request, "races/account.html", {
-        "memberships": [(m, club_address(request, m.club)) for m in memberships],
-    })
+    memberships = (
+        ClubMembership.objects.filter(user=request.user)
+        .select_related("club")
+        .order_by("club__name")
+    )
+    return render(
+        request,
+        "races/account.html",
+        {
+            "memberships": [(m, club_address(request, m.club)) for m in memberships],
+        },
+    )
 
 
 @login_required
@@ -45,7 +51,9 @@ def download_my_data(request):
         content_type="application/json; charset=utf-8",
     )
     day = timezone.localdate().isoformat()
-    response["Content-Disposition"] = f'attachment; filename="race-times-my-data-{day}.json"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="race-times-my-data-{day}.json"'
+    )
     return response
 
 
@@ -54,16 +62,27 @@ def delete_my_account(request):
     user = request.user
     blocking = clubs_needing_them(user)
     form = DeleteAccountForm(request.POST or None, request=request)
-    if request.method == "POST" and not blocking and not user.is_superuser and form.is_valid():
+    if (
+        request.method == "POST"
+        and not blocking
+        and not user.is_superuser
+        and form.is_valid()
+    ):
         goodbye = notifications.account_deleted(user, request)
         delete_account(user)
         logout(request)
         notifications.send([goodbye], request)
         messages.success(request, DELETED)
         return redirect("results:home")
-    return render(request, "races/delete_account.html", {
-        "form": form, "blocking": blocking, "operator": user.is_superuser,
-    })
+    return render(
+        request,
+        "races/delete_account.html",
+        {
+            "form": form,
+            "blocking": blocking,
+            "operator": user.is_superuser,
+        },
+    )
 
 
 @login_required

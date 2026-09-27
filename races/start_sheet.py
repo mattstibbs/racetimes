@@ -38,10 +38,14 @@ def save_row(race, entry, *, racing, persons_on_board, request):
     when the boat goes on or comes off, once the change is saved.
     """
     with transaction.atomic():
-        race_entry = RaceEntry.objects.select_for_update().filter(race=race, entry=entry).first()
+        race_entry = (
+            RaceEntry.objects.select_for_update().filter(race=race, entry=entry).first()
+        )
         if racing:
             if race_entry is None:
-                race_entry = RaceEntry(race=race, entry=entry, persons_on_board=persons_on_board)
+                race_entry = RaceEntry(
+                    race=race, entry=entry, persons_on_board=persons_on_board
+                )
                 race_entry.full_clean()
                 race_entry.save()
                 notifications.start_sheet_changed(race, entry, request, racing=True)

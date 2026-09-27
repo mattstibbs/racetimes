@@ -5,24 +5,16 @@ translation: clock times becoming elapsed seconds, settings reaching the
 engine, and results finding their way back to the right boat and race.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
 from races.models import Finish, Series
 from races.scoring import score_series
-from races.testing import enter, make_boat, make_race, make_series, record
-from tests.scenario_loader import SCENARIOS, TOLERANCE
+from races.testing import enter, finish_clock, make_boat, make_race, make_series, record
+from tests.scenario_loader import SCEN_005, TOLERANCE
 
 pytestmark = pytest.mark.django_db
-
-SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
-
-
-def clock(start, elapsed_seconds):
-    """The clock time a boat finishes, elapsed_seconds after a start like "18:00:00"."""
-    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(seconds=elapsed_seconds)
-    return moment.strftime("%H:%M:%S")
 
 
 def test_rya_worked_example_reproduces_through_the_database():
@@ -36,10 +28,12 @@ def test_rya_worked_example_reproduces_through_the_database():
     race = make_race(series, start="18:30:00")
     entries = {}
     for boat in SCEN_005["boats"]:
-        entry = enter(series, make_boat(boat["boat_id"], base_number=boat["start_handicap"]))
+        entry = enter(
+            series, make_boat(boat["boat_id"], base_number=boat["start_handicap"])
+        )
         entries[boat["boat_id"]] = entry
         if boat["status"] == "FINISHED":
-            record(race, entry, clock("18:30:00", boat["elapsed_seconds"]))
+            record(race, entry, finish_clock("18:30:00", boat["elapsed_seconds"]))
         else:
             record(race, entry, status=boat["status"])
 
@@ -53,13 +47,19 @@ def test_rya_worked_example_reproduces_through_the_database():
         if expected["corrected_seconds"] is None:
             assert row.result.corrected_time is None
         else:
-            assert row.result.corrected_time == pytest.approx(expected["corrected_seconds"], abs=TOLERANCE)
+            assert row.result.corrected_time == pytest.approx(
+                expected["corrected_seconds"], abs=TOLERANCE
+            )
         assert row.result.next_tcf == pytest.approx(
             expected["handicap_adjusted_next_race"], abs=TOLERANCE
         )
 
     assert [row.entry.boat.sail_number for row in results.rows] == [
-        "BOAT_4", "BOAT_3", "BOAT_1", "BOAT_2", "BOAT_5",
+        "BOAT_4",
+        "BOAT_3",
+        "BOAT_1",
+        "BOAT_2",
+        "BOAT_5",
     ]
 
 
@@ -75,7 +75,7 @@ def three_boats():
 
 
 def test_elapsed_time_is_finish_minus_start(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
     row = score_series(series).for_race(race).for_entry(a)
@@ -171,7 +171,9 @@ def test_standings_follow_the_engine(three_boats):
 
     standings = score_series(series).standings
     assert [(row.entry.pk, row.position, row.total) for row in standings] == [
-        (a.pk, 1, 1), (b.pk, 2, 2), (c.pk, 3, 4),
+        (a.pk, 1, 1),
+        (b.pk, 2, 2),
+        (c.pk, 3, 4),
     ]
     assert standings[0].scores[0].race == race
 
@@ -193,7 +195,7 @@ def test_a_series_with_no_races_has_no_standings(three_boats):
 
 
 def test_a_race_with_nothing_recorded_is_not_scored(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, b, _c) = three_boats
     race_1, race_2 = make_race(series, 1), make_race(series, 2)
     record(race_1, a, "19:00:00")
     record(race_1, b, "19:10:00")
@@ -206,7 +208,7 @@ def test_a_race_with_nothing_recorded_is_not_scored(three_boats):
 
 def test_an_unsailed_race_does_not_use_up_the_discard(three_boats):
     """Before this rule, a scheduled race scored everyone DNC and became their discard."""
-    series, (a, b, c) = three_boats
+    series, (a, b, _c) = three_boats
     race_1, race_2 = make_race(series, 1), make_race(series, 2)
     make_race(series, 3)  # scheduled, not sailed
     record(race_1, a, "19:00:00")
@@ -221,7 +223,7 @@ def test_an_unsailed_race_does_not_use_up_the_discard(three_boats):
 
 
 def test_a_code_alone_makes_a_race_sailed(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series)
     record(race, a, status=Finish.Status.DNF)
     assert score_series(series).for_race(race) is not None
@@ -239,7 +241,7 @@ def regatta(three_boats):
 
 
 def test_a_scheduled_regatta_race_does_not_stop_scoring(regatta):
-    series, entries, race_1 = regatta
+    series, _entries, race_1 = regatta
     race_2 = make_race(series, 2)
     results = score_series(series)
     assert results.for_race(race_1) is not None
@@ -271,11 +273,13 @@ def test_a_regatta_race_is_scored_once_a_time_is_saved(regatta):
 
 def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
     """A backstop: validation should stop this, but if it does not, no crash."""
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
     # Bypass validation, as a bug or a direct database edit might.
-    Finish.objects.filter(race=race).update(finish_time=datetime(2026, 1, 1, 17, 0).time())
+    Finish.objects.filter(race=race).update(
+        finish_time=datetime(2026, 1, 1, 17, 0).time()
+    )
 
     results = score_series(series)
     assert results.races == () and results.standings == ()

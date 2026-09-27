@@ -1,24 +1,40 @@
+"""The Django admin: the club's boats and series, and read-only views of members'
+requests (slice 1 onwards).
+
+Every admin page shows only the current club's rows (``ClubScopedAdmin``), and
+saving a score-affecting field records it in the history (``races/audit.py``),
+with the reason the form asks for.
+"""
+
 import json
 
 from django.contrib import admin, messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.urls import reverse
 from django.utils.html import format_html
 
 from . import audit, notifications
-from .forms import (
+from .admin_forms import (
     AuditedInlineForm,
     AuditedInlineFormSet,
     BoatAdminForm,
     RaceInlineFormSet,
     SeriesAdminForm,
 )
-from .models import Boat, BoatRequest, ClubMembership, EntryRequest, Race, Series, SeriesEntry
+from .models import (
+    Boat,
+    BoatRequest,
+    ClubMembership,
+    EntryRequest,
+    Race,
+    Series,
+    SeriesEntry,
+)
 from .roles import is_committee
 from .scoring import score_series
 
@@ -66,7 +82,9 @@ class ClubScopedAdmin:
         return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
+        return super().formfield_for_foreignkey(
+            db_field, request, **_club_choices(db_field, request, kwargs)
+        )
 
 
 def _may_set_up(request):
@@ -84,7 +102,9 @@ def _club_choices(db_field, request, kwargs):
 
 class ClubScopedInline(ClubScopedAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        return super().formfield_for_foreignkey(db_field, request, **_club_choices(db_field, request, kwargs))
+        return super().formfield_for_foreignkey(
+            db_field, request, **_club_choices(db_field, request, kwargs)
+        )
 
 
 # Clubs and memberships aren't in the admin. The operator creates clubs and
@@ -114,7 +134,9 @@ class ReasonInAdminHistoryMixin:
             fields = part.get("changed", {}).get("fields")
             if fields and label in fields:
                 fields.remove(label)
-        message = [part for part in message if part.get("changed", {}).get("fields", True)]
+        message = [
+            part for part in message if part.get("changed", {}).get("fields", True)
+        ]
         if not reason or not message:
             return message
         # Rendered to text here, because the log's structured format has no
@@ -137,15 +159,30 @@ def boat_changes(before, after):
         else:
             old, new = getattr(before, field.name), getattr(after, field.name)
         label = field.verbose_name[:1].upper() + field.verbose_name[1:]
-        changes.append((label, "" if old is None else str(old), "" if new is None else str(new)))
+        changes.append(
+            (label, "" if old is None else str(old), "" if new is None else str(new))
+        )
     return changes
 
 
 @admin.register(Boat)
 class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
-    list_display = ["sail_number", "name", "make", "model", "base_number", "owner_display"]
-    search_fields = ["sail_number", "name", "owner_name", "owner__first_name", "owner__last_name"]
+    list_display = [
+        "sail_number",
+        "name",
+        "make",
+        "model",
+        "base_number",
+        "owner_display",
+    ]
+    search_fields = [
+        "sail_number",
+        "name",
+        "owner_name",
+        "owner__first_name",
+        "owner__last_name",
+    ]
 
     @admin.display(description="Owner")
     def owner_display(self, boat):
@@ -156,16 +193,29 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
         # permission to browse accounts, which the committee does not have.
         if db_field.name == "owner":
             # Only this club's approved members can own its boats (slice 11).
-            kwargs["queryset"] = get_user_model().objects.filter(
-                is_active=True, memberships__club=request.club,
-                memberships__status=ClubMembership.Status.APPROVED,
-            ).order_by("first_name", "last_name")
+            kwargs["queryset"] = (
+                get_user_model()
+                .objects.filter(
+                    is_active=True,
+                    memberships__club=request.club,
+                    memberships__status=ClubMembership.Status.APPROVED,
+                )
+                .order_by("first_name", "last_name")
+            )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        series_list = list(Series.objects.for_club(obj.club).filter(entries__boat=obj).distinct()) if change else []
+        series_list = (
+            list(Series.objects.for_club(obj.club).filter(entries__boat=obj).distinct())
+            if change
+            else []
+        )
         before = {series.pk: score_series(series) for series in series_list}
-        stored = Boat.objects.for_club(obj.club).select_related("owner").get(pk=obj.pk) if change else None
+        stored = (
+            Boat.objects.for_club(obj.club).select_related("owner").get(pk=obj.pk)
+            if change
+            else None
+        )
         super().save_model(request, obj, form, change)
         if stored is not None:
             # The owner hears about any change the committee makes to their
@@ -174,7 +224,9 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
             if stored.owner_id != obj.owner_id:
                 owners.append(stored.owner)
             notifications.boat_updated(obj, boat_changes(stored, obj), owners, request)
-        recorded = audit.record(form.scoring_changes, request.user, form.cleaned_data["reason"])
+        recorded = audit.record(
+            form.scoring_changes, request.user, form.cleaned_data["reason"]
+        )
         if audit.needs_reason(recorded):
             for series in series_list:
                 effect = audit.describe_effect(before[series.pk], score_series(series))
@@ -235,11 +287,19 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     list_display = ["name", "series_type", "discards"]
     fieldsets = [
         (None, {"fields": ["name", "series_type"]}),
-        ("Scoring rules", {"fields": [
-            "discards", "minimum_finishers", "apply_a5_3",
-            # Slice 14: the optional extra NHC steps (nhc/options.py).
-            "nhc_cap_extremes", "nhc_realign_to_base",
-        ]}),
+        (
+            "Scoring rules",
+            {
+                "fields": [
+                    "discards",
+                    "minimum_finishers",
+                    "apply_a5_3",
+                    # Slice 14: the optional extra NHC steps (nhc/options.py).
+                    "nhc_cap_extremes",
+                    "nhc_realign_to_base",
+                ]
+            },
+        ),
         ("Corrections", {"fields": ["reason", "history_link"]}),
     ]
     readonly_fields = ["history_link"]
@@ -258,7 +318,11 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         # Scored now, before anything is saved, to say afterwards what moved.
-        form.scoring_before = score_series(Series.objects.for_club(obj.club).get(pk=obj.pk)) if change else None
+        form.scoring_before = (
+            score_series(Series.objects.for_club(obj.club).get(pk=obj.pk))
+            if change
+            else None
+        )
         form.recorded = []
         super().save_model(request, obj, form, change)
         form.recorded += audit.record(
@@ -278,7 +342,9 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         if form.scoring_before is not None and audit.needs_reason(form.recorded):
-            effect = audit.describe_effect(form.scoring_before, score_series(form.instance))
+            effect = audit.describe_effect(
+                form.scoring_before, score_series(form.instance)
+            )
             messages.info(request, f"Correction recorded. {effect}")
 
 
@@ -300,21 +366,39 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
         return False  # a request is a record of what was asked and decided
 
     def changelist_view(self, request, extra_context=None):
-        messages.info(request, format_html(
-            'Requests are approved or rejected on the <a href="{}">Change requests page</a>.',
-            reverse("races:requests"),
-        ))
+        messages.info(
+            request,
+            format_html(
+                'Requests are approved or rejected on the <a href="{}">Change requests page</a>.',
+                reverse("races:requests"),
+            ),
+        )
         return super().changelist_view(request, extra_context)
 
 
 @admin.register(BoatRequest)
 class BoatRequestAdmin(RequestAdmin):
-    list_display = ["created_at", "kind", "boat", "sail_number", "requested_by", "status", "decided_by_name"]
+    list_display = [
+        "created_at",
+        "kind",
+        "boat",
+        "sail_number",
+        "requested_by",
+        "status",
+        "decided_by_name",
+    ]
 
 
 @admin.register(EntryRequest)
 class EntryRequestAdmin(RequestAdmin):
-    list_display = ["created_at", "boat", "series", "requested_by", "status", "decided_by_name"]
+    list_display = [
+        "created_at",
+        "boat",
+        "series",
+        "requested_by",
+        "status",
+        "decided_by_name",
+    ]
 
 
 # --- Accounts and groups: the operator's alone ---------------------------------------
@@ -331,7 +415,14 @@ admin.site.unregister(Group)
 
 @admin.register(User)
 class OperatorAccountAdmin(UserAdmin):
-    list_display = ["username", "first_name", "last_name", "is_active", "is_superuser", "date_joined"]
+    list_display = [
+        "username",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_superuser",
+        "date_joined",
+    ]
 
     def has_module_permission(self, request):
         return _operator_here(request)

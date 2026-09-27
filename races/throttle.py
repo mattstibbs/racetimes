@@ -50,7 +50,11 @@ def client_address(request):
     """
     trusted = settings.TRUSTED_PROXIES
     if trusted:
-        forwarded = [a.strip() for a in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",") if a.strip()]
+        forwarded = [
+            a.strip()
+            for a in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")
+            if a.strip()
+        ]
         if forwarded:
             return forwarded[-min(trusted, len(forwarded))]
     return request.META.get("REMOTE_ADDR", "")

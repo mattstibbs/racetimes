@@ -25,31 +25,41 @@ boats = [
 ]
 
 races = [
-    SeriesRace("Race 1", [
-        Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4320),
-        Finish("GBR5678", RaceStatus.FINISHED, elapsed_seconds=5100),
-        Finish("GBR9012", RaceStatus.FINISHED, elapsed_seconds=3840),
-    ]),
-    SeriesRace("Race 2", [
-        Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4400),
-        Finish("GBR5678", RaceStatus.FINISHED, elapsed_seconds=5000),
-        Finish("GBR9012", RaceStatus.DNF),
-    ]),
+    SeriesRace(
+        "Race 1",
+        [
+            Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4320),
+            Finish("GBR5678", RaceStatus.FINISHED, elapsed_seconds=5100),
+            Finish("GBR9012", RaceStatus.FINISHED, elapsed_seconds=3840),
+        ],
+    ),
+    SeriesRace(
+        "Race 2",
+        [
+            Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4400),
+            Finish("GBR5678", RaceStatus.FINISHED, elapsed_seconds=5000),
+            Finish("GBR9012", RaceStatus.DNF),
+        ],
+    ),
     # GBR5678 has no finish recorded here, so it is scored DNC (RRS A2.2).
-    SeriesRace("Race 3", [
-        Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4250),
-        Finish("GBR9012", RaceStatus.FINISHED, elapsed_seconds=3900),
-    ]),
+    SeriesRace(
+        "Race 3",
+        [
+            Finish("GBR1234", RaceStatus.FINISHED, elapsed_seconds=4250),
+            Finish("GBR9012", RaceStatus.FINISHED, elapsed_seconds=3900),
+        ],
+    ),
 ]
 
 outcome = score_series(Series(boats=boats, races=races, discards=1))
 
 for standing in outcome.standings:
     scores = "  ".join(
-        f"({s.points:g})" if s.discarded else f" {s.points:g} "
-        for s in standing.scores
+        f"({s.points:g})" if s.discarded else f" {s.points:g} " for s in standing.scores
     )
-    print(f"{standing.position}. {standing.boat_id}  {scores}  total {standing.total:g}")
+    print(
+        f"{standing.position}. {standing.boat_id}  {scores}  total {standing.total:g}"
+    )
 ```
 
 ```

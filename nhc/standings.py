@@ -97,7 +97,7 @@ def compute_standings(races, *, discards: int = 1) -> tuple[BoatStanding, ...]:
                 points=value,
                 discarded=index in discarded_indices,
             )
-            for index, (race, value) in enumerate(zip(race_list, points))
+            for index, (race, value) in enumerate(zip(race_list, points, strict=True))
         )
 
     ranked = sorted(boat_ids, key=lambda boat_id: _ranking_key(rows[boat_id]))

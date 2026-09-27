@@ -9,7 +9,12 @@ import pytest
 
 from nhc import InvalidInput, RaceEntry, RaceInput, RaceStatus, SeriesType, score_race
 from nhc.scoring import TIE_TOLERANCE_SECONDS, corrected_time
-from tests.scenario_loader import TOLERANCE, build_race_input, expected_for, race_boat_params
+from tests.scenario_loader import (
+    TOLERANCE,
+    build_race_input,
+    expected_for,
+    race_boat_params,
+)
 
 CORRECTED_PARAMS, CORRECTED_IDS = race_boat_params("corrected_seconds")
 RANK_PARAMS, RANK_IDS = race_boat_params("rank")
@@ -17,7 +22,10 @@ RANK_PARAMS, RANK_IDS = race_boat_params("rank")
 
 def finisher(boat_id, tcf, elapsed):
     return RaceEntry(
-        boat_id=boat_id, status=RaceStatus.FINISHED, tcf_used=tcf, elapsed_seconds=elapsed
+        boat_id=boat_id,
+        status=RaceStatus.FINISHED,
+        tcf_used=tcf,
+        elapsed_seconds=elapsed,
     )
 
 
@@ -70,8 +78,8 @@ def test_lowest_corrected_time_wins():
     """Spec section 2: boats are ranked by ascending corrected time. The boat
     with the longest elapsed time here wins on handicap."""
     race = club_race(
-        finisher("FAST_BOAT", tcf=1.20, elapsed=3500),   # 4200
-        finisher("SLOW_BOAT", tcf=0.80, elapsed=5000),   # 4000
+        finisher("FAST_BOAT", tcf=1.20, elapsed=3500),  # 4200
+        finisher("SLOW_BOAT", tcf=0.80, elapsed=5000),  # 4000
     )
     results = results_by_id(race)
     assert results["SLOW_BOAT"].position == 1
@@ -83,7 +91,9 @@ def test_lowest_corrected_time_wins():
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str)
+@pytest.mark.parametrize(
+    "status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str
+)
 def test_non_finishers_have_no_corrected_time_or_place(status):
     race = club_race(
         finisher("A", tcf=0.95, elapsed=3600),
@@ -121,9 +131,9 @@ def test_a_race_where_nobody_finishes_scores_nobody():
 def test_tied_boats_share_the_better_place_and_consume_the_one_below():
     """RRS A7: a two-way tie for first is 1, 1, 3 - third place is not reused."""
     race = club_race(
-        finisher("X", tcf=1.0, elapsed=4000),   # 4000
-        finisher("Y", tcf=0.8, elapsed=5000),   # 4000
-        finisher("Z", tcf=1.2, elapsed=3500),   # 4200
+        finisher("X", tcf=1.0, elapsed=4000),  # 4000
+        finisher("Y", tcf=0.8, elapsed=5000),  # 4000
+        finisher("Z", tcf=1.2, elapsed=3500),  # 4200
     )
     results = results_by_id(race)
     assert results["X"].position == 1
@@ -169,7 +179,9 @@ def test_a_run_of_close_times_does_not_drift_into_one_big_tie():
     """Each candidate is compared against the first of its group, not its
     neighbour, so successive near-equal gaps cannot accumulate."""
     step = TIE_TOLERANCE_SECONDS * 0.75
-    race = club_race(*(finisher(f"B{i}", tcf=1.0, elapsed=4000 + i * step) for i in range(4)))
+    race = club_race(
+        *(finisher(f"B{i}", tcf=1.0, elapsed=4000 + i * step) for i in range(4))
+    )
     results = results_by_id(race)
     # B0 and B1 are within tolerance of each other; B2 and B3 are not within
     # tolerance of B0, so they must not be swept into the same tie.

@@ -24,71 +24,73 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-only-key')
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-dev-only-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
+ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
 
 # Origins trusted to POST forms (the admin login included), comma-separated,
 # e.g. https://racetimes.example.org.
 CSRF_TRUSTED_ORIGINS = [
-    o for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o
+    o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o
 ]
 
 # Render sets this to the site's own hostname (e.g. racetimes.onrender.com), so
 # a deploy there needs no host settings of its own. Trusting its https origin is
 # what lets form posts, the admin login among them, pass Django's CSRF check.
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
 # Slice 11: many clubs, each at <subdomain>.<SERVICE_DOMAIN> (races/clubs.py).
 # In development that's e.g. demo.localhost:8000, which every current browser
 # resolves with no setup.
-SERVICE_DOMAIN = os.environ.get('SERVICE_DOMAIN', 'localhost' if DEBUG else 'racetimes.co.uk')
-ALLOWED_HOSTS += [SERVICE_DOMAIN, f'.{SERVICE_DOMAIN}']
+SERVICE_DOMAIN = os.environ.get(
+    "SERVICE_DOMAIN", "localhost" if DEBUG else "racetimes.co.uk"
+)
+ALLOWED_HOSTS += [SERVICE_DOMAIN, f".{SERVICE_DOMAIN}"]
 if DEBUG:
     # Django allows these by itself only while ALLOWED_HOSTS is empty, which
     # it no longer is.
-    ALLOWED_HOSTS += ['127.0.0.1', '[::1]']
+    ALLOWED_HOSTS += ["127.0.0.1", "[::1]"]
 else:
-    CSRF_TRUSTED_ORIGINS += [f'https://{SERVICE_DOMAIN}', f'https://*.{SERVICE_DOMAIN}']
+    CSRF_TRUSTED_ORIGINS += [f"https://{SERVICE_DOMAIN}", f"https://*.{SERVICE_DOMAIN}"]
 
 # The subdomain of the club to show on an address with no club in it, such as
 # the test site on Render (which can't have subdomains), or 127.0.0.1. Empty
 # means such an address is the service's own front page.
-SINGLE_CLUB = os.environ.get('SINGLE_CLUB', '')
+SINGLE_CLUB = os.environ.get("SINGLE_CLUB", "")
 
 # How many proxies in front of the site add to X-Forwarded-For, so the
 # client's own address can be found: 0 with none (development), 1 on Render.
 # Used to limit failed logins from one address (races/throttle.py).
-TRUSTED_PROXIES = int(os.environ.get('TRUSTED_PROXIES', '0'))
+TRUSTED_PROXIES = int(os.environ.get("TRUSTED_PROXIES", "0"))
 
 # Failed-login counts (races/throttle.py) are kept in the database, the one
 # place every web worker shares. Its table is made by `createcachetable`,
 # which build.sh runs; the test database makes it by itself.
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'racetimes_cache',
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "racetimes_cache",
     }
 }
 
 # Shown on the service's front page, for clubs that want to use Race Times.
-SERVICE_CONTACT_EMAIL = os.environ.get('SERVICE_CONTACT_EMAIL', 'hello@racetimes.co.uk')
+SERVICE_CONTACT_EMAIL = os.environ.get("SERVICE_CONTACT_EMAIL", "hello@racetimes.co.uk")
 
 if not DEBUG:
-    if SECRET_KEY.startswith('django-insecure'):
+    if SECRET_KEY.startswith("django-insecure"):
         # Refuse to start rather than run in public on a key everyone can read.
-        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY when DJANGO_DEBUG is off.')
+        raise ImproperlyConfigured("Set DJANGO_SECRET_KEY when DJANGO_DEBUG is off.")
     # The host terminates HTTPS and passes requests on over plain HTTP, saying
     # so in this header. Without trusting it, Django would treat every request
     # as plain HTTP: links it builds would start http://, and its HTTPS-only
     # checks would be skipped.
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     # Slice 11 part 4: a service for paying clubs is HTTPS only. (These were
@@ -97,72 +99,72 @@ if not DEBUG:
     # address (HSTS), for an hour to begin with; raise SECURE_HSTS_SECONDS
     # once hosting is settled, without a code change.
     SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600'))
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     # Not on browsers' HSTS preload list: that's hard to undo, and belongs with
     # choosing hosting. So its deploy-check warning is silenced (agreed by the
     # project owner).
-    SILENCED_SYSTEM_CHECKS = ['security.W021']
+    SILENCED_SYSTEM_CHECKS = ["security.W021"]
 
 # Set explicitly, so a Django upgrade can't loosen them: no page may be shown
 # in another site's frame, and links out send only this site's address.
-X_FRAME_OPTIONS = 'DENY'
-SECURE_REFERRER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
 
 
 # Application definition
 
 INSTALLED_APPS = [
     # The admin, aware of clubs (slice 11): races/admin_site.py.
-    'races.admin_site.ClubAdminConfig',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_htmx',
-    'races',
-    'results',
+    "races.admin_site.ClubAdminConfig",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_htmx",
+    "races",
+    "results",
 ]
 
 MIDDLEWARE = [
     # First, so /health/ answers on any address, over plain HTTP, before the
     # host check, the HTTPS redirect or the club lookup (races/health.py).
-    'races.health.HealthCheckMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    "races.health.HealthCheckMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     # Serves the CSS and HTMX files in production, straight after security as
     # WhiteNoise's docs require. With DEBUG on, runserver serves them instead.
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     # After authentication, so a suspended club's page can let the operator in.
-    'races.clubs.ClubMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_htmx.middleware.HtmxMiddleware',
+    "races.clubs.ClubMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'races.context_processors.roles',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "races.context_processors.roles",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
@@ -171,8 +173,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # SQLite by default (development); set DATABASE_URL for PostgreSQL in production,
 # e.g. postgres://user:pass@host:5432/racetimes
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
     )
 }
@@ -182,28 +184,30 @@ DATABASES = {
 # instead of sent, which is what development wants; the tests use Django's
 # in-memory outbox whatever this says. Set EMAIL_HOST and friends to send
 # through a real mail server. See docs/deploying.md.
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 if EMAIL_HOST:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '1') == '1'
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
     EMAIL_TIMEOUT = 20  # seconds: a stuck mail server must not hang a page
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Race Times <noreply@example.com>')
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "Race Times <noreply@example.com>"
+)
 
 
 # Messages ("Saved") travel in the session, not in a cookie of their own, so
 # the only cookies are the session and the CSRF token, both essential: no
 # cookie banner is needed (slice 11 part 5; the privacy notice lists them).
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 # One login page for everyone; see races/member_views.py.
-LOGIN_URL = 'races:login'
-LOGIN_REDIRECT_URL = 'races:my_boats'
-LOGOUT_REDIRECT_URL = 'results:home'
+LOGIN_URL = "races:login"
+LOGIN_REDIRECT_URL = "races:my_boats"
+LOGOUT_REDIRECT_URL = "results:home"
 
 
 # Password validation
@@ -211,16 +215,16 @@ LOGOUT_REDIRECT_URL = 'results:home'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -228,11 +232,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-gb'
+LANGUAGE_CODE = "en-gb"
 
 # Club time. Start and finish clock times are stored as typed, with no timezone
 # (see races/models.py); this governs everything else, such as admin timestamps.
-TIME_ZONE = 'Europe/London'
+TIME_ZONE = "Europe/London"
 
 USE_I18N = True
 
@@ -244,22 +248,24 @@ USE_TZ = True
 
 # Tests run under pytest (see pytest.ini). This runner makes `manage.py test`
 # fail with a pointer rather than collect 0 tests and report success.
-TEST_RUNNER = 'config.test_runner.PytestRedirectRunner'
+TEST_RUNNER = "config.test_runner.PytestRedirectRunner"
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 if not DEBUG:
     # Where `collectstatic` gathers files for WhiteNoise to serve. Build
     # output, so it is gitignored. Only set in production, the one place
     # `collectstatic` runs; in development runserver serves from `static/`.
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    STATIC_ROOT = BASE_DIR / "staticfiles"
     # Compressed, with a content hash in each file name so browsers can cache
     # them for ever. It needs `collectstatic` to have run, which the deploy's
     # build step does.
     STORAGES = {
-        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
-        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
     }
 
 # Errors go to the console, which is where a host like Render collects logs.
@@ -267,25 +273,29 @@ if not DEBUG:
 # would otherwise leave no trace. Each line names the club's subdomain, and
 # email addresses are redacted (races/logs.py).
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {'club': {'()': 'races.logs.ClubFilter'}},
-    'formatters': {
-        'redacted': {
-            '()': 'races.logs.RedactingFormatter',
-            'format': '%(levelname)s [%(club)s] %(name)s: %(message)s',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"club": {"()": "races.logs.ClubFilter"}},
+    "formatters": {
+        "redacted": {
+            "()": "races.logs.RedactingFormatter",
+            "format": "%(levelname)s [%(club)s] %(name)s: %(message)s",
         },
     },
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler', 'filters': ['club'], 'formatter': 'redacted'},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["club"],
+            "formatter": "redacted",
+        },
     },
-    'root': {'handlers': ['console'], 'level': 'WARNING'},
+    "root": {"handlers": ["console"], "level": "WARNING"},
 }
 
 # Unhandled errors are reported to Sentry, tagged with the club, when
 # SENTRY_DSN is set; development, the tests and CI leave it unset and send
 # nothing. What's kept out of the reports is in races/logs.py.
-SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 if SENTRY_DSN:
     import sentry_sdk
 
@@ -296,4 +306,4 @@ if SENTRY_DSN:
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

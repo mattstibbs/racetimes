@@ -11,7 +11,6 @@ from django.contrib.admin.apps import AdminConfig
 from django.core.exceptions import PermissionDenied
 
 
-
 class ClubAdminSite(admin.AdminSite):
     """At a club, the admin is for that club's race committee and administrators.
 
@@ -32,7 +31,7 @@ class ClubAdminSite(admin.AdminSite):
     @property
     def login_form(self):
         # The operator's login, limited like the site's (races/throttle.py).
-        from .forms import AdminLoginForm
+        from .account_forms import AdminLoginForm
 
         return AdminLoginForm
 
@@ -40,7 +39,9 @@ class ClubAdminSite(admin.AdminSite):
         # At a club, everyone logs in on the site's own login page, which
         # takes an email and knows about clubs. Someone logged in without the
         # role here is refused rather than sent round in circles.
-        from django.contrib.auth.views import redirect_to_login  # needs the models loaded
+        from django.contrib.auth.views import (
+            redirect_to_login,  # needs the models loaded
+        )
 
         if getattr(request, "club", None) is None:
             return super().login(request, extra_context)

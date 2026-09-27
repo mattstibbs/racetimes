@@ -73,7 +73,9 @@ def compute_regatta_adjustment(race: RaceInput) -> tuple[RaceResult, ...]:
     # Unlike a club race, the sums run over the whole fleet - every boat now has
     # a usable elapsed time, real or back-calculated.
     total_tcf = sum(entry.tcf_used for entry in race.entries)
-    total_scale = sum(adjustment_scale(elapsed_used[entry.boat_id]) for entry in race.entries)
+    total_scale = sum(
+        adjustment_scale(elapsed_used[entry.boat_id]) for entry in race.entries
+    )
     ratio = total_tcf / total_scale
 
     adjusted = []
@@ -105,7 +107,9 @@ def compute_regatta_adjustment(race: RaceInput) -> tuple[RaceResult, ...]:
                 achieved_handicap=achieved,
                 performance=performance,
                 next_tcf=unclamped,
-                next_tcf_clamped=clamp_to_base_number(unclamped, _base_number(result, race)),
+                next_tcf_clamped=clamp_to_base_number(
+                    unclamped, _base_number(result, race)
+                ),
             )
         )
 

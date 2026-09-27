@@ -1559,6 +1559,27 @@ emailing you are what make changing it worth doing.
 
 ---
 
+## 2026-09-26 - Slice 17: Ruff for linting and formatting
+
+**Decision.** Ruff is the project's linter (`ruff check`) and formatter
+(`ruff format`), configured in `pyproject.toml` and run in CI. The owner
+chose:
+- **88-character lines,** Black's and Ruff's default, over 120, which would
+  have matched how the code was written but not the convention. The
+  one-off reformat is listed in `.git-blame-ignore-revs`.
+- **Rules:** pycodestyle, pyflakes, import order, bugbear, pyupgrade, Django,
+  simplify, comprehensions and Ruff's own. `RUF012` is off, since it flags
+  every Django `Meta` list; `E501` is off, since the formatter wraps code and
+  what is left is long strings and URLs.
+- **`nhc/` gets lint fixes only,** with no restructuring: the fixtures are its
+  specification, and its long functions are mostly documentation.
+
+**Why.** Ruff is now the most widely used Python linter. It replaces flake8,
+isort, pyupgrade and Black with one fast tool and has Django-specific rules.
+The code was already readable; the linter keeps it consistent as it grows.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

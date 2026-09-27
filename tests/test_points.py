@@ -23,7 +23,10 @@ POINTS_PARAMS, POINTS_IDS = race_boat_params("points")
 
 def finisher(boat_id, tcf, elapsed):
     return RaceEntry(
-        boat_id=boat_id, status=RaceStatus.FINISHED, tcf_used=tcf, elapsed_seconds=elapsed
+        boat_id=boat_id,
+        status=RaceStatus.FINISHED,
+        tcf_used=tcf,
+        elapsed_seconds=elapsed,
     )
 
 
@@ -50,7 +53,9 @@ def test_a4_points_equal_the_finishing_place(place):
 
 
 def test_a4_scores_a_fleet_in_order():
-    race = club_race(*(finisher(f"B{i}", tcf=1.0, elapsed=3600 + i * 60) for i in range(5)))
+    race = club_race(
+        *(finisher(f"B{i}", tcf=1.0, elapsed=3600 + i * 60) for i in range(5))
+    )
     assert points_by_id(race) == {"B0": 1.0, "B1": 2.0, "B2": 3.0, "B3": 4.0, "B4": 5.0}
 
 
@@ -77,9 +82,9 @@ def test_a7_two_boats_tied_for_first_share_first_and_second():
     """(1 + 2) / 2 = 1.5 each, and the next boat is third on 3 - the place
     below a tie is consumed, not reused."""
     race = club_race(
-        finisher("X", tcf=1.0, elapsed=4000),   # 4000
-        finisher("Y", tcf=0.8, elapsed=5000),   # 4000
-        finisher("Z", tcf=1.2, elapsed=3500),   # 4200
+        finisher("X", tcf=1.0, elapsed=4000),  # 4000
+        finisher("Y", tcf=0.8, elapsed=5000),  # 4000
+        finisher("Z", tcf=1.2, elapsed=3500),  # 4200
     )
     assert points_by_id(race) == {"X": 1.5, "Y": 1.5, "Z": 3.0}
 
@@ -122,7 +127,9 @@ def test_points_for_place_averages_the_consumed_places(place, tied, expected):
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str)
+@pytest.mark.parametrize(
+    "status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str
+)
 def test_a5_2_non_finishers_score_one_more_than_the_series_entry_count(status):
     """The 2025-2028 wording treats every non-finisher alike. Earlier editions
     split DNC from the rest."""
@@ -183,7 +190,10 @@ def test_a5_3_scores_boats_that_came_to_the_starting_area_more_kindly():
 
 
 def test_a5_3_does_not_change_finishers():
-    assert points_by_id(a5_3_race(), series_entry_count=10, apply_a5_3=True)["SAILED"] == 1.0
+    assert (
+        points_by_id(a5_3_race(), series_entry_count=10, apply_a5_3=True)["SAILED"]
+        == 1.0
+    )
 
 
 # --------------------------------------------------------------------------
@@ -199,7 +209,9 @@ def test_a_series_entry_count_below_the_fleet_size_is_rejected():
 
 def test_a_series_entry_count_of_zero_is_rejected():
     with pytest.raises(InvalidInput, match="at least 1"):
-        score_points(score_race(club_race(finisher("A", 1.0, 3600))), series_entry_count=0)
+        score_points(
+            score_race(club_race(finisher("A", 1.0, 3600))), series_entry_count=0
+        )
 
 
 @pytest.mark.parametrize(("place", "tied"), [(0, 1), (-1, 1), (1, 0)])

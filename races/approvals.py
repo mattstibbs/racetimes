@@ -85,8 +85,10 @@ def reject(request, user, note):
 
 def withdraw(request):
     """The member takes back a request the committee has not decided yet."""
-    updated = type(request).objects.filter(pk=request.pk, status=Request.Status.PENDING).update(
-        status=Request.Status.WITHDRAWN
+    updated = (
+        type(request)
+        .objects.filter(pk=request.pk, status=Request.Status.PENDING)
+        .update(status=Request.Status.WITHDRAWN)
     )
     if not updated:
         raise ValidationError(ALREADY_DECIDED)
@@ -97,12 +99,16 @@ def _claim_decision(request, user, status, note=""):
     # at once cannot both succeed: the second finds the request no longer
     # pending. It runs inside the approval's transaction, so a failed approval
     # leaves the request pending.
-    updated = type(request).objects.filter(pk=request.pk, status=Request.Status.PENDING).update(
-        status=status,
-        decided_by=user,
-        decided_by_name=user.get_username(),
-        decided_at=timezone.now(),
-        committee_note=note,
+    updated = (
+        type(request)
+        .objects.filter(pk=request.pk, status=Request.Status.PENDING)
+        .update(
+            status=status,
+            decided_by=user,
+            decided_by_name=user.get_username(),
+            decided_at=timezone.now(),
+            committee_note=note,
+        )
     )
     if not updated:
         raise ValidationError(ALREADY_DECIDED)
@@ -111,7 +117,9 @@ def _claim_decision(request, user, status, note=""):
 def _audited_changes(request):
     """The change-history rows approving would record, before anything is saved."""
     if isinstance(request, EntryRequest):
-        return audit.changes_to_save(SeriesEntry(series=request.series, boat=request.boat))
+        return audit.changes_to_save(
+            SeriesEntry(series=request.series, boat=request.boat)
+        )
     if request.kind == BoatRequest.Kind.CHANGE:
         return audit.changes_to_save(_changed_boat(request))
     # A new boat moves no result until it is entered, and a new owner none at all.
@@ -123,10 +131,18 @@ def _scorings_before(request):
     if isinstance(request, EntryRequest):
         series_list = [request.series]
     elif request.kind == BoatRequest.Kind.CHANGE:
-        series_list = list(Series.objects.for_club(request.club).filter(entries__boat=request.boat).distinct())
+        series_list = list(
+            Series.objects.for_club(request.club)
+            .filter(entries__boat=request.boat)
+            .distinct()
+        )
     else:
         series_list = []
-    return [(series, score_series(series)) for series in series_list if audit.series_has_finishes(series)]
+    return [
+        (series, score_series(series))
+        for series in series_list
+        if audit.series_has_finishes(series)
+    ]
 
 
 def _apply(request):

@@ -21,10 +21,10 @@ from nhc import (
 )
 from nhc.domain import Boat
 from tests.scenario_loader import (
-    RACE_SCENARIOS,
     RACE_SCENARIO_IDS,
-    REALIGNMENT_SCENARIOS,
+    RACE_SCENARIOS,
     REALIGNMENT_SCENARIO_IDS,
+    REALIGNMENT_SCENARIOS,
     build_race_input,
     build_realignment_entries,
 )
@@ -64,7 +64,12 @@ def test_enums_compare_equal_to_plain_strings():
 
 @pytest.mark.parametrize(
     ("status", "expected"),
-    [(RaceStatus.FINISHED, True), (RaceStatus.DNC, False), (RaceStatus.DNS, False), (RaceStatus.DNF, False)],
+    [
+        (RaceStatus.FINISHED, True),
+        (RaceStatus.DNC, False),
+        (RaceStatus.DNS, False),
+        (RaceStatus.DNF, False),
+    ],
     ids=lambda v: str(v),
 )
 def test_only_finished_counts_as_a_finisher(status, expected):
@@ -122,18 +127,24 @@ def test_finisher_rejects_a_bad_elapsed_time(bad):
         finisher(elapsed=bad)
 
 
-@pytest.mark.parametrize("status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str)
+@pytest.mark.parametrize(
+    "status", [RaceStatus.DNC, RaceStatus.DNS, RaceStatus.DNF], ids=str
+)
 def test_non_finisher_may_not_have_an_elapsed_time(status):
     with pytest.raises(InvalidInput, match="but an elapsed time"):
         RaceEntry(boat_id="A", status=status, tcf_used=0.95, elapsed_seconds=3600)
 
 
-@pytest.mark.parametrize("no_time", [None, 0, 0.0], ids=["none", "int-zero", "float-zero"])
+@pytest.mark.parametrize(
+    "no_time", [None, 0, 0.0], ids=["none", "int-zero", "float-zero"]
+)
 def test_non_finisher_time_is_normalised_to_none(no_time):
     """The spec writes E = 0 for a DNC and the fixtures follow it, but null is
     what a caller would naturally pass. Both must end up as None so the rest of
     the engine has one thing to test rather than two."""
-    entry = RaceEntry(boat_id="A", status=RaceStatus.DNC, tcf_used=0.95, elapsed_seconds=no_time)
+    entry = RaceEntry(
+        boat_id="A", status=RaceStatus.DNC, tcf_used=0.95, elapsed_seconds=no_time
+    )
     assert entry.elapsed_seconds is None
 
 
@@ -211,7 +222,9 @@ def test_club_race_ignores_the_regatta_first_race_flag():
 def test_regatta_requires_base_numbers():
     """Spec section 7: without a Base Number the +/-10% clamp cannot be applied."""
     with pytest.raises(InvalidInput, match="need a base_number"):
-        RaceInput(series_type=SeriesType.REGATTA, entries=[finisher("A"), finisher("B")])
+        RaceInput(
+            series_type=SeriesType.REGATTA, entries=[finisher("A"), finisher("B")]
+        )
 
 
 def test_regatta_names_every_boat_that_is_missing_one():
@@ -261,7 +274,9 @@ def test_every_race_scenario_builds(scenario):
         assert (entry.elapsed_seconds is None) != entry.status.is_finisher
 
 
-@pytest.mark.parametrize("scenario", REALIGNMENT_SCENARIOS, ids=REALIGNMENT_SCENARIO_IDS)
+@pytest.mark.parametrize(
+    "scenario", REALIGNMENT_SCENARIOS, ids=REALIGNMENT_SCENARIO_IDS
+)
 def test_every_realignment_scenario_builds(scenario):
     entries = build_realignment_entries(scenario)
     assert len(entries) == len(scenario["boats"])

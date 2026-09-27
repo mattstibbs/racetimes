@@ -65,7 +65,9 @@ def test_the_worst_score_is_excluded_by_default():
 
 
 def test_no_discard_when_asked_for_none():
-    standing = by_id(compute_standings([race("R1", A=1), race("R2", A=9)], discards=0))["A"]
+    standing = by_id(compute_standings([race("R1", A=1), race("R2", A=9)], discards=0))[
+        "A"
+    ]
     assert standing.total == 10.0
     assert standing.discarded_race_ids == ()
 
@@ -228,20 +230,42 @@ def test_unscored_races_are_rejected():
 
 
 def sailed_series(**kwargs):
-    boats = [Boat(b, base_number=1.0, current_tcf=1.0) for b in ("ALBA", "BREEZE", "CIRRUS")]
+    boats = [
+        Boat(b, base_number=1.0, current_tcf=1.0) for b in ("ALBA", "BREEZE", "CIRRUS")
+    ]
     races = [
-        SeriesRace("R1", [Finish("ALBA", RaceStatus.FINISHED, 3600),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3700),
-                          Finish("CIRRUS", RaceStatus.FINISHED, 3800)]),
-        SeriesRace("R2", [Finish("ALBA", RaceStatus.FINISHED, 3800),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3600),
-                          Finish("CIRRUS", RaceStatus.DNF)]),
-        SeriesRace("R3", [Finish("ALBA", RaceStatus.FINISHED, 3700),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3800),
-                          Finish("CIRRUS", RaceStatus.FINISHED, 3600)]),
-        SeriesRace("R4", [Finish("ALBA", RaceStatus.FINISHED, 3900),
-                          Finish("BREEZE", RaceStatus.FINISHED, 3650),
-                          Finish("CIRRUS", RaceStatus.FINISHED, 3700)]),
+        SeriesRace(
+            "R1",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3600),
+                Finish("BREEZE", RaceStatus.FINISHED, 3700),
+                Finish("CIRRUS", RaceStatus.FINISHED, 3800),
+            ],
+        ),
+        SeriesRace(
+            "R2",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3800),
+                Finish("BREEZE", RaceStatus.FINISHED, 3600),
+                Finish("CIRRUS", RaceStatus.DNF),
+            ],
+        ),
+        SeriesRace(
+            "R3",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3700),
+                Finish("BREEZE", RaceStatus.FINISHED, 3800),
+                Finish("CIRRUS", RaceStatus.FINISHED, 3600),
+            ],
+        ),
+        SeriesRace(
+            "R4",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3900),
+                Finish("BREEZE", RaceStatus.FINISHED, 3650),
+                Finish("CIRRUS", RaceStatus.FINISHED, 3700),
+            ],
+        ),
     ]
     return score_series(Series(boats=boats, races=races, **kwargs))
 
@@ -266,4 +290,6 @@ def test_the_series_discard_setting_reaches_the_standings():
 
 def test_a_negative_discard_count_is_rejected_when_the_series_is_built():
     with pytest.raises(InvalidInput, match="discards cannot be negative"):
-        Series(boats=[Boat("A", base_number=1.0, current_tcf=1.0)], races=[], discards=-1)
+        Series(
+            boats=[Boat("A", base_number=1.0, current_tcf=1.0)], races=[], discards=-1
+        )

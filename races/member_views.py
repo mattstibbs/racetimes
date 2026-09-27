@@ -9,17 +9,16 @@ the pages do not even confirm that another member's boat or request exists.
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import approvals
-from .forms import (
-    BoatChangeForm, BoatRegistrationForm, EntryRequestForm, LoginForm, SignUpForm,
-)
+from .account_forms import LoginForm, SignUpForm
 from .membership_views import send_confirmation
 from .models import Boat, BoatRequest, ClubMembership, EntryRequest
+from .request_forms import BoatChangeForm, BoatRegistrationForm, EntryRequestForm
 from .roles import is_member, member_required, membership
 
 PENDING_ALREADY = (
@@ -42,7 +41,11 @@ def signup(request):
             user = form.save()
             ClubMembership.objects.create(user=user, club=request.club)
             send_confirmation(user, request)
-        return render(request, "registration/signup_done.html", {"email": form.cleaned_data["email"]})
+        return render(
+            request,
+            "registration/signup_done.html",
+            {"email": form.cleaned_data["email"]},
+        )
     return render(request, "registration/signup.html", {"form": form})
 
 
@@ -56,21 +59,31 @@ def my_boats(request):
     if not is_member(request.user, request.club):
         # Logged in, but not (or not yet) a member here: say where they stand,
         # and offer to join (slice 11).
-        return render(request, "races/not_a_member.html", {"membership": membership(request.user, request.club)})
+        return render(
+            request,
+            "races/not_a_member.html",
+            {"membership": membership(request.user, request.club)},
+        )
     return _my_boats(request)
 
 
 def _my_boats(request):
     # Only this club's boats and requests: the same person may be a member elsewhere.
-    boats = Boat.objects.for_club(request.club).filter(owner=request.user).prefetch_related(
-        "series_entries__series"
+    boats = (
+        Boat.objects.for_club(request.club)
+        .filter(owner=request.user)
+        .prefetch_related("series_entries__series")
     )
-    boat_requests = BoatRequest.objects.for_club(request.club).filter(
-        requested_by=request.user
-    ).select_related("boat")
-    entry_requests = EntryRequest.objects.for_club(request.club).filter(
-        requested_by=request.user
-    ).select_related("boat", "series")
+    boat_requests = (
+        BoatRequest.objects.for_club(request.club)
+        .filter(requested_by=request.user)
+        .select_related("boat")
+    )
+    entry_requests = (
+        EntryRequest.objects.for_club(request.club)
+        .filter(requested_by=request.user)
+        .select_related("boat", "series")
+    )
     return render(
         request,
         "races/my_boats.html",
@@ -92,13 +105,17 @@ def register_boat(request):
         boat_request.kind = BoatRequest.Kind.REGISTER
         boat_request.requested_by = request.user
         boat_request.save()
-        messages.success(request, "Sent to the race committee. You'll see its decision here.")
+        messages.success(
+            request, "Sent to the race committee. You'll see its decision here."
+        )
         return redirect("races:my_boats")
     # A sail number already on record: offer to claim that boat instead.
     existing = getattr(form, "existing_boat", None)
     if existing is not None and existing.owner_id == request.user.pk:
         existing = None  # already theirs; nothing to claim
-    return render(request, "races/register_boat.html", {"form": form, "claimable": existing})
+    return render(
+        request, "races/register_boat.html", {"form": form, "claimable": existing}
+    )
 
 
 @member_required
@@ -117,13 +134,17 @@ def claim_boat(request, pk):
             requested_by=request.user,
             member_note=request.POST.get("member_note", "").strip()[:500],
         )
-        messages.success(request, f"Asked the race committee to record {boat} as yours.")
+        messages.success(
+            request, f"Asked the race committee to record {boat} as yours."
+        )
     return redirect("races:my_boats")
 
 
 @member_required
 def change_boat(request, pk):
-    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk, owner=request.user)
+    boat = get_object_or_404(
+        Boat.objects.for_club(request.club), pk=pk, owner=request.user
+    )
     if boat.requests.filter(status=BoatRequest.Status.PENDING).exists():
         messages.error(request, PENDING_ALREADY)
         return redirect("races:my_boats")
@@ -135,14 +156,19 @@ def change_boat(request, pk):
         boat_request.boat = boat
         boat_request.requested_by = request.user
         boat_request.save()
-        messages.success(request, "Sent to the race committee. Nothing changes until they approve it.")
+        messages.success(
+            request,
+            "Sent to the race committee. Nothing changes until they approve it.",
+        )
         return redirect("races:my_boats")
     return render(request, "races/change_boat.html", {"form": form, "boat": boat})
 
 
 @member_required
 def enter_series(request, pk):
-    boat = get_object_or_404(Boat.objects.for_club(request.club), pk=pk, owner=request.user)
+    boat = get_object_or_404(
+        Boat.objects.for_club(request.club), pk=pk, owner=request.user
+    )
     form = EntryRequestForm(request.POST or None, boat=boat)
     if request.method == "POST" and form.is_valid():
         EntryRequest.objects.create(
@@ -162,7 +188,9 @@ def withdraw_request(request, kind, pk):
     model = {"boat": BoatRequest, "entry": EntryRequest}.get(kind)
     if model is None:
         return redirect("races:my_boats")
-    member_request = get_object_or_404(model.objects.for_club(request.club), pk=pk, requested_by=request.user)
+    member_request = get_object_or_404(
+        model.objects.for_club(request.club), pk=pk, requested_by=request.user
+    )
     try:
         approvals.withdraw(member_request)
         messages.success(request, "Request withdrawn.")

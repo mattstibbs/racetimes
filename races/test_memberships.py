@@ -9,7 +9,6 @@ every page as each role in races/test_roles.py. This file covers:
 - the admin's door at a club.
 """
 
-from datetime import timedelta
 from html import escape
 
 import pytest
@@ -23,19 +22,23 @@ from django.urls import reverse
 from django.utils import timezone
 
 from races import notifications
-from races.membership_views import LAST_ADMINISTRATOR, OWN_MEMBERSHIP
+from races.membership_views import OWN_MEMBERSHIP
 from races.models import ClubMembership
 from races.testing import (
-    default_club, enter, join, make_administrator, make_boat, make_club, make_committee, make_member,
-    make_operator, make_race, make_series, record,
+    default_club,
+    enter,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_race,
+    make_series,
+    record,
 )
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(notifications.transaction, "on_commit", lambda func, *a, **kw: func())
 
 
 def membership_of(user, club=None):
@@ -53,8 +56,13 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
     User = old.get_model(*settings.AUTH_USER_MODEL.split("."))
     OldGroup = old.get_model("auth", "Group")
     # Demo Club, as migration 0012 made it (a flush may have removed it).
-    old.get_model("races", "Club").objects.get_or_create(subdomain="demo", defaults={"name": "Demo Club"})
-    make = lambda name, **fields: User.objects.create(username=name, email=name, **fields)  # noqa: E731
+    old.get_model("races", "Club").objects.get_or_create(
+        subdomain="demo", defaults={"name": "Demo Club"}
+    )
+
+    def make(name, **fields):
+        return User.objects.create(username=name, email=name, **fields)
+
     make("root@example.com", is_superuser=True, is_staff=True, is_active=True)
     officer = make("officer@example.com", is_staff=True, is_active=True)
     # get_or_create: a transactional test before this one may have flushed the
@@ -69,7 +77,10 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())
 
-    got = {m.user.username: (m.role, m.status) for m in ClubMembership.objects.select_related("user")}
+    got = {
+        m.user.username: (m.role, m.status)
+        for m in ClubMembership.objects.select_related("user")
+    }
     assert got == {
         "root@example.com": ("ADMINISTRATOR", "APPROVED"),
         "officer@example.com": ("COMMITTEE", "APPROVED"),
@@ -79,10 +90,14 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
         "left@example.com": ("MEMBER", "REMOVED"),
     }
     accounts = get_user_model().objects
-    assert accounts.get(username="new@example.com").is_active  # can log in now, and wait to join
+    assert accounts.get(
+        username="new@example.com"
+    ).is_active  # can log in now, and wait to join
     assert not accounts.get(username="left@example.com").is_active
     assert accounts.get(username="root@example.com").is_superuser  # still the operator
-    assert set(ClubMembership.objects.values_list("club__subdomain", flat=True)) == {"demo"}
+    assert set(ClubMembership.objects.values_list("club__subdomain", flat=True)) == {
+        "demo"
+    }
 
 
 # --- Joining a club -----------------------------------------------------------------------
@@ -100,18 +115,29 @@ def test_joining_asks_the_clubs_administrators(client):
     client.force_login(person)
     response = client.post(reverse("races:join_club"), follow=True)
     assert "Asked to join Demo Club" in response.content.decode()
-    assert (membership_of(person).status, membership_of(person).role) == ("WAITING", "MEMBER")
+    assert (membership_of(person).status, membership_of(person).role) == (
+        "WAITING",
+        "MEMBER",
+    )
     page = client.get(reverse("races:my_boats")).content.decode()
     assert "You've asked to join <strong>Demo Club</strong>" in page
-    assert ">Waiting to join</a>" in client.get(reverse("results:home")).content.decode()
+    assert (
+        ">Waiting to join</a>" in client.get(reverse("results:home")).content.decode()
+    )
 
 
 def test_someone_removed_can_ask_again(client):
     person = make_member("pat@example.com", status="REMOVED", role="COMMITTEE")
     client.force_login(person)
-    assert "no longer a member of Demo Club" in client.get(reverse("races:my_boats")).content.decode()
+    assert (
+        "no longer a member of Demo Club"
+        in client.get(reverse("races:my_boats")).content.decode()
+    )
     client.post(reverse("races:join_club"))
-    assert (membership_of(person).status, membership_of(person).role) == ("WAITING", "MEMBER")
+    assert (membership_of(person).status, membership_of(person).role) == (
+        "WAITING",
+        "MEMBER",
+    )
 
 
 def test_joining_twice_changes_nothing(client):
@@ -138,8 +164,11 @@ def admin(client):
 
 
 def decide(client, person, action, role=""):
-    return client.post(reverse("races:decide_membership", args=[membership_of(person).pk]),
-                       {"action": action, "role": role}, follow=True)
+    return client.post(
+        reverse("races:decide_membership", args=[membership_of(person).pk]),
+        {"action": action, "role": role},
+        follow=True,
+    )
 
 
 def test_the_members_page_lists_people_by_status(client, admin):
@@ -160,9 +189,16 @@ def test_approving_someone_with_a_role_emails_them(client, admin, role, run_on_c
     page = decide(client, person, "approve", role).content.decode()
     assert "Nia Jones: approved and emailed." in page
     found = membership_of(person)
-    assert (found.status, found.role, found.decided_by_name) == ("APPROVED", role, admin.username)
+    assert (found.status, found.role, found.decided_by_name) == (
+        "APPROVED",
+        role,
+        admin.username,
+    )
     [message] = mail.outbox
-    assert message.to == ["new@example.com"] and message.subject == "Welcome to Demo Club on Race Times"
+    assert (
+        message.to == ["new@example.com"]
+        and message.subject == "Welcome to Demo Club on Race Times"
+    )
 
 
 def test_not_approving_someone_emails_them(client, admin, run_on_commit):
@@ -180,11 +216,16 @@ def test_changing_a_role_emails_the_person(client, admin, run_on_commit):
     assert "You are now: Race committee" in mail.outbox[0].body
 
 
-def test_removing_someone_takes_their_access_and_emails_them(client, admin, run_on_commit):
+def test_removing_someone_takes_their_access_and_emails_them(
+    client, admin, run_on_commit
+):
     person = make_committee()
     decide(client, person, "remove")
     assert membership_of(person).status == "REMOVED"
-    assert mail.outbox[0].subject == "You are no longer a member of Demo Club on Race Times"
+    assert (
+        mail.outbox[0].subject
+        == "You are no longer a member of Demo Club on Race Times"
+    )
     client.force_login(person)
     assert client.get(reverse("races:requests")).status_code == 403
 
@@ -194,17 +235,24 @@ def test_nobody_can_change_their_own_membership(client, admin, run_on_commit):
     assert escape(OWN_MEMBERSHIP) in page
     assert membership_of(admin).role == "ADMINISTRATOR" and not mail.outbox
     page = client.get(reverse("races:members")).content.decode()
-    assert f'action="{reverse("races:decide_membership", args=[membership_of(admin).pk])}"' not in page
+    assert (
+        f'action="{reverse("races:decide_membership", args=[membership_of(admin).pk])}"'
+        not in page
+    )
 
 
 def test_the_club_keeps_at_least_one_administrator(client, run_on_commit):
     # Two administrators; one removes the other, then can't be left without one.
-    first, second = make_administrator("a1@example.com"), make_administrator("a2@example.com")
+    first, second = (
+        make_administrator("a1@example.com"),
+        make_administrator("a2@example.com"),
+    )
     client.force_login(first)
     decide(client, second, "remove")
     assert membership_of(second).status == "REMOVED"
     # The rule is checked on its own too, in case a club ever has no administrator left to act.
     from races.membership_views import decide as decide_directly
+
     with pytest.raises(Exception, match="at least one administrator"):
         decide_directly(default_club(), membership_of(first), "role", "MEMBER", second)
     assert membership_of(first).role == "ADMINISTRATOR"
@@ -249,10 +297,15 @@ def test_the_operator_has_no_admin_at_a_club_without_a_membership(client):
 def test_the_admin_login_at_a_club_is_the_sites_login(client):
     response = client.get(reverse("admin:login") + "?next=/admin/")
     assert response.status_code == 302
-    assert response["Location"].startswith(reverse("races:login")) and "next=/admin/" in response["Location"]
+    assert (
+        response["Location"].startswith(reverse("races:login"))
+        and "next=/admin/" in response["Location"]
+    )
 
 
-def test_the_club_administrator_manages_people_on_the_members_page_not_the_admin(client, admin):
+def test_the_club_administrator_manages_people_on_the_members_page_not_the_admin(
+    client, admin
+):
     page = client.get(reverse("admin:index")).content.decode()
     assert "Users" not in page and "Groups" not in page and "Clubs" not in page
 
@@ -262,7 +315,9 @@ def test_the_old_group_and_staff_flag_open_nothing(client):
     person.groups.add(Group.objects.get(name="Race committee"))
     client.force_login(person)
     assert client.get(reverse("races:requests")).status_code == 403
-    assert client.get(reverse("admin:index")).status_code == 302  # to the admin login, which refuses
+    assert (
+        client.get(reverse("admin:index")).status_code == 302
+    )  # to the admin login, which refuses
 
 
 def test_each_clubs_login_is_its_own():
@@ -273,6 +328,7 @@ def test_each_clubs_login_is_its_own():
 def test_clubs_and_memberships_are_not_in_the_admin():
     # The operator's pages (slice 11 part 3) and the Members page replace them.
     from django.contrib import admin as django_admin
+
     from races.models import Club
 
     assert not django_admin.site.is_registered(Club)

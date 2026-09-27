@@ -23,8 +23,8 @@ from django.views.decorators.http import require_POST
 
 from . import club_deletion, club_export, invitations, membership_views, notifications
 from .clubs import club_address
-from .forms import ClubForm, InvitationForm
 from .models import Club, ClubMembership, OperatorAction
+from .operator_forms import ClubForm, InvitationForm
 
 Action = OperatorAction.Action
 
@@ -36,6 +36,7 @@ def operator_required(view):
     service's own address. Anyone else logged in is refused (a login redirect
     would loop, see docs/decisions.md).
     """
+
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         if request.club is not None:
@@ -45,12 +46,16 @@ def operator_required(view):
         if request.user.is_authenticated:
             raise PermissionDenied
         return redirect_to_login(request.get_full_path(), reverse("admin:login"))
+
     return wrapped
 
 
 def log(request, action, club, detail=""):
     OperatorAction.objects.create(
-        who=request.user.get_username(), action=action, club_subdomain=club.subdomain, detail=detail
+        who=request.user.get_username(),
+        action=action,
+        club_subdomain=club.subdomain,
+        detail=detail,
     )
 
 
@@ -63,10 +68,14 @@ def clubs(request):
         series_count=Count("series", distinct=True),
         last_result=Max("series__races__finishes__recorded_at"),
     ).order_by("name")
-    return render(request, "operator/clubs.html", {
-        "clubs": [(club, club_address(request, club)) for club in found],
-        "recent": OperatorAction.objects.all()[:10],
-    })
+    return render(
+        request,
+        "operator/clubs.html",
+        {
+            "clubs": [(club, club_address(request, club)) for club in found],
+            "recent": OperatorAction.objects.all()[:10],
+        },
+    )
 
 
 @operator_required
@@ -75,7 +84,12 @@ def create_club(request):
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             club = form.save()
-            log(request, Action.CREATED, club, f"{club.name}, contact {club.contact_email}")
+            log(
+                request,
+                Action.CREATED,
+                club,
+                f"{club.name}, contact {club.contact_email}",
+            )
         messages.success(request, f"{club.name} created. Now invite its administrator.")
         return redirect("races:operator_club", club.pk)
     return render(request, "operator/create_club.html", {"form": form})
@@ -84,7 +98,9 @@ def create_club(request):
 @operator_required
 def club_page(request, pk):
     club = get_object_or_404(Club, pk=pk)
-    return render(request, "operator/club.html", _club_context(request, club, InvitationForm()))
+    return render(
+        request, "operator/club.html", _club_context(request, club, InvitationForm())
+    )
 
 
 def _club_context(request, club, form):
@@ -92,9 +108,11 @@ def _club_context(request, club, form):
         "club": club,
         "address": club_address(request, club),
         "administrators": club.memberships.filter(
-            status=ClubMembership.Status.APPROVED, role=ClubMembership.Role.ADMINISTRATOR
+            status=ClubMembership.Status.APPROVED,
+            role=ClubMembership.Role.ADMINISTRATOR,
         ).select_related("user"),
-        "waiting": club.memberships.filter(status=ClubMembership.Status.WAITING).select_related("user")
+        "waiting": club.memberships.filter(status=ClubMembership.Status.WAITING)
+        .select_related("user")
         .order_by("created_at"),
         "roles": ClubMembership.Role.choices,
         "invitations": club.invitations.all(),
@@ -117,11 +135,26 @@ def invite(request, pk):
         messages.error(request, NOT_WHILE_SUSPENDED)
         return redirect("races:operator_club", club.pk)
     if not form.is_valid():
-        return render(request, "operator/club.html", _club_context(request, club, form), status=400)
+        return render(
+            request,
+            "operator/club.html",
+            _club_context(request, club, form),
+            status=400,
+        )
     with transaction.atomic():
-        invitation = invitations.invite(club, form.cleaned_data["email"], request.user, request)
-        log(request, Action.INVITED, club, f"{invitation.email} as {invitation.get_role_display().lower()}")
-    messages.success(request, f"Invitation emailed to {invitation.email}. The link lasts {invitations.LASTS.days} days.")
+        invitation = invitations.invite(
+            club, form.cleaned_data["email"], request.user, request
+        )
+        log(
+            request,
+            Action.INVITED,
+            club,
+            f"{invitation.email} as {invitation.get_role_display().lower()}",
+        )
+    messages.success(
+        request,
+        f"Invitation emailed to {invitation.email}. The link lasts {invitations.LASTS.days} days.",
+    )
     return redirect("races:operator_club", club.pk)
 
 
@@ -135,14 +168,24 @@ def change_status(request, pk):
         with transaction.atomic():
             club.status = wanted
             club.save(update_fields=["status"])
-            log(request, Action.SUSPENDED if wanted == Club.Status.SUSPENDED else Action.REACTIVATED, club)
-        messages.success(request, f"{club.name} is now {club.get_status_display().lower()}.")
+            log(
+                request,
+                Action.SUSPENDED
+                if wanted == Club.Status.SUSPENDED
+                else Action.REACTIVATED,
+                club,
+            )
+        messages.success(
+            request, f"{club.name} is now {club.get_status_display().lower()}."
+        )
     return redirect("races:operator_club", club.pk)
 
 
 @operator_required
 def operator_log(request):
-    return render(request, "operator/log.html", {"actions": OperatorAction.objects.all()[:500]})
+    return render(
+        request, "operator/log.html", {"actions": OperatorAction.objects.all()[:500]}
+    )
 
 
 # --- A club's data, and deleting a club (slice 11 part 5) ---------------------------------------
@@ -175,17 +218,30 @@ def delete_club(request, pk):
         else:
             with transaction.atomic():
                 gone = club_deletion.delete_club(club)
-                log(request, Action.DELETED, club, f"{club.name}: {gone['boats']} boats, {gone['series']} series, "
-                                                   f"{gone['memberships']} memberships")
-            messages.success(request, f"{club.name} and everything it held have been deleted.")
+                log(
+                    request,
+                    Action.DELETED,
+                    club,
+                    f"{club.name}: {gone['boats']} boats, {gone['series']} series, "
+                    f"{gone['memberships']} memberships",
+                )
+            messages.success(
+                request, f"{club.name} and everything it held have been deleted."
+            )
             return redirect("races:operator_clubs")
-    return render(request, "operator/delete_club.html", {"club": club, "refused": refused, "error": error},
-                  status=400 if error else 200)
+    return render(
+        request,
+        "operator/delete_club.html",
+        {"club": club, "refused": refused, "error": error},
+        status=400 if error else 200,
+    )
 
 
 # --- People waiting to join (slice 13) -----------------------------------------------------------
 
-NOT_WHILE_SUSPENDED_TO_JOIN = "Reactivate the club first: nobody can use its site while it's paused."
+NOT_WHILE_SUSPENDED_TO_JOIN = (
+    "Reactivate the club first: nobody can use its site while it's paused."
+)
 
 
 @operator_required
@@ -198,24 +254,40 @@ def decide_joining(request, pk, membership_pk):
     same code as the club's Members page, and emails the person from the club.
     """
     club = get_object_or_404(Club, pk=pk)
-    target = get_object_or_404(club.memberships.select_related("user"), pk=membership_pk)
+    target = get_object_or_404(
+        club.memberships.select_related("user"), pk=membership_pk
+    )
     action = request.POST.get("action")
     if not club.is_active:
         messages.error(request, NOT_WHILE_SUSPENDED_TO_JOIN)
-    elif action in ("approve", "reject") and target.status == ClubMembership.Status.WAITING:
+    elif (
+        action in ("approve", "reject")
+        and target.status == ClubMembership.Status.WAITING
+    ):
         with transaction.atomic():
-            change = membership_views.decide(club, target, action, request.POST.get("role", ""), request.user,
-                                             by_name=membership_views.OPERATOR_NAME)
+            change = membership_views.decide(
+                club,
+                target,
+                action,
+                request.POST.get("role", ""),
+                request.user,
+                by_name=membership_views.OPERATOR_NAME,
+            )
             if change:
                 target.refresh_from_db()
                 if change == "approved":
-                    log(request, Action.APPROVED_JOIN, club,
-                        f"{target.user.email} as {target.get_role_display().lower()}")
+                    log(
+                        request,
+                        Action.APPROVED_JOIN,
+                        club,
+                        f"{target.user.email} as {target.get_role_display().lower()}",
+                    )
                 else:
                     log(request, Action.TURNED_DOWN, club, target.user.email)
         if change:
             notifications.membership_decided(target, request, change)
             name = target.user.get_full_name() or target.user.get_username()
-            messages.success(request, f"{name}: {membership_views.CHANGE_MESSAGES[change]}")
+            messages.success(
+                request, f"{name}: {membership_views.CHANGE_MESSAGES[change]}"
+            )
     return redirect(reverse("races:operator_club", args=[club.pk]) + "#waiting")
-

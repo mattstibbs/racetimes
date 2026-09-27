@@ -9,7 +9,15 @@ from django.db import IntegrityError
 from django.db.models import ProtectedError, RestrictedError
 
 from races.models import Boat, Finish, Race, Series, SeriesEntry
-from races.testing import default_club, enter, make_boat, make_race, make_series, record, start
+from races.testing import (
+    default_club,
+    enter,
+    make_boat,
+    make_race,
+    make_series,
+    record,
+    start,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -33,7 +41,9 @@ def test_sail_numbers_are_unique_ignoring_case_and_spaces(duplicate):
 def test_duplicate_sail_number_is_a_validation_error_on_the_field():
     make_boat("GBR1234")
     with pytest.raises(ValidationError) as caught:
-        Boat(club=default_club(), sail_number="gbr 1234", base_number=Decimal("0.9")).full_clean()
+        Boat(
+            club=default_club(), sail_number="gbr 1234", base_number=Decimal("0.9")
+        ).full_clean()
     assert "already registered" in str(caught.value)
 
 
@@ -73,7 +83,9 @@ def test_series_defaults_match_the_engine():
 
 
 def test_regatta_refuses_a_minimum_finisher_threshold():
-    series = Series(name="Regatta", series_type=Series.SeriesType.REGATTA, minimum_finishers=3)
+    series = Series(
+        name="Regatta", series_type=Series.SeriesType.REGATTA, minimum_finishers=3
+    )
     with pytest.raises(ValidationError) as caught:
         series.full_clean()
     assert "minimum_finishers" in caught.value.message_dict
@@ -131,7 +143,12 @@ def test_race_numbers_are_unique_within_a_series():
 
 
 def test_race_start_is_whole_seconds():
-    race = Race(series=make_series(), number=1, date="2026-09-23", start_time=time(18, 0, 0, 500))
+    race = Race(
+        series=make_series(),
+        number=1,
+        date="2026-09-23",
+        start_time=time(18, 0, 0, 500),
+    )
     with pytest.raises(ValidationError) as caught:
         race.full_clean()
     assert "start_time" in caught.value.message_dict
@@ -208,8 +225,8 @@ def test_a_finish_needs_the_boat_entered_in_the_race_series(race_and_entry):
 def test_a_start_cannot_move_to_or_past_a_saved_finish(race_and_entry):
     race, entry = race_and_entry
     record(race, entry, "19:00:00")
-    for start in [time(19, 0), time(19, 30)]:
-        race.start_time = start
+    for start_time in [time(19, 0), time(19, 30)]:
+        race.start_time = start_time
         with pytest.raises(ValidationError) as caught:
             race.full_clean()
         assert "Finishes are already saved from 19:00:00" in str(caught.value)

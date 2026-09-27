@@ -1,0 +1,32 @@
+# Tool configuration only: Race Times is a Django project, not an installable
+# package. pytest is still configured in pytest.ini.
+
+[tool.ruff]
+# Black's line length, and Ruff's default. `ruff format` wraps code to it.
+line-length = 88
+target-version = "py311"
+# Django generates migrations, so they are neither linted nor reformatted.
+extend-exclude = ["*/migrations/*", "site", "staticfiles"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes: unused imports and variables, undefined names
+    "I",    # import order (isort)
+    "B",    # bugbear: likely bugs
+    "UP",   # pyupgrade: modern syntax for the Python version above
+    "DJ",   # Django conventions
+    "SIM",  # simpler equivalents
+    "C4",   # comprehensions
+    "RUF",  # Ruff's own rules
+]
+# Curly apostrophes are deliberate: page text uses them, and tests match it.
+allowed-confusables = ["’"]
+ignore = [
+    # The formatter wraps code; what's left over is long strings and URLs,
+    # which read worse broken across lines.
+    "E501",
+    # Flags every Django Meta list and ModelAdmin option.
+    "RUF012",
+]

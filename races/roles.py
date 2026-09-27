@@ -70,7 +70,9 @@ def _requiring(check):
                 # anyone already logged in straight back.
                 raise PermissionDenied
             return redirect_to_login(request.get_full_path())
+
         return wrapped
+
     return decorator
 
 

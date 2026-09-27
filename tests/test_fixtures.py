@@ -10,12 +10,12 @@ they can be mistaken for engine failures.
 import pytest
 
 from tests.scenario_loader import (
-    RACE_SCENARIOS,
     RACE_SCENARIO_IDS,
-    REALIGNMENT_SCENARIOS,
+    RACE_SCENARIOS,
     REALIGNMENT_SCENARIO_IDS,
-    SCENARIOS,
+    REALIGNMENT_SCENARIOS,
     SCENARIO_IDS,
+    SCENARIOS,
     VALID_STATUSES,
 )
 
@@ -76,7 +76,9 @@ def test_handicaps_are_positive(scenario):
         assert boat["start_handicap"] > 0, f"{boat['boat_id']} has a non-positive TCF"
 
 
-@pytest.mark.parametrize("scenario", REALIGNMENT_SCENARIOS, ids=REALIGNMENT_SCENARIO_IDS)
+@pytest.mark.parametrize(
+    "scenario", REALIGNMENT_SCENARIOS, ids=REALIGNMENT_SCENARIO_IDS
+)
 def test_realignment_scenarios_have_base_numbers(scenario):
     for boat in scenario["boats"]:
         assert boat["base_number"] > 0, f"{boat['boat_id']} has a non-positive BN"

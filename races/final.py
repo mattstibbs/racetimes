@@ -11,16 +11,19 @@ results are stored; see docs/decisions.md.
 from dataclasses import fields, is_dataclass
 from enum import Enum
 
-import nhc
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+
+import nhc
 
 from . import notifications, publishing, start_sheet
 from .models import ScoringChange, Series
 
 LOCKED = "This series is final. Reopen it to make changes."
-NOTHING_SCORED = "Nothing is scored in this series yet, so there are no final standings to declare."
+NOTHING_SCORED = (
+    "Nothing is scored in this series yet, so there are no final standings to declare."
+)
 REOPEN_NEEDS_REASON = "Give a reason for reopening the series."
 ALREADY_FINAL = "This series is already final."
 NOT_FINAL = "This series isn't final."
@@ -85,9 +88,14 @@ def declare(series, user, request):
         series.declared_final_by_name = user.get_username()
         series.final_results = dump(engine_outcome(series))
         series.final_results_sent_at = None
-        series.save(update_fields=[
-            "declared_final_at", "declared_final_by_name", "final_results", "final_results_sent_at",
-        ])
+        series.save(
+            update_fields=[
+                "declared_final_at",
+                "declared_final_by_name",
+                "final_results",
+                "final_results_sent_at",
+            ]
+        )
         _history(series, user, "Declared final", {"Final": ["No", "Yes"]})
     return send(series, request, updated=again)
 
@@ -105,9 +113,14 @@ def reopen(series, user, reason):
         series.declared_final_by_name = ""
         series.final_results = None
         series.final_results_sent_at = None
-        series.save(update_fields=[
-            "declared_final_at", "declared_final_by_name", "final_results", "final_results_sent_at",
-        ])
+        series.save(
+            update_fields=[
+                "declared_final_at",
+                "declared_final_by_name",
+                "final_results",
+                "final_results_sent_at",
+            ]
+        )
         _history(series, user, "Reopened", {"Final": ["Yes", "No"]}, reason)
 
 
@@ -122,7 +135,9 @@ def send(series, request, *, updated):
     def mark_sent():
         Series.objects.filter(pk=series.pk).update(final_results_sent_at=sent_at)
 
-    return notifications.final_standings(series, request, updated=updated, on_sent=mark_sent)
+    return notifications.final_standings(
+        series, request, updated=updated, on_sent=mark_sent
+    )
 
 
 def _history(series, user, description, changes, reason=""):
@@ -163,10 +178,15 @@ def load(data):
     """Rebuild the engine's SeriesOutcome from ``dump``'s output."""
     return nhc.SeriesOutcome(
         races=tuple(
-            nhc.RaceOutcome(race_id=race["race_id"], results=tuple(_result(r) for r in race["results"]))
+            nhc.RaceOutcome(
+                race_id=race["race_id"],
+                results=tuple(_result(r) for r in race["results"]),
+            )
             for race in data["races"]
         ),
-        starting_handicaps=tuple((boat_id, tcf) for boat_id, tcf in data["starting_handicaps"]),
+        starting_handicaps=tuple(
+            (boat_id, tcf) for boat_id, tcf in data["starting_handicaps"]
+        ),
         standings=tuple(
             nhc.BoatStanding(
                 boat_id=standing["boat_id"],

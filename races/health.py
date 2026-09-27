@@ -39,6 +39,8 @@ class HealthCheckMiddleware:
 
 
 def _plain(text, status=200):
-    response = HttpResponse(text, content_type="text/plain; charset=utf-8", status=status)
+    response = HttpResponse(
+        text, content_type="text/plain; charset=utf-8", status=status
+    )
     response["Cache-Control"] = "no-store"
     return response

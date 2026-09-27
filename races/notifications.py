@@ -19,8 +19,8 @@ club's contact email. See ``sender``.
 import logging
 from email.utils import formataddr, parseaddr
 
-from django.contrib import messages
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage, get_connection
 from django.db import transaction
@@ -81,8 +81,13 @@ def email_to(address, template, request, **context):
     )
     subject, _, body = text.strip().partition("\n")
     from_email, reply_to = sender(context.get("club") or getattr(request, "club", None))
-    return EmailMessage(subject.strip(), body.strip() + "\n", from_email=from_email,
-                        to=[address] if address else [], reply_to=reply_to)
+    return EmailMessage(
+        subject.strip(),
+        body.strip() + "\n",
+        from_email=from_email,
+        to=[address] if address else [],
+        reply_to=reply_to,
+    )
 
 
 def sender(club):
@@ -105,6 +110,11 @@ def _link(request, name, *args):
     return request.build_absolute_uri(reverse(name, args=args))
 
 
+def boat_owners(count):
+    """How many owners an email went to, for the page's message: "3 boat owners"."""
+    return f"{count} boat owner{'s' if count != 1 else ''}"
+
+
 # --- Race results --------------------------------------------------------------
 
 
@@ -114,10 +124,17 @@ def series_owners(series):
     Someone removed from the club, or still waiting to join, gets no results
     emails from it even if a boat there is recorded as theirs (slice 11).
     """
-    return get_user_model().objects.filter(
-        boats__series_entries__series=series, is_active=True,
-        memberships__club=series.club, memberships__status=ClubMembership.Status.APPROVED,
-    ).exclude(email="").distinct()
+    return (
+        get_user_model()
+        .objects.filter(
+            boats__series_entries__series=series,
+            is_active=True,
+            memberships__club=series.club,
+            memberships__status=ClubMembership.Status.APPROVED,
+        )
+        .exclude(email="")
+        .distinct()
+    )
 
 
 def race_results(race, request, *, updated, on_sent=None):
@@ -130,9 +147,14 @@ def race_results(race, request, *, updated, on_sent=None):
         "note": results.note_for(race),
         "standings": results.standings,
         "updated": updated,
-        "results_url": _link(request, "results:series", race.series.pk) + f"?race={race.number}",
+        "results_url": _link(request, "results:series", race.series.pk)
+        + f"?race={race.number}",
     }
-    send([email(owner, "race_results", request, **context) for owner in owners], request, on_sent)
+    send(
+        [email(owner, "race_results", request, **context) for owner in owners],
+        request,
+        on_sent,
+    )
     return len(owners)
 
 
@@ -151,7 +173,16 @@ def final_standings(series, request, *, updated, on_sent=None):
         "results_url": _link(request, "results:series", series.pk),
     }
     send(
-        [email(owner, "final_standings", request, own_rows=place.get(owner.pk, []), **context) for owner in owners],
+        [
+            email(
+                owner,
+                "final_standings",
+                request,
+                own_rows=place.get(owner.pk, []),
+                **context,
+            )
+            for owner in owners
+        ],
         request,
         on_sent,
     )
@@ -174,9 +205,21 @@ def membership_decided(membership, request, change):
     address (slice 13).
     """
     club = membership.club
-    send([email(membership.user, "membership_decided", request, membership=membership, club=club,
-                change=change, site_link=_club_link(request, club, "results:home"),
-                my_boats_link=_club_link(request, club, "races:my_boats"))], request)
+    send(
+        [
+            email(
+                membership.user,
+                "membership_decided",
+                request,
+                membership=membership,
+                club=club,
+                change=change,
+                site_link=_club_link(request, club, "results:home"),
+                my_boats_link=_club_link(request, club, "races:my_boats"),
+            )
+        ],
+        request,
+    )
 
 
 def _club_link(request, club, name):
@@ -192,8 +235,13 @@ def account_deleted(user, request):
     Built before the account goes, and sent by the caller once it has: the
     last email Race Times sends to that address.
     """
-    return email_to(user.email, "account_deleted", request, name=user.first_name or user.get_username(),
-                    account_email=user.email)
+    return email_to(
+        user.email,
+        "account_deleted",
+        request,
+        name=user.first_name or user.get_username(),
+        account_email=user.email,
+    )
 
 
 def password_changed(user, request):
@@ -202,15 +250,37 @@ def password_changed(user, request):
     The reset link is on the club's address; the service's own address, where
     only the operator changes a password, has no reset page.
     """
-    reset_url = request.build_absolute_uri(reverse("races:password_reset")) if request.club else None
-    return email_to(user.email, "password_changed", request, name=user.first_name or user.get_username(),
-                    account_email=user.email, changed_at=timezone.localtime(), reset_url=reset_url)
+    reset_url = (
+        request.build_absolute_uri(reverse("races:password_reset"))
+        if request.club
+        else None
+    )
+    return email_to(
+        user.email,
+        "password_changed",
+        request,
+        name=user.first_name or user.get_username(),
+        account_email=user.email,
+        changed_at=timezone.localtime(),
+        reset_url=reset_url,
+    )
 
 
 def invitation(invitation, request, link):
     """The operator's invitation to run a club, with its 7-day link (slice 11 part 3)."""
-    send([email_to(invitation.email, "club_invitation", request, invitation=invitation,
-                   club=invitation.club, accept_url=link)], request)
+    send(
+        [
+            email_to(
+                invitation.email,
+                "club_invitation",
+                request,
+                invitation=invitation,
+                club=invitation.club,
+                accept_url=link,
+            )
+        ],
+        request,
+    )
 
 
 # --- Members: accounts, requests, boats and entries ------------------------------
@@ -277,11 +347,16 @@ def removed_from_series(entries, request):
     entry as it was held in memory: its boat and series still exist. Their
     start sheet rows went with them, and that sends no race emails as well.
     """
-    _to_owners(entries, "removed_from_series", request, lambda entry: {
-        "boat": entry.boat,
-        "series": entry.series,
-        "results_url": _link(request, "results:series", entry.series.pk),
-    })
+    _to_owners(
+        entries,
+        "removed_from_series",
+        request,
+        lambda entry: {
+            "boat": entry.boat,
+            "series": entry.series,
+            "results_url": _link(request, "results:series", entry.series.pk),
+        },
+    )
 
 
 def _to_owners(entries, template, request, context):
@@ -300,8 +375,12 @@ def has_owner_to_email(boat):
     """Whether the site can email this boat's owner: an approved member of the boat's club."""
     owner = boat.owner
     return (
-        owner is not None and owner.is_active and bool(owner.email)
-        and owner.memberships.filter(club_id=boat.club_id, status=ClubMembership.Status.APPROVED).exists()
+        owner is not None
+        and owner.is_active
+        and bool(owner.email)
+        and owner.memberships.filter(
+            club_id=boat.club_id, status=ClubMembership.Status.APPROVED
+        ).exists()
     )
 
 
@@ -310,11 +389,17 @@ def has_owner_to_email(boat):
 
 def start_sheet_changed(race, entry, request, *, racing):
     """Tell the owner their boat was put on, or taken off, a race's start sheet."""
-    _to_owners([entry], "entered_in_race" if racing else "removed_from_race", request, lambda entry: {
-        "boat": entry.boat,
-        "race": race,
-        "results_url": _link(request, "results:series", race.series.pk) + f"?race={race.number}",
-    })
+    _to_owners(
+        [entry],
+        "entered_in_race" if racing else "removed_from_race",
+        request,
+        lambda entry: {
+            "boat": entry.boat,
+            "race": race,
+            "results_url": _link(request, "results:series", race.series.pk)
+            + f"?race={race.number}",
+        },
+    )
 
 
 def boat_updated(boat, changes, owners, request):
@@ -328,8 +413,14 @@ def boat_updated(boat, changes, owners, request):
         return
     send(
         [
-            email(owner, "boat_updated", request, boat=boat, changes=changes,
-                  boats_url=_link(request, "races:my_boats"))
+            email(
+                owner,
+                "boat_updated",
+                request,
+                boat=boat,
+                changes=changes,
+                boats_url=_link(request, "races:my_boats"),
+            )
             for owner in owners
             if owner is not None and owner.is_active
         ],

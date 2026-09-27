@@ -63,8 +63,14 @@ def test_every_page_only_reads_the_database(client, urls, logged_in):
     if logged_in:
         client.force_login(member)
     for url, params, target in pages:
-        for headers in [{}, {"HX-Request": "true", "HX-Target": target}] if target else [{}]:
+        for headers in (
+            [{}, {"HX-Request": "true", "HX-Target": target}] if target else [{}]
+        ):
             with CaptureQueriesContext(connection) as queries:
                 assert client.get(url, params, headers=headers).status_code == 200
-            writes = [q["sql"] for q in queries if not q["sql"].lstrip().upper().startswith("SELECT")]
+            writes = [
+                q["sql"]
+                for q in queries
+                if not q["sql"].lstrip().upper().startswith("SELECT")
+            ]
             assert writes == [], url

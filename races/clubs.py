@@ -45,7 +45,11 @@ def club_address(request, club, path="/"):
     ``build_absolute_uri`` does, so it works on demo.localhost:8000 in
     development as well as in production.
     """
-    host = f"{club.subdomain}.{settings.SERVICE_DOMAIN}" if club else settings.SERVICE_DOMAIN
+    host = (
+        f"{club.subdomain}.{settings.SERVICE_DOMAIN}"
+        if club
+        else settings.SERVICE_DOMAIN
+    )
     _, colon, port = request.get_host().rpartition(":")
     if colon and port.isdigit():
         host += f":{port}"
@@ -61,7 +65,9 @@ class ClubMiddleware:
         if subdomain == "www":
             # www.racetimes.co.uk is the service's own address by another name
             # (slice 12); "www" is reserved, never a club's.
-            return HttpResponsePermanentRedirect(club_address(request, None, request.get_full_path()))
+            return HttpResponsePermanentRedirect(
+                club_address(request, None, request.get_full_path())
+            )
         if subdomain is None and settings.SINGLE_CLUB:
             subdomain = settings.SINGLE_CLUB
         request.club = None
@@ -70,7 +76,9 @@ class ClubMiddleware:
             if club is None:
                 return render(request, "clubs/no_club.html", status=404)
             if not club.is_active and not request.user.is_superuser:
-                return render(request, "clubs/paused.html", {"paused_club": club}, status=503)
+                return render(
+                    request, "clubs/paused.html", {"paused_club": club}, status=503
+                )
             request.club = club
             # Log lines and error reports say which club (slice 11 part 4).
             logs.club.set(club.subdomain)
@@ -78,8 +86,12 @@ class ClubMiddleware:
         elif not request.path.startswith(SERVICE_PATHS):
             # The service's own address: its front page, and nothing of any club's.
             if request.path == "/":
-                return render(request, "clubs/service_home.html", {
-                    "contact_email": settings.SERVICE_CONTACT_EMAIL,
-                })
+                return render(
+                    request,
+                    "clubs/service_home.html",
+                    {
+                        "contact_email": settings.SERVICE_CONTACT_EMAIL,
+                    },
+                )
             return render(request, "clubs/no_club.html", status=404)
         return self.get_response(request)

@@ -58,7 +58,9 @@ def confirm_email(request, uidb64, token):
     except (User.DoesNotExist, ValueError, TypeError, OverflowError):
         user = None
     if user is None or not confirmation_tokens.check_token(user, token):
-        return render(request, "registration/confirm_email.html", {"valid": False}, status=400)
+        return render(
+            request, "registration/confirm_email.html", {"valid": False}, status=400
+        )
     if not user.is_active:
         user.is_active = True
         user.save(update_fields=["is_active"])
@@ -75,7 +77,11 @@ RESEND_SENT = (
 def resend_confirmation(request):
     """Send the confirmation link again. Says the same whether or not the account exists."""
     email = request.POST.get("email", "").strip().lower()
-    user = get_user_model().objects.filter(username=email, is_active=False, last_login__isnull=True).first()
+    user = (
+        get_user_model()
+        .objects.filter(username=email, is_active=False, last_login__isnull=True)
+        .first()
+    )
     if user is not None:
         send_confirmation(user, request)
     messages.info(request, RESEND_SENT)
@@ -96,7 +102,10 @@ def join_club(request):
         found.decided_by_name, found.decided_at = "", None
         found.save()
     forget_memberships(request.user)
-    messages.success(request, f"Asked to join {request.club}. You'll get an email when the club's administrator decides.")
+    messages.success(
+        request,
+        f"Asked to join {request.club}. You'll get an email when the club's administrator decides.",
+    )
     return redirect("races:my_boats")
 
 
@@ -106,19 +115,25 @@ def join_club(request):
 @club_administrator_required
 def members_page(request):
     memberships = request.club.memberships.select_related("user")
-    return render(request, "races/members.html", {
-        "waiting": [m for m in memberships if m.status == Status.WAITING],
-        "approved": [m for m in memberships if m.status == Status.APPROVED],
-        "removed": [m for m in memberships if m.status == Status.REMOVED],
-        "roles": Role.choices,
-        "operator_name": OPERATOR_NAME,
-    })
+    return render(
+        request,
+        "races/members.html",
+        {
+            "waiting": [m for m in memberships if m.status == Status.WAITING],
+            "approved": [m for m in memberships if m.status == Status.APPROVED],
+            "removed": [m for m in memberships if m.status == Status.REMOVED],
+            "roles": Role.choices,
+            "operator_name": OPERATOR_NAME,
+        },
+    )
 
 
 # How the club sees a decision the service's operator made (slice 13).
 OPERATOR_NAME = "the Race Times operator"
 
-OWN_MEMBERSHIP = "You can't change your own membership. Ask another of the club's administrators."
+OWN_MEMBERSHIP = (
+    "You can't change your own membership. Ask another of the club's administrators."
+)
 LAST_ADMINISTRATOR = "The club must keep at least one administrator. Make someone else an administrator first."
 
 
@@ -129,14 +144,18 @@ def decide_membership(request, pk):
     target = get_object_or_404(request.club.memberships.select_related("user"), pk=pk)
     action = request.POST.get("action")
     try:
-        change = decide(request.club, target, action, request.POST.get("role", ""), request.user)
+        change = decide(
+            request.club, target, action, request.POST.get("role", ""), request.user
+        )
     except ValidationError as refused:
         messages.error(request, " ".join(refused.messages))
     else:
         if change:
             target.refresh_from_db()  # as decided, for the email
             notifications.membership_decided(target, request, change)
-            messages.success(request, f"{_name(target.user)}: {CHANGE_MESSAGES[change]}")
+            messages.success(
+                request, f"{_name(target.user)}: {CHANGE_MESSAGES[change]}"
+            )
     return redirect("races:members")
 
 
@@ -168,14 +187,23 @@ def decide(club, target, action, role, by, by_name=None):
                 target.role = role
         elif action == "reject" and target.status == Status.WAITING:
             target.status, change = Status.REMOVED, "rejected"
-        elif action == "role" and target.is_approved and role in Role.values and role != target.role:
+        elif (
+            action == "role"
+            and target.is_approved
+            and role in Role.values
+            and role != target.role
+        ):
             target.role, change = role, "role"
         elif action == "remove" and target.is_approved:
             target.status, change = Status.REMOVED, "removed"
         else:
             return None  # a stale page, or nothing to change
-        if was_administrator and not (target.is_approved and target.role == Role.ADMINISTRATOR):
-            administrators = club.memberships.filter(status=Status.APPROVED, role=Role.ADMINISTRATOR)
+        if was_administrator and not (
+            target.is_approved and target.role == Role.ADMINISTRATOR
+        ):
+            administrators = club.memberships.filter(
+                status=Status.APPROVED, role=Role.ADMINISTRATOR
+            )
             if administrators.exclude(pk=target.pk).count() == 0:
                 raise ValidationError(LAST_ADMINISTRATOR)
         target.decided_by_name = by_name or by.get_username()

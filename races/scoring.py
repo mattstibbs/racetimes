@@ -163,15 +163,16 @@ def score_series(series):
     others from), and neither can any race after it, since each race sails on
     the handicaps the one before produces. See docs/decisions.md.
     """
-    entries = list(series.entries.select_related("boat"))
-    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
+    entries, races = _load(series)
     if not entries:
         # The engine refuses a series with no boats, and there is nothing to show.
         return SeriesResults(series=series, races=(), standings=())
 
     scored, unscored = _scorable_races(series, races)
     if not scored:
-        return SeriesResults(series=series, races=(), standings=(), unscored=tuple(unscored))
+        return SeriesResults(
+            series=series, races=(), standings=(), unscored=tuple(unscored)
+        )
 
     try:
         if series.final_results is not None:
@@ -190,51 +191,69 @@ def score_series(series):
         )
 
     entry_by_id = {str(entry.pk): entry for entry in entries}
-    race_by_id = {str(race.pk): race for race in scored}
-
-    race_results = []
-    for race, race_outcome in zip(scored, outcome.races):
-        finishes = {str(finish.entry_id): finish for finish in race.finishes.all()}
-        racing = {str(race_entry.entry_id) for race_entry in race.race_entries.all()}
-        rows = [
-            BoatRaceResult(
-                entry=entry_by_id[result.boat_id],
-                finish=finishes.get(result.boat_id),
-                result=result,
-                not_recorded=result.boat_id in racing and result.boat_id not in finishes,
-            )
-            for result in race_outcome.results
-        ]
-        rows.sort(key=_finishing_order)
-        race_results.append(RaceResults(race=race, rows=tuple(rows)))
-
-    standings = tuple(
-        StandingRow(
-            entry=entry_by_id[standing.boat_id],
-            position=standing.position,
-            total=standing.total,
-            scores=tuple(
-                ScoreCell(race=race_by_id[s.race_id], points=s.points, discarded=s.discarded)
-                for s in standing.scores
-            ),
-        )
-        for standing in outcome.standings
-    )
-
     return SeriesResults(
         series=series,
-        races=tuple(race_results),
-        standings=standings,
+        races=tuple(
+            _race_results(race, race_outcome, entry_by_id)
+            for race, race_outcome in zip(scored, outcome.races, strict=True)
+        ),
+        standings=_standings(outcome.standings, entry_by_id, scored),
         unscored=tuple(unscored),
     )
 
 
 def engine_outcome(series):
     """The engine's own output for the series, replayed live: what a final series copies."""
-    entries = list(series.entries.select_related("boat"))
-    races = list(series.races.order_by("number").prefetch_related("finishes", "race_entries"))
+    entries, races = _load(series)
     scored, _ = _scorable_races(series, races)
     return nhc.score_series(build_engine_series(series, entries, scored))
+
+
+def _load(series):
+    """The series' entries, and its races in order with their finishes and start sheets."""
+    entries = list(series.entries.select_related("boat"))
+    races = list(
+        series.races.order_by("number").prefetch_related("finishes", "race_entries")
+    )
+    return entries, races
+
+
+def _race_results(race, race_outcome, entry_by_id):
+    """One race's results from the engine, matched back to its entries and finishes."""
+    finishes = {str(finish.entry_id): finish for finish in race.finishes.all()}
+    racing = {str(race_entry.entry_id) for race_entry in race.race_entries.all()}
+    rows = [
+        BoatRaceResult(
+            entry=entry_by_id[result.boat_id],
+            finish=finishes.get(result.boat_id),
+            result=result,
+            not_recorded=result.boat_id in racing and result.boat_id not in finishes,
+        )
+        for result in race_outcome.results
+    ]
+    rows.sort(key=_finishing_order)
+    return RaceResults(race=race, rows=tuple(rows))
+
+
+def _standings(engine_standings, entry_by_id, races):
+    """The engine's standings, matched back to the series' entries and races."""
+    race_by_id = {str(race.pk): race for race in races}
+    return tuple(
+        StandingRow(
+            entry=entry_by_id[standing.boat_id],
+            position=standing.position,
+            total=standing.total,
+            scores=tuple(
+                ScoreCell(
+                    race=race_by_id[score.race_id],
+                    points=score.points,
+                    discarded=score.discarded,
+                )
+                for score in standing.scores
+            ),
+        )
+        for standing in engine_standings
+    )
 
 
 def _scorable_races(series, races):
@@ -259,4 +278,9 @@ def _scorable_races(series, races):
 
 def _finishing_order(row):
     position = row.result.position
-    return (position is None, position or 0, row.result.status, row.entry.boat.sail_number)
+    return (
+        position is None,
+        position or 0,
+        row.result.status,
+        row.entry.boat.sail_number,
+    )

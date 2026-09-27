@@ -27,7 +27,12 @@ AUDITED_FIELDS = {
     # A race's date moves nothing: elapsed time is measured within the day.
     Race: ["number", "start_time"],
     Series: [
-        "series_type", "discards", "minimum_finishers", "apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base",
+        "series_type",
+        "discards",
+        "minimum_finishers",
+        "apply_a5_3",
+        "nhc_cap_extremes",
+        "nhc_realign_to_base",
     ],
     SeriesEntry: [],  # only being added or removed matters (the A5.2 entry count)
     Boat: ["base_number"],
@@ -44,7 +49,9 @@ KINDS = {
 # Creating a series or a boat moves no result on its own; its entries and races do.
 _CREATION_NOT_AUDITED = (Series, Boat)
 
-REASON_REQUIRED = "This changes results already recorded, so give a reason for the correction."
+REASON_REQUIRED = (
+    "This changes results already recorded, so give a reason for the correction."
+)
 
 
 def changes_to_save(obj):
@@ -73,7 +80,10 @@ def changes_to_save(obj):
 
 def changes_to_delete(obj):
     """The unsaved ScoringChange rows that deleting ``obj`` would record."""
-    changes = {_label(obj, name): [_display(obj, name), ""] for name in AUDITED_FIELDS[type(obj)]}
+    changes = {
+        _label(obj, name): [_display(obj, name), ""]
+        for name in AUDITED_FIELDS[type(obj)]
+    }
     return _rows(obj, ScoringChange.Action.REMOVED, changes)
 
 
@@ -114,14 +124,18 @@ def _rows(obj, action, changes):
         return [row(obj.race.series, obj.race, action != ScoringChange.Action.ADDED)]
     if isinstance(obj, Race):
         has_finishes = obj.pk is not None and obj.finishes.exists()
-        return [row(obj.series, obj, action != ScoringChange.Action.ADDED and has_finishes)]
+        return [
+            row(obj.series, obj, action != ScoringChange.Action.ADDED and has_finishes)
+        ]
     if isinstance(obj, Series):
         return [row(obj, None, series_has_finishes(obj))]
     if isinstance(obj, SeriesEntry):
         return [row(obj.series, None, series_has_finishes(obj.series))]
     # A base number feeds every series the boat is in, so each series' history
     # gets its own row and is complete without looking anywhere else.
-    series_list = list(Series.objects.filter(entries__boat=obj).distinct()) if obj.pk else []
+    series_list = (
+        list(Series.objects.filter(entries__boat=obj).distinct()) if obj.pk else []
+    )
     if not series_list:
         return [row(None, None, False)]
     return [row(series, None, series_has_finishes(series)) for series in series_list]
@@ -166,6 +180,34 @@ def _display(obj, name):
     return str(value)
 
 
+# --- Forms that save audited fields ----------------------------------------------------
+
+
+class AuditedFormMixin:
+    """Works out, while validating, what saving this form would record.
+
+    ``_post_clean`` is where a ModelForm copies the cleaned values onto its
+    instance, so straight after it the instance holds the new values and the
+    database still holds the old ones. That is the moment to compare them. A
+    correction without a reason becomes a validation error, so nothing is saved.
+    """
+
+    scoring_changes = ()
+    # Where a missing reason's error is shown; None puts it at the top of the form.
+    reason_error_field = "reason"
+
+    def _post_clean(self):
+        super()._post_clean()
+        if self._errors:
+            return
+        self.scoring_changes = changes_to_save(self.instance)
+        if needs_reason(self.scoring_changes) and not self.correction_reason():
+            self.add_error(self.reason_error_field, REASON_REQUIRED)
+
+    def correction_reason(self):
+        return self.cleaned_data.get("reason", "")
+
+
 # --- What a change did to the results --------------------------------------
 
 
@@ -206,11 +248,17 @@ def describe_effect(before, after):
         parts.append(f"Handicaps changed in {race_list(effect.handicaps)}.")
     if effect.standings:
         parts.append("Standings changed.")
-    return " ".join(parts) or "No places, handicaps, or standings were affected by this change."
+    return (
+        " ".join(parts)
+        or "No places, handicaps, or standings were affected by this change."
+    )
 
 
 def _places(race_results):
-    return {row.entry.pk: (row.result.position, row.result.points) for row in race_results.rows}
+    return {
+        row.entry.pk: (row.result.position, row.result.points)
+        for row in race_results.rows
+    }
 
 
 def _handicaps(race_results):

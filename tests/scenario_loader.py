@@ -39,6 +39,10 @@ RACE_SCENARIO_IDS = [s["scenario_id"] for s in RACE_SCENARIOS]
 REALIGNMENT_SCENARIOS = [s for s in SCENARIOS if s.get("calculation") == "REALIGNMENT"]
 REALIGNMENT_SCENARIO_IDS = [s["scenario_id"] for s in REALIGNMENT_SCENARIOS]
 
+# The RYA's worked club race, which the Django app's tests replay through the
+# database and read back from the pages.
+SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.
@@ -101,7 +105,9 @@ def race_boat_params(field):
 
 # --- Slice 14: one MCC race, scored with the optional extra NHC steps --------------------------
 
-MCC_FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"
+MCC_FIXTURE_PATH = (
+    Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"
+)
 MCC_RACE = load_scenarios(MCC_FIXTURE_PATH)
 
 #: The four combinations of the two settings, as named in the fixture's

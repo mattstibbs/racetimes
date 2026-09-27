@@ -24,7 +24,9 @@ class Command(BaseCommand):
         username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "").strip()
         password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "")
         if not username or not password:
-            self.stdout.write("No DJANGO_SUPERUSER_USERNAME/PASSWORD set; nothing to do.")
+            self.stdout.write(
+                "No DJANGO_SUPERUSER_USERNAME/PASSWORD set; nothing to do."
+            )
             return
 
         User = get_user_model()
@@ -32,12 +34,18 @@ class Command(BaseCommand):
             self.stdout.write(f"User {username!r} already exists; left unchanged.")
             return
 
-        user = User(username=username, email=os.environ.get("DJANGO_SUPERUSER_EMAIL", ""))
+        user = User(
+            username=username, email=os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
+        )
         try:
             # The same rules as any other password: a weak one fails the
             # deploy with the reason, rather than going live.
             password_validation.validate_password(password, user)
         except ValidationError as error:
-            raise CommandError("DJANGO_SUPERUSER_PASSWORD: " + " ".join(error.messages))
-        User.objects.create_superuser(username=username, email=user.email, password=password)
+            raise CommandError(
+                "DJANGO_SUPERUSER_PASSWORD: " + " ".join(error.messages)
+            ) from error
+        User.objects.create_superuser(
+            username=username, email=user.email, password=password
+        )
         self.stdout.write(f"Created superuser {username!r}.")

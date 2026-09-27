@@ -8,8 +8,15 @@ from django.urls import reverse
 from races.models import BoatRequest, EntryRequest
 from races.roles import is_club_administrator, is_committee, is_member
 from races.testing import (
-    default_club, join,
-    make_administrator, make_boat, make_club, make_committee, make_member, make_operator, make_series,
+    default_club,
+    join,
+    make_administrator,
+    make_boat,
+    make_club,
+    make_committee,
+    make_member,
+    make_operator,
+    make_series,
 )
 
 pytestmark = pytest.mark.django_db
@@ -24,7 +31,12 @@ def test_roles_come_from_an_approved_membership_of_this_club():
     people = (AnonymousUser(), member, committee, admin)
     assert [is_member(u, club) for u in people] == [False, True, True, True]
     assert [is_committee(u, club) for u in people] == [False, False, True, True]
-    assert [is_club_administrator(u, club) for u in people] == [False, False, False, True]
+    assert [is_club_administrator(u, club) for u in people] == [
+        False,
+        False,
+        False,
+        True,
+    ]
 
 
 def test_a_role_at_one_club_is_nothing_at_another():
@@ -38,7 +50,9 @@ def test_a_role_at_one_club_is_nothing_at_another():
 @pytest.mark.parametrize("status", ["WAITING", "REMOVED"])
 def test_a_membership_not_approved_has_no_role(status):
     person = make_committee(status=status)
-    assert not is_member(person, default_club()) and not is_committee(person, default_club())
+    assert not is_member(person, default_club()) and not is_committee(
+        person, default_club()
+    )
 
 
 def test_staff_superusers_and_the_old_group_mean_nothing_at_a_club():
@@ -46,7 +60,9 @@ def test_staff_superusers_and_the_old_group_mean_nothing_at_a_club():
     staff = make_member("staff@example.com", club=None, is_staff=True)
     staff.groups.add(Group.objects.get(name="Race committee"))
     for person in (operator, staff):
-        assert not is_member(person, default_club()) and not is_committee(person, default_club())
+        assert not is_member(person, default_club()) and not is_committee(
+            person, default_club()
+        )
 
 
 def test_an_inactive_account_has_no_role():
@@ -75,7 +91,10 @@ def test_deleting_the_owner_keeps_the_boat():
 def request_for(boat, member, **fields):
     return BoatRequest.objects.create(
         club=default_club(),
-        kind=BoatRequest.Kind.CHANGE, boat=boat, requested_by=member, **fields
+        kind=BoatRequest.Kind.CHANGE,
+        boat=boat,
+        requested_by=member,
+        **fields,
     )
 
 
@@ -96,20 +115,32 @@ def test_a_decided_request_does_not_block_a_new_one():
 def test_a_registration_has_no_boat_and_the_others_do():
     member = make_member()
     with pytest.raises(IntegrityError):
-        BoatRequest.objects.create(club=default_club(), kind=BoatRequest.Kind.REGISTER, boat=make_boat(), requested_by=member)
+        BoatRequest.objects.create(
+            club=default_club(),
+            kind=BoatRequest.Kind.REGISTER,
+            boat=make_boat(),
+            requested_by=member,
+        )
 
 
 def test_several_pending_registrations_are_allowed():
     member = make_member()
     for sail in ("GBR1", "GBR2"):
-        BoatRequest.objects.create(club=default_club(), kind=BoatRequest.Kind.REGISTER, sail_number=sail, requested_by=member)
+        BoatRequest.objects.create(
+            club=default_club(),
+            kind=BoatRequest.Kind.REGISTER,
+            sail_number=sail,
+            requested_by=member,
+        )
     assert BoatRequest.objects.count() == 2
 
 
 def test_one_pending_entry_request_per_boat_per_series():
     member, boat, series = make_member(), make_boat(), make_series()
     EntryRequest.objects.create(series=series, boat=boat, requested_by=member)
-    EntryRequest.objects.create(series=make_series("Other"), boat=boat, requested_by=member)
+    EntryRequest.objects.create(
+        series=make_series("Other"), boat=boat, requested_by=member
+    )
     with pytest.raises(IntegrityError):
         EntryRequest.objects.create(series=series, boat=boat, requested_by=member)
 
@@ -127,7 +158,14 @@ def test_a_members_requests_go_with_their_account():
 # Slice 11: roles at Demo Club, plus the operator (a superuser, with no role at
 # any club) and a race committee member of another club. Neither of the last two
 # may do anything here that the public can't, except see that they're not a member.
-ROLES = ["public", "member", "committee", "administrator", "operator", "committee elsewhere"]
+ROLES = [
+    "public",
+    "member",
+    "committee",
+    "administrator",
+    "operator",
+    "committee elsewhere",
+]
 SEES = 200
 TO_LOGIN = "login"
 REFUSED = 403
@@ -142,17 +180,21 @@ def as_role(client):
             "committee": make_committee,
             "administrator": make_administrator,
             "operator": make_operator,
-            "committee elsewhere": lambda: make_committee("far@example.com", club=make_club("harbour")),
+            "committee elsewhere": lambda: make_committee(
+                "far@example.com", club=make_club("harbour")
+            ),
         }[role]()
         if user is not None:
             client.force_login(user)
         return client
+
     return log_in
 
 
 @pytest.fixture
 def pages():
     from races.testing import enter, make_race
+
     series = make_series()
     race = make_race(series)
     boat = make_boat()
@@ -169,21 +211,48 @@ def pages():
         "a boat's results": (reverse("results:boat", args=[boat.pk]), everyone),
         "download (CSV)": (reverse("results:series_csv", args=[series.pk]), everyone),
         # Anyone logged in gets My boats; someone not a member here is offered Join this club.
-        "my boats": (reverse("races:my_boats"), [TO_LOGIN, SEES, SEES, SEES, SEES, SEES]),
-        "register a boat": (reverse("races:register_boat"), [TO_LOGIN, SEES, SEES, SEES, REFUSED, REFUSED]),
+        "my boats": (
+            reverse("races:my_boats"),
+            [TO_LOGIN, SEES, SEES, SEES, SEES, SEES],
+        ),
+        "register a boat": (
+            reverse("races:register_boat"),
+            [TO_LOGIN, SEES, SEES, SEES, REFUSED, REFUSED],
+        ),
         "requests": (reverse("races:requests"), committee),
-        "start sheet": ((reverse("races:race_day", args=[race.pk]) + "?view=start"), committee),
-        "finish entry": ((reverse("races:race_day", args=[race.pk]) + "?view=finish"), committee),
+        "start sheet": (
+            (reverse("races:race_day", args=[race.pk]) + "?view=start"),
+            committee,
+        ),
+        "finish entry": (
+            (reverse("races:race_day", args=[race.pk]) + "?view=finish"),
+            committee,
+        ),
         "history": (reverse("races:series_history", args=[series.pk]), committee),
         "final results": (reverse("races:final", args=[series.pk]), committee),
-        "members": (reverse("races:members"), [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED]),
+        "members": (
+            reverse("races:members"),
+            [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED],
+        ),
         "admin: boats": (reverse("admin:races_boat_changelist"), admin_committee),
-        "admin: a boat": (reverse("admin:races_boat_change", args=[boat.pk]), admin_committee),
+        "admin: a boat": (
+            reverse("admin:races_boat_change", args=[boat.pk]),
+            admin_committee,
+        ),
         "admin: series": (reverse("admin:races_series_changelist"), admin_committee),
-        "admin: requests": (reverse("admin:races_boatrequest_changelist"), admin_committee),
+        "admin: requests": (
+            reverse("admin:races_boatrequest_changelist"),
+            admin_committee,
+        ),
         # Accounts span clubs: the operator's alone, on the service's own address.
-        "admin: accounts": (reverse("admin:auth_user_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),
-        "admin: groups": (reverse("admin:auth_group_changelist"), [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN]),
+        "admin: accounts": (
+            reverse("admin:auth_user_changelist"),
+            [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN],
+        ),
+        "admin: groups": (
+            reverse("admin:auth_group_changelist"),
+            [TO_LOGIN, TO_LOGIN, REFUSED, REFUSED, TO_LOGIN, TO_LOGIN],
+        ),
     }
 
 
@@ -191,13 +260,15 @@ def pages():
 def test_every_page_as_each_role(as_role, pages, role):
     client = as_role(role)
     outcomes = {}
-    for name, (url, expected) in pages.items():
+    for name, (url, _expected) in pages.items():
         response = client.get(url)
         if response.status_code == 302 and "login" in response["Location"]:
             outcomes[name] = TO_LOGIN
         else:
             outcomes[name] = response.status_code
-    assert outcomes == {name: expected[ROLES.index(role)] for name, (_, expected) in pages.items()}
+    assert outcomes == {
+        name: expected[ROLES.index(role)] for name, (_, expected) in pages.items()
+    }
 
 
 # --- The operator's pages: the service's own address, the operator only (slice 11 part 3) -----
@@ -223,17 +294,23 @@ def operator_pages(settings):
 def test_the_operators_pages_as_each_role(as_role, operator_pages, role):
     client = as_role(role)
     outcomes = {}
-    for name, (url, expected) in operator_pages.items():
+    for name, (url, _expected) in operator_pages.items():
         response = client.get(url, HTTP_HOST="localhost")
         is_login = response.status_code == 302 and "login" in response["Location"]
         outcomes[name] = TO_LOGIN if is_login else response.status_code
-    assert outcomes == {name: expected[ROLES.index(role)] for name, (_, expected) in operator_pages.items()}
+    assert outcomes == {
+        name: expected[ROLES.index(role)]
+        for name, (_, expected) in operator_pages.items()
+    }
 
 
 @pytest.mark.parametrize("role", ROLES)
 def test_the_operators_pages_dont_exist_at_a_club(as_role, role):
     client = as_role(role)
-    for url in (reverse("races:operator_clubs"), reverse("races:operator_club", args=[default_club().pk])):
+    for url in (
+        reverse("races:operator_clubs"),
+        reverse("races:operator_club", args=[default_club().pk]),
+    ):
         assert client.get(url).status_code == 404, url
 
 
@@ -242,7 +319,9 @@ def test_the_header_offers_log_in_and_sign_up_to_the_public(as_role):
     assert "Sign up" in page and "Log in" in page and "My boats" not in page
 
 
-@pytest.mark.parametrize("role, sees_requests", [("member", False), ("committee", True)])
+@pytest.mark.parametrize(
+    "role, sees_requests", [("member", False), ("committee", True)]
+)
 def test_the_header_offers_requests_only_to_the_committee(as_role, role, sees_requests):
     page = as_role(role).get(reverse("results:home")).content.decode()
     assert "My boats" in page and "Log out" in page
@@ -259,7 +338,9 @@ def test_the_header_offers_requests_only_to_the_committee(as_role, role, sees_re
 def test_nobody_at_a_club_can_change_an_account(as_role, role):
     member = make_member("pat@example.com")
     client = as_role(role)
-    response = client.post(reverse("admin:auth_user_change", args=[member.pk]), {"is_staff": "on"})
+    response = client.post(
+        reverse("admin:auth_user_change", args=[member.pk]), {"is_staff": "on"}
+    )
     assert response.status_code == 403
     member.refresh_from_db()
     assert not member.is_staff
@@ -270,15 +351,27 @@ def test_the_committee_sets_a_boats_owner_from_this_clubs_members(as_role):
     waiting = make_member("new@example.com", status="WAITING")
     elsewhere = make_member("far@example.com", club=make_club("harbour"))
     boat = make_boat()
-    page = as_role("committee").get(reverse("admin:races_boat_change", args=[boat.pk])).content.decode()
+    page = (
+        as_role("committee")
+        .get(reverse("admin:races_boat_change", args=[boat.pk]))
+        .content.decode()
+    )
     assert f'value="{member.pk}"' in page
     assert f'value="{waiting.pk}"' not in page and f'value="{elsewhere.pk}"' not in page
 
 
 def test_requests_are_read_only_in_the_admin(as_role):
-    request = BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
+    request = BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        sail_number="GBR1",
+        requested_by=make_member("p@example.com"),
+    )
     client = as_role("administrator")
-    response = client.post(reverse("admin:races_boatrequest_change", args=[request.pk]), {"status": "APPROVED"})
+    response = client.post(
+        reverse("admin:races_boatrequest_change", args=[request.pk]),
+        {"status": "APPROVED"},
+    )
     assert response.status_code == 403
     request.refresh_from_db()
     assert request.status == "PENDING"
@@ -298,7 +391,10 @@ def test_the_admin_front_page_counts_people_waiting_to_join(as_role):
 
 def test_one_person_waiting_reads_in_the_singular(as_role):
     make_member("new@example.com", status="WAITING")
-    assert "1 person is waiting to join the club." in as_role("administrator").get(reverse("admin:index")).content.decode()
+    assert (
+        "1 person is waiting to join the club."
+        in as_role("administrator").get(reverse("admin:index")).content.decode()
+    )
 
 
 def test_no_notice_when_nobody_is_waiting(as_role):
@@ -323,23 +419,43 @@ def front_page(as_role, role):
 def waiting_requests():
     member = make_member("pat@example.com")
     for sail in ("GBR1", "GBR2"):
-        BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number=sail, requested_by=member)
-    EntryRequest.objects.create(series=make_series(), boat=make_boat(owner=member), requested_by=member)
+        BoatRequest.objects.create(
+            club=default_club(), kind="REGISTER", sail_number=sail, requested_by=member
+        )
+    EntryRequest.objects.create(
+        series=make_series(), boat=make_boat(owner=member), requested_by=member
+    )
     # Decided requests wait for nobody.
-    BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR3", requested_by=member,
-                               status="REJECTED", committee_note="No")
+    BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        sail_number="GBR3",
+        requested_by=member,
+        status="REJECTED",
+        committee_note="No",
+    )
 
 
 @pytest.mark.parametrize("role", ["committee", "administrator"])
 def test_the_committee_is_told_about_waiting_requests(as_role, waiting_requests, role):
     page = front_page(as_role, role)
-    assert "2 boat requests and 1 entry request are waiting for the race committee." in page
+    assert (
+        "2 boat requests and 1 entry request are waiting for the race committee."
+        in page
+    )
     assert reverse("races:requests") in page
 
 
 def test_one_request_reads_in_the_singular(as_role):
-    BoatRequest.objects.create(club=default_club(), kind="REGISTER", sail_number="GBR1", requested_by=make_member("p@example.com"))
-    assert "1 boat request is waiting for the race committee." in front_page(as_role, "committee")
+    BoatRequest.objects.create(
+        club=default_club(),
+        kind="REGISTER",
+        sail_number="GBR1",
+        requested_by=make_member("p@example.com"),
+    )
+    assert "1 boat request is waiting for the race committee." in front_page(
+        as_role, "committee"
+    )
 
 
 def test_no_request_notice_when_none_are_pending(as_role):
