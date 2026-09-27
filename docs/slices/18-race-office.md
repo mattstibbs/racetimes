@@ -1,11 +1,14 @@
-# Slice 18: the race office (club users leave the Django admin)
+# Slice 18: the race office (club users no longer need the Django admin)
 
 **Status: planned (2026-09-27). The owner has answered every question (see
-the end). Not to be built until the owner approves the plan.**
+the end), and changed their mind on question 6: the Django admin stays in
+place at club addresses, unlinked. Not to be built until the owner approves
+the plan.**
 
 ## Goal
-Nobody at a club uses the Django admin any more. Everything the race
-committee does there today gets a page of its own, built like the rest of the
+Nobody at a club needs the Django admin any more, and nothing on a club's
+site points them to it. Everything the race committee does there today gets
+a page of its own, built like the rest of the
 site (the site's stylesheet, plain server-rendered forms, HTMX where it
 helps), and the club's menu is rearranged around it.
 
@@ -15,9 +18,14 @@ whole series on one long form with two inline tables sharing one reason box,
 and has its own login, messages and history. A race officer shouldn't need
 to learn a second website to set up a series.
 
-No model or migration, no new dependency, no hand-written JavaScript. The
-operator keeps the Django admin on the service's own address, including its
-boat, series and request pages (question 3).
+No model or migration, no new dependency, no hand-written JavaScript.
+
+**The Django admin itself doesn't change** (owner's decision, 2026-09-27,
+replacing the answer to question 6). It stays reachable at a club's address
+for that club's committee, exactly as today, and for the operator on the
+service's own address (question 3). What goes is every route to it for club
+users: the menu item, the links on site pages, and the manual's directions.
+Someone who types `/admin/` still gets there.
 
 ## What club users do in the admin today
 Found by reading `races/admin.py`, `races/admin_forms.py`,
@@ -106,8 +114,6 @@ kept.
 - The **Waiting for you** section reuses `context_processors.waiting_notices`;
   with nothing waiting it says "Nothing waiting."
 - **Series** are listed open ones first (newest first), then final ones.
-- `templates/admin/index.html` (the notices on the admin's front page) is
-  removed; nobody at a club sees that page any more.
 
 ### 2. Boats
 - **List** (`/office/boats/`): sail number, name, make, model, base number,
@@ -176,40 +182,40 @@ While a series is final, its race office page hides Change / Remove / Add /
 Enter and says "This series' results are final. Reopen results to change it."
 
 ### 7. Decided requests
-The club's committee loses the admin's read-only request lists (they stay
-for the operator, item 8). The Change requests page's **Recently decided**
+The admin's read-only request lists stay, but nothing links to them. The
+Change requests page's **Recently decided**
 already shows the last 50; it gains a line "Showing the 50 most recent."
 when there are more. (A full archive is out of scope; the club's data export
 has every request.)
 
-### 8. The Django admin: the operator's alone
-- **At a club's address, the admin answers "Not found"** (question 6): every
-  `/admin/...` address gives the site's 404 page, for everyone, logged in or
-  not. The simplest way is for `ClubMiddleware` (`races/clubs.py`) to answer
-  404 for `/admin/` at a club, before the admin sees the request, so the
-  admin's own login page is never shown there either.
-- **On the service's own address, the operator keeps the whole admin**
-  (question 3): accounts, and every club's boats, series (with their races
-  and entries) and requests, as today. `ClubScopedAdmin` stays, but only its
-  operator branch (`request.club is None`) is ever used, so its club-scoping
-  code is simplified to that, and `ClubAdminSite.has_permission` becomes
-  "the operator, on the service's address" alone.
-- **Shared form code.** The race office's forms and the admin's share their
-  rules rather than copying them: `BoatForm` and `SeriesForm` in
-  `races/office_forms.py` hold the validation, and `admin_forms.py`'s
-  `BoatAdminForm` and `SeriesAdminForm` become thin subclasses adding the
-  admin's always-shown reason box. The admin keeps its race and entry inline
-  formsets, including the race-renumbering swap.
-- `templates/admin/index.html` (club notices on the admin's front page) goes:
-  the operator has no club and never saw them.
-- **The operator's admin loses its links to club pages** (question 7): the
-  series page's **Race day page** column and its **Series history** and
-  **Finalise / Reopen results** links (`RaceInline.finishes_link`,
-  `SeriesAdmin.history_link`), and the request lists' "Change requests
-  page" message. Those pages exist only at a club's address, where the
-  operator has no role, so the links led nowhere.
-- The race day page's "No boats are entered in this series yet. Enter them
-  in the admin." links to the series' **Enter boats** page instead.
+### 8. The Django admin: left in place, no longer linked
+- **Nothing about the admin's access changes.** `ClubAdminSite`,
+  `ClubScopedAdmin` and every admin page stay as they are: a club's
+  committee can still open `/admin/` at its address and sees only its own
+  club's rows; the operator sees every club's on the service's address.
+- **Nothing on a club's site links to it** for club users:
+  - the menu's **Club setup** item is replaced by **Race office**;
+  - the race day page's "No boats are entered in this series yet. Enter
+    them in the admin." links to the series' **Enter boats** page instead;
+  - any other site page or email that sends a club user to the admin
+    points to the race office page that does the same job;
+  - the manual stops mentioning the admin (see Manual).
+  The operator's menu keeps **Accounts (admin)**.
+- **Shared form code.** Both routes stay open, so the race office's forms
+  and the admin's share their rules rather than copying them: `BoatForm` and
+  `SeriesForm` in `races/office_forms.py` hold the validation, and
+  `admin_forms.py`'s `BoatAdminForm` and `SeriesAdminForm` become thin
+  subclasses adding the admin's always-shown reason box. The admin keeps its
+  race and entry inline formsets, including the race-renumbering swap, and
+  its audit and email behaviour.
+- **The admin's links to club pages** (question 7): the series page's **Race
+  day page** column, its **Series history** and **Finalise / Reopen
+  results** links (`RaceInline.finishes_link`, `SeriesAdmin.history_link`),
+  and the request lists' "Change requests page" message. They work at a
+  club's address, so they stay there, and are left out on the service's own
+  address, where those pages don't exist and the links led nowhere.
+- `templates/admin/index.html` (the waiting notices on the admin's front
+  page) stays for the committee's use of the admin.
 
 ## Tests
 Plain pytest functions, mostly in new `races/test_office.py` (pages, menu,
@@ -231,16 +237,13 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
   next race number; renumbering to a used number refused; Coming up lists
   only today onwards, at most 5, open series only; boat search with and
   without HTMX; the menu for each role.
-- **The admin at a club:** `/admin/`, `/admin/login/` and
-  `/admin/races/series/` answer 404 for the public, a member, the committee,
-  an administrator and a superuser alike; the operator still reaches every
-  admin page on the service's address, and editing a boat or series there
-  still records its history; the operator's admin has no links to club
-  pages.
-- Tests that went through the admin at a club address to set things up
-  switch to the new pages or the test builders; tests of the operator's
-  admin move to the service's address. `races/test_admin.py` is rewritten
-  for the operator's admin.
+- **No links to the admin:** for each role at a club, no site page the
+  tests visit (the pages listed in `races/test_isolation.py`) contains a
+  link to `/admin/`, and neither does any email sent to a club user.
+- **The admin still works:** the existing admin tests stay and pass
+  unchanged, at club addresses and the service's, apart from the operator's
+  admin leaving out links to club pages (tested on the service's address,
+  and still present at a club's).
 
 ## Manual
 - **New pages** under Race committee, before "Race day":
@@ -260,18 +263,20 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
   boats. `scripts/manual_screenshots/shots.js` stops visiting `/admin/`.
 
 ## Also
-- `docs/decisions.md`: club users leave the admin (superseding slice 1's
-  "setup in the admin"), the page architecture, the reason box shown only
+- `docs/decisions.md`: club users get the race office instead of the admin,
+  which stays in place unlinked (superseding slice 1's "setup in the
+  admin"), the page architecture, the reason box shown only
   when it applies, renumbering, and the owner's answers.
 - `docs/plan.md`: the slice's entry and status.
-- `CLAUDE.md`: the Clubs and `races/` bullets describe the race office
-  instead of `ClubScopedAdmin`; `docs/operating.md` likewise.
+- `CLAUDE.md`: the Clubs and `races/` bullets describe the race office as
+  where the committee sets things up, with the admin still there but
+  unlinked; `docs/operating.md` likewise.
 
 ## Acceptance criteria
 - A race committee member can do every job in the table above without
-  opening the Django admin, and at a club's address every admin address
-  answers "Not found". The operator's admin on the service's address works
-  as before.
+  opening the Django admin, and no page, email or manual page directs a
+  club user to it. The admin itself still works as before, at club
+  addresses and on the service's own.
 - Every score-affecting change made on the new pages is in the history, with
   a reason where it's a correction; owners get the same emails as before.
 - A final series can't be changed through any new page.
@@ -286,9 +291,9 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
   375px wide.
 
 ## Out of scope
-- The operator's use of the Django admin (the service's own address), which
-  loses only its links to club pages (question 7). Replacing it is a later slice if
-  wanted.
+- Changing or closing the Django admin, at club addresses or the service's
+  own, apart from leaving out its links to club pages on the service's
+  address (question 7). Closing it to club users could be a later slice.
 - A history of changes that move no score (question 4).
 - Importing boats or races in bulk (e.g. from a spreadsheet), or copying a
   series.
@@ -299,12 +304,12 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
 
 ## Suggested parts
 The slice is large, so it's built and checked in three parts, each leaving
-the site working (the admin stays reachable until part 3):
+the site working (the menu links to the admin until part 3):
 1. **Boats**: the race office page (with Waiting for you and Series list
    linking to the admin for now), boats list, add, change, delete.
 2. **Series**: series page, settings, races, entries, delete, Coming up.
-3. **Switch over**: the menu, the admin closed at club addresses, the
-   manual and screenshots.
+3. **Switch over**: the menu, removing every link to the admin for club
+   users, the operator's admin links, the manual and screenshots.
 
 Each part is reviewed by the owner before the next starts (question 2).
 
@@ -352,10 +357,16 @@ Each part is reviewed by the owner before the next starts (question 2).
 1. **Race office**, replacing Club setup in the menu.
 2. **In three parts**, each reviewed before the next.
 3. **Keep** the admin's boat, series and request pages **for the operator**
-   on the service's address; only club addresses lose the admin.
+   on the service's address. (Club addresses keep it too, since the change
+   to answer 6.)
 4. **Leave as is:** no history for changes that move no score.
 5. **As recommended:** delete a boat only if it has never been entered in a
    series; delete a series only if no race in it has a result; each with a
    confirmation page.
 6. **Not found:** every admin address at a club answers 404.
-7. **Remove** the operator's admin links to club pages.
+   **Changed (2026-09-27):** the admin is **left in place** at club
+   addresses; club users are simply no longer linked or directed to it.
+   Neither redirect nor 404.
+7. **Remove** the operator's admin links to club pages. With the admin now
+   staying at clubs, where those links work, they're left out on the
+   service's own address only.

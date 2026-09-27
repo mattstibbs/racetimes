@@ -681,13 +681,13 @@ Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
 the Django admin today (boats, series and their scoring rules, races,
 entries, deleting, looking back at decided requests) moves to purpose-built
 pages under a new **Race office** (`/office/`), which replaces **Club setup**
-in the menu and adds a **Coming up** list of the next races. At a club's
-address the admin answers "Not found"; the operator keeps it on the
-service's address.
+in the menu and adds a **Coming up** list of the next races. The Django
+admin stays in place, at club addresses and the service's, but nothing
+links or directs club users to it.
 
 The owner's answers (2026-09-27): "Race office"; built in three parts, each
 reviewed before the next; the operator keeps the admin's boat, series,
 request and account pages; no history for changes that move no score;
-deleting a boat or series only while nothing depends on it; "Not found" for
-the admin at club addresses; the operator's admin loses its links to club
-pages. Not to be built until the owner approves the plan.
+deleting a boat or series only while nothing depends on it; the operator's
+admin loses its links to club pages. The owner then changed question 6: the
+admin is left in place at club addresses, just unlinked. Not to be built until the owner approves the plan.
