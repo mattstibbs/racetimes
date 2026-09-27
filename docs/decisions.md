@@ -1599,6 +1599,24 @@ becomes a per-club or per-site setting.
 
 ---
 
+## 2026-09-27 - Production's secret key is set by hand
+
+**Decision.** `render.yaml` no longer has Render generate production's
+`DJANGO_SECRET_KEY` (`generateValue`); it's `sync: false`, set by hand in the
+dashboard like the other secrets, from
+`secrets.token_urlsafe(64)` (86 characters). The test site keeps its
+generated key. `docs/production.md` says how to change it and what that does.
+
+**Why.** `check --deploy` in production's Shell warned `security.W009`:
+Render generates a random 256-bit value, 44 characters long, and Django wants
+at least 50. The generated key was random, so the risk was small, but the
+launch checks should pass clean rather than with a warning explained away.
+Changing it logs everyone out and breaks links already emailed, which cost
+nothing while production has no clubs. Once it has, a change should use
+`SECRET_KEY_FALLBACKS`, which the settings don't read yet.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
