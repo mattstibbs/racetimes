@@ -12,8 +12,12 @@ The whole calculation is four steps:
     TCFn = 0.70 x TCF + 0.30 x TCFr         if TCFr >  TCF (over-performance)
            0.85 x TCF + 0.15 x TCFr         if TCFr <= TCF (under-performance)
 
-Over-performance is rated down twice as hard as under-performance is rated up,
-which is what stops a fleet's handicaps drifting upwards over a season.
+An over-performing boat moves twice as far towards TCFr (up) as an
+under-performing one does (down). Because of that asymmetry, the fleet's
+handicaps tend to drift upwards together over a season: in the RYA's worked
+example (spec section 8) their total goes from 3.688 to about 3.699 after one
+race. End-of-series realignment (``nhc/realignment.py``) and the optional
+realignment step (``nhc/options.py``) are what pull them back.
 
 Nothing here rounds. See the precision note in ``nhc/domain.py``.
 """

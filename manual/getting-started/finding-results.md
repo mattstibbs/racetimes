@@ -28,7 +28,8 @@ page lists your own boats, each with a **Results** link.
 At the top, in the blue box, is the handicap your boat sails on in the next
 race of each series it is entered in. It is worked out from every race sailed
 so far, under the RYA's NHC rules. Before the first race of a series it is
-your boat's base number.
+your boat's base number. [How results and handicaps are worked out](how-results-are-worked-out.md)
+explains every step.
 
 Below that, for each series, newest first:
 

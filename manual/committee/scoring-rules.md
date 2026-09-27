@@ -26,6 +26,8 @@ With both off, Race Times works out each boat's next handicap exactly as the
 RYA's club-series rules describe. Some clubs publish results with a fuller
 method, which adds one or both of these steps. Turn them on only if your club
 scores that way, so your handicaps match the ones it publishes.
+[How results and handicaps are worked out](../getting-started/how-results-are-worked-out.md#the-two-optional-steps)
+works through both on an example race.
 
 - **Cap extreme results.** Before the handicaps are adjusted, a boat whose
   corrected time is far from the rest of the fleet (more than one standard
