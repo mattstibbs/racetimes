@@ -1,7 +1,7 @@
 # Slice 19: a landing page that sells Race Times, and "Find my club"
 
-**Status: built (2026-09-27), for the owner's review of the photo and the
-wording. The owner's answers are at the end.**
+**Status: complete (2026-09-27). The owner went ahead with the drafted wording
+and the stock photo; their answers are at the end.**
 
 ## Goal
 The service's own front page, `racetimes.co.uk`, is for two kinds of visitor:

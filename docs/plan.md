@@ -745,7 +745,7 @@ Acceptance criteria, from `docs/slices/18-race-office.md`:
       at 375 px wide.
 
 
-## Slice 19: a landing page that sells Race Times, and "Find my club". **Status: built; for the owner's review (2026-09-27)**
+## Slice 19: a landing page that sells Race Times, and "Find my club". **Status: complete (2026-09-27)**
 
 Spec: `docs/slices/19-service-landing-page.md`. The service's front page at
 `racetimes.co.uk` becomes a landing page for clubs thinking of using Race
