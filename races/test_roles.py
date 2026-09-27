@@ -199,7 +199,7 @@ def pages():
     series = make_series()
     race = make_race(series)
     boat = make_boat()
-    enter(series, boat)
+    entry = enter(series, boat)
     never_entered = make_boat("GBR5")
     everyone = [SEES] * 6
     # The public is sent to log in; anyone logged in without the role is
@@ -243,6 +243,36 @@ def pages():
         "office: a boat": (reverse("races:office_boat", args=[boat.pk]), committee),
         "office: delete a boat": (
             reverse("races:office_delete_boat", args=[never_entered.pk]),
+            committee,
+        ),
+        "office: new series": (reverse("races:office_new_series"), committee),
+        "office: a series": (
+            reverse("races:office_series", args=[series.pk]),
+            committee,
+        ),
+        "office: series settings": (
+            reverse("races:office_series_settings", args=[series.pk]),
+            committee,
+        ),
+        "office: delete a series": (
+            reverse("races:office_delete_series", args=[series.pk]),
+            committee,
+        ),
+        "office: add a race": (
+            reverse("races:office_new_race", args=[series.pk]),
+            committee,
+        ),
+        "office: a race": (reverse("races:office_race", args=[race.pk]), committee),
+        "office: remove a race": (
+            reverse("races:office_remove_race", args=[race.pk]),
+            committee,
+        ),
+        "office: enter boats": (
+            reverse("races:office_enter_boats", args=[series.pk]),
+            committee,
+        ),
+        "office: remove an entry": (
+            reverse("races:office_remove_entry", args=[entry.pk]),
             committee,
         ),
         "admin: boats": (reverse("admin:races_boat_changelist"), admin_committee),

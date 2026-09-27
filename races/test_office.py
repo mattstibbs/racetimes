@@ -1,13 +1,18 @@
-"""Slice 18: the race office's pages - the front page, the boats list and deleting a boat.
+"""Slice 18: the race office's pages - the front page (with Coming up), the boats
+list, deleting a boat, and a series' page.
 
 Who may open each page is in races/test_roles.py, and that no other club's
 data shows is in races/test_isolation.py. The boat form's rules are in
 races/test_office_forms.py.
 """
 
+from datetime import date, datetime, timedelta
+
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
+from races import race_day
 from races.models import Boat, BoatRequest
 from races.testing import (
     enter,
@@ -69,10 +74,11 @@ def test_series_are_listed_open_first_then_final(committee_client):
     assert '<td class="num">2</td>' in row and '<td class="num">1</td>' in row
 
 
-def test_series_still_open_in_the_admin_until_part_2(committee_client):
+def test_each_series_links_to_its_race_office_page(committee_client):
     series = make_series()
     html = page(committee_client, "races:office")
-    assert reverse("admin:races_series_change", args=[series.pk]) in html
+    assert reverse("races:office_series", args=[series.pk]) in html
+    assert reverse("races:office_new_series") in html
 
 
 def test_the_boats_link_counts_the_clubs_boats(committee_client):
@@ -176,3 +182,100 @@ def test_a_boat_entered_in_a_series_cant_be_deleted(committee_client):
         response = method(reverse("races:office_delete_boat", args=[boat.pk]))
         assert response["Location"] == reverse("races:office_boat", args=[boat.pk])
     assert Boat.objects.filter(pk=boat.pk).exists()
+
+
+# --- Coming up -----------------------------------------------------------------------------
+
+
+@pytest.fixture
+def on_23_september(monkeypatch):
+    noon = timezone.make_aware(datetime(2026, 9, 23, 12, 0))
+    monkeypatch.setattr(race_day, "now", lambda: noon)
+
+
+def test_coming_up_lists_the_next_races_from_today(committee_client, on_23_september):
+    autumn = make_series("Autumn")
+    yesterday = make_race(autumn, 1, on=date(2026, 9, 22))
+    today = make_race(autumn, 2, on=date(2026, 9, 23))
+    later = [
+        make_race(autumn, n, on=date(2026, 9, 23) + timedelta(weeks=n - 2))
+        for n in (3, 4, 5, 6)
+    ]
+    too_late = make_race(autumn, 7, on=date(2026, 12, 1))
+    closed = make_series("Summer")
+    closed.declared_final_at = timezone.now()
+    closed.save()
+    finished = make_race(closed, 1, on=date(2026, 9, 24))
+    html = page(committee_client, "races:office")
+    section = html[html.index("Coming up") : html.index('id="series"')]
+    links = [reverse("races:race_day", args=[race.pk]) for race in [today, *later]]
+    assert all(link in section for link in links)
+    assert [section.index(link) for link in links] == sorted(
+        section.index(link) for link in links
+    )
+    for race in (yesterday, too_late, finished):
+        assert reverse("races:race_day", args=[race.pk]) not in section
+    assert section.count("Today") == 1 and "Autumn, Race 2" in section
+
+
+def test_nothing_coming_up_says_so(committee_client, on_23_september):
+    make_race(make_series(), 1, on=date(2026, 9, 1))
+    assert "No races from today onwards" in page(committee_client, "races:office")
+
+
+# --- A series' page ------------------------------------------------------------------------
+
+
+def test_a_series_page_shows_its_races_and_entries(committee_client):
+    series = make_series("Autumn")
+    race = make_race(series, 1)
+    entry = enter(series, make_boat("GBR5", name="Tern"))
+    html = page(committee_client, "races:office_series", series.pk)
+    for url in (
+        reverse("races:race_day", args=[race.pk]),
+        reverse("races:office_race", args=[race.pk]),
+        reverse("races:office_remove_race", args=[race.pk]),
+        reverse("races:office_new_race", args=[series.pk]),
+        reverse("races:office_enter_boats", args=[series.pk]),
+        reverse("races:office_remove_entry", args=[entry.pk]),
+        reverse("races:office_series_settings", args=[series.pk]),
+        reverse("races:office_delete_series", args=[series.pk]),
+        reverse("results:series", args=[series.pk]),
+        reverse("races:series_history", args=[series.pk]),
+        reverse("races:final", args=[series.pk]),
+    ):
+        assert url in html, url
+    assert "Tern (GBR5)" in html
+
+
+def test_a_final_series_page_offers_no_changes(client, committee, season):
+    series = season["series"]
+    client.post(reverse("races:declare_final", args=[series.pk]))
+    html = page(client, "races:office_series", series.pk)
+    assert "This series' results are final." in html
+    for name, pk in (
+        ("races:office_race", season["races"][0].pk),
+        ("races:office_remove_race", season["races"][0].pk),
+        ("races:office_new_race", series.pk),
+        ("races:office_enter_boats", series.pk),
+        ("races:office_delete_series", series.pk),
+    ):
+        assert reverse(name, args=[pk]) not in html, name
+    # Its name can still change.
+    assert "Change the name" in html
+
+
+def test_an_entry_with_results_offers_no_remove(committee_client, season):
+    html = page(committee_client, "races:office_series", season["series"].pk)
+    entry = season["entries"][0]
+    assert reverse("races:office_remove_entry", args=[entry.pk]) not in html
+
+
+def test_the_public_series_page_links_the_committee_to_set_it_up(
+    client, committee_client
+):
+    series = make_series()
+    url = reverse("races:office_series", args=[series.pk])
+    assert url in page(committee_client, "results:series", series.pk)
+    client.logout()
+    assert url not in page(client, "results:series", series.pk)

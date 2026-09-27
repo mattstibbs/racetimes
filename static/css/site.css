@@ -204,6 +204,11 @@ tr.followed td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
 .finish-row { grid-template-columns: 10rem 11.5rem 11rem 1fr auto; }
 .start-row { grid-template-columns: 11rem 7rem 10rem auto; }
 fieldset.start-rows { border: 0; margin: 0; padding: 0; min-width: 0; }
+/* Slice 18: the race office. A series form's Scoring rules, and the boats to enter in a series. */
+fieldset.group { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem 0; margin: 0 0 1rem; max-width: 30rem; }
+fieldset.group legend { font-weight: 700; color: var(--navy); padding: 0 0.3rem; }
+fieldset.boat-choices { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+fieldset.boat-choices label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
 .finish-row.has-errors, .start-row.has-errors { background: var(--err-bg); border-color: var(--err); }
 .finish-row.saved, .start-row.saved { background: var(--ok-bg); border-color: var(--ok); }
 .finish-row .figures, .start-row .figures { grid-column: 1 / -1; font-size: 0.9rem; }

@@ -137,6 +137,39 @@ urlpatterns = [
         office_views.delete_boat,
         name="office_delete_boat",
     ),
+    path("office/series/new/", office_views.new_series, name="office_new_series"),
+    path("office/series/<int:pk>/", office_views.series_page, name="office_series"),
+    path(
+        "office/series/<int:pk>/settings/",
+        office_views.series_settings,
+        name="office_series_settings",
+    ),
+    path(
+        "office/series/<int:pk>/delete/",
+        office_views.delete_series,
+        name="office_delete_series",
+    ),
+    path(
+        "office/series/<int:pk>/races/new/",
+        office_views.new_race,
+        name="office_new_race",
+    ),
+    path(
+        "office/series/<int:pk>/entries/",
+        office_views.enter_boats,
+        name="office_enter_boats",
+    ),
+    path("office/races/<int:pk>/", office_views.change_race, name="office_race"),
+    path(
+        "office/races/<int:pk>/remove/",
+        office_views.remove_race,
+        name="office_remove_race",
+    ),
+    path(
+        "office/entries/<int:pk>/remove/",
+        office_views.remove_entry,
+        name="office_remove_entry",
+    ),
     path("requests/", request_views.requests_page, name="requests"),
     path(
         "requests/<str:kind>/<int:pk>/",

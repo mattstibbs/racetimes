@@ -493,4 +493,13 @@ def urls_for(data, kind=None):
         "races:office_new_boat": [],
         "races:office_boat": [e1.boat.pk],
         "races:office_delete_boat": [e1.boat.pk],
+        "races:office_new_series": [],
+        "races:office_series": [series.pk],
+        "races:office_series_settings": [series.pk],
+        "races:office_delete_series": [series.pk],
+        "races:office_new_race": [series.pk],
+        "races:office_enter_boats": [series.pk],
+        "races:office_race": [race_1.pk],
+        "races:office_remove_race": [race_1.pk],
+        "races:office_remove_entry": [e1.pk],
     }

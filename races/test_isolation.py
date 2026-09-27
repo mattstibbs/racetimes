@@ -93,6 +93,7 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
         "races:race_day": "?view=start",
         "results:series": "?detail=1",
         "races:office_boats": "?q=GBR",
+        "races:office_enter_boats": "?q=GBR",
     }
     shown = {}
     for name, args in urls_for(clubs["demo"]).items():
@@ -218,6 +219,14 @@ def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
             "races:declare_final",
             "races:office_boat",
             "races:office_delete_boat",
+            "races:office_series",
+            "races:office_series_settings",
+            "races:office_delete_series",
+            "races:office_new_race",
+            "races:office_enter_boats",
+            "races:office_race",
+            "races:office_remove_race",
+            "races:office_remove_entry",
         } <= set(checked)
     if role == "administrator":
         assert "races:decide_membership" in checked

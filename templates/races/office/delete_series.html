@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ series }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>Delete {{ series }}?</h1>
+<p>No race in it has a result yet. Its {{ race_count }} race{{ race_count|pluralize }} and
+  {{ entry_count }} entr{{ entry_count|pluralize:"y,ies" }} go with it, and so does its history of changes.
+  {% if entry_count %}The owners of the entered boats are emailed that their boat is no longer entered.{% endif %}</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Delete the series</button>
+  <a href="{% url 'races:office_series' series.pk %}">Cancel</a>
+</form>
+{% endblock %}

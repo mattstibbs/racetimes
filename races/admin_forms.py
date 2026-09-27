@@ -1,7 +1,7 @@
 """The admin's forms for setting up a series and its boats.
 
-The boat form is the race office's (``races/office_forms.py``), with a reason box
-always shown.
+The boat and series forms are the race office's (``races/office_forms.py``),
+with a reason box always shown.
 
 Each works out, while validating, what saving it would record in the history
 (``races/audit.py``), and requires a reason for a correction.
@@ -13,49 +13,15 @@ from django.forms.models import BaseInlineFormSet
 
 from . import audit, final
 from .audit import AuditedFormMixin
-from .models import Race, Series
-from .office_forms import BoatForm, reason_field
+from .models import Race
+from .office_forms import BoatForm, SeriesForm, reason_field
 
 
-class _AdminReasonForm(AuditedFormMixin, forms.ModelForm):
+class SeriesAdminForm(SeriesForm):
+    """The race office's series form (races/office_forms.py), with the admin's
+    reason box always shown."""
+
     reason = reason_field()
-
-    # The club a new boat or series belongs to. The admin sets it from the
-    # request (races/admin.py); a row's club is never a field anyone can edit.
-    club = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.club is not None and self.instance.club_id is None:
-            self.instance.club = self.club
-
-
-class SeriesAdminForm(_AdminReasonForm):
-    class Meta:
-        model = Series
-        # Every editable field. Listed, not "__all__", so a new field is shown
-        # only once someone decides it belongs here.
-        fields = [
-            "name",
-            "series_type",
-            "discards",
-            "minimum_finishers",
-            "apply_a5_3",
-            "nhc_cap_extremes",
-            "nhc_realign_to_base",
-        ]
-
-    # A final series can still be renamed: a name moves no score (slice 10).
-    UNLOCKED_FIELDS = {"name", "reason"}
-
-    def clean(self):
-        cleaned = super().clean()
-        if self.instance.pk and set(self.changed_data) - self.UNLOCKED_FIELDS:
-            try:
-                final.check_series_open(self.instance.pk)
-            except ValidationError as locked:
-                raise ValidationError(locked.messages) from None
-        return cleaned
 
 
 class BoatAdminForm(BoatForm):

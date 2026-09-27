@@ -675,7 +675,7 @@ The screenshots match the manual's own, apart from clock times and "sent at"
 times, which come from the moment the sample data is made.
 
 
-## Slice 18: the race office (club users leave the Django admin). **Status: in progress (part 1 of 3 built, 2026-09-27)**
+## Slice 18: the race office (club users leave the Django admin). **Status: in progress (parts 1 and 2 of 3 built, 2026-09-27)**
 
 Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
 the Django admin today (boats, series and their scoring rules, races,
@@ -692,15 +692,24 @@ deleting a boat or series only while nothing depends on it; the operator's
 admin loses its links to club pages. The owner then changed question 6: the
 admin is left in place at club addresses, just unlinked.
 
-**Part 1 (boats): built (2026-09-27), waiting for the owner's review.** The
-race office's front page at `/office/` (Waiting for you; Series, linking to
-the admin until part 2; Boats) and the boats pages: list and search (HTMX,
-and a plain GET without it), add, change and delete (never-entered boats
-only, after a confirmation page). `BoatForm` in `races/office_forms.py` now
-holds the boat rules and saving for both the race office and the admin.
-Tests: `races/test_office.py`, `races/test_office_forms.py`, and the new
-URLs in `races/test_roles.py` and `races/test_isolation.py`. Checked by hand
-in headless Chromium at 375 px as a committee member: searched, corrected a
-base number (refused without a reason, then saved with one and told what
-moved in each series), added a boat and deleted it. The menu, the manual
-and the screenshots change in part 3.
+**Part 1 (boats): built (2026-09-27).** The race office's front page at
+`/office/` (Waiting for you; Series; Boats) and the boats pages: list and
+search, add, change and delete (never-entered boats only). `BoatForm` in
+`races/office_forms.py` holds the boat rules and saving for both the race
+office and the admin.
+
+**Part 2 (series): built (2026-09-27), waiting for the owner's review.** A
+page per series (settings, races, boats entered, links to results, history
+and final results), new series and Change settings (`SeriesForm`, shared
+with the admin as `BoatForm` is), add / change / remove a race, Enter boats
+(checkboxes, with a search that keeps the ticked boats) and remove an entry,
+delete a series with no results, Coming up on the front page, and **Set up
+this series** on the public series page. A final series' page offers only a
+new name. Tests: `races/test_office.py`, `races/test_office_forms.py`, and
+the new URLs in `races/test_roles.py` and `races/test_isolation.py`. Checked
+by hand in headless Chromium at 375 px as a committee member: added a boat,
+created a series, added a race for today, entered two boats (ticking one,
+searching, ticking another), opened the race day page from Coming up, and
+corrected a start time (refused without a reason, then saved with one and
+told what moved). The menu, the admin links, the manual and the screenshots
+change in part 3.

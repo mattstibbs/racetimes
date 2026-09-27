@@ -10,7 +10,7 @@
   {% if series.nhc_options %}Handicaps adjusted with {{ series.nhc_options|join:" and " }}.{% endif %}
 </p>
 {% if is_committee %}
-<p class="series-links"><a href="{% url 'races:final' series.pk %}">{% if series.is_final %}Reopen results{% else %}Finalise results{% endif %}</a></p>
+<p class="series-links"><a href="{% url 'races:office_series' series.pk %}">Set up this series</a> &middot; <a href="{% url 'races:final' series.pk %}">{% if series.is_final %}Reopen results{% else %}Finalise results{% endif %}</a></p>
 {% endif %}
 {% include "results/_series_body.html" %}
 {% endblock %}

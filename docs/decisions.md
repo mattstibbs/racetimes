@@ -1681,6 +1681,42 @@ add, change, and delete.
   and until part 3 the menu still says Club setup and links to the admin.
   The race office is reached at `/office/` in the meantime.
 
+## 2026-09-27 - Slice 18 part 2: series, races and entries in the race office
+
+**Decision.** Each series has a race office page (`/office/series/<pk>/`):
+its settings, races, boats entered and links to its results, history and
+final results. New series, settings, races, entering and removing boats,
+and deleting a series all have pages of their own. The race office's front
+page gains **Coming up** (the next five races from today in open series,
+soonest first, each to its race day page, today's marked), and the public
+series page gains **Set up this series** for the committee.
+
+- **One series form.** `SeriesForm` (`races/office_forms.py`) now holds the
+  series rules for the race office and the admin, as `BoatForm` does for
+  boats; `SeriesAdminForm` only adds the always-shown reason box. The admin
+  keeps its own race and entry inline formsets, including the renumbering
+  swap.
+- **One race at a time.** `RaceForm` changes one race, and a number already
+  used is refused ("Race 3 already exists in this series.") rather than
+  swapped: renumbering is rare, and a clear refusal is simpler than a swap
+  feature. The next number is offered by default.
+- **The reason box only where it applies**, as for boats: settings once the
+  series has results, a race once it has results, entering or removing a
+  boat once the series has results (either moves the A5.2 entry count), and
+  removing a race with results.
+- **Entering boats** is a list of the club's boats not yet entered, with
+  checkboxes and one Enter button. The search works over HTMX, sending the
+  boats already ticked with it so they stay listed and ticked; without HTMX
+  it's a plain GET search, and ticks made before searching are lost, so the
+  page says to search first.
+- **A final series** can be renamed (slice 10) but nothing else: its page
+  hides Change, Remove, Add a race and Enter boats, each of those addresses
+  sends you back to it with "Reopen results to change it", and every form
+  also checks the series afresh when it's submitted.
+- **Deleting a series** is offered only while no race in it has a result
+  (answer 5); its races, entries and history go with it, and the owners of
+  entered boats are emailed that their boat is no longer entered.
+
 ---
 
 ## Open requirements

@@ -1,0 +1,8 @@
+<fieldset id="boat-choices" class="boat-choices" aria-label="Boats to enter" aria-live="polite">
+  {% for boat in boats %}
+  <label><input type="checkbox" name="boat" value="{{ boat.pk }}"{% if boat.pk|stringformat:"d" in ticked %} checked{% endif %}>
+    {{ boat }}{% if boat.owner_display %} <span class="muted">{{ boat.owner_display }}</span>{% endif %}</label>
+  {% empty %}
+  <p class="muted">No boats match &ldquo;{{ query }}&rdquo;.</p>
+  {% endfor %}
+</fieldset>
