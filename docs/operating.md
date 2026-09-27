@@ -75,6 +75,26 @@ removing them stays with the club. Nothing can be decided while the club is
 suspended. This is a deliberate exception to "clubs decide their own
 members" (`docs/decisions.md`), so use it at the club's request.
 
+## Renaming a club, or changing its contact email
+
+On the club's page, **Club settings** has the club's name and contact email.
+Change either and press **Save**:
+
+- the new name shows at once on every page of the club's site, as the sender
+  of its emails ("<Club> via Race Times"), in Find my club, and in downloads;
+- a new contact email is where replies to the club's emails go from then on;
+- each change is in the operator log, as **Renamed a club** or **Changed a
+  club's contact email**, with the old and new values;
+- the club's administrators are emailed what changed, from the club as it now
+  is. The email says to contact Race Times (`SERVICE_CONTACT_EMAIL`), not to
+  reply, if they weren't expecting it.
+
+It works while a club is suspended too. A contact email is required: a club
+made before contact emails were needed has to be given one to be renamed.
+
+The club's **address can't change**: every bookmark, emailed link, invitation
+and shared WhatsApp message points at it.
+
 ## Suspending and reactivating a club
 
 On the club's page, **Suspend** pauses its site: everyone who opens it sees

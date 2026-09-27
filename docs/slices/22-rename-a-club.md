@@ -1,7 +1,7 @@
 # Slice 22: renaming a club
 
-**Status: planned (2026-09-27). Waiting on the project owner's answers at the
-end.**
+**Status: built (2026-09-27), awaiting review. The owner said yes to all three
+recommendations (answers at the end).**
 
 ## Goal
 The operator can rename a club after it's live, for example when a club
@@ -110,3 +110,10 @@ One pull request.
    question 1's migration). It's also fixed
    today, and a club's secretary changes more often than its name. Or name
    only, as asked.
+
+**The owner's answers (2026-09-27):** yes to all three. "Renamed a club" and
+"Changed a club's contact email" are new operator log actions (migration
+0021, which changes only the list of choices); the club's administrators are
+emailed; and the contact email is in the same section. The page is the
+operator's page for a club, `/operator/clubs/<n>/`, reached from the Clubs
+list.

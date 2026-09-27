@@ -474,6 +474,7 @@ def urls_for(data, kind=None):
         "races:operator_club": [data["club"].pk],
         "races:operator_invite": [data["club"].pk],
         "races:operator_club_status": [data["club"].pk],
+        "races:operator_club_settings": [data["club"].pk],
         # Slice 11 part 5: the privacy notice and terms, the same at every address.
         "races:privacy": [],
         "races:terms": [],

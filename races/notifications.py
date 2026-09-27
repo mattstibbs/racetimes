@@ -283,6 +283,43 @@ def invitation(invitation, request, link):
     )
 
 
+def club_settings_changed(club, request, *, old_name, old_contact_email):
+    """Tell the club's administrators the operator changed its name or contact email (slice 22).
+
+    Sent from the club as it now is, so the From name is the new one and
+    replies go to the new contact email.
+    """
+    administrators = (
+        get_user_model()
+        .objects.filter(
+            is_active=True,
+            memberships__club=club,
+            memberships__status=ClubMembership.Status.APPROVED,
+            memberships__role=ClubMembership.Role.ADMINISTRATOR,
+        )
+        .exclude(email="")
+        .distinct()
+    )
+    send(
+        [
+            email(
+                user,
+                "club_settings_changed",
+                request,
+                club=club,
+                old_name=old_name,
+                old_contact_email=old_contact_email,
+                club_url=club_address(request, club),
+                # Not the club's contact email, which replies go to: the
+                # person to tell may be the one who asked for the change.
+                service_contact_email=settings.SERVICE_CONTACT_EMAIL,
+            )
+            for user in administrators
+        ],
+        request,
+    )
+
+
 # --- Members: accounts, requests, boats and entries ------------------------------
 
 

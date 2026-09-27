@@ -45,6 +45,26 @@ class ClubForm(forms.ModelForm):
         return subdomain
 
 
+class ClubSettingsForm(forms.ModelForm):
+    """A live club's name and contact email, which the operator can change (slice 22).
+
+    Not its address: every link to the club's site uses it (docs/decisions.md).
+    """
+
+    class Meta:
+        model = Club
+        fields = ["name", "contact_email"]
+        labels = {"contact_email": "Contact email"}
+        help_texts = {
+            "name": "Shown at the top of every page of the club's site, and on its emails.",
+            "contact_email": "Replies to the club's emails go here.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["contact_email"].required = True
+
+
 class InvitationForm(forms.Form):
     email = forms.EmailField(label="Their email")
 

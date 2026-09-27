@@ -63,6 +63,11 @@ urlpatterns = [
         "operator/clubs/<int:pk>/invite/", operator_views.invite, name="operator_invite"
     ),
     path(
+        "operator/clubs/<int:pk>/settings/",
+        operator_views.club_settings,
+        name="operator_club_settings",
+    ),
+    path(
         "operator/clubs/<int:pk>/status/",
         operator_views.change_status,
         name="operator_club_status",
