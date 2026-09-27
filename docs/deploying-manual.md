@@ -56,6 +56,6 @@ readthedocs.org for public repositories.
 ## What the build runs
 
 Read the Docs installs `requirements-docs.txt` (MkDocs only) and runs MkDocs
-with `mkdocs.yml` on Python 3.11. The same build runs in CI on every pull
+with `mkdocs.yml` on Python 3.13. The same build runs in CI on every pull
 request (`.github/workflows/ci.yml`, "user manual builds"), in strict mode, so
 a broken manual is caught before it reaches `main`.

@@ -1775,6 +1775,22 @@ position changes nothing else.
 
 ---
 
+## 2026-09-27 - Slice 20: Python 3.13
+
+**Decision.** Race Times runs on Python 3.13 (both sites, `render.yaml`),
+instead of 3.11. CI runs the suite on 3.13 and 3.14. The scoring engine keeps
+its promise of Python 3.11 or later: its tests run on 3.11 in CI, the "imports
+with nothing installed" job stays on 3.11, and Ruff targets 3.11 for `nhc/` and
+`tests/` and 3.13 for everything else. No dependency changed.
+
+**Why.** 3.11 is on security fixes only, and its support ends in October 2027;
+3.13's runs to October 2029. Every dependency lists 3.13. Not 3.14 yet, because
+gunicorn, the production web server, doesn't list it; testing on it in CI
+shows when the next step is safe. Before the change, the whole suite passed on
+3.13 unchanged, and afterwards Ruff had nothing to modernise.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

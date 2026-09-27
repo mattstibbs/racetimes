@@ -8,7 +8,7 @@ I'm a capable amateur in Python; explain non-obvious decisions briefly in commit
 
 ## Stack and versions
 
-Python 3.11, Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary). Ruff is the linter and formatter (configured in `pyproject.toml`: 88-character lines, migrations excluded). pytest (with `pytest-django`) is the test framework for the whole project - both the Django app and the scoring engine. Write tests as plain functions with bare `assert`s, not `unittest.TestCase` subclasses.
+Python 3.13 (slice 20; the scoring engine in `nhc/` stays compatible with 3.11 and later, and Ruff targets 3.11 for `nhc/` and `tests/`), Django 5.2, SQLite for development and PostgreSQL (via `psycopg`) for production. Keep code and migrations compatible with both. HTMX 2.x for frontend interactivity (server-rendered Django templates and partials, not a JS SPA), with `django-htmx` middleware so views can check `request.htmx`. Avoid javascript (ask first if necessary). Ruff is the linter and formatter (configured in `pyproject.toml`: 88-character lines, migrations excluded). pytest (with `pytest-django`) is the test framework for the whole project - both the Django app and the scoring engine. Write tests as plain functions with bare `assert`s, not `unittest.TestCase` subclasses.
 
 ## Definition of done
 New behaviour has tests. `ruff check .` and `ruff format --check .` pass. All tests pass. Migrations created. Manual checks completed. User-facing changes update the user manual (`manual/`), including its screenshots.
@@ -34,7 +34,7 @@ Ask before changing the data model. Don't install new dependencies without askin
 Setup (uses a local `.venv`, which is gitignored):
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ```bash
@@ -77,7 +77,7 @@ is listed in `.git-blame-ignore-revs`; use `git blame --ignore-revs-file
 .git-blame-ignore-revs` (GitHub skips it automatically).
 
 CI runs on every pull request (`.github/workflows/ci.yml`): the test suite on
-Python 3.11 and 3.12, Ruff's lint and format checks, `manage.py check`, `manage.py check --deploy` with
+Python 3.13 and 3.14, the scoring engine's tests (`tests/`) on 3.11, Ruff's lint and format checks, `manage.py check`, `manage.py check --deploy` with
 production settings, a check for missing migrations, a job that imports `nhc` with nothing installed, to prove the package really is
 standard-library only, and a strict build of the user manual.
 

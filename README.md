@@ -103,10 +103,10 @@ interface, the rules implemented, and what is deliberately not.
 
 ## Getting started
 
-Requires Python 3.11 or later.
+Requires Python 3.13. (The scoring engine on its own needs only 3.11 or later.)
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 Run the tests (about 1,300 of them, engine and app):
@@ -171,12 +171,12 @@ fixtures disagreed with them, the fixtures were the things that changed.
 
 ## Stack
 
-Python 3.11, Django 5.2, HTMX 2.x. SQLite for development, PostgreSQL in
+Python 3.13, Django 5.2, HTMX 2.x. SQLite for development, PostgreSQL in
 production via `DATABASE_URL`. Settings come from environment variables; see
 [`.env.example`](.env.example).
 
 CI runs on every pull request:
-- the suite on Python 3.11 and 3.12;
+- the suite on Python 3.13 and 3.14, and the scoring engine's tests on 3.11;
 - `manage.py check` and a check for missing migrations;
 - `manage.py check --deploy` with production settings;
 - an import of `nhc` on a machine with nothing installed, to keep it honest

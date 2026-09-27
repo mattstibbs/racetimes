@@ -17,9 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # nhc/README.md claims Python 3.11 or later, so more than one version
-        # is tested to keep that claim honest. 3.11 is what the project pins.
-        python-version: ["3.11", "3.12"]
+        # 3.13 is what the sites run (render.yaml). 3.14 is tested too, so we
+        # know when the next step is safe (slice 20).
+        python-version: ["3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
           cache: pip
           cache-dependency-path: requirements-dev.txt
 
@@ -83,7 +83,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
           cache: pip
           cache-dependency-path: requirements.txt
 
@@ -95,6 +95,30 @@ jobs:
           DJANGO_DEBUG: "0"
           DJANGO_SECRET_KEY: ci-only-not-a-real-secret-0123456789-abcdefghijklmnopqrstuvwxyz
         run: python manage.py check --deploy --fail-level WARNING
+
+  engine-on-3-11:
+    # The site runs on 3.13, but nhc/README.md promises the scoring engine
+    # works on Python 3.11 or later, so it can be copied into other projects.
+    # Its tests (tests/) run here on 3.11 to keep that promise (slice 20).
+    name: scoring engine tests (python 3.11)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Run the engine's tests
+        run: python -m pytest tests
 
   vendorable:
     # The nhc package promises to be standard-library only, so that anyone can
@@ -109,6 +133,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
+          # The oldest version nhc/README.md promises.
           python-version: "3.11"
 
       - name: Import nhc with no dependencies present
@@ -149,7 +174,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
           cache: pip
           cache-dependency-path: requirements-docs.txt
 
