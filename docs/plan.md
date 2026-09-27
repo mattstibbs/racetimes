@@ -689,5 +689,5 @@ The owner's answers (2026-09-27): "Race office"; built in three parts, each
 reviewed before the next; the operator keeps the admin's boat, series,
 request and account pages; no history for changes that move no score;
 deleting a boat or series only while nothing depends on it; "Not found" for
-the admin at club addresses. One question open (the operator's admin links
-to club pages). Not to be built until the owner approves the plan.
+the admin at club addresses; the operator's admin loses its links to club
+pages. Not to be built until the owner approves the plan.

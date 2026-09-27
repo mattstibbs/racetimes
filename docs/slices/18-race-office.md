@@ -1,8 +1,7 @@
 # Slice 18: the race office (club users leave the Django admin)
 
-**Status: planned (2026-09-27). The owner has answered questions 1-6 (see
-the end); question 7 is open. Not to be built until the owner approves the
-plan.**
+**Status: planned (2026-09-27). The owner has answered every question (see
+the end). Not to be built until the owner approves the plan.**
 
 ## Goal
 Nobody at a club uses the Django admin any more. Everything the race
@@ -203,7 +202,12 @@ has every request.)
   formsets, including the race-renumbering swap.
 - `templates/admin/index.html` (club notices on the admin's front page) goes:
   the operator has no club and never saw them.
-- Question 7 covers the admin's links to club pages.
+- **The operator's admin loses its links to club pages** (question 7): the
+  series page's **Race day page** column and its **Series history** and
+  **Finalise / Reopen results** links (`RaceInline.finishes_link`,
+  `SeriesAdmin.history_link`), and the request lists' "Change requests
+  page" message. Those pages exist only at a club's address, where the
+  operator has no role, so the links led nowhere.
 - The race day page's "No boats are entered in this series yet. Enter them
   in the admin." links to the series' **Enter boats** page instead.
 
@@ -231,7 +235,8 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
   `/admin/races/series/` answer 404 for the public, a member, the committee,
   an administrator and a superuser alike; the operator still reaches every
   admin page on the service's address, and editing a boat or series there
-  still records its history.
+  still records its history; the operator's admin has no links to club
+  pages.
 - Tests that went through the admin at a club address to set things up
   switch to the new pages or the test builders; tests of the operator's
   admin move to the service's address. `races/test_admin.py` is rewritten
@@ -282,7 +287,7 @@ permissions) and `races/test_office_forms.py` (validation, audit, emails):
 
 ## Out of scope
 - The operator's use of the Django admin (the service's own address), which
-  stays as it is apart from question 7. Replacing it is a later slice if
+  loses only its links to club pages (question 7). Replacing it is a later slice if
   wanted.
 - A history of changes that move no score (question 4).
 - Importing boats or races in bulk (e.g. from a spreadsheet), or copying a
@@ -353,3 +358,4 @@ Each part is reviewed by the owner before the next starts (question 2).
    series; delete a series only if no race in it has a result; each with a
    confirmation page.
 6. **Not found:** every admin address at a club answers 404.
+7. **Remove** the operator's admin links to club pages.
