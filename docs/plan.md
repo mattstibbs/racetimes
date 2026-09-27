@@ -790,3 +790,12 @@ Automatic messages to followers through Meta's WhatsApp Business Platform are
 out of scope, for a later slice if clubs want them. The owner's answers: every
 place plus a link; committee only; no Copy message; WhatsApp's logo and words
 on the button.
+
+## Slice 22: renaming a club. **Status: planned (2026-09-27)**
+
+Spec: `docs/slices/22-rename-a-club.md`. A "Club settings" section on the
+operator's page for a club, to rename it after it's live (and, if the owner
+agrees, change its contact email). The new name shows at once everywhere,
+each change is in the operator log, and the club's address stays fixed.
+Waiting on the owner's answers to the spec's three questions; question 1 is a
+small data model change (a new operator log action).
