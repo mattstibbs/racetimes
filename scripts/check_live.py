@@ -6,7 +6,8 @@
 It proves, rather than assumes, what production needs: HTTPS with a valid
 certificate on the service's address, on a club's, and on a subdomain made up
 on the spot (so the wildcard certificate really covers every club); plain
-HTTP and www redirected; the security headers; and /health/ answering "ok".
+HTTP and www redirected; the security headers; search engines kept out (a
+noindex header and robots.txt); and /health/ answering "ok".
 Each check prints PASS or FAIL, and it exits with 1 if any failed.
 
 Standard library only, so it runs anywhere Python does, with nothing
@@ -75,6 +76,15 @@ def secure_headers(status, headers, body):
     )
 
 
+def kept_out_of_search(status, headers, body):
+    return status == 200 and "noindex" in headers.get("X-Robots-Tag", "")
+
+
+def robots_txt_disallows_all(status, headers, body):
+    lines = [line.strip() for line in body.splitlines()]
+    return status == 200 and "User-agent: *" in lines and "Disallow: /" in lines
+
+
 def days_left(host):
     """Days until the certificate for ``host`` expires (verified as a browser would)."""
     context = ssl.create_default_context()
@@ -118,6 +128,16 @@ def checks(domain, club):
             "A club's page sends HSTS, frame and referrer headers",
             f"https://{club}.{domain}/",
             secure_headers,
+        ),
+        (
+            "A club's page tells search engines not to index it",
+            f"https://{club}.{domain}/",
+            kept_out_of_search,
+        ),
+        (
+            "robots.txt asks every crawler to stay away",
+            f"https://{domain}/robots.txt",
+            robots_txt_disallows_all,
         ),
     ]
 
