@@ -1,3 +1,9 @@
+"""pytest fixtures for the races app's tests.
+
+The autouse ones apply to every test here; the rest are shared by several test
+modules, which ask for them by name. Plain helpers are in ``races/testing.py``.
+"""
+
 from contextlib import nullcontext
 from datetime import date
 

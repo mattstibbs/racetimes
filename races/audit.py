@@ -193,6 +193,8 @@ class AuditedFormMixin:
     """
 
     scoring_changes = ()
+    # Where a missing reason's error is shown; None puts it at the top of the form.
+    reason_error_field = "reason"
 
     def _post_clean(self):
         super()._post_clean()
@@ -201,8 +203,6 @@ class AuditedFormMixin:
         self.scoring_changes = changes_to_save(self.instance)
         if needs_reason(self.scoring_changes) and not self.correction_reason():
             self.add_error(self.reason_error_field, REASON_REQUIRED)
-
-    reason_error_field = "reason"
 
     def correction_reason(self):
         return self.cleaned_data.get("reason", "")

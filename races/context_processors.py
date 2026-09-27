@@ -1,3 +1,5 @@
+"""Values every template gets: the person's roles at this club, and what's waiting for them."""
+
 from django.urls import reverse
 
 from .models import BoatRequest, ClubMembership, EntryRequest, Request

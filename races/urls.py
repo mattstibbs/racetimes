@@ -1,3 +1,5 @@
+"""The races app's addresses, included at the site root (``config/urls.py``)."""
+
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 

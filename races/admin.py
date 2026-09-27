@@ -1,3 +1,11 @@
+"""The Django admin: the club's boats and series, and read-only views of members'
+requests (slice 1 onwards).
+
+Every admin page shows only the current club's rows (``ClubScopedAdmin``), and
+saving a score-affecting field records it in the history (``races/audit.py``),
+with the reason the form asks for.
+"""
+
 import json
 
 from django.contrib import admin, messages

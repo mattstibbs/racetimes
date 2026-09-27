@@ -7,7 +7,7 @@ from .models import Finish
 
 
 class FinishForm(AuditedFormMixin, forms.ModelForm):
-    """One boat's row on the finish-entry page."""
+    """One boat's time or code, on the race day page's Finishing view."""
 
     reason = forms.CharField(
         required=False,

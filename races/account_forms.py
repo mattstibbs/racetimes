@@ -104,6 +104,10 @@ class InvitedSignUpForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     """Everyone's login, by email. An account whose email isn't confirmed yet is told so."""
 
+    # Set when the password is right but the email isn't confirmed, so the
+    # login page can offer to send the confirmation link again.
+    unconfirmed = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Email"
@@ -140,8 +144,6 @@ class LoginForm(AuthenticationForm):
                 self.unconfirmed = True
                 raise ValidationError(UNCONFIRMED, code="inactive") from None
             raise
-
-    unconfirmed = False
 
 
 class DeleteAccountForm(forms.Form):

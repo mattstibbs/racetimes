@@ -1,5 +1,9 @@
-# Fixtures from races/conftest.py, including the autouse ones, since that
-# conftest only reaches tests under races/.
+"""pytest fixtures for the results app's tests.
+
+It re-exports races/conftest.py's fixtures, including the autouse ones, since
+that conftest only reaches tests under races/.
+"""
+
 import pytest
 
 from races.conftest import (  # noqa: F401

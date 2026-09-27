@@ -1,3 +1,5 @@
+"""The public results pages: the home page, a series and a boat (slice 5)."""
+
 from django.urls import path
 
 from . import views
