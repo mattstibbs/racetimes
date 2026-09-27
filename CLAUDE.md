@@ -116,3 +116,6 @@ a pointer instead.
 - Do not start work beyond the current slice's scope.
 - Record decisions in docs/decisions.md.
 - When a slice's acceptance criteria are met, update its status in plan.md.
+- Plan and status updates (`docs/plan.md`, a slice spec's status line) can be
+  committed straight to `main`, without a pull request. Everything else goes
+  through a pull request.
