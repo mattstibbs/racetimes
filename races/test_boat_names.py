@@ -5,13 +5,6 @@ import re
 import pytest
 from django.urls import reverse
 
-from races.test_race_day import (  # noqa: F401 (fixtures)
-    clock,
-    committee,
-    local,
-    racing,
-    tap,
-)
 from races.testing import enter, make_boat, make_series
 
 pytestmark = pytest.mark.django_db
@@ -23,16 +16,6 @@ def test_a_boat_is_its_name_then_its_sail_number():
 
 def test_a_boat_with_no_name_is_its_sail_number():
     assert str(make_boat("GBR 1234", name="")) == "GBR 1234"
-
-
-def test_the_race_day_page_names_boats_sail_number_first(
-    client, committee, racing, clock
-):  # noqa: F811
-    clock(when=local(19, 5, 31))
-    html = tap(client, racing["race"], racing["kittiwake"]).content.decode()
-    assert "GBR42 Kittiwake finished at 19:05:31." in html
-    assert "<strong>GBR42</strong> Kittiwake" in html
-    assert "Kittiwake (GBR42)" not in html
 
 
 def test_follow_a_boat_lists_boats_by_name(client):

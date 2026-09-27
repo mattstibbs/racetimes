@@ -16,35 +16,21 @@ from races import audit
 from races.models import Boat, Finish, Race, ScoringChange, Series
 from races.scoring import score_series
 from races.testing import (
-    default_club,
+    boat_form,
     enter,
-    join,
     make_boat,
     make_race,
     make_series,
+    post_boat,
+    post_series,
     record,
+    series_form,
     start,
 )
 
 pytestmark = pytest.mark.django_db
 
 REASON_REQUIRED = "give a reason for the correction"
-
-
-@pytest.fixture
-def staff_user(django_user_model):
-    # The superuser is Demo Club's administrator, as the slice 11 migration makes it.
-    user = django_user_model.objects.create_user(
-        "officer", is_staff=True, is_superuser=True
-    )
-    join(user, default_club(), role="ADMINISTRATOR")
-    return user
-
-
-@pytest.fixture
-def staff_client(client, staff_user):
-    client.force_login(staff_user)
-    return client
 
 
 @pytest.fixture
@@ -91,76 +77,6 @@ def save_finish(client, race, entry, finish_time="", status="FINISHED", reason="
             f"{prefix}-reason": reason,
         },
         HTTP_HX_REQUEST="true",
-    )
-
-
-def series_form(series, **changes):
-    """The series admin form as it stands, with ``changes`` applied on top."""
-    data = {
-        "name": series.name,
-        "series_type": series.series_type,
-        "discards": series.discards,
-        "minimum_finishers": series.minimum_finishers,
-        "reason": "",
-    }
-    for flag in ("apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base"):
-        if getattr(series, flag):
-            data[flag] = "on"
-    entries = list(series.entries.all())
-    races = list(series.races.all())
-    for prefix, rows in [("entries", entries), ("races", races)]:
-        data[f"{prefix}-TOTAL_FORMS"] = len(rows)
-        data[f"{prefix}-INITIAL_FORMS"] = len(rows)
-        data[f"{prefix}-MIN_NUM_FORMS"] = 0
-        data[f"{prefix}-MAX_NUM_FORMS"] = 1000
-    for i, entry in enumerate(entries):
-        data.update(
-            {
-                f"entries-{i}-id": entry.pk,
-                f"entries-{i}-series": series.pk,
-                f"entries-{i}-boat": entry.boat_id,
-            }
-        )
-    for i, race in enumerate(races):
-        data.update(
-            {
-                f"races-{i}-id": race.pk,
-                f"races-{i}-series": series.pk,
-                f"races-{i}-number": race.number,
-                f"races-{i}-date": race.date.isoformat(),
-                f"races-{i}-start_time": race.start_time.strftime("%H:%M:%S"),
-            }
-        )
-    data.update(changes)
-    return data
-
-
-def post_series(client, series, **changes):
-    return client.post(
-        reverse("admin:races_series_change", args=[series.pk]),
-        series_form(series, **changes),
-    )
-
-
-def boat_form(boat, **changes):
-    data = {
-        "sail_number": boat.sail_number,
-        "name": boat.name,
-        "make": boat.make,
-        "model": boat.model,
-        "owner_name": boat.owner_name,
-        "length_overall_m": "",
-        "waterline_length_m": "",
-        "base_number": str(boat.base_number),
-        "reason": "",
-    }
-    data.update(changes)
-    return data
-
-
-def post_boat(client, boat, **changes):
-    return client.post(
-        reverse("admin:races_boat_change", args=[boat.pk]), boat_form(boat, **changes)
     )
 
 

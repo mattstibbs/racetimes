@@ -13,29 +13,17 @@ from django.urls import reverse
 
 from races.forms import UNCONFIRMED
 from races.models import Boat, BoatRequest, EntryRequest, SeriesEntry
-from races.testing import default_club, enter, make_boat, make_member, make_series
+from races.testing import (
+    default_club,
+    enter,
+    log_in,
+    make_boat,
+    make_member,
+    make_series,
+    sign_up,
+)
 
 pytestmark = pytest.mark.django_db
-
-PASSWORD = "correct-horse-battery-staple"
-
-
-def sign_up(client, email="new@example.com", **fields):
-    data = {
-        "first_name": "Sam",
-        "last_name": "Taylor",
-        "email": email,
-        "password1": PASSWORD,
-        "password2": PASSWORD,
-        **fields,
-    }
-    return client.post(reverse("races:signup"), data)
-
-
-def log_in(client, email, password=PASSWORD):
-    return client.post(
-        reverse("races:login"), {"username": email, "password": password}
-    )
 
 
 @pytest.fixture
@@ -287,11 +275,8 @@ def test_entering_a_series_is_a_request(client, member):
 
 def test_only_series_not_yet_entered_or_asked_for_are_offered(client, member):
     boat = make_boat(owner=member)
-    entered, asked, open_ = (
-        make_series("Entered"),
-        make_series("Asked"),
-        make_series("Open"),
-    )
+    entered, asked = make_series("Entered"), make_series("Asked")
+    make_series("Open")
     enter(entered, boat)
     EntryRequest.objects.create(series=asked, boat=boat, requested_by=member)
     page = client.get(reverse("races:enter_series", args=[boat.pk])).content.decode()

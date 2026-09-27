@@ -5,26 +5,16 @@ translation: clock times becoming elapsed seconds, settings reaching the
 engine, and results finding their way back to the right boat and race.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
 from races.models import Finish, Series
 from races.scoring import score_series
-from races.testing import enter, make_boat, make_race, make_series, record
-from tests.scenario_loader import SCENARIOS, TOLERANCE
+from races.testing import enter, finish_clock, make_boat, make_race, make_series, record
+from tests.scenario_loader import SCEN_005, TOLERANCE
 
 pytestmark = pytest.mark.django_db
-
-SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
-
-
-def clock(start, elapsed_seconds):
-    """The clock time a boat finishes, elapsed_seconds after a start like "18:00:00"."""
-    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(
-        seconds=elapsed_seconds
-    )
-    return moment.strftime("%H:%M:%S")
 
 
 def test_rya_worked_example_reproduces_through_the_database():
@@ -43,7 +33,7 @@ def test_rya_worked_example_reproduces_through_the_database():
         )
         entries[boat["boat_id"]] = entry
         if boat["status"] == "FINISHED":
-            record(race, entry, clock("18:30:00", boat["elapsed_seconds"]))
+            record(race, entry, finish_clock("18:30:00", boat["elapsed_seconds"]))
         else:
             record(race, entry, status=boat["status"])
 

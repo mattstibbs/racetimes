@@ -41,13 +41,6 @@ from races.testing import (
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
-
-
 def membership_of(user, club=None):
     return ClubMembership.objects.get(user=user, club=club or default_club())
 
@@ -68,7 +61,7 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
     )
     make = lambda name, **fields: User.objects.create(
         username=name, email=name, **fields
-    )  # noqa: E731
+    )
     make("root@example.com", is_superuser=True, is_staff=True, is_active=True)
     officer = make("officer@example.com", is_staff=True, is_active=True)
     # get_or_create: a transactional test before this one may have flushed the

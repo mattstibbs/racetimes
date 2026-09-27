@@ -18,8 +18,6 @@ from django.urls import reverse
 from races import start_sheet
 from races.models import Finish, Race, RaceEntry, ScoringChange
 from races.scoring import score_series
-from races.test_audit import series_form
-from races.test_notifications import committee, run_on_commit  # noqa: F401 (fixtures)
 from races.testing import (
     enter,
     make_administrator,
@@ -28,6 +26,7 @@ from races.testing import (
     make_race,
     make_series,
     record,
+    series_form,
     start,
 )
 

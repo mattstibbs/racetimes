@@ -6,24 +6,12 @@ import pytest
 from django.urls import reverse
 
 from races import throttle
-from races.test_members import PASSWORD, log_in
-from races.testing import make_member
+from races.testing import PASSWORD, Clock, log_in, make_member
 
 pytestmark = pytest.mark.django_db
 
 LOCKED = "Too many failed logins. Try again in 15 minutes."
 WRONG = "not-the-password"
-
-
-class Clock:
-    def __init__(self):
-        self.time = 1_000_000.0
-
-    def __call__(self):
-        return self.time
-
-    def minutes_pass(self, minutes):
-        self.time += minutes * 60
 
 
 @pytest.fixture(autouse=True)

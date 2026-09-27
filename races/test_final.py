@@ -4,8 +4,6 @@ Organised by acceptance criterion. The CSV download is tested in
 results/test_export.py.
 """
 
-from datetime import date
-
 import pytest
 from django.core import mail
 from django.urls import reverse
@@ -21,86 +19,24 @@ from races.models import (
     SeriesEntry,
 )
 from races.scoring import engine_outcome, score_series
-from races.test_approvals import decide
-from races.test_audit import post_boat, post_series, series_form
 from races.testing import (
+    decide,
+    declare,
     enter,
     make_boat,
-    make_committee,
     make_member,
     make_race,
     make_series,
+    post_boat,
+    post_series,
+    publish,
     record,
+    series_form,
     start,
 )
 from tests.scenario_loader import SCENARIOS
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    # Emails wait for the transaction to commit, which a test never does.
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
-
-
-@pytest.fixture
-def committee(client):
-    user = make_committee()
-    client.force_login(user)
-    return user
-
-
-def publish(*races):
-    """Mark races published and their results sent, as the publishing box does."""
-    now = timezone.now()
-    for race in races:
-        race.published_at = race.results_sent_at = now
-        race.save(update_fields=["published_at", "results_sent_at"])
-
-
-@pytest.fixture
-def season():
-    """Three owned boats; races 1 and 2 sailed and published; race 3 never sailed."""
-    series = make_series("Autumn 2026", discards=0)
-    owners = [
-        make_member(f"{name}@example.com", first_name=name.capitalize())
-        for name in ("pat", "sam", "jo")
-    ]
-    entries = [
-        enter(series, make_boat(sail, name=name, base_number=base, owner=owner))
-        for (sail, name, base), owner in zip(
-            [
-                ("GBR42", "Kittiwake", "0.805"),
-                ("GBR77", "Puffin", "0.842"),
-                ("GBR7", "Tern", "0.900"),
-            ],
-            owners,
-        )
-    ]
-    race_1, race_2 = make_race(series, 1), make_race(series, 2, on=date(2026, 9, 30))
-    race_3 = make_race(series, 3, on=date(2026, 10, 7))
-    for race, times in [
-        (race_1, ["19:05:31", "19:07:02", "19:02:10"]),
-        (race_2, ["19:01:00", "19:06:30", None]),
-    ]:
-        for entry, time in zip(entries, times):
-            record(race, entry, time) if time else record(
-                race, entry, status=Finish.Status.DNF
-            )
-    publish(race_1, race_2)
-    return {
-        "series": series,
-        "entries": entries,
-        "races": [race_1, race_2, race_3],
-        "owners": owners,
-    }
-
-
-def declare(client, series):
-    return client.post(reverse("races:declare_final", args=[series.pk]), follow=True)
 
 
 def refreshed(series):

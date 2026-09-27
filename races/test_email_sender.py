@@ -17,7 +17,6 @@ from django.urls import reverse
 
 from races import notifications
 from races.models import ClubMembership
-from races.test_members import sign_up
 from races.testing import (
     default_club,
     enter,
@@ -29,6 +28,7 @@ from races.testing import (
     make_race,
     make_series,
     record,
+    sign_up,
 )
 
 pytestmark = pytest.mark.django_db

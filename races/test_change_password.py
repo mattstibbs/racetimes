@@ -8,22 +8,14 @@ from django.core import mail
 from django.test import Client
 from django.urls import reverse
 
-from races import notifications, throttle
-from races.test_members import PASSWORD, log_in
-from races.test_throttle import Clock
-from races.testing import make_member, make_operator
+from races import throttle
+from races.testing import PASSWORD, Clock, log_in, make_member, make_operator
 
-pytestmark = pytest.mark.django_db
+# Every test here sends email, so emails go at once (see run_on_commit in conftest).
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("run_on_commit")]
 
 NEW = "a-brand-new-passphrase"
 URL = "/account/password/"
-
-
-@pytest.fixture(autouse=True)
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
 
 
 @pytest.fixture(autouse=True)

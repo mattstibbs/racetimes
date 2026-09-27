@@ -8,19 +8,18 @@ from django.urls import reverse
 
 from races.scoring import score_series
 from races.templatetags.racing import hms, points, tcf
-from races.test_audit import post_boat
-from races.test_final import declare, publish, season  # noqa: F401 (fixtures)
 from races.testing import (
+    declare,
     enter,
     make_boat,
     make_committee,
     make_member,
     make_race,
     make_series,
+    post_boat,
     record,
     start,
 )
-from results.test_scen_005 import scen_005  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.django_db
 
@@ -103,7 +102,7 @@ def test_each_race_is_listed_with_its_rows(client, season):
     assert ["Race 3", "7 October 2026", "No results recorded yet."] in rows
 
 
-def test_scen_005_reads_back_from_the_file(client, scen_005):  # noqa: F811
+def test_scen_005_reads_back_from_the_file(client, scen_005):
     series, boats = scen_005
     rows = rows_of(download(client, series))
     header, *lines = block(rows, "Race 1")

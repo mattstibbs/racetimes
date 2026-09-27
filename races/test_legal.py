@@ -3,14 +3,7 @@
 import pytest
 from django.urls import reverse
 
-from races.test_isolation import (  # noqa: F401 (clubs is a fixture)
-    DEMO,
-    clubs,
-    log_in,
-    urls_for,
-)
-from races.test_members import PASSWORD
-from races.testing import make_member
+from races.testing import DEMO, PASSWORD, log_in_as, make_member, urls_for
 
 pytestmark = pytest.mark.django_db
 
@@ -45,7 +38,7 @@ def test_the_notice_names_the_club_as_controller_and_lists_the_cookies(client):
     "role", ["public", "member", "committee", "administrator", "operator"]
 )
 def test_every_page_links_to_both_in_its_footer(client, clubs, role):
-    log_in(client, role, clubs)
+    log_in_as(client, role, clubs)
     footer = f'<a href="{reverse("races:privacy")}">Privacy notice</a> <a href="{reverse("races:terms")}">Terms</a>'
     missing = []
     for name, args in urls_for(clubs["demo"]).items():
@@ -76,7 +69,7 @@ def cookies_set(response):
     "role", ["public", "member", "committee", "administrator", "operator"]
 )
 def test_no_page_sets_a_cookie_but_the_essential_two(client, clubs, role):
-    log_in(client, role, clubs)
+    log_in_as(client, role, clubs)
     seen = set()
     for name, args in urls_for(clubs["demo"]).items():
         seen |= cookies_set(client.get(reverse(name, args=args), HTTP_HOST=DEMO))

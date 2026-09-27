@@ -8,7 +8,6 @@ from races.models import Finish, Series
 from races.testing import (
     enter,
     make_boat,
-    make_committee,
     make_race,
     make_series,
     record,
@@ -28,13 +27,6 @@ def race_night():
     record(race, a, "19:00:00")
     start(race, b)
     return series, race, a, b
-
-
-@pytest.fixture
-def staff_client(client):
-    """Logged in as the race committee: staff, in the Race committee group."""
-    client.force_login(make_committee())
-    return client
 
 
 def save_url(race, entry):
@@ -77,9 +69,9 @@ def test_non_staff_users_cannot_enter_finishes(client, django_user_model, race_n
 # --- Finish entry: the page ------------------------------------------------
 
 
-def test_finish_entry_lists_every_boat_on_the_start_sheet(staff_client, race_night):
+def test_finish_entry_lists_every_boat_on_the_start_sheet(committee_client, race_night):
     _, race, a, b = race_night
-    page = staff_client.get(
+    page = committee_client.get(
         reverse("races:race_day", args=[race.pk]) + "?view=finish"
     ).content.decode()
     assert save_url(race, a) in page
@@ -92,9 +84,9 @@ def test_finish_entry_lists_every_boat_on_the_start_sheet(staff_client, race_nig
 # --- Finish entry: saving a row --------------------------------------------
 
 
-def test_saving_a_time_over_htmx_returns_the_row(staff_client, race_night):
+def test_saving_a_time_over_htmx_returns_the_row(committee_client, race_night):
     _, race, _, b = race_night
-    response = staff_client.post(
+    response = committee_client.post(
         save_url(race, b), row_data(b, "19:10:00"), HTTP_HX_REQUEST="true"
     )
     assert response.status_code == 200
@@ -107,18 +99,18 @@ def test_saving_a_time_over_htmx_returns_the_row(staff_client, race_night):
     assert Finish.objects.get(entry=b).finish_time.isoformat() == "19:10:00"
 
 
-def test_saving_a_code(staff_client, race_night):
+def test_saving_a_code(committee_client, race_night):
     _, race, _, b = race_night
-    staff_client.post(
+    committee_client.post(
         save_url(race, b), row_data(b, status="DNF"), HTTP_HX_REQUEST="true"
     )
     finish = Finish.objects.get(entry=b)
     assert finish.status == "DNF" and finish.finish_time is None
 
 
-def test_correcting_a_saved_finish_updates_it(staff_client, race_night):
+def test_correcting_a_saved_finish_updates_it(committee_client, race_night):
     _, race, a, _ = race_night
-    staff_client.post(
+    committee_client.post(
         save_url(race, a),
         row_data(a, "19:05:30", reason="Misread"),
         HTTP_HX_REQUEST="true",
@@ -137,10 +129,10 @@ def test_correcting_a_saved_finish_updates_it(staff_client, race_night):
     ],
 )
 def test_an_invalid_row_shows_its_error_and_saves_nothing(
-    staff_client, race_night, finish_time, status, message
+    committee_client, race_night, finish_time, status, message
 ):
     _, race, _, b = race_night
-    response = staff_client.post(
+    response = committee_client.post(
         save_url(race, b), row_data(b, finish_time, status), HTTP_HX_REQUEST="true"
     )
     assert response.status_code == 200  # HTMX only swaps in 2xx responses
@@ -148,43 +140,43 @@ def test_an_invalid_row_shows_its_error_and_saves_nothing(
     assert not Finish.objects.filter(entry=b).exists()
 
 
-def test_an_invalid_row_leaves_other_rows_alone(staff_client, race_night):
+def test_an_invalid_row_leaves_other_rows_alone(committee_client, race_night):
     _, race, a, b = race_night
-    staff_client.post(
+    committee_client.post(
         save_url(race, b), row_data(b, "17:00:00"), HTTP_HX_REQUEST="true"
     )
     assert Finish.objects.get(entry=a).finish_time.isoformat() == "19:00:00"
 
 
-def test_without_htmx_a_save_redirects_back_to_the_page(staff_client, race_night):
+def test_without_htmx_a_save_redirects_back_to_the_page(committee_client, race_night):
     _, race, _, b = race_night
-    response = staff_client.post(save_url(race, b), row_data(b, "19:10:00"))
+    response = committee_client.post(save_url(race, b), row_data(b, "19:10:00"))
     assert response.status_code == 302
     assert response["Location"] == (
         reverse("races:race_day", args=[race.pk]) + "?view=finish"
     )
 
 
-def test_without_htmx_an_error_redisplays_the_page(staff_client, race_night):
+def test_without_htmx_an_error_redisplays_the_page(committee_client, race_night):
     _, race, a, b = race_night
-    response = staff_client.post(save_url(race, b), row_data(b, "17:00:00"))
+    response = committee_client.post(save_url(race, b), row_data(b, "17:00:00"))
     html = response.content.decode()
     assert "The finish must be after the start" in html
     assert save_url(race, a) in html  # the rest of the page is still there
 
 
-def test_a_boat_outside_the_series_is_404(staff_client, race_night):
+def test_a_boat_outside_the_series_is_404(committee_client, race_night):
     _, race, *_ = race_night
     outsider = enter(make_series("Other"), make_boat("GBR999"))
-    response = staff_client.post(
+    response = committee_client.post(
         save_url(race, outsider), row_data(outsider, "19:10:00")
     )
     assert response.status_code == 404
 
 
-def test_saving_needs_post(staff_client, race_night):
+def test_saving_needs_post(committee_client, race_night):
     _, race, a, _ = race_night
-    assert staff_client.get(save_url(race, a)).status_code == 405
+    assert committee_client.get(save_url(race, a)).status_code == 405
 
 
 # --- Races that are not scored: the pages explain instead of crashing ------
@@ -199,13 +191,16 @@ def regatta_night(race_night):
     return series, race, a, b
 
 
-def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta_night):
+def test_a_scheduled_regatta_race_does_not_break_the_pages(
+    committee_client, regatta_night
+):
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
     assert (
-        staff_client.get(reverse("results:series", args=[series.pk])).status_code == 200
+        committee_client.get(reverse("results:series", args=[series.pk])).status_code
+        == 200
     )
-    page = staff_client.get(
+    page = committee_client.get(
         reverse("races:race_day", args=[race_2.pk]) + "?view=finish"
     )
     assert page.status_code == 200
@@ -213,12 +208,12 @@ def test_a_scheduled_regatta_race_does_not_break_the_pages(staff_client, regatta
 
 
 def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(
-    staff_client, regatta_night
+    committee_client, regatta_night
 ):
     series, _, a, _ = regatta_night
     race_2 = make_race(series, 2)
     start(race_2, a)
-    response = staff_client.post(
+    response = committee_client.post(
         save_url(race_2, a), row_data(a, status="DNF"), HTTP_HX_REQUEST="true"
     )
     assert response.status_code == 200
@@ -228,7 +223,7 @@ def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(
     assert "at least one boat has a finish time" in html
     assert Finish.objects.get(race=race_2, entry=a).status == "DNF"
 
-    page = staff_client.get(
+    page = committee_client.get(
         reverse("results:series", args=[series.pk]), {"race": 2}
     ).content.decode()
     assert "at least one boat has a finish time" in page

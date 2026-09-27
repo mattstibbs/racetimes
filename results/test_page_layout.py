@@ -33,7 +33,7 @@ def page(client, series, query=""):
     return html.split("<main", 1)[1]
 
 
-def committee_client(client):
+def as_committee(client):
     client.force_login(make_committee())
     return client
 
@@ -56,7 +56,7 @@ def test_the_csv_download_is_at_the_bottom_for_everyone(client):
 
 def test_the_committee_s_links(client):
     series, race = sailed_series()
-    html = page(committee_client(client), series)
+    html = page(as_committee(client), series)
     history = reverse("races:series_history", args=[series.pk])
     # "Finalise results" under the title, before the standings.
     assert html.index("Finalise results") < html.index("Series Standings")
@@ -78,7 +78,7 @@ def test_a_final_series_offers_to_reopen_the_results(client):
     series.final_results = final.dump(engine_outcome(series))
     series.declared_final_at = timezone.now()
     series.save()
-    html = page(committee_client(client), series)
+    html = page(as_committee(client), series)
     assert "Reopen results" in html and "Finalise results" not in html
 
 

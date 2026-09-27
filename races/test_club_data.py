@@ -26,14 +26,10 @@ from races.models import (
 )
 from races.scoring import score_series
 from races.series_csv import typed
-from races.test_isolation import (  # noqa: F401 (clubs is a fixture)
-    DEMO,
-    HARBOUR,
-    clubs,
-    leaks,
-)
 from races.testing import (
+    DEMO,
     default_club,
+    leaks,
     make_administrator,
     make_committee,
     make_member,

@@ -15,7 +15,6 @@ from django.core import mail, signing
 from django.urls import reverse
 from django.utils import timezone
 
-from races import notifications
 from races.invitations import invitation_from, token_for
 from races.models import Club, ClubInvitation, ClubMembership, OperatorAction
 from races.testing import (
@@ -43,13 +42,6 @@ def at(subdomain):
 @pytest.fixture(autouse=True)
 def service_address(settings):
     settings.SINGLE_CLUB = ""
-
-
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
 
 
 @pytest.fixture

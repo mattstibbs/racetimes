@@ -16,7 +16,6 @@ from races.models import Finish, ScoringChange
 from races.testing import (
     enter,
     make_boat,
-    make_committee,
     make_member,
     make_race,
     make_series,
@@ -44,13 +43,6 @@ def clock(monkeypatch):
         return moment
 
     return set_clock
-
-
-@pytest.fixture
-def committee(client):
-    user = make_committee()
-    client.force_login(user)
-    return user
 
 
 @pytest.fixture
@@ -448,3 +440,16 @@ def test_the_clock_is_shown_only_on_the_race_date(client, committee, racing, clo
     clock(19, 0)  # the race's own date
     html = client.get(page_url(racing["race"])).content.decode()
     assert 'id="race-clock"' in html and 'data-date="2026-09-23"' in html
+
+
+# Slice 15: boats are named sail number first here, unlike everywhere else.
+
+
+def test_the_race_day_page_names_boats_sail_number_first(
+    client, committee, racing, clock
+):
+    clock(when=local(19, 5, 31))
+    html = tap(client, racing["race"], racing["kittiwake"]).content.decode()
+    assert "GBR42 Kittiwake finished at 19:05:31." in html
+    assert "<strong>GBR42</strong> Kittiwake" in html
+    assert "Kittiwake (GBR42)" not in html

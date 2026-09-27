@@ -5,44 +5,13 @@ The engine reproduces it on its own (tests/) and through the database
 numbers, rounded for display and against the right boat.
 """
 
-from datetime import datetime, timedelta
-
 import pytest
 from django.urls import reverse
 
 from races.templatetags.racing import hms, tcf
-from races.testing import enter, make_boat, make_race, make_series, record
-from tests.scenario_loader import SCENARIOS
+from tests.scenario_loader import SCEN_005
 
 pytestmark = pytest.mark.django_db
-
-SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
-
-
-def clock(start, elapsed_seconds):
-    moment = datetime.fromisoformat(f"2026-01-01T{start}") + timedelta(
-        seconds=elapsed_seconds
-    )
-    return moment.strftime("%H:%M:%S")
-
-
-@pytest.fixture
-def scen_005():
-    """Race 1 as the fixture has it, and race 2 scheduled, so boats have a next race."""
-    series = make_series("SCEN-005")
-    race = make_race(series, start="18:30:00")
-    make_race(series, 2)
-    boats = {}
-    for boat in SCEN_005["boats"]:
-        entry = enter(
-            series, make_boat(boat["boat_id"], base_number=boat["start_handicap"])
-        )
-        boats[boat["boat_id"]] = entry.boat
-        if boat["status"] == "FINISHED":
-            record(race, entry, clock("18:30:00", boat["elapsed_seconds"]))
-        else:
-            record(race, entry, status=boat["status"])
-    return series, boats
 
 
 def row_for(page, boat):

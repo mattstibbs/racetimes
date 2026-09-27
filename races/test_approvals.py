@@ -12,10 +12,10 @@ from django.urls import reverse
 from races import approvals, audit
 from races.models import Boat, BoatRequest, EntryRequest, ScoringChange, SeriesEntry
 from races.testing import (
+    decide,
     default_club,
     enter,
     make_boat,
-    make_committee,
     make_member,
     make_race,
     make_series,
@@ -26,26 +26,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def committee(client):
-    user = make_committee()
-    client.force_login(user)
-    return user
-
-
-@pytest.fixture
 def member():
     return make_member("pat@example.com", first_name="Pat", last_name="Jones")
-
-
-def decide(client, request, decision, reason="", note=""):
-    kind = "entry" if isinstance(request, EntryRequest) else "boat"
-    response = client.post(
-        reverse("races:decide_request", args=[kind, request.pk]),
-        {"decision": decision, "reason": reason, "note": note},
-        HTTP_HX_REQUEST="true",
-    )
-    request.refresh_from_db()
-    return response
 
 
 def registration(member, **fields):

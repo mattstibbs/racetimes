@@ -18,8 +18,8 @@ from django.utils import timezone
 
 from races import notifications, publishing
 from races.models import BoatRequest, EntryRequest, Race
-from races.test_audit import boat_form, series_form
 from races.testing import (
+    boat_form,
     default_club,
     enter,
     make_administrator,
@@ -29,27 +29,10 @@ from races.testing import (
     make_race,
     make_series,
     record,
+    series_form,
 )
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    """Use as ``with run_on_commit():`` around anything that sends email."""
-    from contextlib import nullcontext
-
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
-    return nullcontext
-
-
-@pytest.fixture
-def committee(client):
-    user = make_committee()
-    client.force_login(user)
-    return user
 
 
 @pytest.fixture

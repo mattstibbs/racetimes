@@ -19,12 +19,7 @@ import nhc
 from races import final
 from races.models import Series
 from races.scoring import engine_outcome, score_series
-from races.test_audit import (  # noqa: F401 (fixtures)
-    post_series,
-    staff_client,
-    staff_user,
-)
-from races.testing import enter, make_boat, make_race, make_series, record
+from races.testing import enter, make_boat, make_race, make_series, post_series, record
 from tests.scenario_loader import MCC_RACE
 
 pytestmark = pytest.mark.django_db
@@ -80,7 +75,7 @@ def test_both_are_off_for_a_new_series():
     assert series.nhc_options == []
 
 
-def test_both_save_from_the_series_form_in_scoring_rules(staff_client):  # noqa: F811
+def test_both_save_from_the_series_form_in_scoring_rules(staff_client):
     series = make_series()
     page = staff_client.get(
         reverse("admin:races_series_change", args=[series.pk])
@@ -100,7 +95,7 @@ def test_both_save_from_the_series_form_in_scoring_rules(staff_client):  # noqa:
 
 
 @pytest.mark.parametrize("field", ["nhc_cap_extremes", "nhc_realign_to_base"])
-def test_a_regatta_refuses_them(staff_client, field):  # noqa: F811
+def test_a_regatta_refuses_them(staff_client, field):
     series = make_series()
     response = post_series(staff_client, series, series_type="REGATTA", **{field: "on"})
     assert (

@@ -21,14 +21,10 @@ from pathlib import Path
 import pytest
 from django.core import mail
 from django.urls import get_resolver, reverse
-from django.utils import timezone
 
-from races import notifications
-from races.invitations import token_for
 from races.models import (
     Boat,
     BoatRequest,
-    ClubInvitation,
     EntryRequest,
     Finish,
     RaceEntry,
@@ -37,209 +33,17 @@ from races.models import (
     SeriesEntry,
 )
 from races.testing import (
-    default_club,
-    enter,
-    join,
-    make_administrator,
-    make_boat,
-    make_club,
+    DEMO,
+    HARBOUR,
+    leaks,
+    log_in_as,
     make_committee,
-    make_member,
-    make_operator,
-    make_race,
-    make_series,
     record,
+    series_form,
+    urls_for,
 )
 
 pytestmark = pytest.mark.django_db
-
-DEMO, HARBOUR = "demo.localhost", "harbour.localhost"
-
-# Every name below belongs to Harbour only. None may appear at Demo Club.
-HARBOUR_ONLY = [
-    "Bittern",
-    "Brant",
-    "Booby",
-    "Harbour Winter",
-    "Black Tern",
-    "bea@example.com",
-    "Harbour Sailing Club",
-]
-
-
-@pytest.fixture
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
-
-
-def build(club, prefix, names, series_name, owner, shared):
-    """One club's data: a series with two races, three boats, requests and history."""
-    series = make_series(series_name, club=club)
-    first, second, third = names
-    entries = [
-        enter(
-            series,
-            make_boat("GBR42", name=first, base_number="0.805", owner=owner, club=club),
-        ),
-        enter(series, make_boat("GBR7", name=second, base_number="0.900", club=club)),
-        enter(
-            series,
-            make_boat(
-                "GBR99", name=third, base_number="0.850", owner=shared, club=club
-            ),
-        ),
-    ]
-    race_1, race_2 = make_race(series, 1), make_race(series, 2)
-    for entry, time in zip(entries, ("19:05:31", "19:07:02", "19:03:10")):
-        record(race_1, entry, time)
-    record(race_2, entries[0], "19:01:00")
-    now = timezone.now()
-    race_1.published_at = race_1.results_sent_at = now
-    race_1.save()
-    requests = {
-        "register": BoatRequest.objects.create(
-            club=club,
-            kind="REGISTER",
-            sail_number="GBR5",
-            name=f"{prefix} Tern",
-            base_number="0.9",
-            requested_by=shared,
-        ),
-        "claim": BoatRequest.objects.create(
-            club=club, kind="CLAIM", boat=entries[1].boat, requested_by=shared
-        ),
-        "entry": EntryRequest.objects.create(
-            series=make_series(f"{series_name} Two", club=club),
-            boat=entries[2].boat,
-            requested_by=shared,
-        ),
-    }
-    ScoringChange.objects.create(
-        club=club,
-        series=series,
-        race=race_1,
-        kind="FINISH",
-        action="CHANGED",
-        description=f"{first}, Race 1",
-        is_correction=True,
-        reason="Protest",
-    )
-    waiting = make_member(
-        f"{prefix.lower()}.waiting@example.com",
-        first_name=f"{prefix}waiting",
-        club=club,
-        status="WAITING",
-    )
-    invitation = ClubInvitation.objects.create(
-        club=club, email=f"{prefix.lower()}.invited@example.com"
-    )
-    return {
-        "club": club,
-        "series": series,
-        "entries": entries,
-        "races": [race_1, race_2],
-        "requests": requests,
-        "membership": waiting.memberships.get(),
-        "invitation": token_for(invitation),
-    }
-
-
-@pytest.fixture
-def clubs():
-    harbour = make_club(
-        "harbour", "Harbour Sailing Club", contact_email="sec@harbour.example"
-    )
-    shared = make_member("shared@example.com", first_name="Sam")
-    demo = build(
-        default_club(),
-        "Arctic",
-        ["Avocet", "Auk", "Albatross"],
-        "Autumn Series",
-        make_member("ann@example.com", first_name="Ann"),
-        shared,
-    )
-    join(shared, harbour)  # a member of both clubs (slice 11 part 2)
-    harbour_data = build(
-        harbour,
-        "Black",
-        ["Bittern", "Brant", "Booby"],
-        "Harbour Winter",
-        make_member("bea@example.com", first_name="Bea", club=harbour),
-        shared,
-    )
-    return {"demo": demo, "harbour": harbour_data, "shared": shared}
-
-
-def urls_for(data, kind=None):
-    """Every URL name the site has, with arguments drawn from one club's data."""
-    series, (race_1, _), (e1, _, e3) = data["series"], data["races"], data["entries"]
-    requests = data["requests"]
-    boat = e3.boat  # the shared member's boat, so member pages find it
-    return {
-        "races:change_boat": [boat.pk],
-        "races:claim_boat": [e1.boat.pk],
-        "races:decide_request": ["boat", requests["register"].pk],
-        "races:declare_final": [series.pk],
-        "races:enter_series": [boat.pk],
-        "races:final": [series.pk],
-        "races:finish_entry": [race_1.pk],
-        "races:login": [],
-        "races:logout": [],
-        "races:my_boats": [],
-        "races:password_reset": [],
-        "races:password_reset_complete": [],
-        "races:password_reset_confirm": ["x", "y"],
-        "races:password_reset_done": [],
-        "races:ping": [],
-        "races:publish_results": [race_1.pk],
-        "races:race_day": [race_1.pk],
-        "races:register_boat": [],
-        "races:reopen_series": [series.pk],
-        "races:requests": [],
-        "races:save_finish": [race_1.pk, e1.pk],
-        "races:save_start_sheet_row": [race_1.pk, e1.pk],
-        "races:send_final": [series.pk],
-        "races:series_history": [series.pk],
-        "races:signup": [],
-        "races:start_sheet": [race_1.pk],
-        "races:tap_finish": [race_1.pk, e1.pk],
-        "races:undo_finish": [race_1.pk, e1.pk],
-        "races:withdraw_request": ["boat", requests["claim"].pk],
-        "results:boat": [e1.boat.pk],
-        "results:home": [],
-        "results:series": [series.pk],
-        "results:series_csv": [series.pk],
-        # Slice 11 part 2: accounts and memberships.
-        "races:confirm_email": ["x", "y"],
-        "races:resend_confirmation": [],
-        "races:join_club": [],
-        "races:members": [],
-        "races:decide_membership": [data["membership"].pk],
-        # Slice 11 part 3: invitations, at the club, and the operator's pages, which
-        # exist only on the service's own address (a 404 at every club).
-        "races:accept_invitation": [data["invitation"]],
-        "races:operator_clubs": [],
-        "races:operator_create_club": [],
-        "races:operator_log": [],
-        "races:operator_club": [data["club"].pk],
-        "races:operator_invite": [data["club"].pk],
-        "races:operator_club_status": [data["club"].pk],
-        # Slice 11 part 5: the privacy notice and terms, the same at every address.
-        "races:privacy": [],
-        "races:terms": [],
-        # The account's own pages, which cover every club the person belongs to.
-        "races:account": [],
-        "races:download_my_data": [],
-        "races:delete_account": [],
-        "races:change_password": [],
-        "races:export_club_data": [],
-        "races:operator_export_club": [data["club"].pk],
-        "races:operator_delete_club": [data["club"].pk],
-        # Slice 13: the operator deciding who's waiting to join.
-        "races:operator_decide_joining": [data["club"].pk, data["membership"].pk],
-    }
 
 
 # A person's own account pages show their memberships and data at every club,
@@ -266,10 +70,6 @@ def test_every_url_is_covered(clubs):
     assert set(urls_for(clubs["demo"])) == all_url_names()
 
 
-def leaks(html):
-    return [name for name in HARBOUR_ONLY if name in html]
-
-
 def text_of(response):
     """A response's text; for a ZIP (the club's data export), every file in it."""
     if response["Content-Type"] == "application/zip":
@@ -280,17 +80,6 @@ def text_of(response):
     return response.content.decode()
 
 
-def log_in(client, role, clubs):
-    if role == "member":
-        client.force_login(clubs["shared"])
-    elif role == "committee":
-        client.force_login(make_committee())
-    elif role == "administrator":
-        client.force_login(make_administrator())
-    elif role == "operator":
-        client.force_login(make_operator())
-
-
 # --- Every page, as every role, shows only its own club ------------------------------------
 
 
@@ -298,7 +87,7 @@ def log_in(client, role, clubs):
     "role", ["public", "member", "committee", "administrator", "operator"]
 )
 def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
-    log_in(client, role, clubs)
+    log_in_as(client, role, clubs)
     extras = {
         "results:home": "?q=GBR",
         "races:race_day": "?view=start",
@@ -379,7 +168,7 @@ def counts():
 
 @pytest.mark.parametrize("role", ["member", "committee", "administrator"])
 def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
-    log_in(client, role, clubs)
+    log_in_as(client, role, clubs)
     harbour_urls = urls_for(clubs["harbour"])
     demo_urls = urls_for(clubs["demo"])
     before = counts()
@@ -495,7 +284,6 @@ def test_the_admins_boat_search_offers_only_this_clubs_boats(client, clubs):
 
 
 def test_the_admin_wont_enter_another_clubs_boat(client, clubs):
-    from races.test_audit import series_form
 
     client.force_login(make_committee())
     series = clubs["demo"]["series"]

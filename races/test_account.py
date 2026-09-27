@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 from django.urls import reverse
 
-from races import notifications, throttle
+from races import throttle
 from races.account_deletion import DELETED
 from races.models import (
     Boat,
@@ -21,8 +21,8 @@ from races.models import (
     Series,
 )
 from races.scoring import score_series
-from races.test_members import PASSWORD
 from races.testing import (
+    PASSWORD,
     default_club,
     enter,
     join,
@@ -37,14 +37,8 @@ from races.testing import (
     record,
 )
 
-pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def run_on_commit(monkeypatch):
-    monkeypatch.setattr(
-        notifications.transaction, "on_commit", lambda func, *a, **kw: func()
-    )
+# Every test here sends email, so emails go at once (see run_on_commit in conftest).
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("run_on_commit")]
 
 
 @pytest.fixture
@@ -153,7 +147,7 @@ def test_the_download_holds_their_account_memberships_boats_requests_and_changes
 
 
 @pytest.fixture
-def season(pat):
+def pats_season(pat):
     """A season Pat took part in, as an owner, a committee member and the one who invited someone."""
     series = make_series("Autumn")
     kittiwake = enter(series, make_boat("GBR42", name="Kittiwake", owner=pat))
@@ -211,18 +205,20 @@ def delete(client, password=PASSWORD):
     return client.post(reverse("races:delete_account"), {"password": password})
 
 
-def test_deleting_keeps_the_clubs_records_and_names_them_nowhere(client, pat, season):
-    before = score_series(season["series"]).standings
+def test_deleting_keeps_the_clubs_records_and_names_them_nowhere(
+    client, pat, pats_season
+):
+    before = score_series(pats_season["series"]).standings
     response = delete(client)
     assert response["Location"] == reverse("results:home")
     assert not get_user_model().objects.filter(username="pat@example.com").exists()
     # What goes: memberships and requests.
     assert not ClubMembership.objects.filter(user_id=pat.pk).exists()
-    assert not BoatRequest.objects.filter(pk=season["request"].pk).exists()
+    assert not BoatRequest.objects.filter(pk=pats_season["request"].pk).exists()
     # What stays: the boat, with no owner, every finish and the scores.
-    season["boat"].refresh_from_db()
-    assert season["boat"].owner is None and Finish.objects.count() == 2
-    after = score_series(season["series"]).standings
+    pats_season["boat"].refresh_from_db()
+    assert pats_season["boat"].owner is None and Finish.objects.count() == 2
+    after = score_series(pats_season["series"]).standings
     assert [(r.entry.pk, r.total) for r in after] == [
         (r.entry.pk, r.total) for r in before
     ]
@@ -230,8 +226,8 @@ def test_deleting_keeps_the_clubs_records_and_names_them_nowhere(client, pat, se
     change = ScoringChange.objects.get()
     assert (change.user, change.user_name, change.reason) == (None, DELETED, "Protest")
     # Every other stored mention of the login, too.
-    season["decided"].refresh_from_db()
-    assert season["decided"].decided_by_name == DELETED
+    pats_season["decided"].refresh_from_db()
+    assert pats_season["decided"].decided_by_name == DELETED
     assert (
         ClubMembership.objects.get(user__username="sam@example.com").decided_by_name
         == DELETED
@@ -245,7 +241,7 @@ def test_deleting_keeps_the_clubs_records_and_names_them_nowhere(client, pat, se
     assert (action.who, action.detail) == (DELETED, f"{DELETED} as club administrator")
 
 
-def test_no_stored_text_still_names_them(client, pat, season):
+def test_no_stored_text_still_names_them(client, pat, pats_season):
     from django.core import serializers
 
     delete(client)
