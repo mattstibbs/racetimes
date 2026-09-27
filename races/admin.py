@@ -29,7 +29,6 @@ from .admin_forms import (
 from .models import (
     Boat,
     BoatRequest,
-    ClubMembership,
     EntryRequest,
     Race,
     Series,
@@ -154,26 +153,6 @@ class ReasonInAdminHistoryMixin:
         return f"{text} Reason: {reason}"
 
 
-def boat_changes(before, after):
-    """(label, old, new) for every field that differs between two versions of a boat."""
-    changes = []
-    for field in Boat._meta.concrete_fields:
-        if field.primary_key:
-            continue
-        name = field.attname
-        if getattr(before, name) == getattr(after, name):
-            continue
-        if field.name == "owner":
-            old, new = before.owner_display or "", after.owner_display or ""
-        else:
-            old, new = getattr(before, field.name), getattr(after, field.name)
-        label = field.verbose_name[:1].upper() + field.verbose_name[1:]
-        changes.append(
-            (label, "" if old is None else str(old), "" if new is None else str(new))
-        )
-    return changes
-
-
 @admin.register(Boat)
 class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
@@ -197,49 +176,10 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     def owner_display(self, boat):
         return boat.owner_display
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        # A plain list of active accounts. Django's search box would need
-        # permission to browse accounts, which the committee does not have.
-        if db_field.name == "owner":
-            # Only this club's approved members can own its boats (slice 11).
-            kwargs["queryset"] = (
-                get_user_model()
-                .objects.filter(
-                    is_active=True,
-                    memberships__club=request.club,
-                    memberships__status=ClubMembership.Status.APPROVED,
-                )
-                .order_by("first_name", "last_name")
-            )
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
     def save_model(self, request, obj, form, change):
-        series_list = (
-            list(Series.objects.for_club(obj.club).filter(entries__boat=obj).distinct())
-            if change
-            else []
-        )
-        before = {series.pk: score_series(series) for series in series_list}
-        stored = (
-            Boat.objects.for_club(obj.club).select_related("owner").get(pk=obj.pk)
-            if change
-            else None
-        )
-        super().save_model(request, obj, form, change)
-        if stored is not None:
-            # The owner hears about any change the committee makes to their
-            # boat; if the owner itself changed, the previous owner hears too.
-            owners = [obj.owner]
-            if stored.owner_id != obj.owner_id:
-                owners.append(stored.owner)
-            notifications.boat_updated(obj, boat_changes(stored, obj), owners, request)
-        recorded = audit.record(
-            form.scoring_changes, request.user, form.cleaned_data["reason"]
-        )
-        if audit.needs_reason(recorded):
-            for series in series_list:
-                effect = audit.describe_effect(before[series.pk], score_series(series))
-                messages.info(request, f"{series}: {effect}")
+        # The race office's save (races/office_forms.py): the boat, its
+        # history, the owners' emails and what a correction changed.
+        form.save_audited(request)
 
 
 class SeriesEntryInline(ClubScopedInline, admin.TabularInline):

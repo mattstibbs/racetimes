@@ -487,4 +487,10 @@ def urls_for(data, kind=None):
         "races:operator_delete_club": [data["club"].pk],
         # Slice 13: the operator deciding who's waiting to join.
         "races:operator_decide_joining": [data["club"].pk, data["membership"].pk],
+        # Slice 18: the race office.
+        "races:office": [],
+        "races:office_boats": [],
+        "races:office_new_boat": [],
+        "races:office_boat": [e1.boat.pk],
+        "races:office_delete_boat": [e1.boat.pk],
     }

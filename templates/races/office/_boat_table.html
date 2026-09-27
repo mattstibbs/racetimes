@@ -1,0 +1,23 @@
+<div id="boat-table" aria-live="polite">
+{% if boats %}
+<div class="table-scroll"><table>
+  <thead><tr><th>Sail number</th><th>Name</th><th>Make</th><th>Model</th><th class="num">Base number</th><th>Owner</th></tr></thead>
+  <tbody>
+  {% for boat in boats %}
+  <tr>
+    <td><a href="{% url 'races:office_boat' boat.pk %}">{{ boat.sail_number }}</a></td>
+    <td>{{ boat.name }}</td>
+    <td>{{ boat.make }}</td>
+    <td>{{ boat.model }}</td>
+    <td class="num">{{ boat.base_number }}</td>
+    <td>{{ boat.owner_display }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% elif query %}
+<p class="muted">No boats match &ldquo;{{ query }}&rdquo;.</p>
+{% else %}
+<p class="muted">No boats yet.</p>
+{% endif %}
+</div>

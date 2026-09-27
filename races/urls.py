@@ -9,6 +9,7 @@ from . import (
     legal_views,
     member_views,
     membership_views,
+    office_views,
     operator_views,
     race_day_views,
     request_views,
@@ -125,6 +126,16 @@ urlpatterns = [
         "races/<int:pk>/publish/",
         race_day_views.publish_results,
         name="publish_results",
+    ),
+    # The race office (slice 18): the committee's setup pages.
+    path("office/", office_views.home, name="office"),
+    path("office/boats/", office_views.boats, name="office_boats"),
+    path("office/boats/new/", office_views.new_boat, name="office_new_boat"),
+    path("office/boats/<int:pk>/", office_views.change_boat, name="office_boat"),
+    path(
+        "office/boats/<int:pk>/delete/",
+        office_views.delete_boat,
+        name="office_delete_boat",
     ),
     path("requests/", request_views.requests_page, name="requests"),
     path(

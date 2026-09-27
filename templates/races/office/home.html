@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Race office - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>Race office</h1>
+<p class="muted">Where the race committee sets up the club's boats and series.</p>
+
+<section aria-labelledby="waiting">
+  <h2 id="waiting">Waiting for you</h2>
+  {% if notices %}
+  <ul class="messages">
+    {% for notice in notices %}
+    <li class="warning">{{ notice.text }} <a href="{{ notice.link }}">{{ notice.link_text }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Nothing waiting.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="series">
+  <h2 id="series">Series</h2>
+  {# Slice 18 part 1: series are still set up in the admin, until part 2 gives them pages here. #}
+  {% if series_list %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Series</th><th>Type</th><th class="num">Races</th><th class="num">Boats entered</th><th></th></tr></thead>
+    <tbody>
+    {% for series in series_list %}
+    <tr>
+      <td><a href="{% url 'admin:races_series_change' series.pk %}">{{ series.name }}</a></td>
+      <td>{{ series.get_series_type_display }}</td>
+      <td class="num">{{ series.race_count }}</td>
+      <td class="num">{{ series.entry_count }}</td>
+      <td>{% if series.is_final %}<span class="final-badge">Final Results</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">No series yet.</p>
+  {% endif %}
+  <p><a href="{% url 'admin:races_series_add' %}">New series</a></p>
+</section>
+
+<section aria-labelledby="boats">
+  <h2 id="boats">Boats</h2>
+  <p><a href="{% url 'races:office_boats' %}">The club's boats</a> <span class="muted">({{ boat_count }})</span></p>
+</section>
+{% endblock %}

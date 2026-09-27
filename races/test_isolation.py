@@ -92,6 +92,7 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
         "results:home": "?q=GBR",
         "races:race_day": "?view=start",
         "results:series": "?detail=1",
+        "races:office_boats": "?q=GBR",
     }
     shown = {}
     for name, args in urls_for(clubs["demo"]).items():
@@ -111,6 +112,10 @@ def test_no_page_at_demo_club_shows_harbours_data(client, clubs, role):
         (
             reverse("results:home") + "?q=GBR",
             {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "boat-matches"},
+        ),
+        (
+            reverse("races:office_boats") + "?q=GBR",
+            {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "boat-table"},
         ),
     ]:
         response = client.get(url, HTTP_HOST=DEMO, **headers)
@@ -211,6 +216,8 @@ def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
             "races:tap_finish",
             "races:decide_request",
             "races:declare_final",
+            "races:office_boat",
+            "races:office_delete_boat",
         } <= set(checked)
     if role == "administrator":
         assert "races:decide_membership" in checked
@@ -380,6 +387,8 @@ REQUEST_MODULES = [
     "races/membership_views.py",
     "races/invitations.py",
     "races/account_views.py",
+    "races/office_views.py",
+    "races/office_forms.py",
 ]
 # Not races/operator_views.py: the operator's pages are the service's, across
 # every club, and only on the service's own address, where there's no club.

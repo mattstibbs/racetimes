@@ -1,5 +1,8 @@
 """The admin's forms for setting up a series and its boats.
 
+The boat form is the race office's (``races/office_forms.py``), with a reason box
+always shown.
+
 Each works out, while validating, what saving it would record in the history
 (``races/audit.py``), and requires a reason for a correction.
 """
@@ -10,16 +13,12 @@ from django.forms.models import BaseInlineFormSet
 
 from . import audit, final
 from .audit import AuditedFormMixin
-from .models import Boat, Race, Series
-from .request_forms import boat_with_sail_number
-
-REASON_HELP = "Required when correcting results already recorded."
+from .models import Race, Series
+from .office_forms import BoatForm, reason_field
 
 
 class _AdminReasonForm(AuditedFormMixin, forms.ModelForm):
-    reason = forms.CharField(
-        label="Reason for change", required=False, max_length=500, help_text=REASON_HELP
-    )
+    reason = reason_field()
 
     # The club a new boat or series belongs to. The admin sets it from the
     # request (races/admin.py); a row's club is never a field anyone can edit.
@@ -59,33 +58,11 @@ class SeriesAdminForm(_AdminReasonForm):
         return cleaned
 
 
-class BoatAdminForm(_AdminReasonForm):
-    class Meta:
-        model = Boat
-        fields = [
-            "sail_number",
-            "name",
-            "make",
-            "model",
-            "owner_name",
-            "owner",
-            "length_overall_m",
-            "waterline_length_m",
-            "base_number",
-        ]
+class BoatAdminForm(BoatForm):
+    """The race office's boat form (races/office_forms.py), with the admin's
+    reason box always shown."""
 
-    def clean_sail_number(self):
-        # The unique-in-club constraint can't be checked by the form itself,
-        # because club isn't one of its fields, so it's checked here instead.
-        sail_number = self.cleaned_data["sail_number"]
-        existing = boat_with_sail_number(
-            self.instance.club,
-            sail_number,
-            exclude=self.instance if self.instance.pk else None,
-        )
-        if existing is not None:
-            raise ValidationError("A boat with this sail number is already registered.")
-        return sail_number
+    reason = reason_field()
 
 
 class AuditedInlineForm(AuditedFormMixin, forms.ModelForm):

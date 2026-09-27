@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Boats - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a></p>
+<h1>Boats</h1>
+<p><a href="{% url 'races:office_new_boat' %}">Add a boat</a></p>
+<form method="get" action="{% url 'races:office_boats' %}" role="search" class="search">
+  <label for="boat-search">Sail number, boat name or owner</label>
+  <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
+         hx-get="{% url 'races:office_boats' %}" hx-trigger="input changed delay:300ms, search"
+         hx-target="#boat-table" hx-swap="outerHTML" hx-replace-url="true">
+  <button type="submit">Find</button>
+</form>
+{% include "races/office/_boat_table.html" %}
+{% endblock %}

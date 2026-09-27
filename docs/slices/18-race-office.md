@@ -1,9 +1,9 @@
 # Slice 18: the race office (club users no longer need the Django admin)
 
-**Status: planned (2026-09-27). The owner has answered every question (see
-the end), and changed their mind on question 6: the Django admin stays in
-place at club addresses, unlinked. Not to be built until the owner approves
-the plan.**
+**Status: in progress. Part 1 (boats) built 2026-09-27, waiting for the
+owner's review; parts 2 and 3 to come. The owner has answered every
+question (see the end), and changed their mind on question 6: the Django
+admin stays in place at club addresses, unlinked.**
 
 ## Goal
 Nobody at a club needs the Django admin any more, and nothing on a club's

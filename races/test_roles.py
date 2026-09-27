@@ -200,6 +200,7 @@ def pages():
     race = make_race(series)
     boat = make_boat()
     enter(series, boat)
+    never_entered = make_boat("GBR5")
     everyone = [SEES] * 6
     # The public is sent to log in; anyone logged in without the role is
     # refused (sending them to log in looped, since they're logged in already).
@@ -234,6 +235,15 @@ def pages():
         "members": (
             reverse("races:members"),
             [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED],
+        ),
+        # Slice 18: the race office.
+        "race office": (reverse("races:office"), committee),
+        "office: boats": (reverse("races:office_boats"), committee),
+        "office: add a boat": (reverse("races:office_new_boat"), committee),
+        "office: a boat": (reverse("races:office_boat", args=[boat.pk]), committee),
+        "office: delete a boat": (
+            reverse("races:office_delete_boat", args=[never_entered.pk]),
+            committee,
         ),
         "admin: boats": (reverse("admin:races_boat_changelist"), admin_committee),
         "admin: a boat": (

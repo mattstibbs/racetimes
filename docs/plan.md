@@ -675,7 +675,7 @@ The screenshots match the manual's own, apart from clock times and "sent at"
 times, which come from the moment the sample data is made.
 
 
-## Slice 18: the race office (club users leave the Django admin). **Status: planned (2026-09-27)**
+## Slice 18: the race office (club users leave the Django admin). **Status: in progress (part 1 of 3 built, 2026-09-27)**
 
 Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
 the Django admin today (boats, series and their scoring rules, races,
@@ -690,4 +690,17 @@ reviewed before the next; the operator keeps the admin's boat, series,
 request and account pages; no history for changes that move no score;
 deleting a boat or series only while nothing depends on it; the operator's
 admin loses its links to club pages. The owner then changed question 6: the
-admin is left in place at club addresses, just unlinked. Not to be built until the owner approves the plan.
+admin is left in place at club addresses, just unlinked.
+
+**Part 1 (boats): built (2026-09-27), waiting for the owner's review.** The
+race office's front page at `/office/` (Waiting for you; Series, linking to
+the admin until part 2; Boats) and the boats pages: list and search (HTMX,
+and a plain GET without it), add, change and delete (never-entered boats
+only, after a confirmation page). `BoatForm` in `races/office_forms.py` now
+holds the boat rules and saving for both the race office and the admin.
+Tests: `races/test_office.py`, `races/test_office_forms.py`, and the new
+URLs in `races/test_roles.py` and `races/test_isolation.py`. Checked by hand
+in headless Chromium at 375 px as a committee member: searched, corrected a
+base number (refused without a reason, then saved with one and told what
+moved in each series), added a boat and deleted it. The menu, the manual
+and the screenshots change in part 3.

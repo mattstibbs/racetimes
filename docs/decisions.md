@@ -1648,6 +1648,39 @@ accounts list and on each account's page, which suggested otherwise. The tests
 still check that a group of that name, made again in the admin, grants
 nothing.
 
+## 2026-09-27 - Slice 18: the race office, and one boat form for it and the admin
+
+**Decision.** The race committee sets up the club on the site's own pages, a
+**Race office** at `/office/`, instead of the Django admin (the plan and the
+owner's answers are in `docs/slices/18-race-office.md`). The admin stays in
+place, unlinked. Part 1 builds the race office's front page (what's waiting,
+the series, a link to the boats) and the boats pages: a list with a search,
+add, change, and delete.
+
+- **One boat form.** `BoatForm` (`races/office_forms.py`) holds the rules the
+  admin's form had: sail number unique in the club, owners only from the
+  club's approved members, the base number audited with a reason for a
+  correction. Its `save_audited` does what the admin's `save_model` did:
+  saves, records the history, emails the owner (both owners when it changes
+  hands) and says what a correction moved. The admin's `BoatAdminForm` is a
+  subclass that always shows the reason box, and `BoatAdmin.save_model` calls
+  `save_audited`, so the two routes can't drift apart.
+- **The reason box only where it applies.** The race office shows it only
+  when the boat has results in some series, which is exactly when a base
+  number change is a correction (`audit`'s rule). It's worked out each time
+  the form is built, so a result recorded while the form was open adds the
+  box on the next submit rather than losing the requirement.
+- **Owners are listed as "Name (email)"**, as the Club members page shows
+  people, since two members can share a name. The admin, which shared the
+  form, now lists them that way too, and on the service's own address offers
+  the boat's own club's members (before, the operator's list was empty).
+- **Deleting a boat** is offered only for a boat never entered in a series
+  (answer 5). Members' requests about it go with it, and the confirmation
+  says how many.
+- **Until part 2**, the race office's series link to the admin's series page,
+  and until part 3 the menu still says Club setup and links to the admin.
+  The race office is reached at `/office/` in the meantime.
+
 ---
 
 ## Open requirements
