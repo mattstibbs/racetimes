@@ -673,3 +673,16 @@ Manual check: seeded the manual's sample data, ran the site, and drove every
 page the manual photographs in headless Chromium: 136 requests, none an error.
 The screenshots match the manual's own, apart from clock times and "sent at"
 times, which come from the moment the sample data is made.
+
+
+## Slice 18: the race office (club users leave the Django admin). **Status: planned (2026-09-27)**
+
+Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
+the Django admin today (boats, series and their scoring rules, races,
+entries, deleting, looking back at decided requests) moves to purpose-built
+pages under a new **Race office** (`/office/`), which replaces **Club setup**
+in the menu and adds a **Coming up** list of the next races. At a club's
+address the admin then redirects to the race office. Waiting on the owner's
+answers to six questions (name and menu, building in three parts, the
+operator's admin pages, history of non-scoring changes, deleting boats and
+series, old admin addresses).
