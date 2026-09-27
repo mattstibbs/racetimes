@@ -260,7 +260,7 @@ def pages():
 def test_every_page_as_each_role(as_role, pages, role):
     client = as_role(role)
     outcomes = {}
-    for name, (url, expected) in pages.items():
+    for name, (url, _expected) in pages.items():
         response = client.get(url)
         if response.status_code == 302 and "login" in response["Location"]:
             outcomes[name] = TO_LOGIN
@@ -294,7 +294,7 @@ def operator_pages(settings):
 def test_the_operators_pages_as_each_role(as_role, operator_pages, role):
     client = as_role(role)
     outcomes = {}
-    for name, (url, expected) in operator_pages.items():
+    for name, (url, _expected) in operator_pages.items():
         response = client.get(url, HTTP_HOST="localhost")
         is_login = response.status_code == 302 and "login" in response["Location"]
         outcomes[name] = TO_LOGIN if is_login else response.status_code

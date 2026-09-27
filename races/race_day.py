@@ -84,7 +84,7 @@ def tap(race, entry, user):
             ALREADY_FINISHED.format(
                 boat=entry.boat.race_day_label, result=describe(existing)
             )
-        )
+        ) from None
     return finish
 
 

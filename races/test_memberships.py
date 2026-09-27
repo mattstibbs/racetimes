@@ -59,9 +59,10 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
     old.get_model("races", "Club").objects.get_or_create(
         subdomain="demo", defaults={"name": "Demo Club"}
     )
-    make = lambda name, **fields: User.objects.create(
-        username=name, email=name, **fields
-    )
+
+    def make(name, **fields):
+        return User.objects.create(username=name, email=name, **fields)
+
     make("root@example.com", is_superuser=True, is_staff=True, is_active=True)
     officer = make("officer@example.com", is_staff=True, is_active=True)
     # get_or_create: a transactional test before this one may have flushed the

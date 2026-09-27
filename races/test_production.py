@@ -223,7 +223,7 @@ def test_backups_are_encrypted_before_they_leave_and_never_logged():
 # --- scripts/check_live.py (slice 12) ----------------------------------------------------------
 
 sys.path.insert(0, str(ROOT / "scripts"))
-import check_live
+import check_live  # noqa: E402 (found through the sys.path line above)
 
 
 def test_the_live_checks_judge_answers_correctly():

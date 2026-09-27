@@ -56,7 +56,7 @@ def score_race(race: RaceInput) -> tuple[RaceResult, ...]:
     )
 
     positions = _assign_positions(scored)
-    corrected = dict((boat_id, value) for value, boat_id in scored)
+    corrected = {boat_id: value for value, boat_id in scored}
 
     return tuple(
         RaceResult(

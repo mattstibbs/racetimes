@@ -43,16 +43,14 @@ def test_every_page_links_to_both_in_its_footer(client, clubs, role):
     missing = []
     for name, args in urls_for(clubs["demo"]).items():
         response = client.get(reverse(name, args=args), HTTP_HOST=DEMO)
-        if (
+        is_html = (
             response.status_code == 200
             and response["Content-Type"].startswith("text/html")
             and not name.endswith("csv")
-        ):
-            if (
-                "<html" in response.content.decode()
-                and footer not in response.content.decode()
-            ):
-                missing.append(name)
+        )
+        page = response.content.decode() if is_html else ""
+        if "<html" in page and footer not in page:
+            missing.append(name)
     assert missing == []
 
 

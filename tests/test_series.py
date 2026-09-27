@@ -5,6 +5,8 @@ handicaps the previous race produced. Everything else in the module exists to
 serve that.
 """
 
+from itertools import pairwise
+
 import pytest
 
 from nhc import (
@@ -65,7 +67,7 @@ def test_each_race_is_scored_on_the_previous_races_handicaps():
     )
     outcome = score_series(series)
 
-    for earlier, later in zip(outcome.races, outcome.races[1:]):
+    for earlier, later in pairwise(outcome.races):
         produced = {r.boat_id: r.next_tcf for r in earlier.results}
         used = {r.boat_id: r.tcf_used for r in later.results}
         assert used == produced, f"{later.race_id} did not inherit {earlier.race_id}"

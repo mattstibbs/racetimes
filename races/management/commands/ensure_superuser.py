@@ -42,7 +42,9 @@ class Command(BaseCommand):
             # deploy with the reason, rather than going live.
             password_validation.validate_password(password, user)
         except ValidationError as error:
-            raise CommandError("DJANGO_SUPERUSER_PASSWORD: " + " ".join(error.messages))
+            raise CommandError(
+                "DJANGO_SUPERUSER_PASSWORD: " + " ".join(error.messages)
+            ) from error
         User.objects.create_superuser(
             username=username, email=user.email, password=password
         )

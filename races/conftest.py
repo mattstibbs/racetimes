@@ -124,6 +124,7 @@ def season():
                 ("GBR7", "Tern", "0.900"),
             ],
             owners,
+            strict=True,
         )
     ]
     race_1, race_2 = make_race(series, 1), make_race(series, 2, on=date(2026, 9, 30))
@@ -132,7 +133,7 @@ def season():
         (race_1, ["19:05:31", "19:07:02", "19:02:10"]),
         (race_2, ["19:01:00", "19:06:30", None]),
     ]:
-        for entry, time in zip(entries, times):
+        for entry, time in zip(entries, times, strict=True):
             record(race, entry, time) if time else record(
                 race, entry, status=Finish.Status.DNF
             )

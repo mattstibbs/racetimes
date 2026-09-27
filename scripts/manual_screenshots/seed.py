@@ -103,7 +103,7 @@ for number, day in [(1, 16), (2, 23), (3, 30)]:
     race = Race.objects.create(
         series=autumn, number=number, date=date(2026, 9, day), start_time=time(18, 30)
     )
-    for entry, finish in zip(entries, finishes[number]):
+    for entry, finish in zip(entries, finishes[number], strict=True):
         RaceEntry.objects.create(
             race=race, entry=entry
         )  # only a boat on the start sheet has a finish
@@ -145,7 +145,7 @@ for number, day in [(1, 1), (2, 8), (3, 15)]:
         series=summer, number=number, date=date(2026, 7, day), start_time=time(18, 30)
     )
     if number in summer_finishes:
-        for entry, finish in zip(summer_entries, summer_finishes[number]):
+        for entry, finish in zip(summer_entries, summer_finishes[number], strict=True):
             RaceEntry.objects.create(race=race, entry=entry)
             Finish.objects.create(race=race, entry=entry, finish_time=finish)
         Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)

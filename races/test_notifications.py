@@ -50,7 +50,9 @@ def club():
     elsewhere = make_member("jo@example.com")
     enter(make_series("Other"), make_boat("GBR99", owner=elsewhere))
     race = make_race(series, 1, start="18:30:00")
-    for entry, finish in zip(entries, ["19:31:12", "19:40:05", "19:28:40"]):
+    for entry, finish in zip(
+        entries, ["19:31:12", "19:40:05", "19:28:40"], strict=True
+    ):
         record(race, entry, finish)
     return {
         "series": series,

@@ -112,7 +112,7 @@ def test_races_not_sailed_are_listed_and_dont_block(client, committee, season):
 def test_declaring_is_refused_while_a_race_isnt_settled(
     client, committee, season, problem, expected
 ):
-    race_1, race_2, race_3 = season["races"]
+    _race_1, race_2, race_3 = season["races"]
     if problem == "unpublished":
         race_2.published_at = race_2.results_sent_at = None
         race_2.save()
@@ -375,24 +375,25 @@ def test_the_admin_refuses_changes_to_a_final_series(admin_client, locked, chang
             }
         )
     else:
-        enter(
-            series, make_boat("GBR99")
-        )  # no results, so only the lock can refuse removing it
+        # No results, so only the lock can refuse removing it.
+        enter(series, make_boat("GBR99"))
         data = series_form(series, **{"entries-3-DELETE": "on"}, reason="x")
-    before = counts() + (
-        SeriesEntry.objects.count(),
-        series.races.count(),
-        series.discards,
-    )
+
+    def state():
+        series.refresh_from_db()
+        return (
+            *counts(),
+            SeriesEntry.objects.count(),
+            series.races.count(),
+            series.discards,
+        )
+
+    before = state()
     response = admin_client.post(
         reverse("admin:races_series_change", args=[series.pk]), data
     )
     assert response.status_code == 200 and final.LOCKED in response.content.decode()
-    series.refresh_from_db()
-    assert (
-        counts() + (SeriesEntry.objects.count(), series.races.count(), series.discards)
-        == before
-    )
+    assert state() == before
 
 
 def test_a_final_series_can_still_be_renamed(admin_client, locked):

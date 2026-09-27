@@ -78,9 +78,11 @@ def secure_headers(status, headers, body):
 def days_left(host):
     """Days until the certificate for ``host`` expires (verified as a browser would)."""
     context = ssl.create_default_context()
-    with socket.create_connection((host, 443), timeout=20) as sock:
-        with context.wrap_socket(sock, server_hostname=host) as tls:
-            expires = ssl.cert_time_to_seconds(tls.getpeercert()["notAfter"])
+    with (
+        socket.create_connection((host, 443), timeout=20) as sock,
+        context.wrap_socket(sock, server_hostname=host) as tls,
+    ):
+        expires = ssl.cert_time_to_seconds(tls.getpeercert()["notAfter"])
     return int((expires - time.time()) // 86400)
 
 

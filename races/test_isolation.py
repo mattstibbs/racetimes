@@ -388,7 +388,7 @@ def test_every_page_looks_up_club_rows_through_for_club():
     problems = []
     for module in REQUEST_MODULES:
         for number, line in enumerate((root / module).read_text().splitlines(), 1):
-            if unscoped.search(line) or bare_404.search(line):
-                if "# for_club: not needed" not in line:
-                    problems.append(f"{module}:{number}: {line.strip()}")
+            suspect = unscoped.search(line) or bare_404.search(line)
+            if suspect and "# for_club: not needed" not in line:
+                problems.append(f"{module}:{number}: {line.strip()}")
     assert problems == []

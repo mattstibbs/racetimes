@@ -21,6 +21,8 @@ select = [
     "C4",   # comprehensions
     "RUF",  # Ruff's own rules
 ]
+# Curly apostrophes are deliberate: page text uses them, and tests match it.
+allowed-confusables = ["’"]
 ignore = [
     # The formatter wraps code; what's left over is long strings and URLs,
     # which read worse broken across lines.

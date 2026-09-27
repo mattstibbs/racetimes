@@ -89,7 +89,17 @@ class _AdminReasonForm(AuditedFormMixin, forms.ModelForm):
 class SeriesAdminForm(_AdminReasonForm):
     class Meta:
         model = Series
-        fields = "__all__"
+        # Every editable field. Listed, not "__all__", so a new field is shown
+        # only once someone decides it belongs here.
+        fields = [
+            "name",
+            "series_type",
+            "discards",
+            "minimum_finishers",
+            "apply_a5_3",
+            "nhc_cap_extremes",
+            "nhc_realign_to_base",
+        ]
 
     # A final series can still be renamed: a name moves no score (slice 10).
     UNLOCKED_FIELDS = {"name", "reason"}
@@ -100,14 +110,24 @@ class SeriesAdminForm(_AdminReasonForm):
             try:
                 final.check_series_open(self.instance.pk)
             except ValidationError as locked:
-                raise ValidationError(locked.messages)
+                raise ValidationError(locked.messages) from None
         return cleaned
 
 
 class BoatAdminForm(_AdminReasonForm):
     class Meta:
         model = Boat
-        fields = "__all__"
+        fields = [
+            "sail_number",
+            "name",
+            "make",
+            "model",
+            "owner_name",
+            "owner",
+            "length_overall_m",
+            "waterline_length_m",
+            "base_number",
+        ]
 
     def clean_sail_number(self):
         # The unique-in-club constraint can't be checked by the form itself,
@@ -183,7 +203,7 @@ class RaceInlineFormSet(AuditedInlineFormSet):
             ]
             if moving:
                 spares = self._spare_numbers(len(moving))
-                for race, spare in zip(moving, spares):
+                for race, spare in zip(moving, spares, strict=True):
                     Race.objects.for_club(self.instance.club).filter(pk=race.pk).update(
                         number=spare
                     )
@@ -289,7 +309,7 @@ class LoginForm(AuthenticationForm):
                 and user.check_password(password)
             ):
                 self.unconfirmed = True
-                raise ValidationError(UNCONFIRMED, code="inactive")
+                raise ValidationError(UNCONFIRMED, code="inactive") from None
             raise
 
     unconfirmed = False

@@ -51,7 +51,7 @@ def sailed():
     races = []
     for number, times in enumerate(finishes, start=1):
         race = make_race(series, number, start="18:00:00")
-        for entry, finish_time in zip(entries, times):
+        for entry, finish_time in zip(entries, times, strict=True):
             record(race, entry, finish_time)
         races.append(race)
     return series, races, entries
@@ -178,7 +178,7 @@ def test_a_race_number_is_recorded(staff_client, sailed):
 
 
 def test_adding_a_race_and_an_entry_is_recorded(staff_client, unsailed):
-    series, race, entry = unsailed
+    series, _race, _entry = unsailed
     newcomer = make_boat("GBR7", name="Puffin")
     data = series_form(series)
     data.update(
@@ -206,7 +206,7 @@ def test_adding_a_race_and_an_entry_is_recorded(staff_client, unsailed):
 
 
 def test_removing_a_race_with_finishes_is_recorded(staff_client, sailed):
-    series, races, _ = sailed
+    series, _races, _ = sailed
     response = post_series(
         staff_client, series, reason="Abandoned", **{"races-3-DELETE": "on"}
     )
@@ -222,7 +222,7 @@ def test_removing_a_race_with_finishes_is_recorded(staff_client, sailed):
 
 
 def test_removing_an_entry_is_recorded(staff_client, unsailed):
-    series, _, entry = unsailed
+    series, _, _entry = unsailed
     post_series(staff_client, series, **{"entries-0-DELETE": "on"})
     change = only_change()
     assert (change.kind, change.action, change.description) == (

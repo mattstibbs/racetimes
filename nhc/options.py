@@ -69,7 +69,7 @@ def capped_elapsed_times(finishers: Sequence[RaceEntry]) -> dict[str, float]:
     spread = statistics.stdev(corrected)
     lower, upper = mean - spread, mean + spread
 
-    for entry, corrected_time in zip(finishers, corrected):
+    for entry, corrected_time in zip(finishers, corrected, strict=True):
         if corrected_time < lower:
             used[entry.boat_id] = lower / entry.tcf_used
         elif corrected_time > upper:

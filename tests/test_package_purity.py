@@ -26,10 +26,9 @@ def _imported_roots(path):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 roots.add(alias.name.split(".")[0])
-        elif isinstance(node, ast.ImportFrom):
-            # level > 0 is a relative import, i.e. within nhc itself.
-            if node.level == 0 and node.module:
-                roots.add(node.module.split(".")[0])
+        # level > 0 is a relative import, i.e. within nhc itself.
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            roots.add(node.module.split(".")[0])
     return roots
 
 

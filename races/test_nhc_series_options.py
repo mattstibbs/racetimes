@@ -174,7 +174,7 @@ def test_a_final_series_copy_keeps_what_the_options_did():
 
 
 def test_a_final_copy_saved_before_slice_14_still_loads():
-    series, race, _ = mcc_series()
+    series, _race, _ = mcc_series()
     data = final.dump(engine_outcome(series))
     for race_data in data["races"]:
         for result in race_data["results"]:

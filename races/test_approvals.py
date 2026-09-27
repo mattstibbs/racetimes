@@ -31,13 +31,13 @@ def member():
 
 
 def registration(member, **fields):
-    values = dict(
-        sail_number="GBR42",
-        name="Kittiwake",
-        make="Westerly",
-        model="Centaur",
-        base_number=Decimal("0.805"),
-    )
+    values = {
+        "sail_number": "GBR42",
+        "name": "Kittiwake",
+        "make": "Westerly",
+        "model": "Centaur",
+        "base_number": Decimal("0.805"),
+    }
     values.update(fields)
     return BoatRequest.objects.create(
         club=default_club(), kind="REGISTER", requested_by=member, **values

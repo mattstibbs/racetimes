@@ -103,12 +103,12 @@ def test_each_race_is_listed_with_its_rows(client, season):
 
 
 def test_scen_005_reads_back_from_the_file(client, scen_005):
-    series, boats = scen_005
+    series, _boats = scen_005
     rows = rows_of(download(client, series))
-    header, *lines = block(rows, "Race 1")
+    _header, *lines = block(rows, "Race 1")
     results = score_series(series).races[0]
     assert len(lines) == len(results.rows)
-    for line, row in zip(lines, results.rows):
+    for line, row in zip(lines, results.rows, strict=True):
         assert line[1] == row.entry.boat.sail_number
         assert line[5:8] == [
             tcf(row.result.tcf_used),

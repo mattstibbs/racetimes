@@ -182,9 +182,6 @@ def _club_manager(path):
 
 
 class Boat(models.Model):
-    # Only this club's rows: Boat.objects.for_club(club) (slice 11).
-    objects = _club_manager("club")
-
     club = models.ForeignKey(
         Club, on_delete=models.CASCADE, editable=False, related_name="boats"
     )
@@ -227,6 +224,9 @@ class Boat(models.Model):
         validators=[MinValueValidator(Decimal("0.001"))],
         help_text="The published NHC base handicap (TCF), e.g. 0.964.",
     )
+
+    # Only this club's rows: Boat.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
 
     class Meta:
         ordering = ["sail_number"]
@@ -274,9 +274,6 @@ class Series(models.Model):
     handicaps over from a previous series is deferred until realignment has a
     workflow; see docs/decisions.md.
     """
-
-    # Only this club's rows: Series.objects.for_club(club) (slice 11).
-    objects = _club_manager("club")
 
     class SeriesType(models.TextChoices):
         # Values match nhc.SeriesType, so they convert with SeriesType(value).
@@ -338,12 +335,19 @@ class Series(models.Model):
     final_results = models.JSONField(null=True, blank=True, editable=False)
     final_results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
 
+    # Only this club's rows: Series.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
     class Meta:
         verbose_name_plural = "series"
         ordering = ["name"]
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        # Also gives the admin its "View on site" button.
+        return reverse("results:series", args=[self.pk])
 
     @property
     def is_final(self):
@@ -357,10 +361,6 @@ class Series(models.Model):
             (self.nhc_realign_to_base, "realignment to base handicaps"),
         ]
         return [name for used, name in named if used]
-
-    def get_absolute_url(self):
-        # Also gives the admin its "View on site" button.
-        return reverse("results:series", args=[self.pk])
 
     def clean(self):
         # The engine refuses these combinations outright. Catching them here puts
@@ -386,15 +386,15 @@ class Series(models.Model):
 class SeriesEntry(models.Model):
     """A boat entered in a series, and so scored in every race of it (RRS A2.2)."""
 
-    # Only this club's rows: SeriesEntry.objects.for_club(club) (slice 11).
-    objects = _club_manager("series__club")
-
     series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="entries")
     # PROTECT: a boat's race history must not vanish because the boat record
     # was deleted.
     boat = models.ForeignKey(
         Boat, on_delete=models.PROTECT, related_name="series_entries"
     )
+
+    # Only this club's rows: SeriesEntry.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
 
     class Meta:
         verbose_name_plural = "series entries"
@@ -427,9 +427,6 @@ def _whole_seconds(value, field):
 class Race(models.Model):
     """One race in a series, with a single start."""
 
-    # Only this club's rows: Race.objects.for_club(club) (slice 11).
-    objects = _club_manager("series__club")
-
     series = models.ForeignKey(Series, on_delete=models.CASCADE, related_name="races")
     number = models.PositiveSmallIntegerField(
         help_text="Races are scored in this order, not by date."
@@ -443,6 +440,9 @@ class Race(models.Model):
     # them again after corrections, which moves results_sent_at on.
     published_at = models.DateTimeField(null=True, blank=True, editable=False)
     results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
+
+    # Only this club's rows: Race.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
 
     class Meta:
         ordering = ["series", "number"]
@@ -487,9 +487,6 @@ class RaceEntry(models.Model):
     Nothing here moves a score, so none of it is in the change history.
     """
 
-    # Only this club's rows: RaceEntry.objects.for_club(club) (slice 11).
-    objects = _club_manager("race__series__club")
-
     race = models.ForeignKey(
         Race, on_delete=models.CASCADE, related_name="race_entries"
     )
@@ -504,6 +501,9 @@ class RaceEntry(models.Model):
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(99)],
     )
+
+    # Only this club's rows: RaceEntry.objects.for_club(club) (slice 11).
+    objects = _club_manager("race__series__club")
 
     class Meta:
         verbose_name = "start sheet entry"
@@ -538,9 +538,6 @@ class RaceEntry(models.Model):
 class Finish(models.Model):
     """What the race officer wrote down for one boat: a time, or a code."""
 
-    # Only this club's rows: Finish.objects.for_club(club) (slice 11).
-    objects = _club_manager("race__series__club")
-
     class Status(models.TextChoices):
         # Values match nhc.RaceStatus. Only the engine's four for now; OCS, RET
         # and DSQ are deferred (see docs/decisions.md).
@@ -566,6 +563,9 @@ class Finish(models.Model):
     # before slice 9, which therefore never offer Undo.
     recorded_at = models.DateTimeField(null=True, blank=True, editable=False)
 
+    # Only this club's rows: Finish.objects.for_club(club) (slice 11).
+    objects = _club_manager("race__series__club")
+
     class Meta:
         verbose_name_plural = "finishes"
         constraints = [
@@ -589,6 +589,11 @@ class Finish(models.Model):
 
     def __str__(self):
         return f"{self.entry} in {self.race}"
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.recorded_at is None:
+            self.recorded_at = timezone.now()
+        super().save(*args, **kwargs)
 
     def clean(self):
         # Field-keyed errors, so the form shows them on the right box. Django
@@ -623,11 +628,6 @@ class Finish(models.Model):
                 }
             )
 
-    def save(self, *args, **kwargs):
-        if self._state.adding and self.recorded_at is None:
-            self.recorded_at = timezone.now()
-        super().save(*args, **kwargs)
-
     @property
     def elapsed_seconds(self):
         """Finish time minus start time, in whole seconds. None without a time."""
@@ -647,9 +647,6 @@ class ScoringChange(models.Model):
     key to the Finish, entry or boat described: the history has to outlive the
     rows it describes, so ``description`` and ``changes`` are kept as text.
     """
-
-    # Only this club's rows: ScoringChange.objects.for_club(club) (slice 11).
-    objects = _club_manager("club")
 
     class Kind(models.TextChoices):
         FINISH = "FINISH", "Finish"
@@ -703,6 +700,9 @@ class ScoringChange(models.Model):
     changes = models.JSONField(default=dict, blank=True)
     is_correction = models.BooleanField(default=False)
     reason = models.TextField(blank=True)
+
+    # Only this club's rows: ScoringChange.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
 
     class Meta:
         ordering = ["-timestamp", "-pk"]
@@ -770,9 +770,6 @@ class Request(models.Model):
 class BoatRequest(Request):
     """A member asking to register a boat, change one of theirs, or own one on record."""
 
-    # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
-    objects = _club_manager("club")
-
     class Kind(models.TextChoices):
         REGISTER = "REGISTER", "Register a boat"
         CHANGE = "CHANGE", "Change a boat"
@@ -818,6 +815,9 @@ class BoatRequest(Request):
         validators=[MinValueValidator(Decimal("0.001"))],
     )
 
+    # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
+    objects = _club_manager("club")
+
     # The fields a registration or change proposes, in display order.
     PROPOSED_FIELDS = [
         "sail_number",
@@ -854,9 +854,6 @@ class BoatRequest(Request):
 class EntryRequest(Request):
     """A member asking to enter one of their boats in a series."""
 
-    # Only this club's rows: EntryRequest.objects.for_club(club) (slice 11).
-    objects = _club_manager("series__club")
-
     series = models.ForeignKey(
         Series, on_delete=models.CASCADE, related_name="entry_requests"
     )
@@ -864,10 +861,8 @@ class EntryRequest(Request):
         Boat, on_delete=models.CASCADE, related_name="entry_requests"
     )
 
-    @property
-    def club(self):
-        # An entry request's club is its series' club; BoatRequest stores its own.
-        return self.series.club
+    # Only this club's rows: EntryRequest.objects.for_club(club) (slice 11).
+    objects = _club_manager("series__club")
 
     class Meta(Request.Meta):
         constraints = [
@@ -881,3 +876,8 @@ class EntryRequest(Request):
 
     def __str__(self):
         return f"Enter {self.boat} in {self.series}"
+
+    @property
+    def club(self):
+        # An entry request's club is its series' club; BoatRequest stores its own.
+        return self.series.club

@@ -203,7 +203,7 @@ def test_realigned_boats_keep_their_base_numbers_and_move_only_their_tcf():
     next_boats = realigned_boats(series, results)
 
     realigned = {r.boat_id: r.realigned_tcf for r in results}
-    for boat, was in zip(next_boats, series.boats):
+    for boat, was in zip(next_boats, series.boats, strict=True):
         assert boat.base_number == was.base_number
         assert boat.current_tcf == realigned[boat.boat_id]
 

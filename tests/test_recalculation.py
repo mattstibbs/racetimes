@@ -15,6 +15,8 @@ rather than wrong - invisible in any single-race test, and wrong in a way that
 only shows up weeks later in the standings.
 """
 
+from itertools import pairwise
+
 import pytest
 
 from nhc import (
@@ -131,7 +133,7 @@ def test_the_handicap_chain_still_holds_after_a_correction(index, boat_id):
     """Each race must still be scored on exactly what the previous one
     produced."""
     outcome = score_series(build(slower(index, boat_id)))
-    for earlier, later in zip(outcome.races, outcome.races[1:]):
+    for earlier, later in pairwise(outcome.races):
         produced = {r.boat_id: r.effective_next_tcf for r in earlier.results}
         used = {r.boat_id: r.tcf_used for r in later.results}
         assert used == produced
@@ -278,7 +280,7 @@ def test_a_correction_that_changes_a_result_changes_the_standings():
 def test_standings_stay_consistent_with_the_races_they_came_from():
     outcome = score_series(build(slower(1, "B")))
     for standing in outcome.standings:
-        for score, race in zip(standing.scores, outcome.races):
+        for score, race in zip(standing.scores, outcome.races, strict=True):
             recorded = {r.boat_id: r.points for r in race.results}[standing.boat_id]
             assert score.race_id == race.race_id
             assert score.points == recorded
@@ -323,7 +325,7 @@ def test_a_regatta_correction_keeps_the_clamped_chain_intact():
         change(1, "A", 3000, regatta_races()), series_type=SeriesType.REGATTA
     )
     outcome = score_series(series)
-    for earlier, later in zip(outcome.races, outcome.races[1:]):
+    for earlier, later in pairwise(outcome.races):
         produced = {r.boat_id: r.effective_next_tcf for r in earlier.results}
         used = {r.boat_id: r.tcf_used for r in later.results}
         assert used == produced

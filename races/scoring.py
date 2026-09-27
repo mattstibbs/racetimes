@@ -197,7 +197,7 @@ def score_series(series):
     race_by_id = {str(race.pk): race for race in scored}
 
     race_results = []
-    for race, race_outcome in zip(scored, outcome.races):
+    for race, race_outcome in zip(scored, outcome.races, strict=True):
         finishes = {str(finish.entry_id): finish for finish in race.finishes.all()}
         racing = {str(race_entry.entry_id) for race_entry in race.race_entries.all()}
         rows = [

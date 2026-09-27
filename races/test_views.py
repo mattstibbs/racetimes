@@ -194,7 +194,7 @@ def regatta_night(race_night):
 def test_a_scheduled_regatta_race_does_not_break_the_pages(
     committee_client, regatta_night
 ):
-    series, _, a, _ = regatta_night
+    series, _, _a, _ = regatta_night
     race_2 = make_race(series, 2)
     assert (
         committee_client.get(reverse("results:series", args=[series.pk])).status_code

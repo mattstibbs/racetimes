@@ -75,7 +75,7 @@ def three_boats():
 
 
 def test_elapsed_time_is_finish_minus_start(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
     row = score_series(series).for_race(race).for_entry(a)
@@ -195,7 +195,7 @@ def test_a_series_with_no_races_has_no_standings(three_boats):
 
 
 def test_a_race_with_nothing_recorded_is_not_scored(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, b, _c) = three_boats
     race_1, race_2 = make_race(series, 1), make_race(series, 2)
     record(race_1, a, "19:00:00")
     record(race_1, b, "19:10:00")
@@ -208,7 +208,7 @@ def test_a_race_with_nothing_recorded_is_not_scored(three_boats):
 
 def test_an_unsailed_race_does_not_use_up_the_discard(three_boats):
     """Before this rule, a scheduled race scored everyone DNC and became their discard."""
-    series, (a, b, c) = three_boats
+    series, (a, b, _c) = three_boats
     race_1, race_2 = make_race(series, 1), make_race(series, 2)
     make_race(series, 3)  # scheduled, not sailed
     record(race_1, a, "19:00:00")
@@ -223,7 +223,7 @@ def test_an_unsailed_race_does_not_use_up_the_discard(three_boats):
 
 
 def test_a_code_alone_makes_a_race_sailed(three_boats):
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series)
     record(race, a, status=Finish.Status.DNF)
     assert score_series(series).for_race(race) is not None
@@ -241,7 +241,7 @@ def regatta(three_boats):
 
 
 def test_a_scheduled_regatta_race_does_not_stop_scoring(regatta):
-    series, entries, race_1 = regatta
+    series, _entries, race_1 = regatta
     race_2 = make_race(series, 2)
     results = score_series(series)
     assert results.for_race(race_1) is not None
@@ -273,7 +273,7 @@ def test_a_regatta_race_is_scored_once_a_time_is_saved(regatta):
 
 def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
     """A backstop: validation should stop this, but if it does not, no crash."""
-    series, (a, b, c) = three_boats
+    series, (a, _b, _c) = three_boats
     race = make_race(series, start="18:00:00")
     record(race, a, "19:00:00")
     # Bypass validation, as a bug or a direct database edit might.

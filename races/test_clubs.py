@@ -75,7 +75,7 @@ def test_the_migration_moves_existing_rows_into_the_first_club():
     race = Race.objects.create(
         series=series, number=1, date=date(2026, 9, 23), start_time=time(18, 0)
     )
-    for boat, finish in zip(boats, (time(19, 5, 31), time(19, 7, 2))):
+    for boat, finish in zip(boats, (time(19, 5, 31), time(19, 7, 2)), strict=True):
         entry = SeriesEntry.objects.create(series=series, boat=boat)
         RaceEntry.objects.create(race=race, entry=entry)
         Finish.objects.create(

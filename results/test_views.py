@@ -68,7 +68,7 @@ def three_races():
         start=1,
     ):
         race = make_race(series, number, on=date(2026, 9, number))
-        for entry, finish_time in zip(entries, times):
+        for entry, finish_time in zip(entries, times, strict=True):
             if finish_time:
                 record(race, entry, finish_time)
             else:
@@ -100,7 +100,7 @@ def test_home_lists_series_newest_first(client):
 
 
 def test_home_shows_each_series_latest_race_with_its_top_three(client, three_races):
-    series, races, _ = three_races
+    series, _races, _ = three_races
     page = home(client)
     assert "Latest results" in page
     assert f'{reverse("results:series", args=[series.pk])}?race=3"' in page
@@ -114,7 +114,7 @@ def test_home_shows_each_series_latest_race_with_its_top_three(client, three_rac
 
 
 def test_the_latest_results_say_when_a_race_is_provisional(client, race_night):
-    series, race, *_ = race_night
+    _series, _race, *_ = race_night
     assert "Provisional" in home(client)
     Race.objects.update(published_at=timezone.now())
     assert "Provisional" not in home(client)
@@ -367,7 +367,7 @@ def test_results_that_cannot_be_calculated_show_a_message(client, race_night):
 
 
 def test_the_boat_page_shows_each_race(client, three_races):
-    series, races, entries = three_races
+    _series, _races, entries = three_races
     page = boat_page(client, entries[2].boat)
     for number in range(1, 5):
         assert f"?race={number}&amp;boat={entries[2].boat.pk}" in page
@@ -388,7 +388,7 @@ def test_the_boat_page_shows_the_standing(client, three_races):
 
 
 def test_the_boat_page_marks_provisional_races(client, three_races):
-    series, races, entries = three_races
+    _series, _races, entries = three_races
     page = boat_page(client, entries[0].boat)
     assert page.count('<abbr title="Provisional">*</abbr>') == 3
     assert "* Provisional: may still change" in page
@@ -398,7 +398,7 @@ def test_the_boat_page_marks_provisional_races(client, three_races):
 
 
 def test_the_boat_page_brackets_discarded_points(client, three_races):
-    series, _, entries = three_races
+    _series, _, entries = three_races
     # Three races, one discard: GBR3's DNF (4 points) is its worst.
     assert '<td class="num discarded">(4)</td>' in boat_page(client, entries[2].boat)
 
@@ -417,7 +417,7 @@ def test_the_next_handicap_is_the_last_scored_race_s_next_handicap(client, three
 
 
 def test_after_the_last_race_the_next_handicap_says_so(client, three_races):
-    series, races, entries = three_races
+    _series, races, entries = three_races
     races[3].delete()
     page = boat_page(client, entries[0].boat)
     assert "handicap after race 3, the last race so far:" in page

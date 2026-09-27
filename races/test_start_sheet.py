@@ -100,7 +100,7 @@ def test_ticking_a_boat_puts_it_on_the_start_sheet(
         response = tick(client, race, kittiwake, persons="4")
     html = response.content.decode()
     assert response.status_code == 200
-    assert 'id="start-%d"' % kittiwake.pk in html
+    assert f'id="start-{kittiwake.pk}"' in html
     assert "Added to the start sheet. The owner has been emailed." in html
     # The count at the top of the page is updated in place, alongside the row.
     assert 'id="start-sheet-count" hx-swap-oob="true"' in html
