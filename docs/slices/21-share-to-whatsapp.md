@@ -1,6 +1,6 @@
 # Slice 21: share results to WhatsApp
 
-**Status: built (2026-09-27), awaiting review. The owner's answers are at the
+**Status: complete (2026-09-27). The owner's answers are at the
 end; where they differ from the recommendations, this spec follows the
 answers.**
 

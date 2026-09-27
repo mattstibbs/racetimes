@@ -779,7 +779,7 @@ promise: its tests run on 3.11 in CI, and Ruff targets 3.11 for `nhc/` and
 
 
 
-## Slice 21: share results to WhatsApp. **Status: built (2026-09-27), awaiting review**
+## Slice 21: share results to WhatsApp. **Status: complete (2026-09-27)**
 
 Spec: `docs/slices/21-share-to-whatsapp.md`. Once a race is published (or
 corrected), or a series declared final, the committee gets a **Share to
