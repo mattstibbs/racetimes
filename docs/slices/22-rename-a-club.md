@@ -1,6 +1,6 @@
 # Slice 22: renaming a club
 
-**Status: built (2026-09-27), awaiting review. The owner said yes to all three
+**Status: complete (2026-09-27). The owner said yes to all three
 recommendations (answers at the end).**
 
 ## Goal
