@@ -758,3 +758,21 @@ left for now (every page stays noindex), a stock photo for now ("Cowes Week
 2019", Peter Trimming, CC BY-SA 2.0, credited on the page), the bigger logo
 on the service's pages only, every active club listed, and drafted wording
 for the owner to edit.
+
+
+## Slice 20: Python 3.13. **Status: built (2026-09-27); production to deploy**
+
+Spec: `docs/slices/20-python-3-13.md`. Both sites move from Python 3.11 to 3.13
+before 3.11's support ends (October 2027); 3.13's runs to October 2029. CI runs
+the suite on 3.13 and 3.14. The scoring engine keeps its "3.11 or later"
+promise: its tests run on 3.11 in CI, and Ruff targets 3.11 for `nhc/` and
+`tests/`. No code, dependency, model or migration change: the suite passed on
+3.13 unchanged, and Ruff had nothing to modernise.
+
+- [x] The suite passes on 3.13 and on 3.14 (locally, a 3.14 pre-release;
+      CI uses the release), and the engine's tests on 3.11.
+- [x] `ruff check .` and `ruff format --check .` pass with the new targets;
+      `check --deploy` passes with production settings on 3.13.
+- [x] The site runs locally on 3.13, checked by hand in a browser.
+- [ ] After deploying, `scripts/check_live.py` passes against production.
+
