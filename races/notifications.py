@@ -110,6 +110,11 @@ def _link(request, name, *args):
     return request.build_absolute_uri(reverse(name, args=args))
 
 
+def boat_owners(count):
+    """How many owners an email went to, for the page's message: "3 boat owners"."""
+    return f"{count} boat owner{'s' if count != 1 else ''}"
+
+
 # --- Race results --------------------------------------------------------------
 
 

@@ -4,19 +4,21 @@ from django.urls import path, reverse_lazy
 from . import (
     account_views,
     invitations,
+    legal_views,
     member_views,
     membership_views,
     operator_views,
-    views,
+    race_day_views,
+    request_views,
+    series_views,
 )
 from .forms import ClubPasswordResetForm
 
 app_name = "races"
 
 urlpatterns = [
-    path("ping/", views.ping, name="ping"),
-    path("privacy/", views.privacy, name="privacy"),
-    path("terms/", views.terms, name="terms"),
+    path("privacy/", legal_views.privacy, name="privacy"),
+    path("terms/", legal_views.terms, name="terms"),
     path("accounts/signup/", member_views.signup, name="signup"),
     path("accounts/login/", member_views.LoginView.as_view(), name="login"),
     path(
@@ -117,36 +119,56 @@ urlpatterns = [
         member_views.withdraw_request,
         name="withdraw_request",
     ),
-    path("races/<int:pk>/publish/", views.publish_results, name="publish_results"),
-    path("requests/", views.requests_page, name="requests"),
-    path("requests/<str:kind>/<int:pk>/", views.decide_request, name="decide_request"),
-    path("series/<int:pk>/history/", views.series_history, name="series_history"),
-    path("series/<int:pk>/final/", views.final_page, name="final"),
-    path("series/<int:pk>/final/declare/", views.declare_final, name="declare_final"),
-    path("series/<int:pk>/final/reopen/", views.reopen_series, name="reopen_series"),
-    path("series/<int:pk>/final/send/", views.send_final, name="send_final"),
-    path("races/<int:pk>/", views.race_day_page, name="race_day"),
+    path(
+        "races/<int:pk>/publish/",
+        race_day_views.publish_results,
+        name="publish_results",
+    ),
+    path("requests/", request_views.requests_page, name="requests"),
+    path(
+        "requests/<str:kind>/<int:pk>/",
+        request_views.decide_request,
+        name="decide_request",
+    ),
+    path(
+        "series/<int:pk>/history/", series_views.series_history, name="series_history"
+    ),
+    path("series/<int:pk>/final/", series_views.final_page, name="final"),
+    path(
+        "series/<int:pk>/final/declare/",
+        series_views.declare_final,
+        name="declare_final",
+    ),
+    path(
+        "series/<int:pk>/final/reopen/",
+        series_views.reopen_series,
+        name="reopen_series",
+    ),
+    path("series/<int:pk>/final/send/", series_views.send_final, name="send_final"),
+    path("races/<int:pk>/", race_day_views.race_day_page, name="race_day"),
     # The slice 6 and slice 1 addresses, redirecting to the race day page.
-    path("races/<int:pk>/entries/", views.start_sheet_page, name="start_sheet"),
-    path("races/<int:pk>/finishes/", views.finish_entry, name="finish_entry"),
+    path(
+        "races/<int:pk>/entries/", race_day_views.start_sheet_page, name="start_sheet"
+    ),
+    path("races/<int:pk>/finishes/", race_day_views.finish_entry, name="finish_entry"),
     path(
         "races/<int:race_pk>/entries/<int:entry_pk>/",
-        views.save_start_sheet_row,
+        race_day_views.save_start_sheet_row,
         name="save_start_sheet_row",
     ),
     path(
         "races/<int:race_pk>/finishes/<int:entry_pk>/",
-        views.save_finish,
+        race_day_views.save_finish,
         name="save_finish",
     ),
     path(
         "races/<int:race_pk>/finishes/<int:entry_pk>/tap/",
-        views.tap_finish,
+        race_day_views.tap_finish,
         name="tap_finish",
     ),
     path(
         "races/<int:race_pk>/finishes/<int:entry_pk>/undo/",
-        views.undo_finish,
+        race_day_views.undo_finish,
         name="undo_finish",
     ),
 ]

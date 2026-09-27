@@ -441,7 +441,6 @@ def urls_for(data, kind=None):
         "races:password_reset_complete": [],
         "races:password_reset_confirm": ["x", "y"],
         "races:password_reset_done": [],
-        "races:ping": [],
         "races:publish_results": [race_1.pk],
         "races:race_day": [race_1.pk],
         "races:register_boat": [],

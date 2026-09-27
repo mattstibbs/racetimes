@@ -1,3 +1,11 @@
+"""The race day page (slice 9): one page per race, for the race committee.
+
+It has two views: the start sheet (who is racing) and finishing (the
+Finished button, typed times and codes, and publishing the results). It
+replaces the slice 1 finish-entry page and the slice 6 start sheet page, whose
+addresses now redirect here.
+"""
+
 from datetime import datetime, time
 
 from django.conf import settings
@@ -8,67 +16,13 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
-from . import approvals, audit, final, notifications, publishing, race_day, start_sheet
-from .forms import DecisionForm, FinishForm, StartSheetRowForm
-from .models import (
-    NOT_ON_START_SHEET,
-    Boat,
-    BoatRequest,
-    EntryRequest,
-    Finish,
-    Race,
-    ScoringChange,
-    Series,
-)
+from . import audit, final, notifications, publishing, race_day, start_sheet
+from .forms import FinishForm, StartSheetRowForm
+from .models import NOT_ON_START_SHEET, Finish, Race
 from .roles import committee_required
 from .scoring import score_series
-
-
-def ping(request):
-    """Example HTMX endpoint: returns an HTML fragment, not a full page."""
-    return HttpResponse("pong (htmx)" if request.htmx else "pong")
-
-
-# The privacy notice and terms (slice 11 part 5): the same text on every
-# address, the service's and each club's, so the footer's links never leave
-# the site you're on.
-
-
-@require_GET
-def privacy(request):
-    return render(
-        request, "legal/privacy.html", {"contact_email": settings.SERVICE_CONTACT_EMAIL}
-    )
-
-
-@require_GET
-def terms(request):
-    return render(
-        request, "legal/terms.html", {"contact_email": settings.SERVICE_CONTACT_EMAIL}
-    )
-
-
-@committee_required
-def series_history(request, pk):
-    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    changes = series.scoring_changes.select_related("race")
-    race = None
-    if request.GET.get("race", "").isdigit():
-        race = get_object_or_404(series.races, pk=request.GET["race"])
-        changes = changes.filter(race=race)
-    return render(
-        request,
-        "races/series_history.html",
-        {"series": series, "race": race, "changes": changes},
-    )
-
-
-# --- The race day page (slice 9) -----------------------------------------------
-# One page per race, with two views: the start sheet, and finishing. It
-# replaces the slice 1 finish-entry page and the slice 6 start sheet page,
-# whose addresses now redirect here.
 
 VIEWS = ("start", "finish")
 
@@ -152,6 +106,9 @@ def _race_day_context(race, view, **extra):
     else:
         context.update(_finishing_context(race, at, **extra))
     return context
+
+
+# --- The finishing view ----------------------------------------------------------------
 
 
 def _finishing_context(
@@ -331,7 +288,7 @@ def _prefix(entry):
     return f"entry-{entry.pk}"
 
 
-# --- The start sheet view ------------------------------------------------------
+# --- The start sheet view --------------------------------------------------------------
 
 
 @committee_required
@@ -425,168 +382,13 @@ def _start_sheet_context(race, bound_form=None, bound_entry=None, refused=""):
     }
 
 
-# --- Final results (slice 10) ----------------------------------------------------
+# --- Publishing results ----------------------------------------------------------------
 
 
-@committee_required
-def final_page(request, pk):
-    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    return render(request, "races/final.html", _final_context(series))
-
-
-def _final_context(series, reopen_error=""):
-    results = score_series(series)
-    return {
-        "series": series,
-        "results": results,
-        "blockers": [] if series.is_final else final.blockers(series, results),
-        "not_sailed": final.not_sailed(results),
-        "history": series.scoring_changes.filter(kind=ScoringChange.Kind.FINAL),
-        "reopen_error": reopen_error,
-    }
-
-
-@committee_required
-@require_POST
-def declare_final(request, pk):
-    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    try:
-        count = final.declare(series, request.user, request)
-    except ValidationError as refused:
-        for message in refused.messages:
-            messages.error(request, message)
-    else:
-        messages.success(
-            request, f"{series} is final. Final standings sent to {_owners(count)}."
-        )
-    return redirect("races:final", series.pk)
-
-
-@committee_required
-@require_POST
-def reopen_series(request, pk):
-    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    try:
-        final.reopen(series, request.user, request.POST.get("reason", ""))
-    except ValidationError as refused:
-        return render(
-            request,
-            "races/final.html",
-            _final_context(series, " ".join(refused.messages)),
-        )
-    messages.success(
-        request,
-        f"{series} is reopened. Declare it final again when the corrections are done.",
-    )
-    return redirect("races:final", series.pk)
-
-
-@committee_required
-@require_POST
-def send_final(request, pk):
-    """Send the final standings again, after a sending failure."""
-    series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    if not series.is_final:
-        messages.error(request, final.NOT_FINAL)
-    else:
-        count = final.send(series, request, updated=False)
-        series.refresh_from_db()
-        if series.final_results_sent_at is not None:
-            messages.success(request, f"Final standings sent to {_owners(count)}.")
-    return redirect("races:final", series.pk)
-
-
-# --- The committee's requests page -------------------------------------------
-
-REQUEST_MODELS = {"boat": BoatRequest, "entry": EntryRequest}
-
-
-@committee_required
-def requests_page(request):
-    pending, decided = [], []
-    for kind, model in REQUEST_MODELS.items():
-        related = (
-            ["requested_by", "boat", "series"]
-            if model is EntryRequest
-            else ["requested_by", "boat"]
-        )
-        for member_request in model.objects.for_club(request.club).select_related(
-            *related
-        ):
-            (pending if member_request.is_pending else decided).append(
-                _request_row(kind, member_request)
-            )
-    pending.sort(
-        key=lambda row: row["request"].created_at
-    )  # oldest first: first come, first served
-    decided.sort(
-        key=lambda row: row["request"].decided_at or row["request"].created_at,
-        reverse=True,
-    )
-    return render(
-        request, "races/requests.html", {"pending": pending, "decided": decided[:50]}
-    )
-
-
-@committee_required
-@require_POST
-def decide_request(request, kind, pk):
-    model = REQUEST_MODELS.get(kind)
-    if model is None:
-        return HttpResponse(status=404)
-    member_request = get_object_or_404(model.objects.for_club(request.club), pk=pk)
-    form = DecisionForm(request.POST)
-    error = message = ""
-    # Worked out before deciding: once a change is applied, the boat already
-    # matches it, and a claim changes who the previous owner was.
-    details = approvals.proposed_values(member_request) if kind == "boat" else []
-    previous_owner = (
-        member_request.boat.owner if kind == "boat" and member_request.boat else None
-    )
-    boat_name = str(member_request.boat) if member_request.boat_id else None
-    if form.is_valid():
-        try:
-            if form.cleaned_data["decision"] == "approve":
-                message = approvals.approve(
-                    member_request, request.user, form.cleaned_data["reason"]
-                )
-            else:
-                message = approvals.reject(
-                    member_request, request.user, form.cleaned_data["note"]
-                )
-        except ValidationError as failure:
-            error = " ".join(failure.messages)
-    else:
-        error = "Choose approve or reject."
-    member_request.refresh_from_db()
-    if not error:
-        _email_decision(member_request, request, details, previous_owner, boat_name)
-    if not request.htmx:
-        if error:
-            messages.error(request, error)
-        else:
-            messages.success(request, message)
-        return redirect("races:requests")
-    row = _request_row(kind, member_request)
-    return render(
-        request,
-        "races/_request_row.html",
-        {"row": row, "error": error, "message": message},
-    )
-
-
-def _request_row(kind, member_request):
-    return {
-        "kind": kind,
-        "request": member_request,
-        "proposed": approvals.proposed_values(member_request) if kind == "boat" else [],
-        # Worked out only while it can still matter, since it replays scores.
-        "needs_reason": member_request.is_pending
-        and approvals.needs_reason(member_request),
-    }
-
-
-# --- Publishing results --------------------------------------------------------
+UNRECORDED = (
+    "Not sent: record a time or a code for every boat on the start sheet first. "
+    "Still to record: {boats}."
+)
 
 
 @committee_required
@@ -621,18 +423,8 @@ def publish_results(request, pk):
         # has already said so on the page; claiming success here would contradict it.
         if race.results_sent_at != sent_before:
             first = "Updated results sent" if updated else "Results published and sent"
-            messages.success(request, f"{first} to {_owners(count)}.")
+            messages.success(request, f"{first} to {notifications.boat_owners(count)}.")
     return redirect(_race_day_url(race, "finish"))
-
-
-def _owners(count):
-    return f"{count} boat owner{'s' if count != 1 else ''}"
-
-
-UNRECORDED = (
-    "Not sent: record a time or a code for every boat on the start sheet first. "
-    "Still to record: {boats}."
-)
 
 
 def _publishing_context(race):
@@ -642,37 +434,3 @@ def _publishing_context(race):
         "amended": publishing.amended_since_sent(race),
         "unrecorded": start_sheet.unrecorded(race),
     }
-
-
-def _email_decision(member_request, request, details, previous_owner, boat_name):
-    """The member hears the decision; a claim's previous owner hears they lost the boat.
-
-    The member's own "request approved" email carries what changed, so they are
-    not also sent "your boat was updated" or "your boat was entered".
-    """
-    notifications.request_decided(member_request, request, details, boat_name)
-    approved_claim = (
-        isinstance(member_request, BoatRequest)
-        and member_request.kind == BoatRequest.Kind.CLAIM
-        and member_request.status == BoatRequest.Status.APPROVED
-    )
-    if (
-        approved_claim
-        and previous_owner is not None
-        and previous_owner != member_request.requested_by
-    ):
-        boat = Boat.objects.for_club(request.club).get(
-            pk=member_request.boat_id
-        )  # as it is now, new owner and all
-        notifications.boat_updated(
-            boat,
-            [
-                (
-                    "Owner",
-                    previous_owner.get_full_name() or previous_owner.get_username(),
-                    boat.owner_display,
-                )
-            ],
-            [previous_owner],
-            request,
-        )

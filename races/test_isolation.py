@@ -362,7 +362,10 @@ CLUB_MODELS = "Boat|Series|SeriesEntry|Race|RaceEntry|Finish|ScoringChange|BoatR
 # request's club. Helper modules (scoring, audit, final, race_day...) are handed
 # rows these have already found, so they don't need to.
 REQUEST_MODULES = [
-    "races/views.py",
+    "races/race_day_views.py",
+    "races/series_views.py",
+    "races/request_views.py",
+    "races/legal_views.py",
     "races/member_views.py",
     "races/admin.py",
     "races/context_processors.py",

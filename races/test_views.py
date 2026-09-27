@@ -5,14 +5,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from races.models import Finish, Series
-from races.testing import (
-    enter,
-    make_boat,
-    make_race,
-    make_series,
-    record,
-    start,
-)
+from races.testing import enter, make_boat, make_race, make_series, record, start
 
 pytestmark = pytest.mark.django_db
 
