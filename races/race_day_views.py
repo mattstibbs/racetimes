@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import audit, final, notifications, publishing, race_day, start_sheet
+from . import audit, final, notifications, publishing, race_day, sharing, start_sheet
 from .models import NOT_ON_START_SHEET, Finish, Race
 from .race_day_forms import FinishForm, StartSheetRowForm
 from .roles import committee_required
@@ -59,7 +59,7 @@ def race_day_page(request, pk):
     if view == "finish" and since and request.htmx and since == race_day.version(race):
         # The page refreshes itself every few seconds; 204 tells HTMX nothing changed.
         return HttpResponse(status=204)
-    context = _race_day_context(race, view)
+    context = _race_day_context(request, race, view)
     target = request.htmx.target if request.htmx else None
     if target == "finish-panel" and view == "finish":
         return render(request, "races/_finish_panel.html", context)
@@ -85,6 +85,7 @@ def finish_entry(request, pk):
 
 
 def _race_day_context(
+    request,
     race,
     view,
     *,
@@ -122,6 +123,7 @@ def _race_day_context(
     else:
         context.update(
             _finishing_context(
+                request,
                 race,
                 at,
                 bound_form=bound_form,
@@ -138,7 +140,15 @@ def _race_day_context(
 
 
 def _finishing_context(
-    race, at, *, bound_form=None, bound_entry=None, message="", error="", touched=None
+    request,
+    race,
+    at,
+    *,
+    bound_form=None,
+    bound_entry=None,
+    message="",
+    error="",
+    touched=None,
 ):
     """Still racing (sail-number order), finished (order across the line), not racing."""
     still_racing, finished, not_racing = _finishing_rows(
@@ -152,16 +162,17 @@ def _finishing_context(
             text for field_errors in bound_form.errors.values() for text in field_errors
         )
     _order_across_the_line(finished)
+    results = score_series(race.series)
     return {
         "still_racing": still_racing,
         "finished": finished,
         "not_racing": not_racing,
         "can_tap": race_day.can_tap(race, at),
-        "note": score_series(race.series).note_for(race),
+        "note": results.note_for(race),
         "version": race_day.version(race),
         "panel_message": message,
         "panel_error": error,
-        **_publishing_context(race),
+        **_publishing_context(request, race, results),
     }
 
 
@@ -231,6 +242,7 @@ def _finish_or_page(
     """After a change on the Finishing view: the panel over HTMX, else back to the page."""
     if request.htmx:
         context = _race_day_context(
+            request,
             race,
             "finish",
             message=message,
@@ -309,7 +321,9 @@ def save_finish(request, race_pk, entry_pk):
         return render(
             request,
             "races/race_day.html",
-            _race_day_context(race, "finish", bound_form=form, bound_entry=entry),
+            _race_day_context(
+                request, race, "finish", bound_form=form, bound_entry=entry
+            ),
         )
     before = score_series(race.series)
     # The finish and its history are saved together or not at all.
@@ -369,7 +383,12 @@ def save_start_sheet_row(request, race_pk, entry_pk):
             request,
             "races/race_day.html",
             _race_day_context(
-                race, "start", bound_form=form, bound_entry=entry, refused=refused
+                request,
+                race,
+                "start",
+                bound_form=form,
+                bound_entry=entry,
+                refused=refused,
             ),
         )
     context = _start_sheet_context(race, form, entry, refused)
@@ -467,10 +486,20 @@ def publish_results(request, pk):
     return redirect(_race_day_url(race, "finish"))
 
 
-def _publishing_context(race):
+def _publishing_context(request, race, results):
     race.refresh_from_db(fields=["published_at", "results_sent_at"])
+    amended = publishing.amended_since_sent(race)
+    unrecorded = start_sheet.unrecorded(race)
+    share_url = None
+    # Only published results are shared (slice 21), and only once they're
+    # complete and sent, or corrected since: a provisional race might change.
+    if race.published_at and race.results_sent_at and not unrecorded:
+        share_url = sharing.whatsapp_url(
+            sharing.race_message(race, results, request, updated=amended)
+        )
     return {
         "race": race,
-        "amended": publishing.amended_since_sent(race),
-        "unrecorded": start_sheet.unrecorded(race),
+        "amended": amended,
+        "unrecorded": unrecorded,
+        "share_url": share_url,
     }

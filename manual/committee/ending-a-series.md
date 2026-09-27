@@ -50,7 +50,16 @@ Press **Declare final**. Then:
 - The results pages label the series **Final Results**, and say when it was
   declared.
 
-![The Final results page after declaring: final, locked, emailed to the owners, with a box to reopen it](../images/final-declared.png)
+![The Final results page after declaring: final, locked, emailed to the owners, with a Share final standings to WhatsApp button and a box to reopen it](../images/final-declared.png)
+
+### Sharing the final standings to WhatsApp
+
+Once the series is final, the Final results page has a **Share final
+standings to WhatsApp** button. It opens WhatsApp with a message already
+written: every boat's final place and points, and a link to the final
+standings on your club's site. Choose your club's group and press send;
+nothing is sent until you do. As with [race results](publishing-results.md),
+the message names boats, never their owners.
 
 You can still rename the series, and change boats' details, including
 their base numbers. A final series keeps its results exactly as they were

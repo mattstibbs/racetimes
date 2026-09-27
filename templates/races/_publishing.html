@@ -16,10 +16,14 @@
   {% elif amended %}
     <p class="amended"><strong>Amended since results were sent</strong> on {{ race.results_sent_at|date:"j M Y H:i" }}.
       When you have finished correcting, send the updated results to the owners.</p>
-    <button type="submit" name="send" value="updated">Send updated results</button>
+    <div class="buttons">
+      <button type="submit" name="send" value="updated">Send updated results</button>
+      {% include "races/_share_whatsapp.html" with label="Share updated results to WhatsApp" %}
+    </div>
   {% else %}
     <p><strong>Published {{ race.published_at|date:"j M Y H:i" }}.</strong>
       Results last sent {{ race.results_sent_at|date:"j M Y H:i" }}.</p>
+    {% if share_url %}{% include "races/_share_whatsapp.html" with label="Share to WhatsApp" %}{% endif %}
   {% endif %}
   </form>
 </div>

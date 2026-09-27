@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from . import final, notifications
+from . import final, notifications, sharing
 from .models import ScoringChange, Series
 from .roles import committee_required
 from .scoring import score_series
@@ -34,11 +34,17 @@ def series_history(request, pk):
 @committee_required
 def final_page(request, pk):
     series = get_object_or_404(Series.objects.for_club(request.club), pk=pk)
-    return render(request, "races/final.html", _final_context(series))
+    return render(request, "races/final.html", _final_context(request, series))
 
 
-def _final_context(series, reopen_error=""):
+def _final_context(request, series, reopen_error=""):
     results = score_series(series)
+    share_url = None
+    if series.is_final:
+        # Only a final series' standings are shared (slice 21).
+        share_url = sharing.whatsapp_url(
+            sharing.final_message(series, results, request)
+        )
     return {
         "series": series,
         "results": results,
@@ -46,6 +52,7 @@ def _final_context(series, reopen_error=""):
         "not_sailed": final.not_sailed(results),
         "history": series.scoring_changes.filter(kind=ScoringChange.Kind.FINAL),
         "reopen_error": reopen_error,
+        "share_url": share_url,
     }
 
 
@@ -76,7 +83,7 @@ def reopen_series(request, pk):
         return render(
             request,
             "races/final.html",
-            _final_context(series, " ".join(refused.messages)),
+            _final_context(request, series, " ".join(refused.messages)),
         )
     messages.success(
         request,

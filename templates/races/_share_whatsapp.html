@@ -1,0 +1,2 @@
+{% load static %}{% comment %}A "Share to WhatsApp" link (slice 21): opens WhatsApp with the message written, for the committee to pick a chat and press send. A new tab keeps this page open, and noreferrer keeps its address from WhatsApp.{% endcomment %}
+<a class="button secondary share-whatsapp" href="{{ share_url }}" target="_blank" rel="noopener noreferrer"><img src="{% static 'img/whatsapp.svg' %}" alt="" width="20" height="20">{{ label }}</a>

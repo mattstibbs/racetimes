@@ -1791,6 +1791,31 @@ shows when the next step is safe. Before the change, the whole suite passed on
 
 ---
 
+## 2026-09-27 - Slice 21: sharing results to WhatsApp
+
+**Decision.** The committee shares published race results and final standings
+to WhatsApp with a "click to chat" link, `https://wa.me/?text=<message>`, built
+on the server (`races/sharing.py`, messages in `templates/races/share/`). The
+message lists every place (the owner's choice, over the top three), names
+boats by name and sail number only, and links to the club's own address. The
+buttons are on committee pages only, and show only once a race is published
+and its results sent (or corrected since), or a series is final: never while
+provisional. The link opens in a new tab with `rel="noopener noreferrer"`, so
+the race day page stays open and WhatsApp isn't told its address. No Copy
+message button, which would need JavaScript.
+
+**The logo.** The owner chose WhatsApp's logo beside the words. The glyph is
+vendored as `static/img/whatsapp.svg`, in WhatsApp's green (#25D366) inside
+the SVG file, so the stylesheet gains no colour and the page loads only the
+site's own files. Its path comes from Simple Icons (simple-icons.org, CC0,
+version 13); Meta's brand guidelines
+(https://about.meta.com/brand/resources/whatsapp/whatsapp-brand) allow the
+logo on buttons that share to or open WhatsApp, unaltered. The green isn't one
+of the site's colour tokens: it's WhatsApp's mark, not our text or background,
+and the button's words carry the contrast.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

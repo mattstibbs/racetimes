@@ -100,6 +100,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await officer.click('#publishing button');
   await officer.waitForLoadState('networkidle');
   await shot(officer.locator('.messages'), 'publish-sent.png');
+  await shot(officer.locator('#publishing'), 'publish-share.png');
   await publicPage.goto(`${BASE}/series/1/?race=1`);
   await raceHeader(publicPage, 1, 'results-published.png');
   const row = officer.locator('.finished-row', { hasText: 'GBR 42' });

@@ -48,19 +48,42 @@ example because it was missed on the night, updated results cannot be sent
 until its finish is recorded. Recording it marks the race as amended, as
 below.
 
+## Sharing results to WhatsApp
+
+Once a race is published and its results sent, the publishing box has a
+**Share to WhatsApp** button:
+
+![The publishing box for a published race, with a Share to WhatsApp button](../images/publish-share.png)
+
+Press it, and WhatsApp opens with a message already written: the race, every
+boat's place, and a link to the full results on your club's site. Choose your
+club's group (or any chat) and press send. Nothing is sent until you press
+send in WhatsApp, and you can change the message first.
+
+The message names boats by name and sail number only, never their owners, as
+on the public results page. On a phone, the button opens the WhatsApp app; on
+a computer, WhatsApp Web or the WhatsApp app, in a new tab. If you don't have
+WhatsApp, WhatsApp's own page says so.
+
+There's no button while a race is provisional, so results that might still
+change aren't shared.
+
 ## Correcting results after publishing
 
 You can still correct a published race: a finish time, a code, the start
 time, or anything else. Nobody is emailed while you do. Instead, the
 publishing box tells you the results have changed since they were sent:
 
-![The publishing box after a correction: amended since results were sent, with a Send updated results button](../images/publish-amended.png)
+![The publishing box after a correction: amended since results were sent, with Send updated results and Share updated results to WhatsApp buttons](../images/publish-amended.png)
 
 Until you send them, the public results page also warns that the results have
 changed since they were published, so anyone comparing them with their email
 knows which is current:
 
 ![A published race on the results page, amended since published, with the updated results not yet sent](../images/results-amended-since-published.png)
+
+Beside it, **Share updated results to WhatsApp** writes a message with the
+corrected places, saying the results have been corrected.
 
 When you have finished correcting, press **Send updated results**. The warning
 then goes, and the race shows the usual "Amended" note with the date it was
