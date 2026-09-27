@@ -1,7 +1,8 @@
 # Slice 17: code tidy-up and linting
 
-**Status: in progress. The owner agreed the plan: Ruff, 88-character lines,
-split `forms.py` as well as `views.py`, and lint fixes only in `nhc/`.**
+**Status: complete (2026-09-27). The owner agreed the plan: Ruff,
+88-character lines, split `forms.py` as well as `views.py`, and lint fixes
+only in `nhc/`.**
 
 ## Goal
 A review of the whole codebase for clean, readable code, and a linter and
