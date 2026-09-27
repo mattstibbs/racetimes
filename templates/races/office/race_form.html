@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{% if adding %}Add a race{% else %}Race {{ race.number }}{% endif %}: {{ series }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_series' series.pk %}">{{ series }}</a></p>
+<h1>{% if adding %}Add a race{% else %}Race {{ race.number }}{% endif %}</h1>
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">{% if adding %}Add the race{% else %}Save{% endif %}</button>
+</form>
+{% endblock %}

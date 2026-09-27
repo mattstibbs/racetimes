@@ -673,3 +673,73 @@ Manual check: seeded the manual's sample data, ran the site, and drove every
 page the manual photographs in headless Chromium: 136 requests, none an error.
 The screenshots match the manual's own, apart from clock times and "sent at"
 times, which come from the moment the sample data is made.
+
+
+## Slice 18: the race office (club users leave the Django admin). **Status: complete (2026-09-27)**
+
+Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
+the Django admin today (boats, series and their scoring rules, races,
+entries, deleting, looking back at decided requests) moves to purpose-built
+pages under a new **Race office** (`/office/`), which replaces **Club setup**
+in the menu and adds a **Coming up** list of the next races. The Django
+admin stays in place, at club addresses and the service's, but nothing
+links or directs club users to it.
+
+The owner's answers (2026-09-27): "Race office"; built in three parts, each
+reviewed before the next; the operator keeps the admin's boat, series,
+request and account pages; no history for changes that move no score;
+deleting a boat or series only while nothing depends on it; the operator's
+admin loses its links to club pages. The owner then changed question 6: the
+admin is left in place at club addresses, just unlinked.
+
+**Part 1 (boats): built (2026-09-27).** The race office's front page at
+`/office/` (Waiting for you; Series; Boats) and the boats pages: list and
+search, add, change and delete (never-entered boats only). `BoatForm` in
+`races/office_forms.py` holds the boat rules and saving for both the race
+office and the admin.
+
+**Part 2 (series): built (2026-09-27).** A
+page per series (settings, races, boats entered, links to results, history
+and final results), new series and Change settings (`SeriesForm`, shared
+with the admin as `BoatForm` is), add / change / remove a race, Enter boats
+(checkboxes, with a search that keeps the ticked boats) and remove an entry,
+delete a series with no results, Coming up on the front page, and **Set up
+this series** on the public series page. A final series' page offers only a
+new name. Tests: `races/test_office.py`, `races/test_office_forms.py`, and
+the new URLs in `races/test_roles.py` and `races/test_isolation.py`. Checked
+by hand in headless Chromium at 375 px as a committee member: added a boat,
+created a series, added a race for today, entered two boats (ticking one,
+searching, ticking another), opened the race day page from Coming up, and
+corrected a start time (refused without a reason, then saved with one and
+told what moved).
+
+**Part 3 (switch-over): built (2026-09-27).** The menu's Club setup became
+Race office; the race day page's empty start sheet links to Enter boats; the
+operator's admin leaves out its links to club pages on the service's own
+address; the Change requests page says when it shows only the 50 most recent
+decisions; the manual gains The race office, Setting up boats and Setting up
+a series, and no longer mentions the admin, with its screenshots retaken
+from the race office.
+
+Acceptance criteria, from `docs/slices/18-race-office.md`:
+
+- [x] A race committee member can do every job in the plan's table without
+      opening the Django admin, and no page, email or manual page directs a
+      club user to it: `races/test_office.py` checks every page
+      `races/test_isolation.py` visits, as each role, and every email
+      template. The admin still works as before; its tests are unchanged,
+      apart from its links to club pages on the service's own address.
+- [x] Every score-affecting change made on the new pages is in the history,
+      with a reason where it's a correction; owners get the same emails as
+      before (`races/test_office_forms.py`).
+- [x] A final series can't be changed through any new page, apart from its
+      name.
+- [x] Every new page passes the isolation and role checks.
+- [x] No model, migration, dependency or JavaScript is added.
+- [x] The manual's text, links and screenshots match the site; `mkdocs build
+      --strict`, `ruff check .` and `ruff format --check .` pass; all tests
+      pass.
+- [x] Checked by hand in headless Chromium, as a committee member (parts 1
+      and 2): set up a new series from nothing, ran a race day from Coming
+      up, corrected a base number and a start time with reasons; every page
+      at 375 px wide.

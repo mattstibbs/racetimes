@@ -28,6 +28,9 @@ nav:
   - Members:
       - Emails you will receive: members/emails.md
   - Race committee:
+      - The race office: committee/race-office.md
+      - Setting up boats: committee/setting-up-boats.md
+      - Setting up a series: committee/setting-up-a-series.md
       - "Race day: the start sheet and finishes": committee/race-day.md
       - Publishing results: committee/publishing-results.md
       - "A series' scoring rules": committee/scoring-rules.md

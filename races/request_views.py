@@ -15,6 +15,7 @@ from .request_forms import DecisionForm
 from .roles import committee_required
 
 REQUEST_MODELS = {"boat": BoatRequest, "entry": EntryRequest}
+RECENTLY_DECIDED = 50  # decided requests shown on the page
 
 
 @committee_required
@@ -40,7 +41,16 @@ def requests_page(request):
         reverse=True,
     )
     return render(
-        request, "races/requests.html", {"pending": pending, "decided": decided[:50]}
+        request,
+        "races/requests.html",
+        {
+            "pending": pending,
+            "decided": decided[:RECENTLY_DECIDED],
+            # Slice 18: say when older ones are left out. The club's data
+            # export has every request.
+            "more_decided": len(decided) > RECENTLY_DECIDED,
+            "recently_decided": RECENTLY_DECIDED,
+        },
     )
 
 

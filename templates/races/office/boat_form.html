@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block title %}{% if adding %}Add a boat{% else %}{{ boat }}{% endif %} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_boats' %}">Boats</a></p>
+<h1>{% if adding %}Add a boat{% else %}{{ boat|boat }}{% endif %}</h1>
+{% if not adding %}
+<p class="muted">{% if boat.owner %}The owner is emailed about any change.{% else %}This boat has no owner with an account, so nobody is emailed about changes.{% endif %}</p>
+{% endif %}
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">{% if adding %}Add the boat{% else %}Save{% endif %}</button>
+</form>
+{% if not adding %}
+<h2>Deleting this boat</h2>
+{% if deletable %}
+<p><a href="{% url 'races:office_delete_boat' boat.pk %}">Delete this boat</a></p>
+{% else %}
+<p class="muted">This boat has been entered in a series, so it can't be deleted: its results would go with it.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

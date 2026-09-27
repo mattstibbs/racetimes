@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Race office - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>Race office</h1>
+<p class="muted">Where the race committee sets up the club's boats and series.</p>
+
+<section aria-labelledby="waiting">
+  <h2 id="waiting">Waiting for you</h2>
+  {% if notices %}
+  <ul class="messages">
+    {% for notice in notices %}
+    <li class="warning">{{ notice.text }} <a href="{{ notice.link }}">{{ notice.link_text }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Nothing waiting.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="coming-up">
+  <h2 id="coming-up">Coming up</h2>
+  {% if coming_up %}
+  <ul class="link-list">
+    {% for race in coming_up %}
+    <li><a href="{% url 'races:race_day' race.pk %}">{% if race.date == today %}<span class="final-badge">Today</span> {% endif %}{{ race.date|date:"D j M" }} {{ race.start_time|time:"H:i" }} &middot; {{ race.series }}, Race {{ race.number }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No races from today onwards in any open series.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="series">
+  <h2 id="series">Series</h2>
+  {% if series_list %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Series</th><th>Type</th><th class="num">Races</th><th class="num">Boats entered</th><th></th></tr></thead>
+    <tbody>
+    {% for series in series_list %}
+    <tr>
+      <td><a href="{% url 'races:office_series' series.pk %}">{{ series.name }}</a></td>
+      <td>{{ series.get_series_type_display }}</td>
+      <td class="num">{{ series.race_count }}</td>
+      <td class="num">{{ series.entry_count }}</td>
+      <td>{% if series.is_final %}<span class="final-badge">Final Results</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">No series yet.</p>
+  {% endif %}
+  <p><a href="{% url 'races:office_new_series' %}">New series</a></p>
+</section>
+
+<section aria-labelledby="boats">
+  <h2 id="boats">Boats</h2>
+  <p><a href="{% url 'races:office_boats' %}">The club's boats</a> <span class="muted">({{ boat_count }})</span></p>
+</section>
+{% endblock %}

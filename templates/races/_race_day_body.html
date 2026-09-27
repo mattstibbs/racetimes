@@ -17,7 +17,7 @@
   {% for row in rows %}
     {% include "races/_start_sheet_row.html" %}
   {% empty %}
-    <p class="muted">No boats are entered in this series yet. Enter them in the admin.</p>
+    <p class="muted">No boats are entered in this series yet.{% if not locked %} <a href="{% url 'races:office_enter_boats' race.series.pk %}">Enter boats</a>{% endif %}</p>
   {% endfor %}
   </fieldset>
 {% else %}

@@ -118,6 +118,21 @@ club, and your data".
 series it has, and when a result was last recorded there: a quick way to see
 which clubs are using the service.
 
+## The Django admin
+
+Since slice 18, a club's race committee sets the club up in its **Race
+office** (`/office/` at the club's address), and nothing on a club's site or
+in its emails links to the Django admin. The admin itself is still there: a
+club's committee who types `/admin/` at the club's address sees only that
+club's boats, series and requests, as before.
+
+On the service's own address, the admin shows you every club's boats, series
+and requests, with a column saying whose each row is. It leaves out the links
+to club pages (a race's **Race day page**, a series' history and final
+results, and the Change requests page), since those pages exist only at a
+club's address and you have no role there. Use a club's data export to look
+at its records instead.
+
 ## Finding someone's club
 
 Accounts span every club, so a person's own page doesn't say where they

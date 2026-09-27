@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ series }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a></p>
+<h1>{{ series }}</h1>
+<p class="muted">
+  <a href="{% url 'results:series' series.pk %}">Results</a>
+  &middot; <a href="{% url 'races:series_history' series.pk %}">Series history</a>
+  &middot; <a href="{% url 'races:final' series.pk %}">{% if series.is_final %}Reopen results{% else %}Finalise results{% endif %}</a>
+</p>
+{% if series.is_final %}
+<p class="note">This series' results are final. <a href="{% url 'races:final' series.pk %}">Reopen results</a> to change it.</p>
+{% endif %}
+
+<section aria-labelledby="settings">
+  <h2 id="settings">Settings</h2>
+  <p>{{ series.get_series_type_display }}.
+    {{ series.discards }} discard{{ series.discards|pluralize }}.
+    {% if series.minimum_finishers %}No handicap changes with fewer than {{ series.minimum_finishers }} finishers.{% endif %}
+    {% if series.apply_a5_3 %}Scored under RRS A5.3.{% else %}Scored under RRS A5.2.{% endif %}
+    {% if series.nhc_options %}Handicaps adjusted with {{ series.nhc_options|join:" and " }}.{% endif %}</p>
+  {# A final series can still be renamed (slice 10), so the link stays. #}
+  <p><a href="{% url 'races:office_series_settings' series.pk %}">{% if series.is_final %}Change the name{% else %}Change settings{% endif %}</a></p>
+</section>
+
+<section aria-labelledby="races">
+  <h2 id="races">Races</h2>
+  {% if races %}
+  <div class="table-scroll"><table>
+    <thead><tr><th class="num">Race</th><th>Date</th><th>Start</th><th class="num">Results</th><th></th></tr></thead>
+    <tbody>
+    {% for race in races %}
+    <tr>
+      <td class="num">{{ race.number }}</td>
+      <td>{{ race.date|date:"D j M" }}</td>
+      <td>{{ race.start_time|time:"H:i:s" }}</td>
+      <td class="num">{{ race.result_count }}</td>
+      <td><a href="{% url 'races:race_day' race.pk %}">Race day page</a>{% if not series.is_final %}
+        &middot; <a href="{% url 'races:office_race' race.pk %}">Change</a>
+        &middot; <a href="{% url 'races:office_remove_race' race.pk %}">Remove</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">No races yet.</p>
+  {% endif %}
+  {% if not series.is_final %}<p><a href="{% url 'races:office_new_race' series.pk %}">Add a race</a></p>{% endif %}
+</section>
+
+<section aria-labelledby="entries">
+  <h2 id="entries">Boats entered ({{ entries|length }})</h2>
+  {% if entries %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Boat</th><th class="num">Results</th><th></th></tr></thead>
+    <tbody>
+    {% for entry in entries %}
+    <tr>
+      <td>{{ entry.boat }}</td>
+      <td class="num">{{ entry.result_count }}</td>
+      <td>{% if not series.is_final and not entry.result_count %}<a href="{% url 'races:office_remove_entry' entry.pk %}">Remove</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">No boats entered yet.</p>
+  {% endif %}
+  {% if not series.is_final %}<p><a href="{% url 'races:office_enter_boats' series.pk %}">Enter boats</a></p>{% endif %}
+  {% if entries and not series.is_final %}<p class="muted">A boat with results stays entered: races it misses are scored DNC (RRS A2.2).</p>{% endif %}
+</section>
+
+<section aria-labelledby="delete">
+  <h2 id="delete">Deleting this series</h2>
+  {% if deletable %}
+  <p><a href="{% url 'races:office_delete_series' series.pk %}">Delete this series</a></p>
+  {% else %}
+  <p class="muted">This series has results, so it can't be deleted.{% if not series.is_final %} Declare its results final instead.{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

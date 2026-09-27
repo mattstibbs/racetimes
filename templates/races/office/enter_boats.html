@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Enter boats: {{ series }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_series' series.pk %}">{{ series }}</a></p>
+<h1>Enter boats in {{ series }}</h1>
+{% if any_to_enter %}
+<p class="muted">Search first if the list is long, then tick each boat to enter and press Enter. Their owners are emailed.</p>
+<form method="get" action="{% url 'races:office_enter_boats' series.pk %}" role="search" class="search">
+  <label for="boat-search">Sail number, boat name or owner</label>
+  {# Over HTMX, the boats already ticked go with the search, so they stay listed and ticked. #}
+  <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
+         hx-get="{% url 'races:office_enter_boats' series.pk %}" hx-trigger="input changed delay:300ms, search"
+         hx-include="[name=boat]:checked" hx-target="#boat-choices" hx-swap="outerHTML">
+  <button type="submit" class="secondary">Find</button>
+</form>
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {{ form.boat.errors }}
+  {% include "races/office/_boat_choices.html" %}
+  {% if form.reason %}{% with field=form.reason %}{% include "races/office/_field.html" %}{% endwith %}{% endif %}
+  <button type="submit">Enter</button>
+</form>
+{% else %}
+<p class="muted">Every one of the club's boats is already entered. <a href="{% url 'races:office_new_boat' %}">Add a boat</a> first.</p>
+{% endif %}
+{% endblock %}

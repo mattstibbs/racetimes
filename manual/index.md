@@ -50,6 +50,14 @@ way every boat, entry and result has been checked by someone on the committee.
 
 **Race committee**
 
+- [The race office](committee/race-office.md): what's waiting for you, the
+  races coming up, and where the club is set up.
+- [Setting up boats](committee/setting-up-boats.md): adding and changing the
+  club's boats, their owners and base numbers.
+- [Setting up a series](committee/setting-up-a-series.md): a new series, its
+  races, entering boats, and removing things.
+- [Race day: the start sheet and finishes](committee/race-day.md): ticking
+  the boats that race, and recording their finishes.
 - [Publishing results](committee/publishing-results.md): marking a race's
   results final, emailing them to owners, and sending updated results after
   corrections.

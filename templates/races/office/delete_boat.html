@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load racing %}
+{% block title %}Delete {{ boat }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<h1>Delete {{ boat|boat }}?</h1>
+<p>The boat is removed from the club's list. It has never been entered in a series, so no results go with it.</p>
+{% if requests %}
+<p>{{ requests }} request{{ requests|pluralize }} from members about this boat go{{ requests|pluralize:"es," }} with it.</p>
+{% endif %}
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Delete the boat</button>
+  <a href="{{ cancel }}">Cancel</a>
+</form>
+{% endblock %}

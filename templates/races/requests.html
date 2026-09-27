@@ -12,6 +12,7 @@
 
 {% if decided %}
 <h2>Recently decided</h2>
+{% if more_decided %}<p class="muted">Showing the {{ recently_decided }} most recent.</p>{% endif %}
 {% for row in decided %}
   {% include "races/_request_row.html" %}
 {% endfor %}

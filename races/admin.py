@@ -29,7 +29,6 @@ from .admin_forms import (
 from .models import (
     Boat,
     BoatRequest,
-    ClubMembership,
     EntryRequest,
     Race,
     Series,
@@ -96,6 +95,18 @@ class ClubScopedAdmin:
         )
 
 
+def _club_pages_only_at_a_club(request, fields, link):
+    """Leave out a link to a club page on the service's own address (slice 18).
+
+    Club pages (the race day page, series history, final results) exist only
+    at a club's address, and the operator has no role there, so on the
+    service's address the link led nowhere.
+    """
+    if request.club is None:
+        return [field for field in fields if field != link]
+    return list(fields)
+
+
 def _may_set_up(request):
     if request.club is None:
         return request.user.is_active and request.user.is_superuser
@@ -154,26 +165,6 @@ class ReasonInAdminHistoryMixin:
         return f"{text} Reason: {reason}"
 
 
-def boat_changes(before, after):
-    """(label, old, new) for every field that differs between two versions of a boat."""
-    changes = []
-    for field in Boat._meta.concrete_fields:
-        if field.primary_key:
-            continue
-        name = field.attname
-        if getattr(before, name) == getattr(after, name):
-            continue
-        if field.name == "owner":
-            old, new = before.owner_display or "", after.owner_display or ""
-        else:
-            old, new = getattr(before, field.name), getattr(after, field.name)
-        label = field.verbose_name[:1].upper() + field.verbose_name[1:]
-        changes.append(
-            (label, "" if old is None else str(old), "" if new is None else str(new))
-        )
-    return changes
-
-
 @admin.register(Boat)
 class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = BoatAdminForm
@@ -197,49 +188,10 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     def owner_display(self, boat):
         return boat.owner_display
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        # A plain list of active accounts. Django's search box would need
-        # permission to browse accounts, which the committee does not have.
-        if db_field.name == "owner":
-            # Only this club's approved members can own its boats (slice 11).
-            kwargs["queryset"] = (
-                get_user_model()
-                .objects.filter(
-                    is_active=True,
-                    memberships__club=request.club,
-                    memberships__status=ClubMembership.Status.APPROVED,
-                )
-                .order_by("first_name", "last_name")
-            )
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
     def save_model(self, request, obj, form, change):
-        series_list = (
-            list(Series.objects.for_club(obj.club).filter(entries__boat=obj).distinct())
-            if change
-            else []
-        )
-        before = {series.pk: score_series(series) for series in series_list}
-        stored = (
-            Boat.objects.for_club(obj.club).select_related("owner").get(pk=obj.pk)
-            if change
-            else None
-        )
-        super().save_model(request, obj, form, change)
-        if stored is not None:
-            # The owner hears about any change the committee makes to their
-            # boat; if the owner itself changed, the previous owner hears too.
-            owners = [obj.owner]
-            if stored.owner_id != obj.owner_id:
-                owners.append(stored.owner)
-            notifications.boat_updated(obj, boat_changes(stored, obj), owners, request)
-        recorded = audit.record(
-            form.scoring_changes, request.user, form.cleaned_data["reason"]
-        )
-        if audit.needs_reason(recorded):
-            for series in series_list:
-                effect = audit.describe_effect(before[series.pk], score_series(series))
-                messages.info(request, f"{series}: {effect}")
+        # The race office's save (races/office_forms.py): the boat, its
+        # history, the owners' emails and what a correction changed.
+        form.save_audited(request)
 
 
 class SeriesEntryInline(ClubScopedInline, admin.TabularInline):
@@ -281,6 +233,11 @@ class RaceInline(ClubScopedInline, admin.TabularInline):
     extra = 0
     readonly_fields = ["finishes_link"]
 
+    def get_fields(self, request, obj=None):
+        return _club_pages_only_at_a_club(
+            request, super().get_fields(request, obj), "finishes_link"
+        )
+
     @admin.display(description="Race day")
     def finishes_link(self, race):
         if not race.pk:
@@ -313,6 +270,20 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     ]
     readonly_fields = ["history_link"]
     inlines = [SeriesEntryInline, RaceInline]
+
+    def get_fieldsets(self, request, obj=None):
+        return [
+            (
+                name,
+                {
+                    **options,
+                    "fields": _club_pages_only_at_a_club(
+                        request, options["fields"], "history_link"
+                    ),
+                },
+            )
+            for name, options in super().get_fieldsets(request, obj)
+        ]
 
     @admin.display(description="History")
     def history_link(self, series):
@@ -375,6 +346,8 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
         return False  # a request is a record of what was asked and decided
 
     def changelist_view(self, request, extra_context=None):
+        if request.club is None:  # no Change requests page here (slice 18)
+            return super().changelist_view(request, extra_context)
         messages.info(
             request,
             format_html(

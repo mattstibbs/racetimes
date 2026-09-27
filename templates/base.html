@@ -23,7 +23,7 @@
         {# Slice 15: the club's results first, then the club's pages, then the person's own. #}
         <a href="{% url 'results:home' %}">Club results</a>
         {% if user.is_authenticated %}
-          {% if is_committee %}<a href="{% url 'admin:index' %}">Club setup</a>{% endif %}
+          {% if is_committee %}<a href="{% url 'races:office' %}">Race office</a>{% endif %}
           {% if is_club_administrator %}<a href="{% url 'races:members' %}">Club members</a>{% endif %}
           {% if is_committee %}<a href="{% url 'races:requests' %}">Change requests</a>{% endif %}
           {% if is_member %}<a href="{% url 'races:my_boats' %}">My boats</a>

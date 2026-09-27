@@ -9,6 +9,7 @@ from . import (
     legal_views,
     member_views,
     membership_views,
+    office_views,
     operator_views,
     race_day_views,
     request_views,
@@ -125,6 +126,49 @@ urlpatterns = [
         "races/<int:pk>/publish/",
         race_day_views.publish_results,
         name="publish_results",
+    ),
+    # The race office (slice 18): the committee's setup pages.
+    path("office/", office_views.home, name="office"),
+    path("office/boats/", office_views.boats, name="office_boats"),
+    path("office/boats/new/", office_views.new_boat, name="office_new_boat"),
+    path("office/boats/<int:pk>/", office_views.change_boat, name="office_boat"),
+    path(
+        "office/boats/<int:pk>/delete/",
+        office_views.delete_boat,
+        name="office_delete_boat",
+    ),
+    path("office/series/new/", office_views.new_series, name="office_new_series"),
+    path("office/series/<int:pk>/", office_views.series_page, name="office_series"),
+    path(
+        "office/series/<int:pk>/settings/",
+        office_views.series_settings,
+        name="office_series_settings",
+    ),
+    path(
+        "office/series/<int:pk>/delete/",
+        office_views.delete_series,
+        name="office_delete_series",
+    ),
+    path(
+        "office/series/<int:pk>/races/new/",
+        office_views.new_race,
+        name="office_new_race",
+    ),
+    path(
+        "office/series/<int:pk>/entries/",
+        office_views.enter_boats,
+        name="office_enter_boats",
+    ),
+    path("office/races/<int:pk>/", office_views.change_race, name="office_race"),
+    path(
+        "office/races/<int:pk>/remove/",
+        office_views.remove_race,
+        name="office_remove_race",
+    ),
+    path(
+        "office/entries/<int:pk>/remove/",
+        office_views.remove_entry,
+        name="office_remove_entry",
     ),
     path("requests/", request_views.requests_page, name="requests"),
     path(

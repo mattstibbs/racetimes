@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{% if adding %}New series{% else %}{{ series }}: settings{% endif %} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a>{% if not adding %} &rsaquo; <a href="{% url 'races:office_series' series.pk %}">{{ series }}</a>{% endif %}</p>
+<h1>{% if adding %}New series{% else %}{{ series }}: settings{% endif %}</h1>
+{% if series.is_final %}
+<p class="note">This series' results are final, so only its name can be changed. <a href="{% url 'races:final' series.pk %}">Reopen results</a> to change anything else.</p>
+{% endif %}
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for legend, fields in form.groups %}
+  {% if legend %}<fieldset class="group"><legend>{{ legend }}</legend>{% endif %}
+  {% for field in fields %}{% include "races/office/_field.html" %}{% endfor %}
+  {% if legend %}</fieldset>{% endif %}
+  {% endfor %}
+  {% if form.reason %}{% with field=form.reason %}{% include "races/office/_field.html" %}{% endwith %}{% endif %}
+  <button type="submit">{% if adding %}Create the series{% else %}Save{% endif %}</button>
+</form>
+{% endblock %}

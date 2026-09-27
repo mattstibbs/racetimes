@@ -1648,6 +1648,100 @@ accounts list and on each account's page, which suggested otherwise. The tests
 still check that a group of that name, made again in the admin, grants
 nothing.
 
+## 2026-09-27 - Slice 18: the race office, and one boat form for it and the admin
+
+**Decision.** The race committee sets up the club on the site's own pages, a
+**Race office** at `/office/`, instead of the Django admin (the plan and the
+owner's answers are in `docs/slices/18-race-office.md`). The admin stays in
+place, unlinked. Part 1 builds the race office's front page (what's waiting,
+the series, a link to the boats) and the boats pages: a list with a search,
+add, change, and delete.
+
+- **One boat form.** `BoatForm` (`races/office_forms.py`) holds the rules the
+  admin's form had: sail number unique in the club, owners only from the
+  club's approved members, the base number audited with a reason for a
+  correction. Its `save_audited` does what the admin's `save_model` did:
+  saves, records the history, emails the owner (both owners when it changes
+  hands) and says what a correction moved. The admin's `BoatAdminForm` is a
+  subclass that always shows the reason box, and `BoatAdmin.save_model` calls
+  `save_audited`, so the two routes can't drift apart.
+- **The reason box only where it applies.** The race office shows it only
+  when the boat has results in some series, which is exactly when a base
+  number change is a correction (`audit`'s rule). It's worked out each time
+  the form is built, so a result recorded while the form was open adds the
+  box on the next submit rather than losing the requirement.
+- **Owners are listed as "Name (email)"**, as the Club members page shows
+  people, since two members can share a name. The admin, which shared the
+  form, now lists them that way too, and on the service's own address offers
+  the boat's own club's members (before, the operator's list was empty).
+- **Deleting a boat** is offered only for a boat never entered in a series
+  (answer 5). Members' requests about it go with it, and the confirmation
+  says how many.
+- **Until part 2**, the race office's series link to the admin's series page,
+  and until part 3 the menu still says Club setup and links to the admin.
+  The race office is reached at `/office/` in the meantime.
+
+## 2026-09-27 - Slice 18 part 2: series, races and entries in the race office
+
+**Decision.** Each series has a race office page (`/office/series/<pk>/`):
+its settings, races, boats entered and links to its results, history and
+final results. New series, settings, races, entering and removing boats,
+and deleting a series all have pages of their own. The race office's front
+page gains **Coming up** (the next five races from today in open series,
+soonest first, each to its race day page, today's marked), and the public
+series page gains **Set up this series** for the committee.
+
+- **One series form.** `SeriesForm` (`races/office_forms.py`) now holds the
+  series rules for the race office and the admin, as `BoatForm` does for
+  boats; `SeriesAdminForm` only adds the always-shown reason box. The admin
+  keeps its own race and entry inline formsets, including the renumbering
+  swap.
+- **One race at a time.** `RaceForm` changes one race, and a number already
+  used is refused ("Race 3 already exists in this series.") rather than
+  swapped: renumbering is rare, and a clear refusal is simpler than a swap
+  feature. The next number is offered by default.
+- **The reason box only where it applies**, as for boats: settings once the
+  series has results, a race once it has results, entering or removing a
+  boat once the series has results (either moves the A5.2 entry count), and
+  removing a race with results.
+- **Entering boats** is a list of the club's boats not yet entered, with
+  checkboxes and one Enter button. The search works over HTMX, sending the
+  boats already ticked with it so they stay listed and ticked; without HTMX
+  it's a plain GET search, and ticks made before searching are lost, so the
+  page says to search first.
+- **A final series** can be renamed (slice 10) but nothing else: its page
+  hides Change, Remove, Add a race and Enter boats, each of those addresses
+  sends you back to it with "Reopen results to change it", and every form
+  also checks the series afresh when it's submitted.
+- **Deleting a series** is offered only while no race in it has a result
+  (answer 5); its races, entries and history go with it, and the owners of
+  entered boats are emailed that their boat is no longer entered.
+
+## 2026-09-27 - Slice 18 part 3: the switch-over to the race office
+
+**Decision.** Club users are no longer sent to the Django admin. The menu's
+**Club setup** is now **Race office**; the race day page's "Enter them in
+the admin" is now an **Enter boats** link; and the manual describes the race
+office instead of the admin, with three new pages (The race office, Setting
+up boats, Setting up a series) and new screenshots. The admin stays in place
+at club addresses and on the service's (answer 6, as changed), and its
+existing tests pass unchanged.
+
+- **The operator's admin loses its links to club pages** (answer 7): the
+  series page's Race day page column and its Series history / Finalise
+  results links, and the request lists' "Change requests page" message, are
+  left out on the service's own address, where those pages don't exist. At a
+  club's address they stay, since they work there.
+- **Tested as a rule, not page by page.** For each role at a club, every
+  page `races/test_isolation.py` visits is checked for a link to `/admin/`,
+  and every email template for a mention of it, so a new page or email that
+  sends a club user to the admin fails a test.
+- **The Change requests page** says "Showing the 50 most recent." when older
+  decided requests are left out. A full archive stays out of scope: the
+  club's data export has every request.
+
+This supersedes slice 1's "setup happens in the admin" for club users.
+
 ---
 
 ## Open requirements
