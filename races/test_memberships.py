@@ -100,6 +100,40 @@ def test_the_migration_turns_site_wide_roles_into_demo_club_memberships():
     }
 
 
+@pytest.mark.django_db(transaction=True)
+def test_the_old_race_committee_group_is_removed_and_comes_back_on_rollback():
+    before, after = (
+        ("races", "0019_series_nhc_options"),
+        ("races", "0020_remove_race_committee_group"),
+    )
+    executor = MigrationExecutor(connection)
+    executor.migrate([before])
+    old = executor.loader.project_state([before]).apps
+    # get_or_create: a transactional test before this one may have flushed it.
+    group, _ = old.get_model("auth", "Group").objects.get_or_create(
+        name="Race committee"
+    )
+    member = old.get_model(*settings.AUTH_USER_MODEL.split(".")).objects.create(
+        username="kept@example.com"
+    )
+    member.groups.add(group)
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([after])
+    assert not Group.objects.filter(name="Race committee").exists()
+    # The account itself stays; only its place in the group goes.
+    assert get_user_model().objects.filter(username="kept@example.com").exists()
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([before])
+    group = Group.objects.get(name="Race committee")
+    assert group.permissions.filter(codename="change_finish").exists()
+
+    executor = MigrationExecutor(connection)
+    executor.loader.build_graph()
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+
 # --- Joining a club -----------------------------------------------------------------------
 
 
@@ -311,8 +345,10 @@ def test_the_club_administrator_manages_people_on_the_members_page_not_the_admin
 
 
 def test_the_old_group_and_staff_flag_open_nothing(client):
+    # Migration 0020 removed the group; one made again in the admin still
+    # grants nothing.
     person = make_member("staff@example.com", club=None, is_staff=True)
-    person.groups.add(Group.objects.get(name="Race committee"))
+    person.groups.add(Group.objects.create(name="Race committee"))
     client.force_login(person)
     assert client.get(reverse("races:requests")).status_code == 403
     assert (

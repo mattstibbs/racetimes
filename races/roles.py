@@ -9,8 +9,9 @@ Roles belong to a person's membership of a club, not to their account:
 - Operator: a superuser. Runs the service; has no role at a club unless
   given a membership there like anyone else.
 
-Django's is_staff flag and the old "Race committee" group mean nothing any
-more. Every check takes the club, which pages get from ``request.club``.
+Django's is_staff flag and groups mean nothing here. (The old "Race committee"
+group, from before slice 11, was removed by migration 0020.) Every check takes
+the club, which pages get from ``request.club``.
 """
 
 from functools import wraps

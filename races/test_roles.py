@@ -58,7 +58,8 @@ def test_a_membership_not_approved_has_no_role(status):
 def test_staff_superusers_and_the_old_group_mean_nothing_at_a_club():
     operator = make_operator()
     staff = make_member("staff@example.com", club=None, is_staff=True)
-    staff.groups.add(Group.objects.get(name="Race committee"))
+    # Migration 0020 removed the group; one made again still means nothing.
+    staff.groups.add(Group.objects.create(name="Race committee"))
     for person in (operator, staff):
         assert not is_member(person, default_club()) and not is_committee(
             person, default_club()
