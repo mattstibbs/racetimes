@@ -421,8 +421,21 @@ class OperatorAccountAdmin(UserAdmin):
         "last_name",
         "is_active",
         "is_superuser",
+        "clubs",
         "date_joined",
     ]
+
+    def get_queryset(self, request):
+        # clubs() below reads every account's memberships; fetched here once,
+        # rather than once per row.
+        return super().get_queryset(request).prefetch_related("memberships__club")
+
+    @admin.display(description="Clubs")
+    def clubs(self, user):
+        # Approved only: someone waiting or removed isn't really "at" the
+        # club yet, and the operator's own account has none at all.
+        approved = [m for m in user.memberships.all() if m.status == m.Status.APPROVED]
+        return ", ".join(m.club.subdomain for m in approved) or "—"
 
     def has_module_permission(self, request):
         return _operator_here(request)

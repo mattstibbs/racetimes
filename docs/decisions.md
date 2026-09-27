@@ -1617,6 +1617,19 @@ nothing while production has no clubs. Once it has, a change should use
 
 ---
 
+## 2026-09-27 - A Clubs column on the accounts admin
+
+**Decision.** The Django admin's account list (Home > Authentication and
+Authorization > Users, operator-only) gains a **Clubs** column: every club an
+account is approved at, comma-separated, or "—" for none. Someone waiting or
+removed isn't counted. `races/admin.py`, `OperatorAccountAdmin.clubs`.
+
+**Why.** The owner asked for it. Accounts span every club (slice 11 part 2),
+so the account list otherwise gives the operator no way to tell which club
+someone belongs to without opening each row.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

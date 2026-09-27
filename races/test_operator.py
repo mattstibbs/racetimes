@@ -20,9 +20,11 @@ from races.models import Club, ClubInvitation, ClubMembership, OperatorAction
 from races.testing import (
     default_club,
     enter,
+    join,
     make_administrator,
     make_boat,
     make_club,
+    make_committee,
     make_member,
     make_operator,
     make_race,
@@ -464,6 +466,31 @@ def test_the_log_survives_the_club_and_the_account(client, operator):
         "Suspended a club"
         in client.get(reverse("races:operator_clubs"), **SERVICE).content.decode()
     )
+
+
+# --- The accounts admin: which club(s) each account belongs to --------------------------------
+
+
+def row_for(page, marker):
+    """The <tr>...</tr> containing marker, wherever inside it marker falls."""
+    start = page.rindex("<tr", 0, page.index(marker))
+    return page[start : page.index("</tr>", start)]
+
+
+def test_the_accounts_list_shows_each_persons_clubs(client, operator):
+    harbour = make_club("harbour")
+    committee = make_committee()  # approved at Demo Club, by default
+    join(committee, harbour)  # and approved at Harbour too
+    make_member("waiting@example.com", status="WAITING")  # not shown: not approved yet
+    page = client.get(reverse("admin:auth_user_changelist"), **SERVICE).content.decode()
+    row = row_for(page, committee.username)
+    assert '<td class="field-clubs">demo, harbour</td>' in row
+
+
+def test_the_operators_own_row_has_no_club(client, operator):
+    page = client.get(reverse("admin:auth_user_changelist"), **SERVICE).content.decode()
+    row = row_for(page, operator.username)
+    assert '<td class="field-clubs">—</td>' in row
 
 
 # --- People waiting to join (slice 13) ----------------------------------------------------------
