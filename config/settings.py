@@ -135,6 +135,9 @@ MIDDLEWARE = [
     # Serves the CSS and HTMX files in production, straight after security as
     # WhiteNoise's docs require. With DEBUG on, runserver serves them instead.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # Before the club lookup, so /robots.txt answers on every address; adds a
+    # noindex header to every response (races/robots.py).
+    "races.robots.NoIndexMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

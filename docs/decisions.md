@@ -1580,6 +1580,25 @@ The code was already readable; the linter keeps it consistent as it grows.
 
 ---
 
+## 2026-09-27 - Every site stays out of search engines
+
+**Decision.** Every response carries `X-Robots-Tag: noindex, nofollow`, and
+`/robots.txt` answers `Disallow: /` for every crawler (`races/robots.py`, a
+middleware before the club lookup, so it answers on every address). It
+applies to the test site as well as production, and there is no setting to
+turn it off. `scripts/check_live.py` checks both on the live site.
+
+**Why.** The owner asked for production to be kept out of search engines. A
+club's results are for its members, who reach them through the club, and the
+test site's sample data shouldn't be found at all. The header is what keeps a
+page out of search results; robots.txt only asks crawlers to stay away, and a
+page it blocks can still be listed as a bare address if another site links to
+it. The header covers CSV downloads and error pages too, which a `<meta>` tag
+in the templates wouldn't. If a club ever wants its results found, this
+becomes a per-club or per-site setting.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

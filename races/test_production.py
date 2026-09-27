@@ -246,6 +246,13 @@ def test_the_live_checks_judge_answers_correctly():
     assert not check_live.secure_headers(
         200, {**good, "Strict-Transport-Security": "max-age=3600"}, ""
     )
+    assert check_live.kept_out_of_search(200, {"X-Robots-Tag": "noindex, nofollow"}, "")
+    assert not check_live.kept_out_of_search(200, {}, "")
+    assert check_live.robots_txt_disallows_all(200, {}, "User-agent: *\nDisallow: /\n")
+    assert not check_live.robots_txt_disallows_all(
+        200, {}, "User-agent: *\nDisallow:\n"
+    )
+    assert not check_live.robots_txt_disallows_all(404, {}, "")
 
 
 def test_the_live_checks_cover_every_address_including_a_made_up_one():
@@ -255,6 +262,7 @@ def test_the_live_checks_cover_every_address_including_a_made_up_one():
         and "https://demo.racetimes.co.uk/health/" in urls
     )
     assert "http://racetimes.co.uk/" in urls and "https://www.racetimes.co.uk/" in urls
+    assert "https://racetimes.co.uk/robots.txt" in urls
     made_up = [u for u in urls if u.startswith("https://check-")]
     assert len(made_up) == 1 and made_up[0].endswith(".racetimes.co.uk/health/")
 
