@@ -42,6 +42,9 @@ way every boat, entry and result has been checked by someone on the committee.
 - [Forgotten your password?](getting-started/forgotten-password.md)
 - [Changing your password](getting-started/changing-your-password.md): from
   My account, with your current password.
+- [How results and handicaps are worked out](getting-started/how-results-are-worked-out.md):
+  step by step, from finish times to each boat's next handicap, with a worked
+  example.
 
 **Members**
 
