@@ -164,17 +164,16 @@ def test_production_is_every_club_at_its_own_address_with_no_secret_in_the_file(
     assert (
         "SINGLE_CLUB" not in variables and "SERVICE_DOMAIN" not in variables
     )  # racetimes.co.uk by default
+    # The secret key is set by hand too: a generated one is too short for
+    # Django's deploy check (security.W009).
     for secret in (
+        "DJANGO_SECRET_KEY",
         "EMAIL_HOST_USER",
         "EMAIL_HOST_PASSWORD",
         "SENTRY_DSN",
         "DJANGO_SUPERUSER_PASSWORD",
     ):
         assert variables[secret] == {"key": secret, "sync": False}
-    assert variables["DJANGO_SECRET_KEY"] == {
-        "key": "DJANGO_SECRET_KEY",
-        "generateValue": True,
-    }
     for secret in ("AWS_SECRET_ACCESS_KEY", "BACKUP_PASSPHRASE"):
         assert env(SERVICES["racetimes-backup"])[secret] == {
             "key": secret,

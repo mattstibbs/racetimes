@@ -80,8 +80,11 @@ services:
         fromDatabase:
           name: racetimes-production-db-fra
           property: connectionString
+      # Set by hand, not generated: Render's generated values are 44
+      # characters, and Django's deploy check wants at least 50
+      # (docs/production.md, "Changing the secret key").
       - key: DJANGO_SECRET_KEY
-        generateValue: true
+        sync: false
       - key: DJANGO_DEBUG
         value: "0"
       # SERVICE_DOMAIN is left at its production default, racetimes.co.uk, and
