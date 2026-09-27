@@ -65,8 +65,8 @@ existing data into the first club, **Demo Club** (subdomain `demo`, from
   confirms their email; a club administrator then approves them on the
   club's **Members** page, choosing their role (member, race committee or
   club administrator). Roles are per club. The Django admin no longer
-  approves accounts, and staff status and the old "Race committee" group
-  mean nothing.
+  approves accounts, and staff status means nothing. The old "Race
+  committee" group was removed in September 2026 (migration 0020).
 - **The operator.** The superuser that `build.sh` creates is the service's
   operator. It has no role at a club unless it has a membership there. The
   migration gave the existing superuser Demo Club's administrator membership,

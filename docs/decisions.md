@@ -1630,6 +1630,26 @@ someone belongs to without opening each row.
 
 ---
 
+## 2026-09-27 - The old "Race committee" group is removed
+
+**Decision.** Migration 0020 deletes the "Race committee" permission group
+that migration 0005 made. Deleting it removes its permissions and its members'
+place in it; no account or other data changes. Going back recreates it as 0005
+made it.
+
+**Why.** The owner asked for it. Since slice 11 a role belongs to a
+`ClubMembership` (member, race committee or club administrator, at one club,
+with an approval status), and `races/roles.py` never reads Django's groups.
+Groups belong to an account, not a club, so they can't give someone a
+different role at each club or record an approval. Migration 0015 had already
+turned the group's members into Demo Club committee memberships, so the group
+granted nothing, but it still appeared in the admin, as a filter on the
+accounts list and on each account's page, which suggested otherwise. The tests
+still check that a group of that name, made again in the admin, grants
+nothing.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
