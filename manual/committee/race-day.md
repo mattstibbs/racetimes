@@ -12,9 +12,12 @@ line, as well as on a computer. It has two views:
 A boat you leave off the start sheet stayed at home, and is scored DNC (did
 not come to the start) as usual.
 
-To open the page, go to the series' results page, press the race's button,
-then **Race day page** under its heading. You can also go from the series in
-the admin, where each race has a **Race day page** link. Switch between the
+To open the page on race night, open **Race office** and choose the race
+under **Coming up**. You can also go from the series' page in the race
+office, where each race has a **Race day page** link, or from the series'
+results page: press the race's button, then **Race day page** under its
+heading. If no boats are entered in the series yet, the start sheet links to
+**Enter boats** (see [Setting up a series](setting-up-a-series.md)). Switch between the
 two views with the **Start sheet** and **Finishing** buttons at the top.
 
 ## The start sheet

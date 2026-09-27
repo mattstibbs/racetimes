@@ -71,7 +71,7 @@ def test_someone_not_yet_a_member_has_join_where_my_boats_would_be(
 def test_the_race_committee_s_menu(client):
     assert menu(logged_in(client, make_committee())) == [
         "Club results",
-        "Club setup",
+        "Race office",
         "Change requests",
         "My boats",
         "My account",
@@ -82,7 +82,7 @@ def test_the_race_committee_s_menu(client):
 def test_a_club_administrator_s_menu(client):
     assert menu(logged_in(client, make_administrator())) == [
         "Club results",
-        "Club setup",
+        "Race office",
         "Club members",
         "Change requests",
         "My boats",

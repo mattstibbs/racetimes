@@ -13,27 +13,21 @@ with it.
 
 ## Finding out what is waiting
 
-Log in and open **Club setup** from the top of any page. If anything is
-waiting for you, the admin's front page says so at the top, with a link
-straight to it:
-
-![The admin front page telling the race committee that three boat requests and one entry request are waiting](../images/front-page-committee.png)
-
-You only see what you can act on:
-
-| Notice | Who sees it | The link takes you to |
-|---|---|---|
-| Boat and entry requests waiting for the race committee | The race committee and club administrators | The **Change requests** page |
-| People waiting to join the club | Club administrators only | The **Club members** page |
-
-If nothing is waiting, there is no notice. You can also open the Change
+Log in and open **Race office** from the top of any page. Its **Waiting for
+you** section says what is waiting, with a link straight to it (see
+[The race office](race-office.md)). You only see what you can act on: the
+race committee sees members' requests, and club administrators also see
+people waiting to join. You can also open the Change
 requests page at any time from **Change requests** at the top of the site.
 
 ## The Change requests page
 
 The Change requests page lists every waiting request, oldest first, so they can be
-dealt with in the order members asked. Below them are the requests decided
-most recently.
+dealt with in the order members asked. Below them are the 50 requests decided
+most recently; the page says so when there are older ones. Every request,
+however old, is in the club's data export, which club administrators
+download from the Club members page (see
+[Running your club](members-and-roles.md)).
 
 Each request shows who asked, when, any note they left for you, and what they
 are asking for.
@@ -123,7 +117,7 @@ something changed after the member asked. For example:
   number was added meanwhile. Reject the request with a note, or ask the
   member to claim that boat instead.
 - **"This boat is already entered in the series."** Someone entered it in the
-  admin already. Reject the request with a note saying so.
+  series already, on the series' page in the race office. Reject the request with a note saying so.
 
 Nothing is changed when an approval is refused.
 

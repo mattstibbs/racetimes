@@ -1,7 +1,6 @@
 # Slice 18: the race office (club users no longer need the Django admin)
 
-**Status: in progress. Parts 1 (boats) and 2 (series) built 2026-09-27;
-part 2 waiting for the owner's review, part 3 to come. The owner has answered every
+**Status: complete (2026-09-27), built in three parts. The owner has answered every
 question (see the end), and changed their mind on question 6: the Django
 admin stays in place at club addresses, unlinked.**
 

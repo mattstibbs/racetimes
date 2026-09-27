@@ -2,10 +2,13 @@
 
 *For the race committee.*
 
-Each series has its own scoring rules. Set them in **Club setup**: open
-**Series**, choose the series, and find the **Scoring rules** section. Set
-them before the first race if you can. Once a series has results, changing a
-rule asks for a reason, and the change is recorded in the series' history.
+Each series has its own scoring rules. Set them when you start the series,
+or later: in the [race office](race-office.md), choose the series, then
+**Change settings**, and find the **Scoring rules** section (see
+[Setting up a series](setting-up-a-series.md)). Set them before the first
+race if you can. Once a series has results, changing a rule asks for a
+reason, the change is recorded in the series' history, and the page says
+what it changed. Once its results are final, only its name can change.
 
 ![The Scoring rules section of a series: discards, minimum finishers, RRS A5.3, and the two optional NHC steps](../images/series-scoring-rules.png)
 

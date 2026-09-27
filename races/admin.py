@@ -95,6 +95,18 @@ class ClubScopedAdmin:
         )
 
 
+def _club_pages_only_at_a_club(request, fields, link):
+    """Leave out a link to a club page on the service's own address (slice 18).
+
+    Club pages (the race day page, series history, final results) exist only
+    at a club's address, and the operator has no role there, so on the
+    service's address the link led nowhere.
+    """
+    if request.club is None:
+        return [field for field in fields if field != link]
+    return list(fields)
+
+
 def _may_set_up(request):
     if request.club is None:
         return request.user.is_active and request.user.is_superuser
@@ -221,6 +233,11 @@ class RaceInline(ClubScopedInline, admin.TabularInline):
     extra = 0
     readonly_fields = ["finishes_link"]
 
+    def get_fields(self, request, obj=None):
+        return _club_pages_only_at_a_club(
+            request, super().get_fields(request, obj), "finishes_link"
+        )
+
     @admin.display(description="Race day")
     def finishes_link(self, race):
         if not race.pk:
@@ -253,6 +270,20 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     ]
     readonly_fields = ["history_link"]
     inlines = [SeriesEntryInline, RaceInline]
+
+    def get_fieldsets(self, request, obj=None):
+        return [
+            (
+                name,
+                {
+                    **options,
+                    "fields": _club_pages_only_at_a_club(
+                        request, options["fields"], "history_link"
+                    ),
+                },
+            )
+            for name, options in super().get_fieldsets(request, obj)
+        ]
 
     @admin.display(description="History")
     def history_link(self, series):
@@ -315,6 +346,8 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
         return False  # a request is a record of what was asked and decided
 
     def changelist_view(self, request, extra_context=None):
+        if request.club is None:  # no Change requests page here (slice 18)
+            return super().changelist_view(request, extra_context)
         messages.info(
             request,
             format_html(

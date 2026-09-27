@@ -10,8 +10,8 @@ can change unless you reopen it.
 ## Before you start
 
 Open the series' **Final results** page: on the series' results page, follow
-**Finalise results** under the series' name. You can also go from the series
-in the admin, where the **History** row has a **Finalise results** link. Once
+**Finalise results** under the series' name. You can also go from the series'
+page in the [race office](race-office.md), which has the same link. Once
 the series is final, both links say **Reopen results** instead.
 
 The box at the top says whether the series is ready. A series can't be

@@ -1717,6 +1717,31 @@ series page gains **Set up this series** for the committee.
   (answer 5); its races, entries and history go with it, and the owners of
   entered boats are emailed that their boat is no longer entered.
 
+## 2026-09-27 - Slice 18 part 3: the switch-over to the race office
+
+**Decision.** Club users are no longer sent to the Django admin. The menu's
+**Club setup** is now **Race office**; the race day page's "Enter them in
+the admin" is now an **Enter boats** link; and the manual describes the race
+office instead of the admin, with three new pages (The race office, Setting
+up boats, Setting up a series) and new screenshots. The admin stays in place
+at club addresses and on the service's (answer 6, as changed), and its
+existing tests pass unchanged.
+
+- **The operator's admin loses its links to club pages** (answer 7): the
+  series page's Race day page column and its Series history / Finalise
+  results links, and the request lists' "Change requests page" message, are
+  left out on the service's own address, where those pages don't exist. At a
+  club's address they stay, since they work there.
+- **Tested as a rule, not page by page.** For each role at a club, every
+  page `races/test_isolation.py` visits is checked for a link to `/admin/`,
+  and every email template for a mention of it, so a new page or email that
+  sends a club user to the admin fails a test.
+- **The Change requests page** says "Showing the 50 most recent." when older
+  decided requests are left out. A full archive stays out of scope: the
+  club's data export has every request.
+
+This supersedes slice 1's "setup happens in the admin" for club users.
+
 ---
 
 ## Open requirements

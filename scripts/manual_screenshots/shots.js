@@ -35,13 +35,29 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
 
   // The committee's view.
   const officer = await logIn(browser, 'officer@example.com');
-  await officer.goto(`${BASE}/admin/`);
-  await shot(officer.locator('#content'), 'front-page-committee.png');
-  // A series' scoring rules, in the admin (slice 14).
-  await officer.goto(`${BASE}/admin/races/series/`);
-  await officer.click('text=Autumn 2026 Series');
+  // The race office (slice 18), before any request is decided.
+  await officer.goto(`${BASE}/office/`);
+  await shot(officer.locator('main'), 'race-office.png');
+  await shot(officer.locator('section[aria-labelledby=waiting]'), 'front-page-committee.png');
+  await officer.goto(`${BASE}/office/boats/`);
+  await shot(officer.locator('main'), 'office-boats.png');
+  await officer.locator('#boat-table a', { hasText: 'GBR 42' }).click();
   await officer.waitForLoadState('networkidle');
-  await shot(officer.locator('fieldset', { hasText: 'Scoring rules' }), 'series-scoring-rules.png');
+  await shot(officer.locator('main'), 'office-boat.png');
+  await officer.goto(`${BASE}/office/`);
+  await officer.locator('table a', { hasText: 'Autumn 2026 Series' }).click();
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('main'), 'office-series.png');
+  // A series' scoring rules (slice 14), on its settings page.
+  await officer.click('text=Change settings');
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('fieldset.group'), 'series-scoring-rules.png');
+  await officer.goto(`${BASE}/office/`);
+  await officer.locator('table a', { hasText: 'Wednesday Evenings' }).click();
+  await officer.click('text=Enter boats');
+  await officer.waitForLoadState('networkidle');
+  await officer.locator('#boat-choices label', { hasText: 'Kittiwake' }).locator('input').check();
+  await shot(officer.locator('main'), 'office-enter-boats.png');
   await officer.goto(`${BASE}/requests/`);
   await shot(card(officer, 'Register a boat'), 'request-register.png');
   await shot(card(officer, 'Change a boat'), 'request-change.png');
@@ -157,8 +173,8 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
 
   // The administrator's view.
   const admin = await logIn(browser, 'admin@example.com');
-  await admin.goto(`${BASE}/admin/`);
-  await shot(admin.locator('.messagelist'), 'front-page-administrator.png');
+  await admin.goto(`${BASE}/office/`);
+  await shot(admin.locator('section[aria-labelledby=waiting] ul.messages'), 'front-page-administrator.png');
   // The club administrator's Members page, then approving Robin as a member.
   await admin.goto(`${BASE}/members/`);
   await shot(admin.locator('main'), 'members-page.png');

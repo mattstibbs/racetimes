@@ -41,10 +41,11 @@ and then wait for you: until you approve them, they can see the club's
 public results and nothing more. Someone who already has a Race Times login,
 from another club, asks with **Join this club** instead.
 
-The admin's front page tells you when people are waiting. Follow **Review
-members**, or open **Club members** at the top of any page.
+The [race office](race-office.md) tells you when people are waiting, under
+**Waiting for you**. Follow **Review members**, or open **Club members** at
+the top of any page.
 
-![The admin's front page notices: requests waiting for the race committee, and people waiting to join the club](../images/front-page-administrator.png)
+![The race office's Waiting for you: requests waiting for the race committee, and people waiting to join the club](../images/front-page-administrator.png)
 
 ![The Club members page: two people waiting to join, each with a role to choose and Approve and Don't approve buttons, then the club's members with their roles](../images/members-page.png)
 

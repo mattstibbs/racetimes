@@ -1,5 +1,6 @@
 """Slice 18: the race office's pages - the front page (with Coming up), the boats
-list, deleting a boat, and a series' page.
+list, deleting a boat, and a series' page - and the switch-over from the admin:
+the menu, no links to the admin for club users, and the admin still working.
 
 Who may open each page is in races/test_roles.py, and that no other club's
 data shows is in races/test_isolation.py. The boat form's rules are in
@@ -7,6 +8,7 @@ races/test_office_forms.py.
 """
 
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from django.urls import reverse
@@ -15,12 +17,16 @@ from django.utils import timezone
 from races import race_day
 from races.models import Boat, BoatRequest
 from races.testing import (
+    DEMO,
     enter,
+    log_in_as,
     make_administrator,
     make_boat,
     make_member,
+    make_operator,
     make_race,
     make_series,
+    urls_for,
 )
 
 pytestmark = pytest.mark.django_db
@@ -279,3 +285,111 @@ def test_the_public_series_page_links_the_committee_to_set_it_up(
     assert url in page(committee_client, "results:series", series.pk)
     client.logout()
     assert url not in page(client, "results:series", series.pk)
+
+
+# --- Part 3: the switch-over -----------------------------------------------------------------
+
+
+def test_the_menu_opens_the_race_office(committee_client):
+    html = page(committee_client, "results:home")
+    assert f'<a href="{reverse("races:office")}">Race office</a>' in html
+
+
+@pytest.mark.parametrize("role", ["public", "member", "committee", "administrator"])
+def test_no_page_at_a_club_links_to_the_admin(client, clubs, role):
+    """Every page races/test_isolation.py visits, as each role at the club."""
+    log_in_as(client, role, clubs)
+    checked = []
+    for name, args in urls_for(clubs["demo"]).items():
+        response = client.get(reverse(name, args=args), HTTP_HOST=DEMO)
+        if response.status_code != 200 or not response["Content-Type"].startswith(
+            "text/html"
+        ):
+            continue
+        assert 'href="/admin/' not in response.content.decode(), name
+        checked.append(name)
+    assert "results:home" in checked
+    if role in ("committee", "administrator"):
+        assert {"races:office", "races:office_series", "races:race_day"} <= set(checked)
+
+
+def test_no_email_to_a_club_user_mentions_the_admin():
+    # Every email is written from these templates (races/notifications.py).
+    templates = Path(__file__).resolve().parent.parent / "templates" / "emails"
+    for template in templates.glob("*.txt"):
+        text = template.read_text()
+        assert "/admin" not in text and "admin:" not in text, template.name
+
+
+def test_an_empty_start_sheet_links_to_enter_boats(committee_client):
+    series = make_series()
+    race = make_race(series)
+    html = page(committee_client, "races:race_day", race.pk, query="?view=start")
+    assert "No boats are entered in this series yet." in html
+    assert reverse("races:office_enter_boats", args=[series.pk]) in html
+
+
+def test_the_change_requests_page_says_when_older_decisions_are_left_out(
+    committee_client,
+):
+    boat = make_boat()
+    member = make_member()
+    for _ in range(51):
+        BoatRequest.objects.create(
+            club=boat.club,
+            kind="CLAIM",
+            boat=boat,
+            requested_by=member,
+            status="REJECTED",
+        )
+    assert "Showing the 50 most recent." in page(committee_client, "races:requests")
+    BoatRequest.objects.first().delete()
+    assert "Showing the 50 most recent." not in page(committee_client, "races:requests")
+
+
+# --- The admin, still there -------------------------------------------------------------------
+
+
+@pytest.fixture
+def a_series_with_a_race():
+    series = make_series("Autumn")
+    return series, make_race(series)
+
+
+def test_the_admin_still_links_to_club_pages_at_a_club(
+    committee_client, a_series_with_a_race
+):
+    series, race = a_series_with_a_race
+    html = page(committee_client, "admin:races_series_change", series.pk)
+    for name, pk in (
+        ("races:race_day", race.pk),
+        ("races:series_history", series.pk),
+        ("races:final", series.pk),
+    ):
+        assert f'href="{reverse(name, args=[pk])}"' in html, name
+    html = page(committee_client, "admin:races_boatrequest_changelist")
+    assert reverse("races:requests") in html
+
+
+def test_the_operators_admin_leaves_out_links_to_club_pages(
+    client, settings, a_series_with_a_race
+):
+    settings.SINGLE_CLUB = ""  # the service's own address
+    series, race = a_series_with_a_race
+    client.force_login(make_operator())
+    response = client.get(
+        reverse("admin:races_series_change", args=[series.pk]), HTTP_HOST="localhost"
+    )
+    html = response.content.decode()
+    assert response.status_code == 200 and "Autumn" in html
+    for name, pk in (
+        ("races:race_day", race.pk),
+        ("races:series_history", series.pk),
+        ("races:final", series.pk),
+    ):
+        assert f'href="{reverse(name, args=[pk])}"' not in html, name
+    assert 'name="reason"' in html  # the rest of the form is still there
+    html = client.get(
+        reverse("admin:races_boatrequest_changelist"), HTTP_HOST="localhost"
+    ).content.decode()
+    assert reverse("races:requests") not in html

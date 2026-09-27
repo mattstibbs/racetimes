@@ -675,7 +675,7 @@ The screenshots match the manual's own, apart from clock times and "sent at"
 times, which come from the moment the sample data is made.
 
 
-## Slice 18: the race office (club users leave the Django admin). **Status: in progress (parts 1 and 2 of 3 built, 2026-09-27)**
+## Slice 18: the race office (club users leave the Django admin). **Status: complete (2026-09-27)**
 
 Spec: `docs/slices/18-race-office.md`. Every job the race committee does in
 the Django admin today (boats, series and their scoring rules, races,
@@ -698,7 +698,7 @@ search, add, change and delete (never-entered boats only). `BoatForm` in
 `races/office_forms.py` holds the boat rules and saving for both the race
 office and the admin.
 
-**Part 2 (series): built (2026-09-27), waiting for the owner's review.** A
+**Part 2 (series): built (2026-09-27).** A
 page per series (settings, races, boats entered, links to results, history
 and final results), new series and Change settings (`SeriesForm`, shared
 with the admin as `BoatForm` is), add / change / remove a race, Enter boats
@@ -711,5 +711,35 @@ by hand in headless Chromium at 375 px as a committee member: added a boat,
 created a series, added a race for today, entered two boats (ticking one,
 searching, ticking another), opened the race day page from Coming up, and
 corrected a start time (refused without a reason, then saved with one and
-told what moved). The menu, the admin links, the manual and the screenshots
-change in part 3.
+told what moved).
+
+**Part 3 (switch-over): built (2026-09-27).** The menu's Club setup became
+Race office; the race day page's empty start sheet links to Enter boats; the
+operator's admin leaves out its links to club pages on the service's own
+address; the Change requests page says when it shows only the 50 most recent
+decisions; the manual gains The race office, Setting up boats and Setting up
+a series, and no longer mentions the admin, with its screenshots retaken
+from the race office.
+
+Acceptance criteria, from `docs/slices/18-race-office.md`:
+
+- [x] A race committee member can do every job in the plan's table without
+      opening the Django admin, and no page, email or manual page directs a
+      club user to it: `races/test_office.py` checks every page
+      `races/test_isolation.py` visits, as each role, and every email
+      template. The admin still works as before; its tests are unchanged,
+      apart from its links to club pages on the service's own address.
+- [x] Every score-affecting change made on the new pages is in the history,
+      with a reason where it's a correction; owners get the same emails as
+      before (`races/test_office_forms.py`).
+- [x] A final series can't be changed through any new page, apart from its
+      name.
+- [x] Every new page passes the isolation and role checks.
+- [x] No model, migration, dependency or JavaScript is added.
+- [x] The manual's text, links and screenshots match the site; `mkdocs build
+      --strict`, `ruff check .` and `ruff format --check .` pass; all tests
+      pass.
+- [x] Checked by hand in headless Chromium, as a committee member (parts 1
+      and 2): set up a new series from nothing, ran a race day from Coming
+      up, corrected a base number and a start time with reasons; every page
+      at 375 px wide.
