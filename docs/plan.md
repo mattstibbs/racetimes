@@ -743,3 +743,15 @@ Acceptance criteria, from `docs/slices/18-race-office.md`:
       and 2): set up a new series from nothing, ran a race day from Coming
       up, corrected a base number and a start time with reasons; every page
       at 375 px wide.
+
+
+## Slice 19: a landing page that sells Race Times, and "Find my club". **Status: proposed (2026-09-27)**
+
+Spec: `docs/slices/19-service-landing-page.md`. The service's front page at
+`racetimes.co.uk` becomes a landing page for clubs thinking of using Race
+Times: a hero with a large logo, a headline and a photo, cards for what a club
+gets, real screenshots, "How it works" and a clear way to get in touch. A
+**Find my club** search-as-you-type box (HTMX, with a no-JavaScript fallback)
+lists active clubs by name, each linking to its own site. No model,
+migration, dependency or JavaScript. Five questions for the owner, starting
+with whether the front page should be indexed by search engines.
