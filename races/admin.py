@@ -57,6 +57,15 @@ class ClubScopedAdmin:
         queryset = super().get_queryset(request)
         return queryset if request.club is None else queryset.for_club(request.club)
 
+    def get_list_display(self, request):
+        # The operator's lists mix every club's rows, so say whose each one is.
+        # club_path is the model's route to its club ("club", or "series__club"
+        # for an entry request); Django 5.1+ follows "__" in list_display.
+        list_display = super().get_list_display(request)
+        if request.club is not None:
+            return list_display
+        return [*list_display, self.model._default_manager.none().club_path]
+
     # Permission comes from the club membership (slice 11 part 2): this club's
     # race committee and administrators may set things up here. Django's own
     # per-model permissions, which came from the old site-wide group, aren't
@@ -421,8 +430,21 @@ class OperatorAccountAdmin(UserAdmin):
         "last_name",
         "is_active",
         "is_superuser",
+        "clubs",
         "date_joined",
     ]
+
+    def get_queryset(self, request):
+        # clubs() below reads every account's memberships; fetched here once,
+        # rather than once per row.
+        return super().get_queryset(request).prefetch_related("memberships__club")
+
+    @admin.display(description="Clubs")
+    def clubs(self, user):
+        # Approved only: someone waiting or removed isn't really "at" the
+        # club yet, and the operator's own account has none at all.
+        approved = [m for m in user.memberships.all() if m.status == m.Status.APPROVED]
+        return ", ".join(m.club.subdomain for m in approved) or "—"
 
     def has_module_permission(self, request):
         return _operator_here(request)

@@ -181,6 +181,31 @@ def test_only_the_operator_gets_into_the_admin_on_the_services_address(
     assert client.get(reverse("admin:index"), HTTP_HOST="localhost").status_code == 200
 
 
+@pytest.mark.parametrize(
+    "model, column",
+    [
+        ("boat", "club"),
+        ("series", "club"),
+        ("boatrequest", "club"),
+        ("entryrequest", "series__club"),
+    ],
+)
+def test_the_operators_admin_lists_say_whose_each_row_is(
+    client, settings, admin_user, clubs, model, column
+):
+    url = reverse(f"admin:races_{model}_changelist")
+    settings.SINGLE_CLUB = ""
+    client.force_login(admin_user)
+    response = client.get(url, HTTP_HOST="localhost")
+    page = response.content.decode()
+    assert response.context["cl"].list_display[-1] == column
+    assert "Demo Club" in page and "Harbour Sailing Club" in page
+    # At a club every row is the club's own, so the column would say nothing.
+    client.force_login(make_committee())
+    response = client.get(url, **at("demo"))
+    assert column not in response.context["cl"].list_display
+
+
 def test_the_header_names_the_club(client):
     page = client.get(reverse("results:home")).content.decode()
     assert (

@@ -117,3 +117,12 @@ club, and your data".
 **Clubs** lists every club, with its status, how many approved members and
 series it has, and when a result was last recorded there: a quick way to see
 which clubs are using the service.
+
+## Finding someone's club
+
+Accounts span every club, so a person's own page doesn't say where they
+belong. In the Django admin's account list (**Home > Authentication and
+Authorization > Users**), the **Clubs** column names every club the account
+is approved at, comma-separated ("demo, harbour"), or "—" for an account with
+none, like the operator's own. Someone waiting for approval, or removed, isn't
+counted: it's clubs they're really at, not requests.
