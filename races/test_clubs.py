@@ -161,7 +161,8 @@ def test_the_services_own_address_shows_the_service(client, settings):
     page = client.get("/", HTTP_HOST="localhost").content.decode()
     assert (
         "Race Times" in page
-        and "yourclub.racetimes.co.uk" in page
+        # The example address is the service's own domain: localhost here.
+        and f"yourclub.{settings.SERVICE_DOMAIN}" in page
         and "Demo Club" not in page
     )
     response = client.get(

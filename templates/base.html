@@ -16,7 +16,8 @@
       <a class="brand" href="{% url 'results:home' %}"><img src="{% static 'img/sail.svg' %}" alt="">
         <span class="brand-text"><span>{{ request.club.name }}</span> <small class="brand-service">Race Times</small></span></a>
       {% else %}
-      <a class="brand" href="/"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</a>
+      {# Slice 19: bigger on the service's own pages; a club's site leads with the club's name. #}
+      <a class="brand brand-service-home" href="/"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</a>
       {% endif %}
       {% if request.club %}
       <nav aria-label="Site">
@@ -50,6 +51,7 @@
       {% endif %}
     </div>
   </header>
+  {% block hero %}{% endblock %}
   <main class="wrap">
     {% if messages %}
     <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>

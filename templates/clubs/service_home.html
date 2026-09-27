@@ -1,24 +1,119 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Race Times: results and handicaps for sailing clubs{% endblock %}
+
+{% block hero %}
+{# Slice 19: the landing page for clubs. The photo runs the width of the window; the text sits on a solid panel, so it reads the same whatever the photo. #}
+<section class="hero" aria-labelledby="hero-heading">
+  <picture>
+    <source type="image/webp" srcset="{% static 'img/landing/cowes-800.webp' %} 800w, {% static 'img/landing/cowes-1600.webp' %} 1600w" sizes="100vw">
+    <img class="hero-photo" src="{% static 'img/landing/cowes-1600.jpg' %}"
+         srcset="{% static 'img/landing/cowes-800.jpg' %} 800w, {% static 'img/landing/cowes-1600.jpg' %} 1600w" sizes="100vw"
+         width="1600" height="1067" alt="Yachts racing under red, white and blue spinnakers at Cowes Week">
+  </picture>
+  <div class="wrap hero-inner">
+    <div class="hero-panel">
+      <p class="hero-logo"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</p>
+      <h1 id="hero-heading">Race results and handicaps, sorted for your sailing club</h1>
+      <p class="hero-lead">NHC handicaps worked out after every race, results on every sailor's phone, and a race day
+        page that makes the finish line easy for your race committee.</p>
+      <p class="hero-actions">
+        <a class="button" href="#get-race-times">Get Race Times for your club</a>
+        <a class="button secondary" href="#find-my-club">Find my club</a>
+      </p>
+    </div>
+  </div>
+</section>
+<p class="wrap photo-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Cowes_Week_2019_-_geograph.org.uk_-_6240990.jpg">Cowes Week 2019</a>
+  by Peter Trimming, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>, resized.</p>
+{% endblock %}
+
 {% block content %}
-<h1>Race Times</h1>
-<p>Race results, handicaps and series standings for sailing clubs, run as a service. Each club gets its own site,
-  with its own members, race committee and results.</p>
+<section id="find-my-club" class="landing-section find-club" aria-labelledby="find-my-club-heading">
+  <h2 id="find-my-club-heading">Find my club</h2>
+  <p>Sail at a club that uses Race Times? Each club has its own address, like
+    <strong>yourclub.{{ service_domain }}</strong>. Type your club's name to find it.</p>
+  {# The #find-my-club fragment brings a search without JavaScript back down here. #}
+  <form method="get" action="/#find-my-club" role="search" class="search">
+    <label for="club-search">Your club's name</label>
+    <input type="search" id="club-search" name="club" value="{{ query }}" autocomplete="off"
+           hx-get="/" hx-trigger="input changed delay:300ms, search"
+           hx-target="#club-matches" hx-swap="outerHTML" hx-replace-url="true">
+    <button type="submit">Find</button>
+  </form>
+  {% include "clubs/_club_matches.html" %}
+</section>
 
-<h2>What a club gets</h2>
-<ul>
-  <li>Public results and series standings, on a phone or at the clubhouse, for anyone to see.</li>
-  <li>RYA National Handicap for Cruisers (NHC) handicaps, worked out after every race, with RRS Appendix A scoring.</li>
-  <li>A race day page for the race committee: a start sheet, and a button to record each finish.</li>
-  <li>Results emailed to boat owners, and a change history of every correction.</li>
-  <li>Members register their boats and enter series themselves; the race committee approves.</li>
-</ul>
+<section class="landing-section" aria-labelledby="what-you-get">
+  <h2 id="what-you-get">What your club gets</h2>
+  <ul class="feature-cards">
+    <li>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg>
+      <h3>Results on every phone</h3>
+      <p>Race results and series standings for sailors, their families and the clubhouse, as soon as the race committee
+        publishes them.</p>
+    </li>
+    <li>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 16l4-6 4 3 4-7"/></svg>
+      <h3>NHC handicaps, worked out for you</h3>
+      <p>RYA National Handicap for Cruisers adjustments after every race, with Appendix A scoring and discards. No
+        spreadsheets.</p>
+    </li>
+    <li>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg>
+      <h3>A race day page for the committee</h3>
+      <p>A start sheet, a race clock and a <strong>Finished</strong> button for each boat. Tap as they cross the line,
+        and undo a slip.</p>
+    </li>
+    <li>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 11l2 2 4-4"/></svg>
+      <h3>Members do their own admin</h3>
+      <p>Owners register their boats and enter series themselves. The race committee approves, and results are emailed
+        to every owner.</p>
+    </li>
+    <li>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>
+      <h3>Every correction on record</h3>
+      <p>Change a result and give a reason. The history shows who changed what and when, and amended results say so.</p>
+    </li>
+  </ul>
+</section>
 
-<h2>Sailing at a club that uses it?</h2>
-<p>Each club has its own address, like <strong>yourclub.racetimes.co.uk</strong>. Your club will give you its
-  address; that's where you'll find its results, and where you sign up.</p>
+<section class="landing-section" aria-labelledby="see-it-working">
+  <h2 id="see-it-working">See it working</h2>
+  <div class="screenshots">
+    <figure>
+      <img src="{% static 'img/landing/results-phone.png' %}" width="375" height="600" loading="lazy"
+           alt="The club's results page on a phone, showing the latest races and their top three">
+      <figcaption>Results on a phone: the latest races and every series.</figcaption>
+    </figure>
+    <figure>
+      <img src="{% static 'img/landing/race-day.png' %}" width="768" height="640" loading="lazy"
+           alt="The race day page, with a race clock, a Finished button for the boat still racing and the boats that have finished">
+      <figcaption>Race day: tap <strong>Finished</strong> as each boat crosses the line.</figcaption>
+    </figure>
+    <figure>
+      <img src="{% static 'img/landing/race-office.png' %}" width="960" height="600" loading="lazy"
+           alt="The race office, listing the races coming up and the club's series">
+      <figcaption>The race office: boats, series and races, set up by the committee.</figcaption>
+    </figure>
+  </div>
+</section>
 
-<h2>Want it for your club?</h2>
-<p>Email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>. We'll set up your club's site and invite
-  whoever will run it.</p>
+<section class="landing-section" aria-labelledby="how-it-works">
+  <h2 id="how-it-works">How it works</h2>
+  <ol class="steps">
+    <li><h3>Tell us about your club</h3><p>Email us your club's name and who will look after it.</p></li>
+    <li><h3>We set up your site</h3><p>Your club gets its own address, like <strong>yourclub.{{ service_domain }}</strong>,
+      and we invite whoever will run it.</p></li>
+    <li><h3>Go racing</h3><p>Your race committee records the finishes. Handicaps, standings and results emails
+      follow.</p></li>
+  </ol>
+</section>
+
+<section id="get-race-times" class="landing-section contact-panel" aria-labelledby="get-race-times-heading">
+  <h2 id="get-race-times-heading">Get Race Times for your club</h2>
+  <p>Email us and we'll set up your club's site and invite whoever will run it. There's nothing to install.</p>
+  <p><a class="button" href="mailto:{{ contact_email }}">Email {{ contact_email }}</a></p>
+</section>
 {% endblock %}

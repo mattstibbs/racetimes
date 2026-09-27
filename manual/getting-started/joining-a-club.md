@@ -8,7 +8,8 @@ enter series and hear about your results, you join the club.
 ## Signing up
 
 1. Go to your club's Race Times address, e.g. `demo.racetimes.co.uk`, and
-   choose **Sign up** at the top.
+   choose **Sign up** at the top. If you don't know the address, type your
+   club's name into **Find my club** at `racetimes.co.uk`.
 2. Give your name, email address and a password. Your email address is also
    how you'll log in.
 3. We email you a link to **confirm your email address**. Open it within

@@ -361,3 +361,82 @@ details.finish-form .figures { flex-basis: 100%; }
 .member-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.6rem 1rem; align-items: center; margin-bottom: 0.6rem; }
 .member-row .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 @media (max-width: 40rem) { .member-row { grid-template-columns: 1fr; } }
+
+/* --- The service's landing page (slice 19) ------------------------------------------- */
+/* A link that looks like a button, for the landing page's calls to action. */
+a.button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--tap); padding: 0.5rem 1.2rem;
+  border: 1px solid var(--accent); border-radius: var(--radius-small);
+  background: var(--accent); color: var(--surface);
+  font-weight: 600; line-height: 1.2; text-decoration: none;
+}
+a.button:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--surface); }
+a.button.secondary { background: var(--surface); color: var(--accent); }
+a.button.secondary:hover { background: var(--accent-soft); color: var(--accent-strong); }
+
+/* The header's logo on the service's own pages: bigger than on a club's site. */
+.brand-service-home { font-size: 1.5rem; }
+.brand-service-home img { width: 2.25rem; height: 2.25rem; }
+
+/* The photo fills the band; the text sits on a solid navy panel over it, so it
+   is as readable as the header whatever the photo. */
+.hero { position: relative; min-height: 30rem; display: flex; align-items: center; background: var(--navy); }
+.hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+.hero-inner { position: relative; width: 100%; padding-top: 2.5rem; padding-bottom: 2.5rem; }
+.hero-panel {
+  max-width: 34rem; padding: 1.75rem 2rem; border-radius: var(--radius);
+  background: var(--navy); color: var(--surface); box-shadow: var(--shadow);
+}
+.hero-panel h1 { color: var(--surface); font-size: 2rem; margin: 0.75rem 0; }
+.hero-lead { font-size: 1.1rem; margin: 0 0 1.25rem; }
+.hero-logo { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: 2.25rem; font-weight: 700; letter-spacing: -0.01em; }
+.hero-logo img { width: 4.5rem; height: 4.5rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; }
+.hero-panel :focus-visible { outline-color: var(--surface); }
+.photo-credit { margin-top: 0.4rem; margin-bottom: 0; font-size: 0.8rem; color: var(--muted); }
+
+.landing-section { margin: 2.5rem 0; }
+.find-club { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+.find-club h2 { margin-top: 0; }
+
+.feature-cards { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.feature-cards li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; box-shadow: var(--shadow); }
+.feature-cards svg {
+  width: 2.25rem; height: 2.25rem; padding: 0.4rem; border-radius: var(--radius-small);
+  background: var(--accent-soft); stroke: var(--accent); fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.feature-cards h3 { margin: 0.6rem 0 0.35rem; }
+.feature-cards p { margin: 0; }
+
+.screenshots { display: grid; gap: 1.25rem; grid-template-columns: 1fr 2fr; align-items: start; }
+.screenshots figure { margin: 0; }
+.screenshots figure:last-child { grid-column: 1 / -1; justify-self: center; max-width: 42rem; }
+.screenshots img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.screenshots figcaption { margin-top: 0.5rem; color: var(--muted); font-size: 0.95rem; }
+
+.steps { list-style: none; counter-reset: step; padding: 0; margin: 0; display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.steps li { counter-increment: step; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+.steps li::before {
+  content: counter(step); display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--surface); font-weight: 700;
+}
+.steps h3 { margin: 0.6rem 0 0.35rem; }
+.steps p { margin: 0; }
+
+.contact-panel { background: var(--navy); color: var(--surface); border-radius: var(--radius); padding: 1.5rem 2rem; }
+.contact-panel h2 { color: var(--surface); margin-top: 0; }
+
+@media (max-width: 40rem) {
+  /* On a phone the photo is a strip above the panel, which takes the full width. */
+  .hero { display: block; min-height: 0; }
+  .hero-photo { position: static; height: 12rem; }
+  .hero-inner { padding: 0; }
+  .hero-panel { max-width: none; border-radius: 0; padding: 1.25rem var(--gap) 1.5rem; box-shadow: none; }
+  .hero-panel h1 { font-size: 1.6rem; }
+  .hero-logo { font-size: 1.75rem; }
+  .hero-logo img { width: 3.25rem; height: 3.25rem; }
+  .screenshots { grid-template-columns: 1fr; }
+  .contact-panel { padding: 1.25rem var(--gap); }
+}
