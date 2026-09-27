@@ -24,7 +24,7 @@ from django.views.decorators.http import require_POST
 from . import club_deletion, club_export, invitations, membership_views, notifications
 from .clubs import club_address
 from .models import Club, ClubMembership, OperatorAction
-from .operator_forms import ClubForm, InvitationForm
+from .operator_forms import ClubForm, ClubSettingsForm, InvitationForm
 
 Action = OperatorAction.Action
 
@@ -103,7 +103,7 @@ def club_page(request, pk):
     )
 
 
-def _club_context(request, club, form):
+def _club_context(request, club, form, settings_form=None):
     return {
         "club": club,
         "address": club_address(request, club),
@@ -117,9 +117,58 @@ def _club_context(request, club, form):
         "roles": ClubMembership.Role.choices,
         "invitations": club.invitations.all(),
         "form": form,
+        "settings_form": settings_form or ClubSettingsForm(instance=club),
         "lasts_days": invitations.LASTS.days,
         "log": OperatorAction.objects.filter(club_subdomain=club.subdomain),
     }
+
+
+@operator_required
+@require_POST
+def club_settings(request, pk):
+    """Change a club's name or contact email, suspended or not (slice 22).
+
+    Each change is logged, and the club's administrators are emailed. The
+    address isn't in the form, so it can't change here.
+    """
+    club = get_object_or_404(Club, pk=pk)
+    old_name, old_contact_email = club.name, club.contact_email
+    form = ClubSettingsForm(request.POST, instance=club)
+    if not form.is_valid():
+        # Validating wrote the typed values onto the club; show it as it is.
+        club.refresh_from_db()
+        return render(
+            request,
+            "operator/club.html",
+            _club_context(request, club, InvitationForm(), form),
+            status=400,
+        )
+    renamed = club.name != old_name
+    new_contact = club.contact_email != old_contact_email
+    if not (renamed or new_contact):
+        messages.info(request, "Nothing changed.")
+        return redirect("races:operator_club", club.pk)
+    with transaction.atomic():
+        club.save(update_fields=["name", "contact_email"])
+        if renamed:
+            log(request, Action.RENAMED, club, f"{old_name} → {club.name}")
+        if new_contact:
+            log(
+                request,
+                Action.CONTACT_CHANGED,
+                club,
+                f"{old_contact_email or 'none'} → {club.contact_email}",
+            )
+        notifications.club_settings_changed(
+            club, request, old_name=old_name, old_contact_email=old_contact_email
+        )
+    if renamed:
+        messages.success(request, f"Renamed {old_name} to {club.name}.")
+    if new_contact:
+        messages.success(
+            request, f"{club.name}'s contact email is now {club.contact_email}."
+        )
+    return redirect("races:operator_club", club.pk)
 
 
 NOT_WHILE_SUSPENDED = "Reactivate the club first: nobody can accept an invitation while its site is paused."

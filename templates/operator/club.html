@@ -21,6 +21,16 @@
 {% endif %}
 </section>
 
+<section class="card" aria-labelledby="club-settings">
+<h2 id="club-settings">Club settings</h2>
+<p>Change the club's name or contact email. The change shows at once on the club's site and its emails, is
+  logged, and the club's administrators are emailed about it. The address, {{ club.subdomain }}, can't be changed.</p>
+<form method="post" action="{% url 'races:operator_club_settings' club.pk %}" class="stacked{% if settings_form.errors %} has-errors{% endif %}">{% csrf_token %}
+  {{ settings_form.as_p }}
+  <button type="submit">Save</button>
+</form>
+</section>
+
 <section aria-labelledby="waiting">
 <h2 id="waiting">Waiting to join ({{ waiting|length }})</h2>
 <p class="muted">Normally the club's administrators decide. Decide here when they can't, e.g. before the club has

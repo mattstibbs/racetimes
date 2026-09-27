@@ -1,0 +1,14 @@
+{% autoescape off %}{% if club.name != old_name %}Your club is now called {{ club.name }} on Race Times{% else %}{{ club.name }}'s contact email has changed on Race Times{% endif %}
+Hello {{ user.first_name|default:user.get_username }},
+
+The Race Times operator has changed your club's details:
+{% if club.name != old_name %}
+- Its name is now {{ club.name }} (it was {{ old_name }}). It's shown at the top of every page of your club's site, and on its emails.{% endif %}{% if club.contact_email != old_contact_email %}
+- Replies to your club's emails now go to {{ club.contact_email }}{% if old_contact_email %} (they went to {{ old_contact_email }}){% endif %}.{% endif %}
+
+Your club's site is still at {{ club_url }}
+
+If you weren't expecting this, contact Race Times at {{ service_contact_email }}.
+
+You are receiving this because you are an administrator of {{ club.name }} on Race Times.
+{% endautoescape %}

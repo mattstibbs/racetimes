@@ -1816,6 +1816,30 @@ and the button's words carry the contrast.
 
 ---
 
+## 2026-09-27 - Slice 22: renaming a club, but not its address
+
+**Decision.** The operator can change a live club's name and contact email
+from the club's page (`operator_views.club_settings`,
+`operator_forms.ClubSettingsForm`), suspended or not. Each change is logged
+as its own operator action, **Renamed a club** or **Changed a club's contact
+email**, with the old and new values: two new choices on
+`OperatorAction.Action` (migration 0021, which alters only the choices; the
+owner agreed to this data model change). The club's approved administrators
+are emailed, from the club as it now is.
+
+**The address stays fixed.** `ClubSettingsForm` has no `subdomain` field, so
+even a hand-made POST can't change it. Every bookmark, emailed link,
+invitation, shared WhatsApp message and the club's own publicity points at
+it; changing it safely needs redirects from the old address, which would be a
+slice of its own if a club ever asks.
+
+**Why the email points at Race Times, not "reply".** Replies to a club's
+emails go to its contact email, which may be the very thing that just changed,
+or the person who asked for the change. An administrator who wasn't expecting
+it is told to contact Race Times (`SERVICE_CONTACT_EMAIL`) instead.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

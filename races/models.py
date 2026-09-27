@@ -149,6 +149,9 @@ class OperatorAction(models.Model):
         # Slice 13.
         APPROVED_JOIN = "APPROVED_JOIN", "Approved someone joining"
         TURNED_DOWN = "TURNED_DOWN", "Turned down someone joining"
+        # Slice 22.
+        RENAMED = "RENAMED", "Renamed a club"
+        CONTACT_CHANGED = "CONTACT_CHANGED", "Changed a club's contact email"
 
     who = models.CharField(max_length=150)
     action = models.CharField(max_length=15, choices=Action.choices)
