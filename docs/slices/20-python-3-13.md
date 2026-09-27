@@ -1,6 +1,7 @@
 # Slice 20: move to Python 3.13
 
-**Status: approved by the owner (2026-09-27).**
+**Status: complete (2026-09-27). Deployed to both sites; `check_live.py` passes
+against production.**
 
 ## Goal
 Run Race Times on Python 3.13 instead of 3.11, before 3.11's support ends.

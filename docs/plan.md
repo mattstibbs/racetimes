@@ -760,7 +760,7 @@ on the service's pages only, every active club listed, and drafted wording
 for the owner to edit.
 
 
-## Slice 20: Python 3.13. **Status: built (2026-09-27); production to deploy**
+## Slice 20: Python 3.13. **Status: complete (2026-09-27)**
 
 Spec: `docs/slices/20-python-3-13.md`. Both sites move from Python 3.11 to 3.13
 before 3.11's support ends (October 2027); 3.13's runs to October 2029. CI runs
@@ -774,5 +774,6 @@ promise: its tests run on 3.11 in CI, and Ruff targets 3.11 for `nhc/` and
 - [x] `ruff check .` and `ruff format --check .` pass with the new targets;
       `check --deploy` passes with production settings on 3.13.
 - [x] The site runs locally on 3.13, checked by hand in a browser.
-- [ ] After deploying, `scripts/check_live.py` passes against production.
+- [x] After deploying, `scripts/check_live.py` passes against production
+      (2026-09-27, 15:20 UTC: all 10 checks).
 
