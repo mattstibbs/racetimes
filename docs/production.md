@@ -158,8 +158,8 @@ first club is invited.
 |---|---|---|
 | 2026-09-27 | `check_live.py` | Pass: all 10 checks (HTTPS and certificates on the service's, Demo Club's and a made-up address; HTTP and `www` redirects; security headers; noindex header and robots.txt; `/health/`). Certificates 29 days from renewal. |
 | | `check --deploy` | |
-| | Test email: SPF, DKIM, DMARC | |
-| | Sentry test message | |
+| | Test email: SPF, DKIM, DMARC |Pass: manually verified |
+| | Sentry test message | Pass: manually verified|
 | | Uptime alert | |
 | | Nightly backup ran | |
 | | Restore rehearsed; `series_summary` identical | |
