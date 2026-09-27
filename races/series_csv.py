@@ -36,22 +36,28 @@ def series_csv(series, results):
     """The whole file, as text: a heading block, the standings, then each race."""
     out = io.StringIO()
     out.write(BOM)
-    writer = csv.writer(out)
-    row = writer.writerow
+    row = csv.writer(out).writerow
+    _write_heading(row, series)
+    row([])
+    _write_standings(row, results)
+    for race_results in results.races:
+        row([])
+        _write_race(row, race_results)
+    for race, note in results.unscored:
+        row([])
+        row([f"Race {race.number}", _day(race.date), note])
+    return out.getvalue()
 
+
+def _write_heading(row, series):
+    """The series' name, whether it's final, how it's scored, and when this was made."""
+    now = timezone.localtime()
     row([typed(series.name)])
     if series.is_final:
-        row(
-            [
-                f"Final standings (declared {_day(timezone.localtime(series.declared_final_at))})"
-            ]
-        )
+        declared = _day(timezone.localtime(series.declared_final_at))
+        row([f"Final standings (declared {declared})"])
     else:
-        row(
-            [
-                f"Provisional standings as at {_day(timezone.localtime())} {timezone.localtime():%H:%M}"
-            ]
-        )
+        row([f"Provisional standings as at {_day(now)} {now:%H:%M}"])
     settings = [
         series.get_series_type_display(),
         f"{series.discards} discard{'s' if series.discards != 1 else ''}",
@@ -65,85 +71,81 @@ def series_csv(series, results):
     if series.nhc_options:
         settings.append(f"Handicaps adjusted with {' and '.join(series.nhc_options)}")
     row(settings)
-    row([f"Downloaded {_day(timezone.localtime())} {timezone.localtime():%H:%M}"])
+    row([f"Downloaded {_day(now)} {now:%H:%M}"])
 
-    row([])
+
+def _write_standings(row, results):
     row(["Series Standings"])
     if results.error:
         row([results.error])
-    elif not results.standings:
+        return
+    if not results.standings:
         row(["Nothing is scored in this series yet."])
-    else:
+        return
+    race_columns = [f"R{r.race.number}" for r in results.races]
+    row(["Place", "Sail number", "Boat", *race_columns, "Total"])
+    for standing in results.standings:
+        cells = [
+            f"({points(cell.points)})" if cell.discarded else points(cell.points)
+            for cell in standing.scores
+        ]
+        boat = standing.entry.boat
         row(
-            ["Place", "Sail number", "Boat"]
-            + [f"R{r.race.number}" for r in results.races]
-            + ["Total"]
-        )
-        for standing in results.standings:
-            cells = [
-                f"({points(cell.points)})" if cell.discarded else points(cell.points)
-                for cell in standing.scores
+            [
+                standing.position,
+                typed(boat.sail_number),
+                typed(boat.name),
+                *cells,
+                points(standing.total),
             ]
-            boat = standing.entry.boat
-            row(
-                [
-                    standing.position,
-                    typed(boat.sail_number),
-                    typed(boat.name),
-                    *cells,
-                    points(standing.total),
-                ]
-            )
+        )
 
-    for race_results in results.races:
-        race = race_results.race
-        row([])
-        state = (
-            f"Published {_day(timezone.localtime(race.published_at))}"
-            if race.published_at
-            else "Provisional"
-        )
+
+RACE_COLUMNS = [
+    "Place",
+    "Sail number",
+    "Boat",
+    "Finish time",
+    "Elapsed",
+    "Handicap",
+    "Corrected",
+    "Points",
+    "Code",
+]
+
+
+def _write_race(row, race_results):
+    race = race_results.race
+    state = (
+        f"Published {_day(timezone.localtime(race.published_at))}"
+        if race.published_at
+        else "Provisional"
+    )
+    row(
+        [
+            f"Race {race.number}",
+            _day(race.date),
+            f"Start {race.start_time:%H:%M:%S}",
+            state,
+        ]
+    )
+    row(RACE_COLUMNS)
+    for line in race_results.rows:
+        result, boat = line.result, line.entry.boat
+        finish_time = line.finish.finish_time if line.finish else None
         row(
             [
-                f"Race {race.number}",
-                _day(race.date),
-                f"Start {race.start_time:%H:%M:%S}",
-                state,
+                result.position or "",
+                typed(boat.sail_number),
+                typed(boat.name),
+                f"{finish_time:%H:%M:%S}" if finish_time else "",
+                hms(result.elapsed_seconds),
+                tcf(result.tcf_used),
+                hms(result.corrected_time),
+                points(result.points),
+                "" if result.position else line.place,
             ]
         )
-        row(
-            [
-                "Place",
-                "Sail number",
-                "Boat",
-                "Finish time",
-                "Elapsed",
-                "Handicap",
-                "Corrected",
-                "Points",
-                "Code",
-            ]
-        )
-        for line in race_results.rows:
-            result, boat = line.result, line.entry.boat
-            finish_time = line.finish.finish_time if line.finish else None
-            row(
-                [
-                    result.position or "",
-                    typed(boat.sail_number),
-                    typed(boat.name),
-                    f"{finish_time:%H:%M:%S}" if finish_time else "",
-                    hms(result.elapsed_seconds),
-                    tcf(result.tcf_used),
-                    hms(result.corrected_time),
-                    points(result.points),
-                    "" if result.position else line.place,
-                ]
-            )
-    for race, note in results.unscored:
-        row([])
-        row([f"Race {race.number}", _day(race.date), note])
-    return out.getvalue()
 
 
 def _day(value):
