@@ -60,6 +60,12 @@ boat's place, and a link to the full results on your club's site. Choose your
 club's group (or any chat) and press send. Nothing is sent until you press
 send in WhatsApp, and you can change the message first.
 
+A boat that took a scoring penalty is marked "(SCP)" after her name, for
+example "3. Kestrel (123) (SCP)", since the message lists places and no
+points, and she scored worse than the boat behind her. The link to the full
+results explains the code. The final standings message shows totals only and
+doesn't change.
+
 The message names boats by name and sail number only, never their owners, as
 on the public results page. On a phone, the button opens the WhatsApp app; on
 a computer, WhatsApp Web or the WhatsApp app, in a new tab. If you don't have

@@ -48,6 +48,11 @@ DISCARD_THRESHOLD_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "discard_threshold.yaml"
 )
 
+#: Worked examples SP-1 to SP-6 (slice 23, part B): the scoring penalty.
+SCORING_PENALTY_FIXTURE = load_scenarios(
+    Path(__file__).resolve().parent / "fixtures" / "scoring_penalty.yaml"
+)
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.

@@ -13,6 +13,10 @@ The rules that apply to a single race:
   split DNC from the rest, and software written against those still does.
 * **A5.3** An option the notice of race or sailing instructions may invoke,
   which softens A5.2 for boats that at least turned up.
+* **44.3(c) and A10 (SCP)** A boat that finishes and takes a scoring penalty
+  keeps her place, and her score is made worse by 20% of the score for Did Not
+  Finish, in tenths of a point, but never worse than Did Not Finish. Other
+  boats' scores don't change.
 * **A7** Tied boats share the points for their place and the places immediately
   below, divided equally.
 
@@ -76,15 +80,23 @@ def score_points(
 
     came_to_starting_area = sum(1 for r in results if r.status is not RaceStatus.DNC)
 
+    # The score for Did Not Finish in this race: what a DNF boat would get under
+    # the rule in force. Always a whole number, so 20% of it is a whole number
+    # of tenths and nothing needs rounding.
+    dnf_score = (came_to_starting_area if apply_a5_3 else series_entry_count) + 1
+
     scored = []
     for result in results:
+        penalty = None
         if result.position is not None:
             points = points_for_place(result.position, boats_at_place[result.position])
+            if result.scoring_penalty:
+                points, penalty = _with_scoring_penalty(points, dnf_score)
         elif apply_a5_3 and result.status is not RaceStatus.DNC:
             points = float(came_to_starting_area + 1)
         else:
             points = float(series_entry_count + 1)
-        scored.append(replace(result, points=points))
+        scored.append(replace(result, points=points, penalty_points=penalty))
 
     return tuple(scored)
 
@@ -106,3 +118,16 @@ def points_for_place(place: int, boats_tied: int = 1) -> float:
     if boats_tied < 1:
         raise InvalidInput(f"boats_tied must be at least 1, got {boats_tied!r}")
     return place + (boats_tied - 1) / 2.0
+
+
+def _with_scoring_penalty(place_points: float, dnf_score: int) -> tuple[float, float]:
+    """Place points made worse by 20% of the DNF score, capped at the DNF score.
+
+    Worked in whole tenths: place points are multiples of 0.5 and 20% of a whole
+    number is a whole number of tenths (7 gives 14), so every figure here is an
+    exact integer and only the final division brings it back to points.
+    Returns the new points and what the penalty added.
+    """
+    place_tenths = round(place_points * 10)
+    scored_tenths = min(place_tenths + 2 * dnf_score, 10 * dnf_score)
+    return scored_tenths / 10, (scored_tenths - place_tenths) / 10

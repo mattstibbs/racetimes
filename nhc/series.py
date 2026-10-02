@@ -309,6 +309,7 @@ def _score_one_race(
                 tcf_used=handicaps[boat.boat_id],
                 elapsed_seconds=finish.elapsed_seconds if finish else None,
                 base_number=boat.base_number,
+                scoring_penalty=finish.scoring_penalty if finish else False,
             )
         )
 

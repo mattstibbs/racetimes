@@ -396,3 +396,35 @@ def test_a_bad_discard_threshold_is_rejected_when_the_series_is_built(
             discards=discards,
             discard_threshold=threshold,
         )
+
+
+@pytest.mark.parametrize("series_type", [SeriesType.CLUB, SeriesType.REGATTA])
+def test_a_scoring_penalty_leaves_handicaps_and_places_alone(series_type):
+    """She sailed the course, so her time is in everyone's adjustment (slice 23)."""
+
+    def sailed(penalty):
+        finishes = [
+            Finish("A", FIN, 3600.0),
+            Finish("B", FIN, 3900.0, scoring_penalty=penalty),
+            Finish("C", FIN, 4300.0),
+        ]
+        return score_series(
+            Series(
+                boats=three_boats(),
+                races=[SeriesRace("R1", finishes), SeriesRace("R2", finishes)],
+                series_type=series_type,
+            )
+        )
+
+    plain, penalised = sailed(False), sailed(True)
+    for race_id in ("R1", "R2"):
+        for a, b in zip(
+            plain.race(race_id).results, penalised.race(race_id).results, strict=True
+        ):
+            assert (a.position, a.tcf_used, a.next_tcf, a.corrected_time) == (
+                b.position,
+                b.tcf_used,
+                b.next_tcf,
+                b.corrected_time,
+            )
+    assert penalised.race("R1").results[1].points == 2 + 0.8  # 20% of a DNF's 4

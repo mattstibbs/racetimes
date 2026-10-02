@@ -67,15 +67,26 @@ def unsailed():
     return series, race, entry
 
 
-def save_finish(client, race, entry, finish_time="", status="FINISHED", reason=""):
+def save_finish(
+    client,
+    race,
+    entry,
+    finish_time="",
+    status="FINISHED",
+    reason="",
+    scoring_penalty=False,
+):
     prefix = f"entry-{entry.pk}"
+    data = {
+        f"{prefix}-finish_time": finish_time,
+        f"{prefix}-status": status,
+        f"{prefix}-reason": reason,
+    }
+    if scoring_penalty:
+        data[f"{prefix}-scoring_penalty"] = "on"
     return client.post(
         reverse("races:save_finish", args=[race.pk, entry.pk]),
-        {
-            f"{prefix}-finish_time": finish_time,
-            f"{prefix}-status": status,
-            f"{prefix}-reason": reason,
-        },
+        data,
         HTTP_HX_REQUEST="true",
     )
 
@@ -126,6 +137,7 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
     assert change.changes == {
         "Status": ["", "Finished"],
         "Finish time": ["", "19:00:00"],
+        "Scoring penalty": ["", "No"],
     }
     assert "Saved." in response.content.decode()
 
@@ -300,7 +312,7 @@ def test_creating_a_boat_or_series_is_not_recorded(staff_client):
 def test_every_audited_field_is_covered_by_a_test_above():
     # Adding a field to AUDITED_FIELDS should come with a test that changes it.
     assert {
-        Finish: ["status", "finish_time"],
+        Finish: ["status", "finish_time", "scoring_penalty"],
         Race: ["number", "start_time"],
         Series: [
             "series_type",

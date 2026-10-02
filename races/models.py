@@ -584,6 +584,14 @@ class Finish(models.Model):
         max_length=10, choices=Status.choices, default=Status.FINISHED
     )
     finish_time = models.TimeField(null=True, blank=True)
+    # Slice 23: RRS 44.3(c), A10 code SCP. The boat keeps her place and scores
+    # 20% of the DNF score more (nhc/points.py). A tick, not a count: one per
+    # boat per race.
+    scoring_penalty = models.BooleanField(
+        "scoring penalty",
+        default=False,
+        help_text="The boat accepted a 20% scoring penalty (RRS 44.3(c), SCP).",
+    )
     # Slice 9: when this finish was first saved, tapped or typed. The race day
     # page's two-minute Undo is measured from it. Empty for finishes saved
     # before slice 9, which therefore never offer Undo.
@@ -611,6 +619,12 @@ class Finish(models.Model):
                 ),
                 name="finish_time_xor_code",
             ),
+            # A scoring penalty worsens a finisher's place points, so a boat
+            # with a code has nothing to worsen.
+            models.CheckConstraint(
+                condition=models.Q(scoring_penalty=False) | models.Q(status="FINISHED"),
+                name="finish_scoring_penalty_only_when_finished",
+            ),
         ]
 
     def __str__(self):
@@ -632,6 +646,12 @@ class Finish(models.Model):
             raise ValidationError(
                 {
                     "finish_time": "A boat with a code has no finish time. Clear it, or choose Finished."
+                }
+            )
+        if self.scoring_penalty and self.status != self.Status.FINISHED:
+            raise ValidationError(
+                {
+                    "scoring_penalty": "A scoring penalty needs a finish. Untick it, or choose Finished."
                 }
             )
         _whole_seconds(self.finish_time, "finish_time")

@@ -348,6 +348,8 @@ details.finish-form form {
   display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: flex-end; margin-top: 0.6rem;
 }
 details.finish-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.9rem; }
+/* A tick box and its words on one line, at a tappable height. */
+details.finish-form label.tick { flex-direction: row; align-items: center; gap: 0.5rem; min-height: var(--tap); }
 details.finish-form .figures { flex-basis: 100%; }
 
 @media (max-width: 40rem) {

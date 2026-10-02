@@ -23,7 +23,7 @@ from .models import Boat, Finish, Race, ScoringChange, Series, SeriesEntry
 # models is display only and moves no number. Adding a field here is all it
 # takes to audit it.
 AUDITED_FIELDS = {
-    Finish: ["status", "finish_time"],
+    Finish: ["status", "finish_time", "scoring_penalty"],
     # A race's date moves nothing: elapsed time is measured within the day.
     Race: ["number", "start_time"],
     Series: [

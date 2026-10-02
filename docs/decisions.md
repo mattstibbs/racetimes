@@ -2107,6 +2107,27 @@ other; slice 25 needs slice 24.
 - Fixture `tests/fixtures/discard_threshold.yaml` is DT-1 as checked by the
   project owner; not produced from engine output.
 
+## 2026-10-02 - Slice 23 part B: the scoring penalty
+
+- `Finish.scoring_penalty` (BooleanField, approved), a check constraint that it
+  is only on a FINISHED row, and `scoring_penalty` on `nhc.Finish`/`RaceEntry`/
+  `RaceResult`. `RaceResult.penalty_points` is what the penalty added after the
+  cap (SP-3: 1.0, not 1.4).
+- Totals and the A8 keys are whole tenths (`nhc/standings.py`), so SP-6's
+  6.8 and 6.8 tie exactly and go to A8.1.
+- The form refuses the tick with a code rather than clearing it silently:
+  correcting a penalised finish to DNF needs the tick removed first.
+- A new finish's history row lists "Scoring penalty: (blank) to No" like its
+  other fields; the audited-fields list is how every field is recorded.
+- Which boats took SCP in the series table is read from the engine's race
+  results (`scoring._standings`), not stored on `RaceScore`, so a final
+  series' stored copy needs no new field there. Stored results from before the
+  slice load as "no penalty" (a test checks this).
+- Manual screenshots: the seed puts a scoring penalty on Kittiwake in race 3
+  so the results images show SCP.
+- Fixture `tests/fixtures/scoring_penalty.yaml` is SP-1 to SP-6 as checked by
+  the project owner, not engine output.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

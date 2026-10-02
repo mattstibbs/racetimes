@@ -26,6 +26,12 @@ BOM = "﻿"
 FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
 
 
+SCP_NOTE = (
+    "SCP: scoring penalty (RRS 44.3(c)). The boat finished and kept her place, "
+    "but scored 20% of the Did Not Finish score more."
+)
+
+
 def typed(value):
     """Text someone typed, made safe to open in a spreadsheet."""
     value = "" if value is None else str(value)
@@ -85,10 +91,7 @@ def _write_standings(row, results):
     race_columns = [f"R{r.race.number}" for r in results.races]
     row(["Place", "Sail number", "Boat", *race_columns, "Total"])
     for standing in results.standings:
-        cells = [
-            f"({points(cell.points)})" if cell.discarded else points(cell.points)
-            for cell in standing.scores
-        ]
+        cells = [_score_cell(cell) for cell in standing.scores]
         boat = standing.entry.boat
         row(
             [
@@ -99,6 +102,13 @@ def _write_standings(row, results):
                 points(standing.total),
             ]
         )
+    if results.has_scoring_penalty:
+        row([SCP_NOTE])
+
+
+def _score_cell(cell):
+    text = points(cell.points) + (" SCP" if cell.scoring_penalty else "")
+    return f"({text})" if cell.discarded else text
 
 
 RACE_COLUMNS = [
@@ -143,9 +153,13 @@ def _write_race(row, race_results):
                 tcf(result.tcf_used),
                 hms(result.corrected_time),
                 points(result.points),
-                "" if result.position else line.place,
+                "SCP"
+                if result.scoring_penalty
+                else ("" if result.position else line.place),
             ]
         )
+    if race_results.has_scoring_penalty:
+        row([SCP_NOTE])
 
 
 def _day(value):

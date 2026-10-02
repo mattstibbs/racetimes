@@ -1,6 +1,6 @@
 {% load racing %}{% autoescape off %}*{{ race.series }}, race {{ race.number }}* ({{ race.date|date:"D j M" }}): {% if updated %}results have been corrected{% else %}results are published{% endif %}.
 {% if race_results %}
-{% for row in race_results.rows %}{% if row.result.position %}{{ row.result.position }}.{% else %}{{ row.place }}:{% endif %} {{ row.entry.boat }}
+{% for row in race_results.rows %}{% if row.result.position %}{{ row.result.position }}.{% else %}{{ row.place }}:{% endif %} {{ row.entry.boat }}{% if row.result.scoring_penalty %} (SCP){% endif %}
 {% endfor %}{% endif %}
 Full results: {{ results_url }}
 {% endautoescape %}

@@ -32,7 +32,7 @@ def tcf(value):
 
 @register.filter
 def points(value):
-    """Race points: whole, or halves after a tie. 2.0 shows as 2."""
+    """Race points: whole, or with a tenth where there is one (2.5, 4.4). 2.0 shows as 2."""
     if value is None:
         return ""
     return f"{value:g}"

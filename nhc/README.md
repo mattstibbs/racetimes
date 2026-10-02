@@ -95,7 +95,7 @@ a series entrant for the whole series whether she turns up or not.
 | Name | What it is |
 | --- | --- |
 | `Boat(boat_id, base_number, current_tcf, name="")` | A boat's published rating (BN) and the handicap it carries into its next race |
-| `Finish(boat_id, status, elapsed_seconds=None)` | One recorded outcome: a time, or a scoring code |
+| `Finish(boat_id, status, elapsed_seconds=None, scoring_penalty=False)` | One recorded outcome: a time, or a scoring code |
 | `SeriesRace(race_id, finishes)` | One race's finishes. No handicaps - they are derived |
 | `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1, discard_threshold=0, cap_extremes=False, realign_to_base=False)` | The races, the boats, and the rules they are scored under |
 | `SeriesType` | `CLUB` or `REGATTA` |
@@ -121,7 +121,15 @@ date is yours to manage, and two races on one evening still have an order.
 `corrected_time`, `position`, `points`, `adjustment_scale` (AS),
 `achieved_handicap` (TCFr), `performance`, `next_tcf` (TCFn),
 `next_tcf_clamped`, `elapsed_seconds_used`, `realignment_factor`,
-`effective_next_tcf`, and `capped`.
+`effective_next_tcf`, `capped`, `scoring_penalty` and `penalty_points`.
+
+`scoring_penalty` is RRS 44.3(c) (A10 code **SCP**): a boat that finished and
+accepted the penalty keeps her place, and `score_points` makes her score worse
+by 20% of that race's Did Not Finish score, never worse than that score.
+`penalty_points` is what it added (`None` without a penalty). It is refused
+(`InvalidInput`) on a boat that did not finish. Handicaps are unaffected: she
+sailed the course. Totals and the A8 tie-breaks are worked in whole tenths of a
+point, so scores that differ only by float noise are really tied.
 
 A `None` handicap field means *this pass did not compute it*, which is distinct
 from a genuine zero - a boat that did not finish earns an `adjustment_scale` of
@@ -134,7 +142,7 @@ to drive the steps yourself.
 
 | Name | What it is |
 | --- | --- |
-| `RaceEntry(boat_id, status, tcf_used, elapsed_seconds=None, base_number=None)` | One boat in a race, with the handicap it raced under |
+| `RaceEntry(boat_id, status, tcf_used, elapsed_seconds=None, base_number=None, scoring_penalty=False)` | One boat in a race, with the handicap it raced under |
 | `RaceInput(series_type, entries, is_first_race_of_regatta=False)` | A race ready to score |
 | `score_race(race)` | Corrected times and finishing places |
 | `compute_club_adjustment(race, *, minimum_finishers=0, cap_extremes=False, realign_to_base=False)` | Scores a club race and computes next handicaps |
@@ -249,9 +257,11 @@ failure there is a defect in this package, never a fixture to adjust.
   retires after finishing. It cannot fire with the four statuses modelled here,
   since none of them ever held a finishing place. It needs `DSQ`, `RET` or
   `NSC`.
-- **Scoring codes beyond `FINISHED`, `DNC`, `DNS` and `DNF`.** RRS A10 defines
-  fourteen. Adding the ones that finish and are then penalised would change an
-  invariant here, since such a boat *does* have an elapsed time.
+- **Scoring codes beyond `FINISHED`, `DNC`, `DNS`, `DNF` and the scoring
+  penalty (SCP).** RRS A10 defines fourteen; OCS, RET, DSQ, DNE, RDG and the
+  rest are not implemented. Nor are other penalties (a stated number of
+  points, a different percentage, ZFP) or more than one scoring penalty for a
+  boat in one race.
 - **A discard schedule with several steps.** `discard_threshold` is
   implemented: one count of `discards`, applying only once that many races are
   scored (*no discard until four races*). A schedule such as "1 after 4 races,

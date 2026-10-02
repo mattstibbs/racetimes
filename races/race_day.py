@@ -125,7 +125,13 @@ def version(race):
     race.refresh_from_db(fields=["published_at", "results_sent_at"])
     at = timezone.now()
     finishes = sorted(
-        (f.entry_id, f.status, str(f.finish_time), can_undo(f, race, at))
+        (
+            f.entry_id,
+            f.status,
+            str(f.finish_time),
+            f.scoring_penalty,
+            can_undo(f, race, at),
+        )
         for f in Finish.objects.filter(race=race)
     )
     racing = sorted(
