@@ -1,7 +1,7 @@
 # Slice 23: a discard threshold and the scoring penalty
 
-**Status: ready to build (2026-10-02).** Nothing is built. The project owner
-has answered the open questions, approved both data model changes, and
+**Status: complete (2026-10-02).** Part A was built in #48 and part B in #49.
+The project owner had answered the open questions, approved both data model changes, and
 checked the worked examples (see "The project owner's answers" at the end).
 Nothing is left to answer.
 

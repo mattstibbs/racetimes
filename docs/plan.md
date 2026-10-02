@@ -799,10 +799,10 @@ The owner said yes to all three recommendations: new operator log actions
 (migration 0021, choices only), the club's administrators are emailed, and the
 contact email is in the same section.
 
-## Slice 23: a discard threshold and the scoring penalty. **Status: ready to build (2026-10-02)**
+## Slice 23: a discard threshold and the scoring penalty. **Status: complete (2026-10-02)**
 
-Spec: `docs/slices/23-discard-threshold-and-scoring-penalty.md`. Nothing is
-built. Two rules club sailing instructions rely on, each its own pull request:
+Spec: `docs/slices/23-discard-threshold-and-scoring-penalty.md`. Built as two
+pull requests (part A: #48, part B: #49). Two rules club sailing instructions rely on, each its own pull request:
 
 - **Part A: "no discard until N races"** (RRS A2.1). A series gains a
   threshold: no score is excluded until that many races are scored. 0, the
@@ -818,8 +818,8 @@ handicap moves as any finisher's; the 2025-2028 rules; and the WhatsApp race
 message marks a penalised boat "(SCP)".
 
 The owner checked worked examples DT-1 and SP-1 to SP-6 (2026-10-02), so
-nothing is left to answer. They become fixtures in `tests/fixtures/` when
-each part is built.
+nothing is left to answer. They are fixtures in `tests/fixtures/`
+(`discard_threshold.yaml`, `scoring_penalty.yaml`).
 
 ## Slice 24: Portsmouth Number series. **Status: ready to build (2026-10-02)**
 
