@@ -58,6 +58,9 @@ PORTSMOUTH_YARDSTICK_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "portsmouth_yardstick.yaml"
 )
 
+#: Worked examples YTC-1 and YTC-2 (slice 25, part B): RYA YTC.
+YTC_FIXTURE = load_scenarios(Path(__file__).resolve().parent / "fixtures" / "ytc.yaml")
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.

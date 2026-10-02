@@ -2,10 +2,10 @@
 
 Under NHC a boat's handicap moves after every race. Under a fixed-number
 system a boat has one number for the whole series and nothing moves. The
-Portsmouth Yardstick (PY) number is a whole number, higher for a slower boat,
-and the scheme's published formula is::
+Portsmouth Yardstick (PY) number and the RYA YTC number are whole numbers,
+higher for a slower boat, and each scheme's published formula is the same::
 
-    corrected time = elapsed time x 1000 / PN
+    corrected time = elapsed time x 1000 / number
 
 Everything else is the same as NHC and shared with it: the finishes a race
 officer records, the ranking of corrected times (RRS A3 and A7), points
@@ -15,9 +15,11 @@ NHC fields empty, and it imports nothing from the NHC modules (``handicap``,
 ``regatta``, ``options``, ``realignment``, ``series``), nor do they import it.
 ``tests/test_fixed_number.py`` checks both directions.
 
-The reference document in ``docs/reference/`` is the RYA's sample notice of race
-wording. It is silent on the formula and on rounding. The formula above is the
-scheme's published one (the project owner's decision), and corrected times are
+The reference documents in ``docs/reference/`` are the RYA's sample notice of race
+wording for Portsmouth Yardstick, which is silent on the formula and on
+rounding, and the RYA YTC 2026 Policy and Procedures, whose section 6.2 gives
+the formula. Both systems use the formula above (for Portsmouth Yardstick it is
+the scheme's published one, the project owner's decision), and corrected times are
 kept at full precision and never rounded before ranking, as under NHC: two
 boats a fraction of a second apart are not tied, even if a page shows both the
 same rounded time. If a later system needs times rounded before ranking, the
@@ -47,17 +49,18 @@ class FixedNumberSystem(StrEnum):
     """Which fixed-number system's formula to use."""
 
     PY = "PY"  # RYA Portsmouth Yardstick
+    YTC = "YTC"  # RYA YTC (Yacht Time Correction), section 6.2 of its 2026 policy
 
 
 #: The numerator of each system's formula: corrected time = elapsed x this /
 #: number. Kept per system so the formula stays as the scheme writes it.
-_NUMERATOR = {FixedNumberSystem.PY: 1000}
+_NUMERATOR = {FixedNumberSystem.PY: 1000, FixedNumberSystem.YTC: 1000}
 
 
 def fixed_number_corrected_time(
     elapsed_seconds: float, number: float, system: FixedNumberSystem
 ) -> float:
-    """The scheme's corrected time, as written: elapsed x 1000 / number for PY.
+    """The scheme's corrected time, as written: elapsed x 1000 / number.
 
     Deliberately not "turn the number into a TCF, then multiply": dividing by
     the number directly keeps float noise out of ties, and a fixture can be

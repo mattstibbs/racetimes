@@ -1,0 +1,88 @@
+# Worked examples YTC-1 and YTC-2 for RYA YTC (slice 25, part B).
+#
+# SOURCE: docs/slices/25-rya-ytc-and-engine-rename.md, "Worked examples".
+# Worked by hand from the formula in section 6.2 of the RYA's YTC Policy and
+# Procedures 2026 (docs/reference/), not with the engine; the arithmetic was
+# re-checked with plain Python (no engine code), and the project owner checked
+# and approved both on 2026-10-02. They are copied here as written. Never
+# change an expected value to make a test pass: if the engine disagrees, the
+# engine is wrong, or this file's provenance needs checking with the project
+# owner first.
+#
+# Corrected time = elapsed x 1000 / the number the boat races on. `corrected`
+# is given to three decimal places, so compare it within 0.0005. A boat that
+# doesn't finish has no `corrected` or `place`. `points` is the score under
+# RRS A4, A5.2 and A7. `standings` is the series table after the last race,
+# with no discards.
+#
+# `boats` is the number each boat races on. `certificates` is what the site
+# stores for each boat (her two numbers) and `entered_on` which one her series
+# entry chose: SPINNAKER is her YTC number, NON_SPINNAKER her white-sail one.
+# The engine knows nothing about spinnakers, and uses only `boats`.
+
+YTC-1:   # a two-race series; A is entered on her non-spinnaker number; B retires in race 2
+  entries: 3
+  discards: 0
+  boats: {A: 899, B: 940, C: 1010}
+  certificates:
+    A: {ytc: 873, non_spinnaker: 899, entered_on: NON_SPINNAKER}
+    B: {ytc: 940, non_spinnaker: null, entered_on: SPINNAKER}
+    C: {ytc: 1010, non_spinnaker: null, entered_on: SPINNAKER}
+  races:
+    - race_id: R1
+      finishes: {A: 3600, B: 3820, C: 4080}      # elapsed seconds
+      expected:
+        A: {corrected: 4004.449, place: 1, points: 1}
+        C: {corrected: 4039.604, place: 2, points: 2}
+        B: {corrected: 4063.830, place: 3, points: 3}
+    - race_id: R2
+      finishes: {A: 3500, B: DNF, C: 3980}
+      expected:
+        A: {corrected: 3893.215, place: 1, points: 1}
+        C: {corrected: 3940.594, place: 2, points: 2}
+        B: {points: 4}                   # 3 entries + 1 (A5.2)
+  standings:                             # position and total, best first
+    - {boat: A, position: 1, total: 2}
+    - {boat: C, position: 2, total: 4}
+    - {boat: B, position: 3, total: 7}
+  # The same series with A entered on her YTC number, 873 instead. Only A's
+  # corrected times change, and with them the places.
+  with_a_on_her_ytc_number:
+    boats: {A: 873, B: 940, C: 1010}
+    entered_on: {A: SPINNAKER}
+    races:
+      - expected:
+          C: {corrected: 4039.604, place: 1, points: 1}
+          B: {corrected: 4063.830, place: 2, points: 2}
+          A: {corrected: 4123.711, place: 3, points: 3}
+      - expected:
+          C: {corrected: 3940.594, place: 1, points: 1}
+          A: {corrected: 4009.164, place: 2, points: 2}
+          B: {points: 4}
+    standings:
+      - {boat: C, position: 1, total: 2}
+      - {boat: A, position: 2, total: 5}
+      - {boat: B, position: 3, total: 6}
+
+YTC-2:   # a tie, and a near miss; everyone is entered on their YTC number
+  entries: 4
+  discards: 0
+  boats: {D: 900, E: 950, F: 1010, G: 940}
+  certificates:
+    D: {ytc: 900, non_spinnaker: null, entered_on: SPINNAKER}
+    E: {ytc: 950, non_spinnaker: null, entered_on: SPINNAKER}
+    F: {ytc: 1010, non_spinnaker: null, entered_on: SPINNAKER}
+    G: {ytc: 940, non_spinnaker: null, entered_on: SPINNAKER}
+  races:
+    - race_id: R1
+      finishes: {D: 3600, E: 3800, F: 4190, G: 3900}
+      expected:
+        D: {corrected: 4000.000, place: 1, points: 1.5}     # tied with E
+        E: {corrected: 4000.000, place: 1, points: 1.5}
+        F: {corrected: 4148.515, place: 3, points: 3}
+        G: {corrected: 4148.936, place: 4, points: 4}       # 0.421 s behind F
+  standings:
+    - {boat: D, position: 1, total: 1.5}
+    - {boat: E, position: 1, total: 1.5}
+    - {boat: F, position: 3, total: 3}
+    - {boat: G, position: 4, total: 4}
