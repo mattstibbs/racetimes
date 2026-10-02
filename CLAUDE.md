@@ -89,7 +89,9 @@ a pointer instead.
 ## Architecture
 
 - `nhc/` is the scoring engine: a standalone, standard-library-only package
-  implementing the RYA NHC handicap rules and RRS Appendix A scoring. It must not
+  implementing the RYA NHC handicap rules and RRS Appendix A scoring, and (slice
+  24) fixed-number series such as Portsmouth Yardstick in `nhc/fixed_number.py`,
+  which share Appendix A with NHC but import nothing from the NHC modules. It must not
   import Django, third-party packages, or do any I/O - it takes plain Python data
   and returns plain Python data, so it can be vendored into any project.
   `tests/test_package_purity.py` enforces this. Its reference documents are in

@@ -2128,6 +2128,41 @@ other; slice 25 needs slice 24.
 - Fixture `tests/fixtures/scoring_penalty.yaml` is SP-1 to SP-6 as checked by
   the project owner, not engine output.
 
+## 2026-10-02 - Slice 24 part A: the engine scores fixed-number series
+
+- Portsmouth Yardstick is a module of its own, `nhc/fixed_number.py`, beside the
+  NHC code, with its own small types (`FixedNumberBoat`, `FixedNumberSeries`,
+  `FixedNumberResult`, `FixedNumberOutcome`). The NHC types gain no field and
+  lose none (a test pins them), and the two parts import nothing from each other
+  (a test checks both directions). The owner's choice; the first draft added
+  optional fields to the NHC types.
+- Corrected time is `elapsed x 1000 / PN`, as the scheme writes it, at full
+  precision and never rounded before ranking. The reference document is silent
+  on both; PY-2's F and G (0.386 s apart, shown as the same time) are the test.
+- Shared with NHC: ranking (`scoring.assign_positions`, now public), points and
+  standings. They read only a result's boat, status, place, points and scoring
+  penalty, so their type hints say `ScoredResult`, a `Protocol` in `domain.py`.
+  `FixedNumberResult` carries exactly those fields, because `score_points` copies
+  results with `dataclasses.replace`. `SeriesRace` and `RaceOutcome` moved from
+  `series.py` to `domain.py` so the new module needn't import the NHC replay;
+  the package exports them under the same names.
+- **The shared checks keep NHC's order.** The checks every series needs are
+  `check_has_boats`, `check_discards` and `check_entries` in `domain.py`, and
+  `check_series` composes them for a fixed-number series. `Series` calls the
+  three where the checks always sat, with its own checks (progression, series
+  type, minimum finishers, regatta-only options) between them. A first version
+  ran one shared helper and then those; against the code as it was, over every
+  single fault and every pair, 21 of 66 pairs then reported a different first
+  error. Which error comes first is part of the behaviour, so the order is kept
+  and a test pins it. `compute_standings` uses `check_discards` too.
+- The package keeps its name, `nhc` (slice 25 renames it), and
+  `FixedNumberSystem` has one value, `PY` (slice 25 adds `YTC`). Nothing on the
+  site uses any of this yet; that is part B.
+- Fixture `tests/fixtures/portsmouth_yardstick.yaml` is PY-1 and PY-2 as checked
+  by the project owner, not engine output. The discard threshold and scoring
+  penalty under PY are tested as behaviour, with figures worked from the rules
+  in the test's own comments, not as fixtures.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

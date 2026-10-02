@@ -55,7 +55,7 @@ def score_race(race: RaceInput) -> tuple[RaceResult, ...]:
         key=lambda pair: pair[0],
     )
 
-    positions = _assign_positions(scored)
+    positions = assign_positions(scored)
     corrected = {boat_id: value for value, boat_id in scored}
 
     return tuple(
@@ -72,8 +72,11 @@ def score_race(race: RaceInput) -> tuple[RaceResult, ...]:
     )
 
 
-def _assign_positions(scored: list[tuple[float, str]]) -> dict[str, int]:
+def assign_positions(scored: list[tuple[float, str]]) -> dict[str, int]:
     """Finishing places from corrected times already sorted ascending.
+
+    Public so a fixed-number series (``nhc/fixed_number.py``) ranks exactly as
+    an NHC series does. ``scored`` is (corrected time, boat id) pairs.
 
     Boats with equal corrected times share the better place, so a two-way tie
     for first is scored 1, 1, 3 - the place below is consumed, not reused. That

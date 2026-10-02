@@ -28,6 +28,7 @@ import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Protocol
 
 from .errors import InvalidInput
 
@@ -383,3 +384,132 @@ class RealignmentResult:
 
     boat_id: str
     realigned_tcf: float
+
+
+# --- Shared by every kind of series (slice 24) -------------------------------------------
+#
+# An NHC series and a fixed-number series (``nhc/fixed_number.py``) differ in how
+# a corrected time is worked out and in whether handicaps move. Everything else
+# is RRS Appendix A and the same bookkeeping, so it lives here, where neither
+# kind of series has to import the other.
+
+
+class ScoredResult(Protocol):
+    """What the shared Appendix A code reads and writes on one boat's result.
+
+    ``RaceResult`` (NHC) and ``FixedNumberResult`` both have these. Points,
+    standings and ranking use nothing else, which is why they work on either.
+    """
+
+    boat_id: str
+    status: RaceStatus
+    position: int | None
+    points: float | None
+    scoring_penalty: bool
+    penalty_points: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class SeriesRace:
+    """One race within a series: who finished, and when.
+
+    Carries no handicaps. They are derived by the replay. (A fixed-number
+    series has none to derive, so it uses this too.)
+    """
+
+    race_id: str
+    finishes: tuple[Finish, ...]
+
+    def __init__(self, race_id: str, finishes: Sequence[Finish] = ()) -> None:
+        object.__setattr__(self, "race_id", race_id)
+        object.__setattr__(self, "finishes", tuple(finishes))
+        self.__post_init__()
+
+    def __post_init__(self) -> None:
+        if not self.race_id:
+            raise InvalidInput("race_id is required")
+        seen: set[str] = set()
+        for finish in self.finishes:
+            if finish.boat_id in seen:
+                raise InvalidInput(
+                    f"race {self.race_id}: boat {finish.boat_id} has two recorded finishes"
+                )
+            seen.add(finish.boat_id)
+
+
+@dataclass(frozen=True, slots=True)
+class RaceOutcome:
+    """One race's scored results, in series order.
+
+    ``results`` are ``RaceResult``s for an NHC series and ``FixedNumberResult``s
+    for a fixed-number one.
+    """
+
+    race_id: str
+    results: tuple[ScoredResult, ...]
+
+
+def check_discards(discards: int, discard_threshold: int) -> None:
+    """Refuse discard settings that make no sense (RRS A2.1).
+
+    Shared by both kinds of series and by ``compute_standings``, so all three
+    say the same thing about the same mistake.
+    """
+    if discards < 0:
+        raise InvalidInput(f"discards cannot be negative, got {discards!r}")
+    if discard_threshold < 0:
+        raise InvalidInput(
+            f"discard_threshold cannot be negative, got {discard_threshold!r}"
+        )
+    if discards and 1 <= discard_threshold <= discards:
+        raise InvalidInput(
+            f"discard_threshold {discard_threshold} must be larger than discards "
+            f"({discards}), or every score would be excluded"
+        )
+
+
+def check_has_boats(boats) -> None:
+    if not boats:
+        raise InvalidInput("a series needs at least one boat")
+
+
+def check_entries(boats, races) -> None:
+    """No boat or race twice, and no finish for a boat that isn't entered.
+
+    ``boats`` need only have a ``boat_id``.
+    """
+    boat_ids = [boat.boat_id for boat in boats]
+    duplicates = {i for i in boat_ids if boat_ids.count(i) > 1}
+    if duplicates:
+        raise InvalidInput(
+            f"boat entered twice in the series: {', '.join(sorted(duplicates))}"
+        )
+
+    race_ids = [race.race_id for race in races]
+    duplicate_races = {i for i in race_ids if race_ids.count(i) > 1}
+    if duplicate_races:
+        raise InvalidInput(f"duplicate race_id: {', '.join(sorted(duplicate_races))}")
+
+    entered = set(boat_ids)
+    for race in races:
+        unknown = sorted({f.boat_id for f in race.finishes} - entered)
+        if unknown:
+            raise InvalidInput(
+                f"race {race.race_id} records finishes for boats that are not "
+                f"entered in the series: {', '.join(unknown)}"
+            )
+
+
+def check_series(boats, races, *, discards: int, discard_threshold: int) -> None:
+    """The checks every series needs, whatever handicap system scores it.
+
+    At least one boat; sensible discards; no boat or race twice; no finish for
+    a boat that isn't entered. A fixed-number series calls this. An NHC series
+    makes the same three checks, but in the three steps above, so that its own
+    checks (progression, series type, minimum finishers and the regatta-only
+    options) still fall where they always have between them. Which error comes
+    first when two things are wrong at once is part of its behaviour.
+    """
+    check_has_boats(boats)
+    check_discards(discards, discard_threshold)
+    check_entries(boats, races)

@@ -6,7 +6,8 @@ Handicap for Cruisers (NHC) scheme.
 Give it a series' boats and the finish times a race officer wrote down, and it
 returns corrected times, finishing places, points, handicaps for the next race,
 and the series table. It implements the NHC handicap rules and the parts of RRS
-Appendix A that scoring a series needs.
+Appendix A that scoring a series needs. It also scores fixed-number series
+(Portsmouth Yardstick), where a boat's number never moves; see below.
 
 It depends on nothing but the Python standard library (3.11 or later), and
 knows nothing about Django, databases, HTTP or files - it takes plain Python
@@ -88,6 +89,17 @@ the next race's. Two consequences:
 A boat with no recorded finish in a race is scored DNC, because RRS A2.2 scores
 a series entrant for the whole series whether she turns up or not.
 
+### Two kinds of series
+
+The package has three parts. **NHC** (`handicap.py`, `regatta.py`, `options.py`,
+`realignment.py`, `series.py`) is for handicaps that move after every race.
+**Fixed-number systems** (`fixed_number.py`) are for a number that never moves,
+such as a Portsmouth Number. **Shared** code (`scoring.py`, `points.py`,
+`standings.py`, `domain.py`) is RRS Appendix A and the common types: ranking
+corrected times, points, discards and standings. A fixed-number series is not an
+NHC series with the handicap fields left empty. It has its own small types, and
+the two parts import nothing from each other.
+
 ## Public interface
 
 ### Describing a series
@@ -111,7 +123,7 @@ date is yours to manage, and two races on one evening still have an order.
 | --- | --- |
 | `score_series(series)` | Replays the series and scores every race in it |
 | `SeriesOutcome` | `.races`, `.standings`, `.starting_handicaps`, `.ending_handicaps`, `.race(race_id)` |
-| `RaceOutcome` | `.race_id` and `.results` for one race |
+| `RaceOutcome` | `.race_id` and `.results` for one race, in either kind of series |
 | `RaceResult` | One boat in one race - see below |
 | `BoatStanding` | `.position`, `.total`, `.scores`, `.counted_points`, `.discarded_race_ids` |
 | `RaceScore` | `.race_id`, `.points`, `.discarded` |
@@ -134,6 +146,28 @@ point, so scores that differ only by float noise are really tied.
 A `None` handicap field means *this pass did not compute it*, which is distinct
 from a genuine zero - a boat that did not finish earns an `adjustment_scale` of
 `0.0`, while a race below the finisher threshold leaves it `None`.
+
+### Fixed-number series (Portsmouth Yardstick)
+
+A boat races on one number for the whole series. Nothing is adjusted after a
+race, so there is no minimum finishers threshold, no regatta, no capping and no
+realignment. Corrected time is `elapsed x 1000 / PN`. Places, points, discards
+and standings are exactly as for NHC, and `SeriesRace` and `Finish` are the
+same types.
+
+| Name | What it is |
+| --- | --- |
+| `FixedNumberBoat(boat_id, number, name="")` | A boat and its number. `number` is required, positive and finite; it need not be whole |
+| `FixedNumberSeries(boats, races, system, apply_a5_3=False, discards=1, discard_threshold=0)` | The boats, their races (the same `SeriesRace`) and the rules they are scored under |
+| `FixedNumberSystem` | `PY`, the RYA Portsmouth Yardstick |
+| `score_fixed_number_series(series)` | Scores every race, and returns a `FixedNumberOutcome` |
+| `FixedNumberOutcome` | `.system`, `.races`, `.standings`, `.race(race_id)` |
+| `FixedNumberResult` | One boat in one race: `.number` (what she raced on), `.elapsed_seconds`, `.corrected_time`, `.position`, `.points`, `.scoring_penalty`, `.penalty_points`. No handicap fields |
+| `fixed_number_corrected_time(elapsed_seconds, number, system)` | The formula on its own |
+
+Corrected times are never rounded before ranking, as under NHC, so two boats a
+fraction of a second apart are not tied even if both display the same rounded
+time. A boat with no recorded finish is scored DNC (RRS A2.2).
 
 ### Scoring one race at a time
 
@@ -246,6 +280,9 @@ that are quietly wrong.
 | RRS A4 low point, A5.2, A5.3, A7 ties | `points.py` |
 | RRS A2.1 discards, A8.1 and A8.2 countback | `standings.py` |
 | Replaying a series, RRS A2.2 | `series.py` |
+| Portsmouth Yardstick corrected time, `E x 1000 / PN`, and replaying a fixed-number series | `fixed_number.py` |
+| Ranking corrected times (RRS A3, A7), shared by both kinds of series | `scoring.py` |
+| The checks every series needs, and the types both kinds share | `domain.py` |
 
 The RYA's own published worked examples are in `tests/fixtures/` as SCEN-005
 (club adjustment) and SCEN-006 (realignment), and both reproduce exactly. A
@@ -269,6 +306,12 @@ failure there is a defect in this package, never a fixture to adjust.
 - **Adjusting handicaps for non-finishers in a club series.** The brief makes
   this a per-series choice, but the RYA spec defines only the "not adjusted"
   behaviour for club racing.
+- **A number that changes during a fixed-number series.** A boat has one
+  number for the whole series. Changing it for later races only, as a Portsmouth
+  Yardstick notice of race may allow, needs a number per race and is not
+  implemented.
+- **Rounding corrected times before ranking**, under any system.
+- **Fixed-number systems other than Portsmouth Yardstick.**
 - **Multiple starts per race, and pursuit races**, both out of scope for this
   slice.
 
@@ -281,6 +324,11 @@ rather than against the RYA's own numbers.
 - Handicaps: `docs/reference/RYA_nhc_calculation_spec.md`
 - Points, discards and series ties: RRS Appendix A, in
   `docs/reference/2025-2028-RRS-with-Changes-and-Corrections.pdf`
+- Portsmouth Yardstick: the RYA's sample notice of race wording,
+  `docs/reference/PY_Notice_of_Race_and_Sailing_Instructions_Advice.pdf`. It is
+  silent on the formula, so the scheme's published `elapsed x 1000 / PN` is used,
+  and on rounding, so times are kept at full precision. Worked examples PY-1 and
+  PY-2 are in `tests/fixtures/portsmouth_yardstick.yaml`.
 
 Where this implementation and those documents disagree, the documents win.
 

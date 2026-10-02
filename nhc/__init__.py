@@ -20,7 +20,8 @@ built out slice by slice against the fixtures in ``tests/fixtures/``. So far it
 covers the domain types, race scoring, club-series handicap adjustment (with
 its optional extreme-result capping and realignment to base numbers),
 Appendix A race points, replaying a whole series, series standings and
-end-of-series realignment, and regatta scoring.
+end-of-series realignment, regatta scoring, and fixed-number series (Portsmouth
+Yardstick), which share Appendix A scoring with NHC but have nothing to adjust.
 """
 
 from .domain import (
@@ -29,27 +30,31 @@ from .domain import (
     Performance,
     RaceEntry,
     RaceInput,
+    RaceOutcome,
     RaceResult,
     RaceStatus,
     RealignmentEntry,
     RealignmentResult,
+    SeriesRace,
     SeriesType,
 )
 from .errors import InvalidInput
+from .fixed_number import (
+    FixedNumberBoat,
+    FixedNumberOutcome,
+    FixedNumberResult,
+    FixedNumberSeries,
+    FixedNumberSystem,
+    fixed_number_corrected_time,
+    score_fixed_number_series,
+)
 from .handicap import adjustment_scale, compute_club_adjustment
 from .options import capped_elapsed_times, realign_to_base_numbers, realignment_factor
 from .points import points_for_place, score_points
 from .realignment import realign_series, realigned_boats, realignment_entries
 from .regatta import clamp_to_base_number, compute_regatta_adjustment
 from .scoring import corrected_time, score_race
-from .series import (
-    HandicapProgression,
-    RaceOutcome,
-    Series,
-    SeriesOutcome,
-    SeriesRace,
-    score_series,
-)
+from .series import HandicapProgression, Series, SeriesOutcome, score_series
 from .standings import BoatStanding, RaceScore, compute_standings
 
 __version__ = "0.0.0"
@@ -58,6 +63,11 @@ __all__ = [
     "Boat",
     "BoatStanding",
     "Finish",
+    "FixedNumberBoat",
+    "FixedNumberOutcome",
+    "FixedNumberResult",
+    "FixedNumberSeries",
+    "FixedNumberSystem",
     "HandicapProgression",
     "InvalidInput",
     "Performance",
@@ -80,12 +90,14 @@ __all__ = [
     "compute_regatta_adjustment",
     "compute_standings",
     "corrected_time",
+    "fixed_number_corrected_time",
     "points_for_place",
     "realign_series",
     "realign_to_base_numbers",
     "realigned_boats",
     "realignment_entries",
     "realignment_factor",
+    "score_fixed_number_series",
     "score_points",
     "score_race",
     "score_series",
