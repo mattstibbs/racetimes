@@ -139,7 +139,9 @@ def _write_race(row, race_results):
             state,
         ]
     )
-    row(RACE_COLUMNS)
+    fixed = race.series.is_fixed_number
+    # The handicap column is headed with the series' system (slice 24).
+    row([race.series.handicap_label if c == "Handicap" else c for c in RACE_COLUMNS])
     for line in race_results.rows:
         result, boat = line.result, line.entry.boat
         finish_time = line.finish.finish_time if line.finish else None
@@ -150,7 +152,7 @@ def _write_race(row, race_results):
                 typed(boat.name),
                 f"{finish_time:%H:%M:%S}" if finish_time else "",
                 hms(result.elapsed_seconds),
-                tcf(result.tcf_used),
+                f"{line.raced_on:g}" if fixed else tcf(line.raced_on),
                 hms(result.corrected_time),
                 points(result.points),
                 "SCP"

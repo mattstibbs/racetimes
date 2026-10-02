@@ -31,6 +31,20 @@ def tcf(value):
 
 
 @register.filter
+def handicap(value, series):
+    """The number a boat raced on, as its series shows it (slice 24).
+
+    A TCF to 3 decimal places under NHC; a Portsmouth Number as the whole number
+    it is (a float 1072.0 shows as 1072).
+    """
+    if value is None:
+        return ""
+    if series.is_fixed_number:
+        return f"{value:g}"
+    return f"{float(value):.3f}"
+
+
+@register.filter
 def points(value):
     """Race points: whole, or with a tenth where there is one (2.5, 4.4). 2.0 shows as 2."""
     if value is None:

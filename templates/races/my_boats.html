@@ -11,7 +11,8 @@
   <h2>{{ boat|boat }} <small><a href="{% url 'results:boat' boat.pk %}">Results</a></small></h2>
   <p class="muted">
     {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
-    NHC base number {{ boat.base_number }}.
+    {% if boat.base_number %}NHC base number {{ boat.base_number }}.{% endif %}
+    {% if boat.py_number %}Portsmouth Number {{ boat.py_number }}.{% endif %}
   </p>
   <p>
     {% for entry in boat.series_entries.all %}{% if forloop.first %}Entered in: {% endif %}<a href="{% url 'results:series' entry.series.pk %}?boat={{ boat.pk }}">{{ entry.series }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="muted">Not entered in any series.</span>{% endfor %}

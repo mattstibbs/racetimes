@@ -41,10 +41,12 @@ def make_club(subdomain, name=None, **fields):
 
 
 def make_boat(sail_number="GBR1234", base_number="0.964", club=None, **fields):
+    """A boat. ``base_number=None`` makes one with no NHC base number, for a
+    boat that only races on a Portsmouth Number (``py_number=``, slice 24)."""
     return Boat.objects.create(
         club=club or default_club(),
         sail_number=sail_number,
-        base_number=Decimal(str(base_number)),
+        base_number=None if base_number is None else Decimal(str(base_number)),
         **fields,
     )
 
@@ -55,6 +57,42 @@ def make_series(name="Autumn 2026", club=None, **fields):
 
 def enter(series, boat):
     return SeriesEntry.objects.create(series=series, boat=boat)
+
+
+def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
+    """A Portsmouth Yardstick series from a worked example, as the database holds it.
+
+    ``example`` is PY-1 or PY-2 from tests/fixtures/portsmouth_yardstick.yaml.
+    Boats have only a Portsmouth Number, and each finish is recorded as the
+    clock time a race officer would write down, ``start`` plus the elapsed
+    seconds, as SCEN-005 is. Returns (series, {letter: entry}, [races]).
+    """
+    series = make_series(
+        name, club=club, handicap_system="PY", discards=example["discards"]
+    )
+    entries = {
+        letter: enter(
+            series,
+            make_boat(
+                f"PY{letter}",
+                base_number=None,
+                py_number=number,
+                name=f"Boat {letter}",
+                club=club,
+            ),
+        )
+        for letter, number in example["boats"].items()
+    }
+    races = []
+    for index, race_example in enumerate(example["races"], start=1):
+        race = make_race(series, index, start=start)
+        races.append(race)
+        for letter, value in race_example["finishes"].items():
+            if isinstance(value, str):
+                record(race, entries[letter], status=value)
+            else:
+                record(race, entries[letter], finish_clock(start, value))
+    return series, entries, races
 
 
 def make_race(series, number=1, start="18:00:00", on=date(2026, 9, 23)):
@@ -207,6 +245,7 @@ def series_form(series, **changes):
     """The series admin form as it stands, with ``changes`` applied on top."""
     data = {
         "name": series.name,
+        "handicap_system": series.handicap_system,
         "series_type": series.series_type,
         "discards": series.discards,
         "discard_threshold": series.discard_threshold,
@@ -261,7 +300,8 @@ def boat_form(boat, **changes):
         "owner_name": boat.owner_name,
         "length_overall_m": "",
         "waterline_length_m": "",
-        "base_number": str(boat.base_number),
+        "base_number": "" if boat.base_number is None else str(boat.base_number),
+        "py_number": "" if boat.py_number is None else str(boat.py_number),
         "reason": "",
     }
     data.update(changes)

@@ -10,7 +10,8 @@ whenever something changes.
 ## Starting a series
 
 In the [race office](race-office.md), follow **New series**. Give it a name,
-choose whether it's a **club series** or a **regatta**, and set its
+choose its [handicap system](handicap-systems.md) (NHC or Portsmouth
+Yardstick), choose whether it's a **club series** or a **regatta**, and set its
 [scoring rules](scoring-rules.md). Press **Create the series** and you're
 taken to the series' page.
 
@@ -67,8 +68,9 @@ Every boat entered, and how many results each has.
 Once the series has results, entering or removing a boat changes how many
 boats are scored, so it needs a reason, like any other correction.
 
-A boat must be on the club's list before it can be entered: see
-[Setting up boats](setting-up-boats.md).
+A boat must be on the club's list before it can be entered, and must have the
+number the series' [handicap system](handicap-systems.md) needs (an NHC base
+number or a Portsmouth Number): see [Setting up boats](setting-up-boats.md).
 
 ## A final series
 

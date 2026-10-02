@@ -369,6 +369,23 @@ class EnterBoatsForm(forms.Form):
             self.fields["reason"].required = True
             self.fields["reason"].error_messages["required"] = audit.REASON_REQUIRED
 
+    def clean_boat(self):
+        # A boat can only be entered if it has the number this series is scored
+        # on (slice 24). They are listed, so the committee can see which, but
+        # not enterable.
+        lacking = [
+            boat for boat in self.cleaned_data["boat"] if self.series.boats_lack(boat)
+        ]
+        if lacking:
+            names = ", ".join(str(boat) for boat in lacking)
+            raise ValidationError(
+                f"{names} {'has' if len(lacking) == 1 else 'have'} no "
+                f"{self.series.number_label}, which this "
+                f"{self.series.get_handicap_system_display()} series needs. "
+                "Give the boat one first."
+            )
+        return self.cleaned_data["boat"]
+
     def clean(self):
         cleaned = super().clean()
         try:
@@ -413,7 +430,7 @@ def enter_boats(request, pk):
     }
     # Boats ticked before a search stay listed, and ticked, whatever it finds.
     unentered = form.fields["boat"].queryset
-    boats = search(unentered, query, keep=ticked)
+    boats = list(search(unentered, query, keep=ticked).select_related("owner"))
     return _render(
         request,
         "races/office/enter_boats.html",
@@ -421,7 +438,9 @@ def enter_boats(request, pk):
         {
             "form": form,
             "series": series,
-            "boats": boats.select_related("owner"),
+            "boats": boats,
+            # Boats the series can't take yet: listed, but not tickable (slice 24).
+            "lacking": {boat.pk for boat in boats if series.boats_lack(boat)},
             "ticked": ticked,
             "query": query,
             "any_to_enter": unentered.exists(),

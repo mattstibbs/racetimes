@@ -9,8 +9,8 @@ the race committee can add and change boats directly here.
 ## The club's boats
 
 In the [race office](race-office.md), follow **The club's boats**. Every boat
-is listed by sail number, with its name, make, model, NHC base number and
-owner.
+is listed by sail number, with its name, make, model, NHC base number,
+Portsmouth Number and owner.
 
 ![The club's boats: sail number, name, make, model, base number and owner, with a search box](../images/office-boats.png)
 
@@ -21,7 +21,7 @@ they're spaced or capitalised, so "gbr42" finds "GBR 42".
 ## Adding a boat
 
 Follow **Add a boat**, fill in its details, and press **Add the boat**. Only
-the sail number and the NHC base number are required.
+the sail number and at least one number (below) are required.
 
 - **Sail number** must be unique at the club. "GBR 42" and "gbr42" count as
   the same.
@@ -31,7 +31,13 @@ the sail number and the NHC base number are required.
 - **Owner name** is for a boat whose owner has no account here, such as a
   visitor. It is shown instead, and nobody is emailed.
 - **NHC base number** is the boat's published NHC base handicap, such as
-  0.964. Every series starts each boat on it.
+  0.964. An NHC series starts each boat on it.
+- **Portsmouth Number (PN)** is the boat's Portsmouth Yardstick number, such
+  as 1072. A Portsmouth Yardstick series uses it for every race.
+
+A boat needs the number of every series she's entered in, so give her the
+one or both that she'll use. See
+[Handicap systems](handicap-systems.md).
 
 ## Changing a boat
 
@@ -41,8 +47,9 @@ the old and the new owner are told.
 
 ![A boat's details, with the reason box shown because the boat already has results](../images/office-boat.png)
 
-Changing a boat's **NHC base number** changes the handicaps in every series
-it's entered in. Once the boat has results, the page shows a **Reason for
+Changing a boat's **NHC base number** changes the handicaps in every NHC series
+it's entered in, and changing her **Portsmouth Number** changes the results in
+every Portsmouth Yardstick series. Once the boat has results, the page shows a **Reason for
 change** box, and a new base number needs a reason: it is a correction, and
 it's recorded in each series' history with your name and the reason. After
 saving, the page says what the change moved in each series, such as

@@ -174,6 +174,7 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
         "make",
         "model",
         "base_number",
+        "py_number",
         "owner_display",
     ]
     search_fields = [
@@ -250,9 +251,9 @@ class RaceInline(ClubScopedInline, admin.TabularInline):
 @admin.register(Series)
 class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
     form = SeriesAdminForm
-    list_display = ["name", "series_type", "discards"]
+    list_display = ["name", "handicap_system", "series_type", "discards"]
     fieldsets = [
-        (None, {"fields": ["name", "series_type"]}),
+        (None, {"fields": ["name", "handicap_system", "series_type"]}),
         (
             "Scoring rules",
             {

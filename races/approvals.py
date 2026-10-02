@@ -60,6 +60,12 @@ def approve(request, user, reason=""):
             # Slice 10: a final series takes no new entries. Checked first, so
             # the committee is told that rather than asked for a reason.
             final.check_series_open(request.series_id)
+            # Slice 24: and the boat must have the series' number. Said here,
+            # before the committee is asked for a reason for something that
+            # then can't happen. The boat's number may have been cleared since
+            # the member asked.
+            if request.series.boats_lack(request.boat):
+                raise ValidationError(request.series.lacks_number_message(request.boat))
         _claim_decision(request, user, Request.Status.APPROVED)
         changes = _audited_changes(request)
         if audit.needs_reason(changes) and not reason:

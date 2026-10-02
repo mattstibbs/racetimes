@@ -224,8 +224,27 @@ class Boat(models.Model):
         "NHC base number",
         max_digits=4,
         decimal_places=3,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(Decimal("0.001"))],
-        help_text="The published NHC base handicap (TCF), e.g. 0.964.",
+        help_text=(
+            "The published NHC base handicap (TCF), e.g. 0.964. "
+            "Needed to enter the boat in an NHC series."
+        ),
+    )
+    # Slice 24: the Portsmouth Number for a Portsmouth Yardstick series. A whole
+    # number, higher for a slower boat. A boat needs the number of every series
+    # it is entered in, and no more: a boat that only races on a PN has no NHC
+    # base number, and the other way round.
+    py_number = models.PositiveSmallIntegerField(
+        "Portsmouth Number (PN)",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+        help_text=(
+            "The boat's Portsmouth Number, e.g. 1072. Needed to enter the boat "
+            "in a Portsmouth Yardstick series."
+        ),
     )
 
     # Only this club's rows: Boat.objects.for_club(club) (slice 11).
@@ -246,7 +265,8 @@ class Boat(models.Model):
                 violation_error_message="A boat with this sail number is already registered.",
             ),
             models.CheckConstraint(
-                condition=models.Q(base_number__gt=0),
+                condition=models.Q(base_number__isnull=True)
+                | models.Q(base_number__gt=0),
                 name="boat_base_number_positive",
             ),
         ]
@@ -256,6 +276,33 @@ class Boat(models.Model):
         # race day page shows the sail number first, since that's what the
         # committee reads off a boat on the water.
         return f"{self.name} ({self.sail_number})" if self.name else self.sail_number
+
+    def clean(self):
+        errors = []
+        if self.base_number is None and self.py_number is None:
+            errors.append(
+                "A boat needs a number to race on: its NHC base number, its "
+                "Portsmouth Number, or both."
+            )
+        if self.pk:
+            # A number can't be cleared while a series is scored on it.
+            for field, system in NUMBER_FIELDS.items():
+                if getattr(self, field) is not None:
+                    continue
+                using = list(
+                    Series.objects.filter(
+                        entries__boat=self, handicap_system=system
+                    ).distinct()
+                )
+                if using:
+                    label = self._meta.get_field(field).verbose_name
+                    names = ", ".join(str(series) for series in using)
+                    errors.append(
+                        f"The {label} can't be removed while the boat is entered "
+                        f"in a series that uses it: {names}."
+                    )
+        if errors:
+            raise ValidationError(errors)
 
     @property
     def race_day_label(self):
@@ -283,10 +330,25 @@ class Series(models.Model):
         CLUB = "CLUB", "Club series"
         REGATTA = "REGATTA", "Regatta"
 
+    class HandicapSystem(models.TextChoices):
+        # "PY" matches nhc.FixedNumberSystem.PY. "NHC" has no engine value: it
+        # means the series is scored by the NHC functions (slice 24).
+        NHC = "NHC", "RYA NHC"
+        PY = "PY", "Portsmouth Yardstick"
+
     club = models.ForeignKey(
         Club, on_delete=models.CASCADE, editable=False, related_name="series"
     )
     name = models.CharField(max_length=100)
+    handicap_system = models.CharField(
+        max_length=10,
+        choices=HandicapSystem.choices,
+        default=HandicapSystem.NHC,
+        help_text=(
+            "NHC: handicaps move after every race. Portsmouth Yardstick: each "
+            "boat races on one fixed number for the whole series."
+        ),
+    )
     series_type = models.CharField(
         max_length=10, choices=SeriesType.choices, default=SeriesType.CLUB
     )
@@ -306,7 +368,7 @@ class Series(models.Model):
         default=0,
         help_text=(
             "With fewer finishers than this, no handicap moves after a race. "
-            "0 is off, which is the RYA's rule. Club series only."
+            "0 is off, which is the RYA's rule. NHC club series only."
         ),
     )
     apply_a5_3 = models.BooleanField(
@@ -326,7 +388,7 @@ class Series(models.Model):
         default=False,
         help_text=(
             "Results more than one standard deviation from the fleet's mean corrected time are "
-            "limited to the band edge before the handicap is adjusted (RYA NHC). Club series only."
+            "limited to the band edge before the handicap is adjusted (RYA NHC). NHC club series only."
         ),
     )
     nhc_realign_to_base = models.BooleanField(
@@ -334,7 +396,7 @@ class Series(models.Model):
         default=False,
         help_text=(
             "After adjustment, the finishers' new handicaps are rescaled so their total matches "
-            "the total of their base handicaps (RYA NHC). Club series only."
+            "the total of their base handicaps (RYA NHC). NHC club series only."
         ),
     )
     # Slice 10: a series declared final is locked, and scored from a copy of
@@ -365,6 +427,48 @@ class Series(models.Model):
         return self.declared_final_at is not None
 
     @property
+    def is_fixed_number(self):
+        """Whether boats race on a fixed number, so no handicap moves (slice 24)."""
+        return self.handicap_system != self.HandicapSystem.NHC
+
+    @property
+    def number_field(self):
+        """The Boat field holding the number this series is scored on."""
+        return NUMBER_FIELD_FOR_SYSTEM[self.handicap_system]
+
+    @property
+    def number_label(self):
+        """That number as a person calls it: "NHC base number" or "Portsmouth Number (PN)"."""
+        return Boat._meta.get_field(self.number_field).verbose_name
+
+    def boats_lack(self, boat):
+        """Whether this boat has no number for this series' system."""
+        return getattr(boat, self.number_field) is None
+
+    def lacks_number_message(self, boat):
+        return (
+            f"{boat} has no {self.number_label}, which this "
+            f"{self.get_handicap_system_display()} series needs. "
+            "Give the boat one first."
+        )
+
+    def boats_lacking_number(self):
+        """The boats entered in this series that have no number for its system."""
+        if self.pk is None:
+            return []
+        return [
+            entry.boat
+            for entry in self.entries.select_related("boat").filter(
+                **{f"boat__{self.number_field}__isnull": True}
+            )
+        ]
+
+    @property
+    def handicap_label(self):
+        """What the handicap column is headed: "PN" under Portsmouth Yardstick."""
+        return "PN" if self.handicap_system == self.HandicapSystem.PY else "Handicap"
+
+    @property
     def discards_description(self):
         """The discards in words: "1 discard", or "1 discard once 4 races are scored"."""
         text = f"{self.discards} discard{'s' if self.discards != 1 else ''}"
@@ -391,22 +495,76 @@ class Series(models.Model):
                 "This must be larger than the number of discards, or every score "
                 "would be excluded. Use 0 for discards that always apply."
             )
-        if self.series_type != self.SeriesType.REGATTA:
-            if errors:
-                raise ValidationError(errors)
-            return
+        if self.is_fixed_number:
+            self._clean_fixed_number(errors)
+        elif self.series_type == self.SeriesType.REGATTA:
+            if self.minimum_finishers:
+                errors["minimum_finishers"] = (
+                    "A regatta has no minimum-finisher threshold; set this to 0."
+                )
+            # The NHC options follow the club-series formula; a regatta has its own (slice 14).
+            for field in ("nhc_cap_extremes", "nhc_realign_to_base"):
+                if getattr(self, field):
+                    errors[field] = (
+                        "This is a club-series option; a regatta uses its own handicap rules."
+                    )
+        self._clean_boats_have_the_number(errors)
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_fixed_number(self, errors):
+        """Settings that only mean something under NHC are refused, not ignored (slice 24).
+
+        This is how a minimum-finishers threshold on a regatta is already
+        handled. A regatta is NHC's own section 4 adjustment; a fixed-number
+        regatta is just a club series.
+        """
+        system = self.get_handicap_system_display()
+        if self.series_type == self.SeriesType.REGATTA:
+            errors["series_type"] = (
+                f"A {system} series must be a club series: a regatta is NHC's own "
+                "handicap adjustment, and a fixed-number series has none."
+            )
         if self.minimum_finishers:
             errors["minimum_finishers"] = (
-                "A regatta has no minimum-finisher threshold; set this to 0."
+                f"Numbers don't move in a {system} series, so there is nothing for "
+                "this to apply to; set it to 0."
             )
-        # The NHC options follow the club-series formula; a regatta has its own (slice 14).
         for field in ("nhc_cap_extremes", "nhc_realign_to_base"):
             if getattr(self, field):
                 errors[field] = (
-                    "This is a club-series option; a regatta uses its own handicap rules."
+                    f"This is an NHC option; numbers don't move in a {system} series."
                 )
-        if errors:
-            raise ValidationError(errors)
+
+    def _clean_boats_have_the_number(self, errors):
+        """A series can't be switched to a system some of its boats have no number for."""
+        if not self.pk or "handicap_system" in errors:
+            return
+        stored = (
+            type(self)
+            .objects.filter(pk=self.pk)
+            .values_list("handicap_system", flat=True)
+            .first()
+        )
+        if stored is None or stored == self.handicap_system:
+            return
+        lacking = self.boats_lacking_number()
+        if lacking:
+            names = ", ".join(str(boat) for boat in lacking)
+            errors["handicap_system"] = (
+                f"These boats have no {self.number_label}, which a "
+                f"{self.get_handicap_system_display()} series needs: {names}. "
+                "Give them one first."
+            )
+
+
+#: The Boat field each handicap system scores on (slice 24). A boat needs the
+#: number of every series it is entered in, and no others.
+NUMBER_FIELDS = {
+    "base_number": Series.HandicapSystem.NHC,
+    "py_number": Series.HandicapSystem.PY,
+}
+NUMBER_FIELD_FOR_SYSTEM = {system: field for field, system in NUMBER_FIELDS.items()}
 
 
 class SeriesEntry(models.Model):
@@ -440,6 +598,9 @@ class SeriesEntry(models.Model):
         # A boat belongs to one club, and races only in that club's series (slice 11).
         if self.boat_id and self.series_id and self.boat.club_id != self.series.club_id:
             raise ValidationError({"boat": "This boat belongs to another club."})
+        # A boat can only be entered in a series if it has that series' number (slice 24).
+        if self.boat_id and self.series_id and self.series.boats_lack(self.boat):
+            raise ValidationError({"boat": self.series.lacks_number_message(self.boat)})
 
 
 NOT_ON_START_SHEET = "This boat is not on the race's start sheet. Add it there first."
@@ -860,6 +1021,12 @@ class BoatRequest(Request):
         blank=True,
         validators=[MinValueValidator(Decimal("0.001"))],
     )
+    py_number = models.PositiveSmallIntegerField(
+        "Portsmouth Number (PN)",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+    )
 
     # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
     objects = _club_manager("club")
@@ -873,6 +1040,7 @@ class BoatRequest(Request):
         "length_overall_m",
         "waterline_length_m",
         "base_number",
+        "py_number",
     ]
 
     class Meta(Request.Meta):

@@ -155,6 +155,28 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
     clip: { x: 0, y: title.y - 8, width: 1000, height: standings.y + standings.height - title.y + 16 },
   });
 
+  // Portsmouth Yardstick (slice 24): a series' handicap system on its settings
+  // page, then its results, and a boat that races on a Portsmouth Number.
+  await officer.goto(`${BASE}/office/`);
+  await officer.locator('table a', { hasText: "Gaffers' Cup" }).click();
+  await officer.click('text=Change settings');
+  await officer.waitForLoadState('networkidle');
+  const settings = await officer.locator('form.stacked').boundingBox();
+  const rules = await officer.locator('fieldset.group').boundingBox();
+  await officer.screenshot({
+    path: path.join(OUT, 'handicap-system-setting.png'), fullPage: true,
+    clip: { x: settings.x - 8, y: settings.y - 8, width: settings.width + 16, height: rules.y - settings.y },
+  });
+  await publicPage.goto(`${BASE}/series/4/?race=1&detail=1`);
+  const gTop = await publicPage.locator('#race-1').boundingBox();
+  const gTable = await publicPage.locator('#race-1 ~ .table-scroll').first().boundingBox();
+  await publicPage.screenshot({
+    path: path.join(OUT, 'results-portsmouth.png'), fullPage: true,
+    clip: { x: 0, y: gTop.y - 8, width: 1000, height: gTable.y + gTable.height - gTop.y + 16 },
+  });
+  await phone.goto(`${BASE}/boats/5/`);
+  await shot(phone.locator('body'), 'results-portsmouth-boat.png');
+
   // Forgotten passwords.
   await publicPage.goto(`${BASE}/accounts/password-reset/`);
   await shot(publicPage.locator('body'), 'password-reset.png');

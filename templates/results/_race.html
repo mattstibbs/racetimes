@@ -30,8 +30,8 @@
   <thead>
     <tr>
       <th class="num">Pos</th><th>Boat</th><th class="num detail">Finish</th><th class="num detail">Elapsed</th>
-      <th class="num detail">Handicap</th><th class="num">Corrected</th><th class="num">Points</th>
-      <th class="num detail">Next handicap</th>
+      <th class="num detail">{{ race.series.handicap_label }}</th><th class="num">Corrected</th><th class="num">Points</th>
+      {% if not race.series.is_fixed_number %}<th class="num detail">Next handicap</th>{% endif %}
     </tr>
   </thead>
   <tbody>
@@ -41,10 +41,10 @@
       <td><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat|boat }}</a></td>
       <td class="num detail">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }}{% endif %}</td>
       <td class="num detail">{{ row.result.elapsed_seconds|hms }}</td>
-      <td class="num detail">{{ row.result.tcf_used|tcf }}</td>
+      <td class="num detail">{{ row.raced_on|handicap:race.series }}</td>
       <td class="num">{{ row.result.corrected_time|hms }}</td>
       <td class="num">{{ row.result.points|points }}{% if row.result.scoring_penalty %} <abbr title="Scoring penalty">SCP</abbr>{% endif %}</td>
-      <td class="num detail">{{ row.result.effective_next_tcf|tcf }}{% if row.result.capped %}<abbr title="Result capped as extreme">&dagger;</abbr>{% endif %}</td>
+      {% if not race.series.is_fixed_number %}<td class="num detail">{{ row.next_handicap|tcf }}{% if row.capped %}<abbr title="Result capped as extreme">&dagger;</abbr>{% endif %}</td>{% endif %}
     </tr>
     {% endfor %}
   </tbody>

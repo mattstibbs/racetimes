@@ -156,6 +156,45 @@ for number, day in [(1, 1), (2, 8), (3, 15)]:
             Finish.objects.create(race=race, entry=entry, finish_time=finish)
         Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
+# A Portsmouth Yardstick fleet (slice 24), a series of its own with its own
+# boats, which have only a Portsmouth Number. Race 1 is published; the numbers
+# are examples, not the RYA's. Created last so the other series keep their ids.
+gaffers = Series.objects.create(
+    club=club, name="Gaffers' Cup", handicap_system="PY", discards=0
+)
+gaffer_entries = [
+    SeriesEntry.objects.create(
+        series=gaffers,
+        boat=Boat.objects.create(
+            club=club,
+            sail_number=sail,
+            name=name,
+            py_number=number,
+            owner_name=owner,
+        ),
+    )
+    for sail, name, number, owner in [
+        ("GBR 311", "Mallard", 1120, "T. Penhale"),
+        ("GBR 59", "Shearwater", 1085, "A. Quay"),
+        ("GBR 2307", "Curlew", 1150, "J. Marsh"),
+    ]
+]
+gaffer_finishes = {
+    1: [time(19, 38, 20), time(19, 34, 5), time(19, 41, 50)],
+    2: [time(19, 31, 12), time(19, 29, 48), None],
+}
+for number, day in [(1, 10), (2, 17)]:
+    race = Race.objects.create(
+        series=gaffers, number=number, date=date(2026, 10, day), start_time=time(18, 30)
+    )
+    for entry, finish in zip(gaffer_entries, gaffer_finishes[number], strict=True):
+        RaceEntry.objects.create(race=race, entry=entry)
+        if finish:
+            Finish.objects.create(race=race, entry=entry, finish_time=finish)
+        else:
+            Finish.objects.create(race=race, entry=entry, status="DNF")
+    Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
+
 # One request of each kind, waiting.
 BoatRequest.objects.create(
     club=club,

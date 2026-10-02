@@ -16,6 +16,7 @@
   <h2 id="settings">Settings</h2>
   <p>{{ series.get_series_type_display }}.
     {{ series.discards_description }}.
+    {% if series.is_fixed_number %}Scored under {{ series.get_handicap_system_display }}: each boat races on one fixed number.{% else %}Scored under {{ series.get_handicap_system_display }}.{% endif %}
     {% if series.minimum_finishers %}No handicap changes with fewer than {{ series.minimum_finishers }} finishers.{% endif %}
     {% if series.apply_a5_3 %}Scored under RRS A5.3.{% else %}Scored under RRS A5.2.{% endif %}
     {% if series.nhc_options %}Handicaps adjusted with {{ series.nhc_options|join:" and " }}.{% endif %}</p>

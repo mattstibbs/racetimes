@@ -2163,6 +2163,38 @@ other; slice 25 needs slice 24.
   penalty under PY are tested as behaviour, with figures worked from the rules
   in the test's own comments, not as fixtures.
 
+## 2026-10-02 - Slice 24 part B: Portsmouth Yardstick on the site
+
+**Decision.** A series has a `handicap_system` (NHC or PY). `races/scoring.py`
+builds the engine's NHC or fixed-number input from it and returns the same
+result shape either way, with `is_fixed_number`, `raced_on` and no
+`next_handicap` for PY. A boat has an optional `base_number` and an optional
+`py_number`, and needs at least one. A boat needs the number of every series
+it is entered in; this is checked when entering a boat, in the admin, in
+member entry requests (refused early, before the committee sees them) and
+again at scoring, where a missing number makes the series "unscorable" with a
+message naming the boats, never a crash. NHC-only settings (regatta, minimum
+finishers, capping, realigning) on a PY series are refused, never ignored; at
+scoring time too, for rows changed past the forms.
+
+**Why.** The slice wanted PN to be like a base number for audit purposes: a
+changed number is a correction with a reason and a row in each affected
+series' history. Mid-series PN changes (earlier races keeping the old number)
+are out of scope and the manual says to start a new series.
+
+**Smaller choices.**
+
+- NHC pages keep their "Handicap" / "Next handicap" wording. The spec said
+  "TCF"; the existing pages, manual and emails all say handicap, so PY pages
+  say "PN" and NHC wording is unchanged. Owner may wish to change it.
+- A final series' stored copy gets a `system` key. Copies without it (stored
+  before this slice) load as NHC.
+- The Enter boats list shows boats lacking the series' number, disabled, with
+  the reason, so the committee isn't left wondering where a boat went.
+- Migration 0024 is one schema migration: it makes `base_number` nullable,
+  adds `py_number` to Boat and BoatRequest, adds `handicap_system`, and
+  replaces the constraint. Checked on SQLite and PostgreSQL, and reversible.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

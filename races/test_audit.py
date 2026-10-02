@@ -315,6 +315,7 @@ def test_every_audited_field_is_covered_by_a_test_above():
         Finish: ["status", "finish_time", "scoring_penalty"],
         Race: ["number", "start_time"],
         Series: [
+            "handicap_system",  # slice 24: tested in test_handicap_systems.py
             "series_type",
             "discards",
             "discard_threshold",
@@ -324,7 +325,7 @@ def test_every_audited_field_is_covered_by_a_test_above():
             "nhc_realign_to_base",
         ],
         audit.SeriesEntry: [],
-        Boat: ["base_number"],
+        Boat: ["base_number", "py_number"],  # py_number: test_handicap_systems.py
     } == audit.AUDITED_FIELDS
 
 
