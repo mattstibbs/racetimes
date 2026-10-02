@@ -273,12 +273,18 @@ def test_a_new_boat_emails_nobody(committee_client, run_on_commit):
 
 def series_data(series=None, **changes):
     """The series settings form as it stands (or blank for a new one), with changes."""
-    data = {"name": "Autumn", "series_type": "CLUB", "discards": "1"}
+    data = {
+        "name": "Autumn",
+        "handicap_system": "NHC",
+        "series_type": "CLUB",
+        "discards": "1",
+    }
     data["discard_threshold"] = "0"
     data["minimum_finishers"] = "0"
     if series is not None:
         data = {
             "name": series.name,
+            "handicap_system": series.handicap_system,
             "series_type": series.series_type,
             "discards": series.discards,
             "discard_threshold": series.discard_threshold,

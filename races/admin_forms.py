@@ -13,7 +13,7 @@ from django.forms.models import BaseInlineFormSet
 
 from . import audit, final
 from .audit import AuditedFormMixin
-from .models import Race
+from .models import Race, SeriesEntry
 from .office_forms import BoatForm, SeriesForm, reason_field
 
 
@@ -55,11 +55,28 @@ class AuditedInlineFormSet(BaseInlineFormSet):
         for form in self.forms:
             if self._should_delete_form(form) and form.instance.pk:
                 self.removal_changes += audit.changes_to_delete(form.instance)
+        self._check_boats_have_the_number()
         if (
             audit.needs_reason(self.removal_changes)
             and not self.data.get("reason", "").strip()
         ):
             raise ValidationError(audit.REASON_REQUIRED)
+
+    def _check_boats_have_the_number(self):
+        """Entries need the series' number (slice 24).
+
+        The entry's own check (``SeriesEntry.clean``) can't run on the "add a
+        series" page, where the series isn't saved and so isn't on the entry
+        yet. The formset knows it: its instance holds the system as submitted.
+        """
+        if self.model is not SeriesEntry:
+            return
+        for form in self.forms:
+            boat = form.cleaned_data.get("boat") if form.is_valid() else None
+            if boat is None or self._should_delete_form(form):
+                continue
+            if self.instance.boats_lack(boat):
+                form.add_error("boat", self.instance.lacks_number_message(boat))
 
     def changes_to_record(self):
         """Added and changed rows; valid only after the formset has been validated."""

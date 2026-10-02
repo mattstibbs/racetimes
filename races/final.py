@@ -27,6 +27,9 @@ NOTHING_SCORED = (
 REOPEN_NEEDS_REASON = "Give a reason for reopening the series."
 ALREADY_FINAL = "This series is already final."
 NOT_FINAL = "This series isn't final."
+#: What a stored copy says when it holds an NHC outcome (slice 24); copies from
+#: before that say nothing, and mean the same.
+NHC = Series.HandicapSystem.NHC.value
 
 
 def check_open(series):
@@ -86,7 +89,7 @@ def declare(series, user, request):
         again = series.scoring_changes.filter(kind=ScoringChange.Kind.FINAL).exists()
         series.declared_final_at = timezone.now()
         series.declared_final_by_name = user.get_username()
-        series.final_results = dump(engine_outcome(series))
+        series.final_results = dump_outcome(engine_outcome(series))
         series.final_results_sent_at = None
         series.save(
             update_fields=[
@@ -174,8 +177,42 @@ def dump(value):
     return value
 
 
+def dump_outcome(outcome):
+    """``dump`` for a whole series outcome, recording which kind it is (slice 24).
+
+    A Portsmouth Yardstick outcome already carries its ``system``. An NHC one
+    doesn't, so it is added; copies stored before this slice have no ``system``
+    at all, and ``load`` reads them as NHC.
+    """
+    data = dump(outcome)
+    data.setdefault("system", NHC)
+    return data
+
+
 def load(data):
-    """Rebuild the engine's SeriesOutcome from ``dump``'s output."""
+    """Rebuild the engine's outcome (NHC, or fixed-number) from ``dump_outcome``'s output."""
+    system = data.get("system", NHC)
+    standings = tuple(
+        nhc.BoatStanding(
+            boat_id=standing["boat_id"],
+            position=standing["position"],
+            total=standing["total"],
+            scores=tuple(nhc.RaceScore(**score) for score in standing["scores"]),
+        )
+        for standing in data["standings"]
+    )
+    if system != NHC:
+        return nhc.FixedNumberOutcome(
+            system=nhc.FixedNumberSystem(system),
+            races=tuple(
+                nhc.RaceOutcome(
+                    race_id=race["race_id"],
+                    results=tuple(_fixed_result(r) for r in race["results"]),
+                )
+                for race in data["races"]
+            ),
+            standings=standings,
+        )
     return nhc.SeriesOutcome(
         races=tuple(
             nhc.RaceOutcome(
@@ -187,15 +224,7 @@ def load(data):
         starting_handicaps=tuple(
             (boat_id, tcf) for boat_id, tcf in data["starting_handicaps"]
         ),
-        standings=tuple(
-            nhc.BoatStanding(
-                boat_id=standing["boat_id"],
-                position=standing["position"],
-                total=standing["total"],
-                scores=tuple(nhc.RaceScore(**score) for score in standing["scores"]),
-            )
-            for standing in data["standings"]
-        ),
+        standings=standings,
     )
 
 
@@ -205,3 +234,9 @@ def _result(data):
     if data.get("performance") is not None:
         data["performance"] = nhc.Performance(data["performance"])
     return nhc.RaceResult(**data)
+
+
+def _fixed_result(data):
+    data = dict(data)
+    data["status"] = nhc.RaceStatus(data["status"])
+    return nhc.FixedNumberResult(**data)

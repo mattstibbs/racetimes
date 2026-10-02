@@ -61,10 +61,23 @@ def test_base_number_must_be_positive(base_number):
         make_boat(base_number=base_number)
 
 
-def test_base_number_is_required():
+def test_a_boat_needs_at_least_one_number_to_race_on():
+    # Slice 24: neither number is required on its own, so a boat that only races
+    # on a Portsmouth Number needn't be given an invented NHC base number.
     with pytest.raises(ValidationError) as caught:
         Boat(sail_number="GBR1").full_clean()
-    assert "base_number" in caught.value.message_dict
+    assert "needs a number to race on" in str(caught.value)
+
+
+def test_a_boat_may_have_only_one_of_the_two_numbers():
+    Boat(sail_number="GBR1", base_number=Decimal("0.9")).full_clean()
+    Boat(sail_number="GBR1", py_number=1072).full_clean()
+
+
+@pytest.mark.parametrize("py_number", [0, 10000, -5])
+def test_a_portsmouth_number_is_between_1_and_9999(py_number):
+    with pytest.raises(ValidationError):
+        Boat(sail_number="GBR1", py_number=py_number).full_clean()
 
 
 def test_optional_boat_fields_may_be_blank():

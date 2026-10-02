@@ -18,7 +18,14 @@ class _BoatDetailsForm(forms.ModelForm):
         fields = [*BoatRequest.PROPOSED_FIELDS, "member_note"]
         labels = {"member_note": "Note for the race committee (optional)"}
         help_texts = {
-            "base_number": "From your RYA NHC certificate. The race committee checks it.",
+            "base_number": (
+                "From your RYA NHC certificate. Needed to enter an NHC series. "
+                "The race committee checks it."
+            ),
+            "py_number": (
+                "Your Portsmouth Number. Needed to enter a Portsmouth Yardstick "
+                "series. The race committee checks it."
+            ),
         }
 
     # The boat this request is about, if any; excluded from the sail-number check.
@@ -28,8 +35,7 @@ class _BoatDetailsForm(forms.ModelForm):
         # The club the boat is (or will be) registered with (slice 11).
         self.club = club
         super().__init__(*args, **kwargs)
-        for name in ["sail_number", "base_number"]:
-            self.fields[name].required = True
+        self.fields["sail_number"].required = True
 
     def clean_sail_number(self):
         sail_number = self.cleaned_data["sail_number"].strip()
@@ -41,6 +47,20 @@ class _BoatDetailsForm(forms.ModelForm):
                 f"{self.existing_boat} is already registered with the club."
             )
         return sail_number
+
+    def clean(self):
+        cleaned = super().clean()
+        # Slice 24: neither number is required on its own, but a boat needs one
+        # to race on at all.
+        if (
+            not self.errors
+            and cleaned.get("base_number") is None
+            and cleaned.get("py_number") is None
+        ):
+            raise ValidationError(
+                "Give your boat's NHC base number, its Portsmouth Number, or both."
+            )
+        return cleaned
 
 
 def boat_with_sail_number(club, sail_number, exclude=None):
@@ -91,6 +111,7 @@ class EntryRequestForm(forms.Form):
 
     def __init__(self, *args, boat, **kwargs):
         super().__init__(*args, **kwargs)
+        self.boat = boat
         # Series the boat is not in and has not already asked to join.
         # Only the boat's own club's series (slice 11).
         self.fields["series"].queryset = (
@@ -101,6 +122,18 @@ class EntryRequestForm(forms.Form):
                 entry_requests__status=BoatRequest.Status.PENDING,
             )
         )
+
+    def clean_series(self):
+        # Slice 24: a request the committee could never approve is refused now,
+        # with a way forward, rather than left waiting.
+        series = self.cleaned_data["series"]
+        if series.boats_lack(self.boat):
+            raise ValidationError(
+                f"{self.boat} has no {series.number_label}, which this "
+                f"{series.get_handicap_system_display()} series needs. Ask for a "
+                "change to your boat's details first, to add it."
+            )
+        return series
 
 
 class DecisionForm(forms.Form):

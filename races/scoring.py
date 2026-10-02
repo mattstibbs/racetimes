@@ -1,7 +1,8 @@
 """The bridge between the database and the ``nhc`` scoring engine.
 
 The engine takes plain Python data and knows nothing of Django, so this module
-does the translation both ways: rows in, an ``nhc.Series`` built from them,
+does the translation both ways: rows in, an ``nhc.Series`` (or, for a
+Portsmouth Yardstick series, an ``nhc.FixedNumberSeries``) built from them,
 and the engine's results back out, joined to the rows they describe so a
 template can show a boat's sail number rather than an id.
 
@@ -57,6 +58,30 @@ class BoatRaceResult:
         if self.result.position:
             return self.result.position
         return NOT_RECORDED if self.not_recorded else self.result.status
+
+    @property
+    def is_fixed_number(self):
+        return isinstance(self.result, nhc.FixedNumberResult)
+
+    @property
+    def raced_on(self):
+        """The number the boat raced on: a TCF under NHC, a PN under Portsmouth
+        Yardstick (slice 24). The one place a template reads it, so it never
+        reaches into either engine type."""
+        if self.is_fixed_number:
+            return self.result.number
+        return self.result.tcf_used
+
+    @property
+    def next_handicap(self):
+        """The handicap the boat takes into the next race. None where none can
+        move (Portsmouth Yardstick)."""
+        return None if self.is_fixed_number else self.result.effective_next_tcf
+
+    @property
+    def capped(self):
+        """Whether the boat's result was capped as extreme (an NHC option)."""
+        return False if self.is_fixed_number else self.result.capped
 
 
 @dataclass(frozen=True)
@@ -130,18 +155,14 @@ def build_engine_series(series, entries, races):
     """The engine's view of a series: boats, races in order, and the rules.
 
     Entries are the boats; a boat's id is its entry's primary key. Every series
-    starts on base numbers (RESET) - carrying handicaps over is not supported
-    yet - so ``current_tcf`` is set to the base number too, and never read.
+    starts on its boats' numbers (the engine's RESET) - carrying handicaps over
+    is not supported yet - so an NHC boat's ``current_tcf`` is set to the base
+    number too, and never read. A Portsmouth Yardstick series gets an
+    ``nhc.FixedNumberSeries``, which has no handicap to start or move (slice 24).
+
+    A boat without the series' number reaches the engine as None, which it
+    refuses with ``InvalidInput``; ``score_series`` checks first, to say which.
     """
-    boats = [
-        nhc.Boat(
-            boat_id=str(entry.pk),
-            base_number=float(entry.boat.base_number),
-            current_tcf=float(entry.boat.base_number),
-            name=str(entry.boat),
-        )
-        for entry in entries
-    ]
     engine_races = [
         nhc.SeriesRace(
             race_id=str(race.pk),
@@ -156,6 +177,31 @@ def build_engine_series(series, entries, races):
             ],
         )
         for race in races
+    ]
+    if series.is_fixed_number:
+        return nhc.FixedNumberSeries(
+            boats=[
+                nhc.FixedNumberBoat(
+                    boat_id=str(entry.pk),
+                    number=_as_float(entry.boat.py_number),
+                    name=str(entry.boat),
+                )
+                for entry in entries
+            ],
+            races=engine_races,
+            system=nhc.FixedNumberSystem(series.handicap_system),
+            apply_a5_3=series.apply_a5_3,
+            discards=series.discards,
+            discard_threshold=series.discard_threshold,
+        )
+    boats = [
+        nhc.Boat(
+            boat_id=str(entry.pk),
+            base_number=_as_float(entry.boat.base_number),
+            current_tcf=_as_float(entry.boat.base_number),
+            name=str(entry.boat),
+        )
+        for entry in entries
     ]
     return nhc.Series(
         boats=boats,
@@ -172,6 +218,48 @@ def build_engine_series(series, entries, races):
     )
 
 
+def _as_float(value):
+    return None if value is None else float(value)
+
+
+def _run_engine(engine_series):
+    """Score a series the way its kind says: NHC replay, or fixed numbers."""
+    if isinstance(engine_series, nhc.FixedNumberSeries):
+        return nhc.score_fixed_number_series(engine_series)
+    return nhc.score_series(engine_series)
+
+
+def setup_problem(series, entries):
+    """What stops a series being scored, in words, or "" if nothing does.
+
+    The forms refuse these (slice 24), so this is for a row that got past them.
+    The pages then say so, rather than show results that quietly ignore a
+    setting or crash on a boat with no number.
+    """
+    if series.is_fixed_number:
+        system = series.get_handicap_system_display()
+        unused = [
+            reason
+            for used, reason in [
+                (series.series_type == Series.SeriesType.REGATTA, "a regatta"),
+                (series.minimum_finishers, "a minimum finishers threshold"),
+                (series.nhc_cap_extremes, "extreme-result capping"),
+                (series.nhc_realign_to_base, "realignment to base handicaps"),
+            ]
+            if used
+        ]
+        if unused:
+            return f"a {system} series can't use {', '.join(unused)}"
+    lacking = [entry.boat for entry in entries if series.boats_lack(entry.boat)]
+    if lacking:
+        names = ", ".join(str(boat) for boat in lacking)
+        return (
+            f"{names} {'has' if len(lacking) == 1 else 'have'} no "
+            f"{series.number_label}, which this series needs"
+        )
+    return ""
+
+
 def score_series(series):
     """Replay a series through the engine and return template-ready results.
 
@@ -183,6 +271,17 @@ def score_series(series):
     the handicaps the one before produces. See docs/decisions.md.
     """
     entries, races = _load(series)
+    if series.final_results is None:
+        # A final series is scored from its stored copy, whatever has happened
+        # to the boats since.
+        problem = setup_problem(series, entries)
+        if problem:
+            return SeriesResults(
+                series=series,
+                races=(),
+                standings=(),
+                error=UNSCORABLE.format(detail=problem),
+            )
     if not entries:
         # The engine refuses a series with no boats, and there is nothing to show.
         return SeriesResults(series=series, races=(), standings=())
@@ -200,7 +299,7 @@ def score_series(series):
             # the copy keeps their base numbers as they were then.
             outcome = final.load(series.final_results)
         else:
-            outcome = nhc.score_series(build_engine_series(series, entries, scored))
+            outcome = _run_engine(build_engine_series(series, entries, scored))
     except nhc.InvalidInput as error:
         # Validation should stop any input the engine refuses from being saved.
         # If some route slips past it, the pages say so rather than crash.
@@ -225,7 +324,7 @@ def engine_outcome(series):
     """The engine's own output for the series, replayed live: what a final series copies."""
     entries, races = _load(series)
     scored, _ = _scorable_races(series, races)
-    return nhc.score_series(build_engine_series(series, entries, scored))
+    return _run_engine(build_engine_series(series, entries, scored))
 
 
 def _load(series):

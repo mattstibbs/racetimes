@@ -108,8 +108,8 @@ class BoatForm(ReasonWhereItAppliesMixin, forms.ModelForm):
     """A boat, as the race committee sets it up.
 
     The reason box appears only when the boat has results in some series, the
-    one case where changing its base number is a correction (slice 18). The
-    admin's subclass always shows it.
+    one case where changing a number is a correction (slice 18). The admin's
+    subclass always shows it.
     """
 
     owner = OwnerChoiceField(
@@ -135,6 +135,7 @@ class BoatForm(ReasonWhereItAppliesMixin, forms.ModelForm):
             "length_overall_m",
             "waterline_length_m",
             "base_number",
+            "py_number",
         ]
         help_texts = {"owner_name": "For a boat whose owner has no account here."}
 
@@ -210,6 +211,7 @@ class SeriesForm(ReasonWhereItAppliesMixin, forms.ModelForm):
         # only once someone decides it belongs here.
         fields = [
             "name",
+            "handicap_system",
             "series_type",
             "discards",
             "discard_threshold",

@@ -17,7 +17,15 @@ from datetime import time
 from django.utils import timezone
 from django.utils.text import capfirst
 
-from .models import Boat, Finish, Race, ScoringChange, Series, SeriesEntry
+from .models import (
+    NUMBER_FIELDS,
+    Boat,
+    Finish,
+    Race,
+    ScoringChange,
+    Series,
+    SeriesEntry,
+)
 
 # The fields whose changes are recorded, per model. Everything else on these
 # models is display only and moves no number. Adding a field here is all it
@@ -27,6 +35,7 @@ AUDITED_FIELDS = {
     # A race's date moves nothing: elapsed time is measured within the day.
     Race: ["number", "start_time"],
     Series: [
+        "handicap_system",
         "series_type",
         "discards",
         "discard_threshold",
@@ -36,7 +45,7 @@ AUDITED_FIELDS = {
         "nhc_realign_to_base",
     ],
     SeriesEntry: [],  # only being added or removed matters (the A5.2 entry count)
-    Boat: ["base_number"],
+    Boat: ["base_number", "py_number"],
 }
 
 KINDS = {
@@ -109,13 +118,13 @@ def series_has_finishes(series):
 
 
 def _rows(obj, action, changes):
-    def row(series, race, is_correction):
+    def row(series, race, is_correction, these=None):
         return ScoringChange(
             club=_club_of(obj),
             kind=KINDS[type(obj)],
             action=action,
             description=_describe(obj),
-            changes=changes,
+            changes=changes if these is None else these,
             series=series,
             race=race,
             is_correction=is_correction,
@@ -132,14 +141,31 @@ def _rows(obj, action, changes):
         return [row(obj, None, series_has_finishes(obj))]
     if isinstance(obj, SeriesEntry):
         return [row(obj.series, None, series_has_finishes(obj.series))]
-    # A base number feeds every series the boat is in, so each series' history
-    # gets its own row and is complete without looking anywhere else.
+    # A boat's numbers each feed only the series scored on them (slice 24): the
+    # NHC base number the NHC series, the Portsmouth Number the Portsmouth ones.
+    # Each series' history gets a row of the changes that touched it, so it is
+    # complete without looking anywhere else. A change that touched no series
+    # at all (a boat in none, or only in series that don't use that number) is
+    # kept in one row for the club, so it is still recorded.
     series_list = (
         list(Series.objects.filter(entries__boat=obj).distinct()) if obj.pk else []
     )
-    if not series_list:
-        return [row(None, None, False)]
-    return [row(series, None, series_has_finishes(series)) for series in series_list]
+    system_of_label = {_label(obj, field): s for field, s in NUMBER_FIELDS.items()}
+    rows, covered = [], set()
+    for series in series_list:
+        mine = {
+            label: change
+            for label, change in changes.items()
+            if system_of_label.get(label, series.handicap_system)
+            == series.handicap_system
+        }
+        if mine:
+            rows.append(row(series, None, series_has_finishes(series), mine))
+            covered |= set(mine)
+    rest = {label: change for label, change in changes.items() if label not in covered}
+    if rest:
+        rows.append(row(None, None, False, rest))
+    return rows
 
 
 def _club_of(obj):
@@ -227,6 +253,7 @@ def compare(before, after):
     here is stored; both scorings are replays.
     """
     before_races = {race_results.race.pk: race_results for race_results in before.races}
+    fixed = after.series.is_fixed_number
     places, handicaps = [], []
     for race_results in after.races:
         old = before_races.get(race_results.race.pk)
@@ -234,7 +261,9 @@ def compare(before, after):
             continue
         if _places(old) != _places(race_results):
             places.append(race_results.race.number)
-        if _handicaps(old) != _handicaps(race_results):
+        # No handicap can move in a fixed-number series (slice 24), so none is
+        # ever reported as having moved.
+        if not fixed and _handicaps(old) != _handicaps(race_results):
             handicaps.append(race_results.race.number)
     return Effect(places, handicaps, _standings(before) != _standings(after))
 
@@ -249,10 +278,12 @@ def describe_effect(before, after):
         parts.append(f"Handicaps changed in {race_list(effect.handicaps)}.")
     if effect.standings:
         parts.append("Standings changed.")
-    return (
-        " ".join(parts)
-        or "No places, handicaps, or standings were affected by this change."
+    nothing = (
+        "No places or standings were affected by this change."
+        if after.series.is_fixed_number
+        else "No places, handicaps, or standings were affected by this change."
     )
+    return " ".join(parts) or nothing
 
 
 def _places(race_results):
@@ -263,7 +294,7 @@ def _places(race_results):
 
 
 def _handicaps(race_results):
-    return {row.entry.pk: round(row.result.tcf_used, 3) for row in race_results.rows}
+    return {row.entry.pk: round(row.raced_on, 3) for row in race_results.rows}
 
 
 def _standings(results):

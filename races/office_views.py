@@ -369,6 +369,23 @@ class EnterBoatsForm(forms.Form):
             self.fields["reason"].required = True
             self.fields["reason"].error_messages["required"] = audit.REASON_REQUIRED
 
+    def clean_boat(self):
+        # A boat can only be entered if it has the number this series is scored
+        # on (slice 24). They are listed, so the committee can see which, but
+        # not enterable.
+        lacking = [
+            boat for boat in self.cleaned_data["boat"] if self.series.boats_lack(boat)
+        ]
+        if lacking:
+            names = ", ".join(str(boat) for boat in lacking)
+            raise ValidationError(
+                f"{names} {'has' if len(lacking) == 1 else 'have'} no "
+                f"{self.series.number_label}, which this "
+                f"{self.series.get_handicap_system_display()} series needs. "
+                "Give the boat one first."
+            )
+        return self.cleaned_data["boat"]
+
     def clean(self):
         cleaned = super().clean()
         try:
