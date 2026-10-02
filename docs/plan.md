@@ -821,9 +821,12 @@ The owner checked worked examples DT-1 and SP-1 to SP-6 (2026-10-02), so
 nothing is left to answer. They are fixtures in `tests/fixtures/`
 (`discard_threshold.yaml`, `scoring_penalty.yaml`).
 
-## Slice 24: Portsmouth Number series. **Status: ready to build (2026-10-02)**
+## Slice 24: Portsmouth Number series. **Status: part A (the engine) complete, part B (the site) in progress (2026-10-02)**
 
-Spec: `docs/slices/24-portsmouth-number-series.md`. Nothing is built. A
+Spec: `docs/slices/24-portsmouth-number-series.md`. Built in two parts.
+**Part A, the engine, is complete** (PR #50): `nhc/fixed_number.py`, with
+worked examples PY-1 and PY-2 as fixtures; the site doesn't use it yet. **Part
+B, the site,** is the data model, scoring bridge, forms, pages and manual. A
 series chooses its handicap system, NHC as today or Portsmouth Yardstick, a
 fixed number, so nothing moves after a race. Places, points and standings
 are RRS Appendix A under both. This is the Portsmouth Yardstick half of the

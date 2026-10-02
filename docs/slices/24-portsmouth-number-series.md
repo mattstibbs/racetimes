@@ -1,6 +1,8 @@
 # Slice 24: Portsmouth Number series
 
-**Status: ready to build (2026-10-02).** Nothing is built. The project owner
+**Status: part A (the engine) complete, part B (the site) in progress
+(2026-10-02).** Part A is `nhc/fixed_number.py` and its shared-code moves
+(PR #50); the site doesn't use it yet. The project owner
 has approved the data model changes, answered every open question, and
 checked worked examples PY-1 and PY-2 (see "The project owner's answers" at
 the end). Nothing is left to answer.
