@@ -17,14 +17,18 @@ class FinishForm(AuditedFormMixin, forms.ModelForm):
 
     class Meta:
         model = Finish
-        fields = ["finish_time", "status"]
+        fields = ["finish_time", "status", "scoring_penalty"]
         widgets = {
             # step=1 makes browsers offer seconds, which finishes need.
             "finish_time": forms.TimeInput(
                 format="%H:%M:%S", attrs={"type": "time", "step": "1"}
             ),
         }
-        labels = {"finish_time": "Finish time", "status": "Result"}
+        labels = {
+            "finish_time": "Finish time",
+            "status": "Result",
+            "scoring_penalty": "Scoring penalty",
+        }
 
 
 class StartSheetRowForm(forms.Form):

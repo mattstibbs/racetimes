@@ -108,7 +108,13 @@ for number, day in [(1, 16), (2, 23), (3, 30)]:
             race=race, entry=entry
         )  # only a boat on the start sheet has a finish
         if finish:
-            Finish.objects.create(race=race, entry=entry, finish_time=finish)
+            # Race 3: Kittiwake touched a mark and took a scoring penalty (SCP).
+            Finish.objects.create(
+                race=race,
+                entry=entry,
+                finish_time=finish,
+                scoring_penalty=number == 3 and entry == entries[0],
+            )
         else:
             Finish.objects.create(race=race, entry=entry, status="DNF")
 # Race 4 is today, started 40 minutes ago, so the race day page offers its

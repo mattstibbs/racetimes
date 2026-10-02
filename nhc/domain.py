@@ -122,6 +122,15 @@ def _check_elapsed_time(record, context: str) -> None:
         object.__setattr__(record, "elapsed_seconds", None)
 
 
+def _check_scoring_penalty(record, context: str) -> None:
+    """A scoring penalty worsens a finisher's score, so a boat with no place can't take one."""
+    if record.scoring_penalty and not record.status.is_finisher:
+        raise InvalidInput(
+            f"{context}: a scoring penalty needs a finish, but the status is "
+            f"{record.status.value}"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Finish:
     """A boat's recorded outcome in a race: a time, or a scoring code.
@@ -136,6 +145,7 @@ class Finish:
     boat_id: str
     status: RaceStatus
     elapsed_seconds: float | None = None
+    scoring_penalty: bool = False
 
     def __post_init__(self) -> None:
         if not self.boat_id:
@@ -143,6 +153,7 @@ class Finish:
         context = f"finish for boat {self.boat_id}"
         _check_status(self.status, context)
         _check_elapsed_time(self, context)
+        _check_scoring_penalty(self, context)
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,6 +198,7 @@ class RaceEntry:
     tcf_used: float
     elapsed_seconds: float | None = None
     base_number: float | None = None
+    scoring_penalty: bool = False
 
     def __post_init__(self) -> None:
         if not self.boat_id:
@@ -197,6 +209,7 @@ class RaceEntry:
         _check_positive(self.tcf_used, "tcf_used", context)
 
         _check_elapsed_time(self, context)
+        _check_scoring_penalty(self, context)
 
         if self.base_number is not None:
             _check_positive(self.base_number, "base_number", context)
@@ -295,6 +308,12 @@ class RaceResult:
     or None when that step didn't run. ``next_tcf`` is already realigned; the
     unrealigned value is ``next_tcf / realignment_factor``.
 
+    ``scoring_penalty`` is carried from the entry (RRS 44.3(c), A10 code SCP).
+    It touches points only: the corrected time, place and handicap fields are
+    the same with or without it. ``penalty_points`` is what the penalty added
+    to the boat's score in ``score_points`` (after the cap at the DNF score), or
+    None when there is no penalty.
+
     ``points`` is filled by a third pass, ``score_points``, and stays None until
     then. It is separate because it needs something a single race does not
     contain: the number of boats entered in the series, which RRS A5.2 uses to
@@ -315,6 +334,8 @@ class RaceResult:
     points: float | None = None
     elapsed_seconds_used: float | None = None
     realignment_factor: float | None = None
+    scoring_penalty: bool = False
+    penalty_points: float | None = None
 
     @property
     def capped(self) -> bool:

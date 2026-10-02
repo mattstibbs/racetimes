@@ -66,6 +66,7 @@ def score_race(race: RaceInput) -> tuple[RaceResult, ...]:
             elapsed_seconds=entry.elapsed_seconds,
             corrected_time=corrected.get(entry.boat_id),
             position=positions.get(entry.boat_id),
+            scoring_penalty=entry.scoring_penalty,
         )
         for entry in race.entries
     )

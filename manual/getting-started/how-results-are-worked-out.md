@@ -104,6 +104,27 @@ Race Times uses the Low Point System (RRS Appendix A):
 | Boat 2 | 4 | 4 |
 | Boat 5 | DNC | 6 |
 
+### A scoring penalty (SCP)
+
+Sailing instructions can say that a boat which breaks a named rule, for
+example by touching a moored boat, declares it and accepts a **scoring
+penalty** under RRS 44.3(c). The race committee ticks **Scoring penalty** on
+that boat's finish (see [Race day](../committee/race-day.md)). The boat:
+
+- **keeps her place**: her finish time, corrected time and place are as
+  sailed, and every other boat's place and points are unchanged, so she can
+  score more than the boat behind her;
+- **scores worse**: her points are the points for her place plus **20% of the
+  score for Did Not Finish** in that race, never worse than Did Not Finish;
+- **is shown with SCP** beside her points, wherever they appear.
+
+With six boats entered, a Did Not Finish scores 7, so the penalty is 1.4. A
+boat that finished 3rd and took it scores 3 + 1.4 = **4.4**, and the boat in
+4th still scores 4. The boat's handicap is worked out as for any other
+finisher, because she sailed the course. A penalised score can be discarded
+like any other, and a total can have a tenth of a point in it (7.4). If two
+boats are level on tenths, the series tie-breaks below apply.
+
 A series can use **RRS A5.3**, if its notice of race says so. Then a boat that
 came to the start but didn't finish scores one more than the number of boats
 that came to the start, instead. A DNC still scores one more than the

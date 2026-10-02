@@ -71,12 +71,17 @@ class RaceResults:
     def has_not_recorded(self):
         return any(row.not_recorded for row in self.rows)
 
+    @property
+    def has_scoring_penalty(self):
+        return any(row.result.scoring_penalty for row in self.rows)
+
 
 @dataclass(frozen=True)
 class ScoreCell:
     race: Race
     points: float
     discarded: bool
+    scoring_penalty: bool = False  # SCP: this score includes a scoring penalty
 
 
 @dataclass(frozen=True)
@@ -97,6 +102,11 @@ class SeriesResults:
     unscored: tuple[tuple[Race, str], ...] = ()
     # Set when the engine refused the series; nothing is scored then.
     error: str = ""
+
+    @property
+    def has_scoring_penalty(self):
+        """Whether any boat in any scored race took a scoring penalty (SCP)."""
+        return any(race.has_scoring_penalty for race in self.races)
 
     @property
     def discards_apply(self):
@@ -140,6 +150,7 @@ def build_engine_series(series, entries, races):
                     boat_id=str(finish.entry_id),
                     status=nhc.RaceStatus(finish.status),
                     elapsed_seconds=finish.elapsed_seconds,
+                    scoring_penalty=finish.scoring_penalty,
                 )
                 for finish in race.finishes.all()
             ],
@@ -205,7 +216,7 @@ def score_series(series):
             _race_results(race, race_outcome, entry_by_id)
             for race, race_outcome in zip(scored, outcome.races, strict=True)
         ),
-        standings=_standings(outcome.standings, entry_by_id, scored),
+        standings=_standings(outcome, entry_by_id, scored),
         unscored=tuple(unscored),
     )
 
@@ -243,9 +254,15 @@ def _race_results(race, race_outcome, entry_by_id):
     return RaceResults(race=race, rows=tuple(rows))
 
 
-def _standings(engine_standings, entry_by_id, races):
+def _standings(outcome, entry_by_id, races):
     """The engine's standings, matched back to the series' entries and races."""
     race_by_id = {str(race.pk): race for race in races}
+    penalised = {
+        (result.boat_id, race.race_id)
+        for race in outcome.races
+        for result in race.results
+        if result.scoring_penalty
+    }
     return tuple(
         StandingRow(
             entry=entry_by_id[standing.boat_id],
@@ -256,11 +273,12 @@ def _standings(engine_standings, entry_by_id, races):
                     race=race_by_id[score.race_id],
                     points=score.points,
                     discarded=score.discarded,
+                    scoring_penalty=(standing.boat_id, score.race_id) in penalised,
                 )
                 for score in standing.scores
             ),
         )
-        for standing in engine_standings
+        for standing in outcome.standings
     )
 
 

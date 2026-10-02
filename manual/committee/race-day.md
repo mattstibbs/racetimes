@@ -92,6 +92,16 @@ Every boat still racing has a **…** button, and every finished boat has
 showed it, or choose a code (DNF, DNS or DNC), and press **Save**. Changing a
 saved finish is a correction and needs a reason.
 
+To give a boat a **scoring penalty** (SCP, RRS 44.3(c)), tick **Scoring
+penalty (SCP)** on its form and press **Save**. The boat keeps her place and
+scores 20% of the Did Not Finish score more; see
+[How results are worked out](../getting-started/how-results-are-worked-out.md#a-scoring-penalty-scp).
+The tick is only for a boat with a finish time: a boat with a code (DNF, DNS
+or DNC) has no place to worsen, and the form refuses it. It is one penalty per
+boat per race. Adding or removing the tick on a saved finish is a correction,
+so it needs a reason, is recorded in the race's history, and marks published
+results as amended.
+
 ![The form under a boat's … button: a finish time, a result set to DNF, and Save](../images/race-day-typed.png)
 
 ### Two devices at once

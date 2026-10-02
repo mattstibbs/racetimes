@@ -72,7 +72,7 @@ def start(race, entry, persons_on_board=None):
     return race_entry
 
 
-def record(race, entry, finish_time=None, status=None):
+def record(race, entry, finish_time=None, status=None, scoring_penalty=False):
     """Record a finish: a clock time like "19:02:17", or a status code.
 
     The boat goes on the start sheet first, as it must on the real site.
@@ -85,6 +85,7 @@ def record(race, entry, finish_time=None, status=None):
         entry=entry,
         status=status,
         finish_time=time.fromisoformat(finish_time) if finish_time else None,
+        scoring_penalty=scoring_penalty,
     )
 
 

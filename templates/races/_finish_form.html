@@ -7,11 +7,12 @@ JavaScript; it opens by itself when the save was refused, to show why.{% endcomm
         hx-sync="#finish-panel:replace" id="finish-{{ row.entry.pk }}">{% csrf_token %}
     <label>Finish time {{ row.form.finish_time }}</label>
     <label>Result {{ row.form.status }}</label>
+    <label>{{ row.form.scoring_penalty }} Scoring penalty (SCP)</label>
     {# Only a saved finish can be corrected, so only it asks for a reason. #}
     {% if row.form.instance.pk %}<label>Reason {{ row.form.reason }}</label>{% endif %}
     <button type="submit">Save</button>
     {% if row.form.errors %}
-    <div class="figures">{{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}{{ row.form.reason.errors }}</div>
+    <div class="figures">{{ row.form.non_field_errors }}{{ row.form.finish_time.errors }}{{ row.form.status.errors }}{{ row.form.scoring_penalty.errors }}{{ row.form.reason.errors }}</div>
     {% endif %}
   </form>
 </details>

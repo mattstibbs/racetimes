@@ -17,9 +17,12 @@ Note the two rules disagree about discarded scores on purpose: A8.1 ignores
 them, A8.2 counts them. Getting that backwards would break ties the wrong way
 round in a way no test of a single boat would catch.
 
-Points are always multiples of 0.5 - whole places, halved across A7 ties - so
-totals are exactly representable and compared exactly. No tolerance is needed
-here, unlike in the handicap arithmetic.
+Points are multiples of 0.1: whole places, halved across A7 ties, and a scoring
+penalty's tenths (``nhc/points.py``). Tenths are not exact in a float (0.1 +
+0.2 is a hair over 0.3), so two boats level on a total could compare unequal
+and never reach the tie-breaks. Totals and the A8 keys are therefore worked out
+in whole tenths, which are integers, and turned back into points only for
+output. No tolerance is needed here, unlike in the handicap arithmetic.
 """
 
 from __future__ import annotations
@@ -137,7 +140,7 @@ def compute_standings(
                 BoatStanding(
                     boat_id=boat_id,
                     position=place,
-                    total=_total(scores),
+                    total=_total_tenths(scores) / 10,
                     scores=scores,
                 )
             )
@@ -195,8 +198,13 @@ def _indices_to_discard(points: Sequence[float], excluded: int) -> frozenset[int
     return frozenset(order[:excluded])
 
 
-def _total(scores: Sequence[RaceScore]) -> float:
-    return sum(score.points for score in scores if not score.discarded)
+def _tenths(points: float) -> int:
+    """Points as a whole number of tenths (every score is a multiple of 0.1)."""
+    return round(points * 10)
+
+
+def _total_tenths(scores: Sequence[RaceScore]) -> int:
+    return sum(_tenths(score.points) for score in scores if not score.discarded)
 
 
 def _ranking_key(scores: Sequence[RaceScore]):
@@ -210,6 +218,6 @@ def _ranking_key(scores: Sequence[RaceScore]):
     3. every race's score in reverse series order, so the last race is compared
        first - A8.2, which explicitly includes discarded scores.
     """
-    counted = tuple(sorted(s.points for s in scores if not s.discarded))
-    all_scores_latest_first = tuple(s.points for s in reversed(scores))
-    return (_total(scores), counted, all_scores_latest_first)
+    counted = tuple(sorted(_tenths(s.points) for s in scores if not s.discarded))
+    all_scores_latest_first = tuple(_tenths(s.points) for s in reversed(scores))
+    return (_total_tenths(scores), counted, all_scores_latest_first)
