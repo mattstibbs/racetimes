@@ -545,4 +545,5 @@ def urls_for(data, kind=None):
         "races:office_race": [race_1.pk],
         "races:office_remove_race": [race_1.pk],
         "races:office_remove_entry": [e1.pk],
+        "races:office_entry_number": [e1.pk],
     }

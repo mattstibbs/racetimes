@@ -14,7 +14,14 @@ from django.core.exceptions import ValidationError
 
 from . import audit, final, notifications
 from .audit import AuditedFormMixin
-from .models import Boat, ClubMembership, Race, Series
+from .models import (
+    YTC_NUMBER_FIELDS,
+    Boat,
+    ClubMembership,
+    Race,
+    Series,
+    SeriesEntry,
+)
 from .request_forms import boat_with_sail_number
 from .scoring import score_series
 
@@ -340,6 +347,43 @@ class RaceForm(ReasonWhereItAppliesMixin, forms.ModelForm):
         if taken.exists():
             raise ValidationError(f"Race {number} already exists in this series.")
         return number
+
+    def clean(self):
+        cleaned = super().clean()
+        try:
+            final.check_series_open(self.instance.series_id)
+        except ValidationError as locked:
+            raise ValidationError(locked.messages) from None
+        return cleaned
+
+
+# --- Entries ----------------------------------------------------------------------------
+
+
+class EntryNumberForm(ReasonWhereItAppliesMixin, forms.ModelForm):
+    """Which of a boat's two YTC numbers she races on in a series (slice 25).
+
+    Changing it rescores every race she has sailed in the series, so once the
+    series has results it is a correction and needs a reason.
+    """
+
+    class Meta:
+        model = SeriesEntry
+        fields = ["ytc_number_used"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        boat = self.instance.boat
+        # Only the numbers the boat has, each shown with its value.
+        self.fields["ytc_number_used"].choices = [
+            (used, f"{boat._meta.get_field(field).verbose_name} {getattr(boat, field)}")
+            for field, used in YTC_NUMBER_FIELDS.items()
+            if getattr(boat, field) is not None
+        ]
+        self.fields["ytc_number_used"].label = "Races on"
+
+    def reason_applies(self):
+        return audit.series_has_finishes(self.instance.series)
 
     def clean(self):
         cleaned = super().clean()

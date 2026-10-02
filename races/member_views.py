@@ -175,6 +175,7 @@ def enter_series(request, pk):
             series=form.cleaned_data["series"],
             boat=boat,
             requested_by=request.user,
+            ytc_number_used=form.cleaned_data["ytc_number_used"],
             member_note=form.cleaned_data["member_note"],
         )
         messages.success(request, "Sent to the race committee.")

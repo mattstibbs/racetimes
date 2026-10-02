@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Replace, Upper
 
-from .models import Boat, BoatRequest, Series
+from .models import YTC_NUMBER_FIELDS, Boat, BoatRequest, Series, SeriesEntry
 
 
 class _BoatDetailsForm(forms.ModelForm):
@@ -25,6 +25,14 @@ class _BoatDetailsForm(forms.ModelForm):
             "py_number": (
                 "Your Portsmouth Number. Needed to enter a Portsmouth Yardstick "
                 "series. The race committee checks it."
+            ),
+            "ytc_number": (
+                "From your RYA YTC certificate. Needed to enter an RYA YTC series "
+                "on it. The race committee checks it."
+            ),
+            "ytc_number_non_spinnaker": (
+                "The non-spinnaker (white sail) number on your RYA YTC "
+                "certificate. The race committee checks it."
             ),
         }
 
@@ -50,15 +58,13 @@ class _BoatDetailsForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        # Slice 24: neither number is required on its own, but a boat needs one
-        # to race on at all.
-        if (
-            not self.errors
-            and cleaned.get("base_number") is None
-            and cleaned.get("py_number") is None
-        ):
+        # Slice 24: no number is required on its own, but a boat needs one to
+        # race on at all (slice 25 adds the two YTC numbers).
+        names = ("base_number", "py_number", *YTC_NUMBER_FIELDS)
+        if not self.errors and all(cleaned.get(name) is None for name in names):
             raise ValidationError(
-                "Give your boat's NHC base number, its Portsmouth Number, or both."
+                "Give a number for your boat to race on: its NHC base number, "
+                "Portsmouth Number or YTC number."
             )
         return cleaned
 
@@ -105,6 +111,15 @@ class BoatChangeForm(_BoatDetailsForm):
 
 class EntryRequestForm(forms.Form):
     series = forms.ModelChoiceField(queryset=Series.objects.none(), empty_label=None)
+    ytc_number_used = forms.ChoiceField(
+        label="Number to race on (RYA YTC series only)",
+        required=False,
+        choices=[
+            ("", "The boat's YTC number if she has one"),
+            *SeriesEntry.NumberUsed.choices,
+        ],
+        help_text="A boat with both YTC numbers races on one of them for the whole series.",
+    )
     member_note = forms.CharField(
         label="Note for the race committee (optional)", required=False, max_length=500
     )
@@ -134,6 +149,27 @@ class EntryRequestForm(forms.Form):
                 "change to your boat's details first, to add it."
             )
         return series
+
+    def clean(self):
+        cleaned = super().clean()
+        series = cleaned.get("series")
+        if series is None or series.handicap_system != Series.HandicapSystem.YTC:
+            # The choice means nothing outside a YTC series.
+            cleaned["ytc_number_used"] = SeriesEntry.NumberUsed.SPINNAKER
+            return cleaned
+        used = cleaned.get("ytc_number_used") or SeriesEntry.default_number_used(
+            self.boat
+        )
+        field = {v: k for k, v in YTC_NUMBER_FIELDS.items()}[used]
+        if getattr(self.boat, field) is None:
+            label = self.boat._meta.get_field(field).verbose_name
+            self.add_error(
+                "ytc_number_used",
+                f"{self.boat} has no {label}. Choose the number she has, or ask "
+                "for a change to your boat's details first.",
+            )
+        cleaned["ytc_number_used"] = used
+        return cleaned
 
 
 class DecisionForm(forms.Form):

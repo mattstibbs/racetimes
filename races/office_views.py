@@ -17,8 +17,14 @@ from django.views.decorators.http import require_safe
 
 from . import audit, final, notifications, race_day
 from .context_processors import waiting_notices
-from .models import Boat, Race, Series, SeriesEntry
-from .office_forms import BoatForm, RaceForm, SeriesForm, reason_field
+from .models import YTC_NUMBER_FIELDS, Boat, Race, Series, SeriesEntry
+from .office_forms import (
+    BoatForm,
+    EntryNumberForm,
+    RaceForm,
+    SeriesForm,
+    reason_field,
+)
 from .roles import committee_required
 from .scoring import score_series
 
@@ -384,7 +390,33 @@ class EnterBoatsForm(forms.Form):
                 f"{self.series.get_handicap_system_display()} series needs. "
                 "Give the boat one first."
             )
+        self.number_used = self._numbers_chosen(self.cleaned_data["boat"])
         return self.cleaned_data["boat"]
+
+    def _numbers_chosen(self, boats):
+        """Which YTC number each boat is entered on (slice 25): {boat pk: choice}.
+
+        The page asks per boat that has both; a boat with one is entered on it,
+        and a choice for a number she doesn't have is refused, naming her.
+        """
+        if self.series.handicap_system != Series.HandicapSystem.YTC:
+            return {}
+        chosen, wrong = {}, []
+        for boat in boats:
+            asked = self.data.get(f"number_{boat.pk}") or ""
+            used = asked or SeriesEntry.default_number_used(boat)
+            field = {v: k for k, v in YTC_NUMBER_FIELDS.items()}.get(used)
+            if field is None or getattr(boat, field) is None:
+                wrong.append(boat)
+            else:
+                chosen[boat.pk] = used
+        if wrong:
+            names = ", ".join(str(boat) for boat in wrong)
+            raise ValidationError(
+                f"{names} {'does' if len(wrong) == 1 else 'do'} not have the number "
+                "chosen. Choose a number the boat has."
+            )
+        return chosen
 
     def clean(self):
         cleaned = super().clean()
@@ -405,7 +437,13 @@ def enter_boats(request, pk):
         before = score_series(series)
         with transaction.atomic():
             entries = [
-                SeriesEntry(series=series, boat=boat)
+                SeriesEntry(
+                    series=series,
+                    boat=boat,
+                    ytc_number_used=form.number_used.get(
+                        boat.pk, SeriesEntry.NumberUsed.SPINNAKER
+                    ),
+                )
                 for boat in form.cleaned_data["boat"]
             ]
             changes = [
@@ -428,9 +466,19 @@ def enter_boats(request, pk):
         for pk in request.GET.getlist("boat") + request.POST.getlist("boat")
         if pk.isdigit()
     }
+    # The same for the number each was to be entered on (slice 25).
+    chosen = {
+        key.removeprefix("number_"): value
+        for key, value in {**request.GET.dict(), **request.POST.dict()}.items()
+        if key.startswith("number_") and key.removeprefix("number_").isdigit()
+    }
     # Boats ticked before a search stay listed, and ticked, whatever it finds.
     unentered = form.fields["boat"].queryset
     boats = list(search(unentered, query, keep=ticked).select_related("owner"))
+    for boat in boats:
+        boat.chosen_number = chosen.get(
+            str(boat.pk)
+        ) or SeriesEntry.default_number_used(boat)
     return _render(
         request,
         "races/office/enter_boats.html",
@@ -442,9 +490,43 @@ def enter_boats(request, pk):
             # Boats the series can't take yet: listed, but not tickable (slice 24).
             "lacking": {boat.pk for boat in boats if series.boats_lack(boat)},
             "ticked": ticked,
+            "chosen": chosen,
             "query": query,
             "any_to_enter": unentered.exists(),
         },
+    )
+
+
+@committee_required
+def change_entry_number(request, pk):
+    """Change which YTC number a boat races on in one series (slice 25)."""
+    entry = get_object_or_404(
+        SeriesEntry.objects.for_club(request.club).select_related("series", "boat"),
+        pk=pk,
+    )
+    series = entry.series
+    if series.is_final:
+        return _locked(request, series)
+    if not entry.is_ytc:
+        messages.error(request, f"{series} is not an RYA YTC series.")
+        return redirect("races:office_series", series.pk)
+    form = EntryNumberForm(_posted(request), instance=entry)
+    if request.method == "POST" and form.is_valid():
+        before = score_series(series)
+        with transaction.atomic():
+            form.save()
+            recorded = audit.record(
+                form.scoring_changes, request.user, form.cleaned_data.get("reason", "")
+            )
+        messages.success(
+            request, f"{entry.boat} now races on her {entry.number_label}."
+        )
+        _say_what_moved(request, series, before, recorded)
+        return redirect("races:office_series", series.pk)
+    return render(
+        request,
+        "races/office/entry_number.html",
+        {"form": form, "series": series, "entry": entry},
     )
 
 

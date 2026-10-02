@@ -7,6 +7,8 @@
   {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
   {% if boat.base_number %}Base number {{ boat.base_number|tcf }}.{% endif %}
   {% if boat.py_number %}Portsmouth Number {{ boat.py_number }}.{% endif %}
+  {% if boat.ytc_number %}YTC number {{ boat.ytc_number }}.{% endif %}
+  {% if boat.ytc_number_non_spinnaker %}Non-spinnaker YTC number {{ boat.ytc_number_non_spinnaker }}.{% endif %}
 </p>
 
 {% if not histories %}

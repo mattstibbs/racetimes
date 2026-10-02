@@ -10,7 +10,7 @@
   {# Over HTMX, the boats already ticked go with the search, so they stay listed and ticked. #}
   <input type="search" id="boat-search" name="q" value="{{ query }}" autocomplete="off"
          hx-get="{% url 'races:office_enter_boats' series.pk %}" hx-trigger="input changed delay:300ms, search"
-         hx-include="[name=boat]:checked" hx-target="#boat-choices" hx-swap="outerHTML">
+         hx-include="[name=boat]:checked, [name^=number_]" hx-target="#boat-choices" hx-swap="outerHTML">
   <button type="submit" class="secondary">Find</button>
 </form>
 <form method="post" class="stacked">

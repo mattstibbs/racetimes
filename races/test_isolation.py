@@ -227,6 +227,7 @@ def test_harbours_ids_are_not_found_at_demo_club(client, clubs, role):
             "races:office_race",
             "races:office_remove_race",
             "races:office_remove_entry",
+            "races:office_entry_number",
         } <= set(checked)
     if role == "administrator":
         assert "races:decide_membership" in checked

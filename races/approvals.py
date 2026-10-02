@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.text import capfirst
 
 from . import audit, final
-from .models import Boat, BoatRequest, EntryRequest, Request, Series, SeriesEntry
+from .models import Boat, BoatRequest, EntryRequest, Request, Series
 from .scoring import score_series
 
 ALREADY_DECIDED = "This request has already been decided."
@@ -66,6 +66,14 @@ def approve(request, user, reason=""):
             # the member asked.
             if request.series.boats_lack(request.boat):
                 raise ValidationError(request.series.lacks_number_message(request.boat))
+            # Slice 25: under RYA YTC, and the number the member chose.
+            entry = request.as_entry()
+            if entry.is_ytc and entry.number is None:
+                raise ValidationError(
+                    f"{request.boat} no longer has the {entry.number_label} the "
+                    "request asked to race on. Reject it, and ask the member to "
+                    "send it again."
+                )
         _claim_decision(request, user, Request.Status.APPROVED)
         changes = _audited_changes(request)
         if audit.needs_reason(changes) and not reason:
@@ -123,9 +131,7 @@ def _claim_decision(request, user, status, note=""):
 def _audited_changes(request):
     """The change-history rows approving would record, before anything is saved."""
     if isinstance(request, EntryRequest):
-        return audit.changes_to_save(
-            SeriesEntry(series=request.series, boat=request.boat)
-        )
+        return audit.changes_to_save(request.as_entry())
     if request.kind == BoatRequest.Kind.CHANGE:
         return audit.changes_to_save(_changed_boat(request))
     # A new boat moves no result until it is entered, and a new owner none at all.
@@ -153,7 +159,7 @@ def _scorings_before(request):
 
 def _apply(request):
     if isinstance(request, EntryRequest):
-        entry = SeriesEntry(series=request.series, boat=request.boat)
+        entry = request.as_entry()
         entry.full_clean()
         entry.save()
         return f"{request.boat} is entered in {request.series}."

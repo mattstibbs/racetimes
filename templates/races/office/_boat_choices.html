@@ -7,6 +7,18 @@
   {% else %}
   <label><input type="checkbox" name="boat" value="{{ boat.pk }}"{% if boat.pk|stringformat:"d" in ticked %} checked{% endif %}>
     {{ boat }}{% if boat.owner_display %} <span class="muted">{{ boat.owner_display }}</span>{% endif %}</label>
+  {% if series.handicap_system == "YTC" %}
+  {# Slice 25: a boat with both YTC numbers is entered on one of them. #}
+  {% if boat.ytc_number and boat.ytc_number_non_spinnaker %}
+  <label class="muted">Races on
+    <select name="number_{{ boat.pk }}">
+      <option value="SPINNAKER"{% if boat.chosen_number == "SPINNAKER" %} selected{% endif %}>YTC number {{ boat.ytc_number }}</option>
+      <option value="NON_SPINNAKER"{% if boat.chosen_number == "NON_SPINNAKER" %} selected{% endif %}>Non-spinnaker YTC number {{ boat.ytc_number_non_spinnaker }}</option>
+    </select></label>
+  {% else %}
+  <span class="muted">races on {% if boat.ytc_number %}YTC number {{ boat.ytc_number }}{% else %}non-spinnaker YTC number {{ boat.ytc_number_non_spinnaker }}{% endif %}</span>
+  {% endif %}
+  {% endif %}
   {% endif %}
   {% empty %}
   <p class="muted">No boats match &ldquo;{{ query }}&rdquo;.</p>

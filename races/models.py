@@ -1249,6 +1249,15 @@ class EntryRequest(Request):
     def __str__(self):
         return f"Enter {self.boat} in {self.series}"
 
+    def as_entry(self):
+        """The series entry approving this request would create (slice 25)."""
+        used = (
+            self.ytc_number_used
+            if self.series.handicap_system == Series.HandicapSystem.YTC
+            else SeriesEntry.NumberUsed.SPINNAKER
+        )
+        return SeriesEntry(series=self.series, boat=self.boat, ytc_number_used=used)
+
     @property
     def club(self):
         # An entry request's club is its series' club; BoatRequest stores its own.

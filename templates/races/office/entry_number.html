@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Number for {{ entry.boat }}: {{ series }} - {{ request.club.name }} - Race Times{% endblock %}
+{% block content %}
+<p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_series' series.pk %}">{{ series }}</a></p>
+<h1>{{ entry.boat }}: which number?</h1>
+<p class="muted">In {{ series }} the boat races on one YTC number for the whole series. Changing it rescores every race she has sailed in this series.</p>
+<form method="post" class="stacked">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+{% endblock %}
