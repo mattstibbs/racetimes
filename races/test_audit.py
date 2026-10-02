@@ -135,6 +135,13 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
     [
         ("series_type", "REGATTA", "Series type", "Club series", "Regatta"),
         ("discards", "0", "Discards", "1", "0"),
+        (
+            "discard_threshold",
+            "4",
+            "No discards until this many races are scored",
+            "0",
+            "4",
+        ),
         ("minimum_finishers", "3", "Minimum finishers", "0", "3"),
         ("apply_a5_3", "on", "Use RRS A5.3", "No", "Yes"),
         # Slice 14: the optional extra NHC steps.
@@ -298,6 +305,7 @@ def test_every_audited_field_is_covered_by_a_test_above():
         Series: [
             "series_type",
             "discards",
+            "discard_threshold",
             "minimum_finishers",
             "apply_a5_3",
             "nhc_cap_extremes",

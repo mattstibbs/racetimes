@@ -2093,6 +2093,20 @@ other; slice 25 needs slice 24.
 
 ---
 
+## 2026-10-02 - Slice 23 part A: the discard threshold
+
+- `Series.discard_threshold` (default 0, approved) and `discard_threshold` on
+  `nhc.Series` / `compute_standings`. A threshold from 1 up to `discards` is
+  refused by the engine and the series form; with `discards` 0 any threshold
+  is harmless.
+- "Scored" is the standings' own count of races (`SeriesResults.races`), so a
+  race not sailed or held back doesn't count. `SeriesResults.discards_apply`
+  drives the "Discarded scores are in brackets" note.
+- The threshold form field is required like `discards` is, so the form tests'
+  POST helpers now send it (a browser always does).
+- Fixture `tests/fixtures/discard_threshold.yaml` is DT-1 as checked by the
+  project owner; not produced from engine output.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

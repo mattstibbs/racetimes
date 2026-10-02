@@ -19,6 +19,7 @@ from nhc import (
     compute_standings,
     score_series,
 )
+from tests.scenario_loader import DISCARD_THRESHOLD_FIXTURE
 
 
 def race(race_id, **points):
@@ -293,3 +294,58 @@ def test_a_negative_discard_count_is_rejected_when_the_series_is_built():
         Series(
             boats=[Boat("A", base_number=1.0, current_tcf=1.0)], races=[], discards=-1
         )
+
+
+# --- discard_threshold: no discard until N races are scored (slice 23) ----------------
+
+
+def dt1_races(count):
+    """The first ``count`` races of worked example DT-1, as scored races."""
+    places = DISCARD_THRESHOLD_FIXTURE["places"]
+    return [
+        race(f"R{n}", **{boat: scores[n - 1] for boat, scores in places.items()})
+        for n in range(1, count + 1)
+    ]
+
+
+@pytest.mark.parametrize("scored", [3, 4, 5])
+def test_dt1_before_at_and_after_the_threshold(scored):
+    """DT-1 after its third, fourth and fifth races (N-1, N and N+1)."""
+    expected = DISCARD_THRESHOLD_FIXTURE["standings"][scored]
+    standings = compute_standings(
+        dt1_races(scored),
+        discards=DISCARD_THRESHOLD_FIXTURE["discards"],
+        discard_threshold=DISCARD_THRESHOLD_FIXTURE["discard_threshold"],
+    )
+    assert order(standings) == expected["order"]
+    for standing in standings:
+        want = expected[standing.boat_id]
+        assert standing.total == want["total"]
+        excluded = [int(r[1:]) for r in standing.discarded_race_ids]
+        assert excluded == want["excluded"]
+
+
+def test_a_threshold_of_zero_is_the_plain_discards():
+    races = dt1_races(2)
+    assert compute_standings(races, discards=1, discard_threshold=0) == (
+        compute_standings(races, discards=1)
+    )
+    assert any(s.discarded_race_ids for s in compute_standings(races, discards=1))
+
+
+def test_removing_a_race_brings_the_discards_back_down_to_none():
+    four = compute_standings(dt1_races(4), discards=1, discard_threshold=4)
+    three = compute_standings(dt1_races(3), discards=1, discard_threshold=4)
+    assert all(s.discarded_race_ids for s in four)
+    assert not any(s.discarded_race_ids for s in three)
+
+
+@pytest.mark.parametrize("threshold, discards", [(-1, 1), (1, 1), (2, 2), (3, 3)])
+def test_a_threshold_the_discards_would_swallow_is_refused(threshold, discards):
+    with pytest.raises(InvalidInput):
+        compute_standings(dt1_races(3), discards=discards, discard_threshold=threshold)
+
+
+def test_a_threshold_with_no_discards_is_harmless():
+    standings = compute_standings(dt1_races(3), discards=0, discard_threshold=2)
+    assert not any(s.discarded_race_ids for s in standings)

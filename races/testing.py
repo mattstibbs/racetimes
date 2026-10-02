@@ -208,6 +208,7 @@ def series_form(series, **changes):
         "name": series.name,
         "series_type": series.series_type,
         "discards": series.discards,
+        "discard_threshold": series.discard_threshold,
         "minimum_finishers": series.minimum_finishers,
         "reason": "",
     }

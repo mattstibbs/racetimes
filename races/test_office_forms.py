@@ -274,12 +274,14 @@ def test_a_new_boat_emails_nobody(committee_client, run_on_commit):
 def series_data(series=None, **changes):
     """The series settings form as it stands (or blank for a new one), with changes."""
     data = {"name": "Autumn", "series_type": "CLUB", "discards": "1"}
+    data["discard_threshold"] = "0"
     data["minimum_finishers"] = "0"
     if series is not None:
         data = {
             "name": series.name,
             "series_type": series.series_type,
             "discards": series.discards,
+            "discard_threshold": series.discard_threshold,
             "minimum_finishers": series.minimum_finishers,
         }
         for flag in ("apply_a5_3", "nhc_cap_extremes", "nhc_realign_to_base"):
@@ -668,3 +670,31 @@ def test_a_series_with_results_cant_be_deleted(committee_client, sailed):
         response = method(reverse("races:office_delete_series", args=[series.pk]))
         assert response["Location"] == reverse("races:office_series", args=[series.pk])
     assert Series.objects.filter(pk=series.pk).exists()
+
+
+@pytest.mark.parametrize("threshold", ["1", "2"])
+def test_a_threshold_the_discards_would_swallow_is_refused(committee_client, threshold):
+    response = committee_client.post(
+        reverse("races:office_new_series"),
+        series_data(discards="2", discard_threshold=threshold),
+    )
+    assert "must be larger than the number of discards" in response.content.decode()
+    assert not Series.objects.exists()
+
+
+def test_a_threshold_is_saved_and_shown_in_words(committee_client):
+    response = committee_client.post(
+        reverse("races:office_new_series"),
+        series_data(name="Winter", discards="1", discard_threshold="4"),
+    )
+    series = Series.objects.get(name="Winter")
+    assert series.discard_threshold == 4
+    page = committee_client.get(response["Location"]).content.decode()
+    assert "1 discard once 4 races are scored." in page
+
+
+def test_a_final_series_refuses_a_new_threshold(client, final_season):
+    series = final_season["series"]
+    response = post_settings(client, series, discard_threshold="4", reason="Oops")
+    assert "This series is final." in response.content.decode()
+    assert Series.objects.get(pk=series.pk).discard_threshold == 0

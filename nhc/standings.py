@@ -62,7 +62,9 @@ class BoatStanding:
         return tuple(s.race_id for s in self.scores if s.discarded)
 
 
-def compute_standings(races, *, discards: int = 1) -> tuple[BoatStanding, ...]:
+def compute_standings(
+    races, *, discards: int = 1, discard_threshold: int = 0
+) -> tuple[BoatStanding, ...]:
     """Rank a series' boats, lowest total wins.
 
     ``races`` is a sequence of scored ``RaceOutcome``s in series order.
@@ -74,18 +76,36 @@ def compute_standings(races, *, discards: int = 1) -> tuple[BoatStanding, ...]:
     totals zero; that is the literal reading of the rule and it surfaces the
     misconfiguration rather than hiding it.
 
+    ``discard_threshold`` is A2.1's "if a specified number of races are scored":
+    while fewer races than that have been scored nothing is excluded, and from
+    that many on the discards apply as usual. 0 means they always apply. A
+    threshold from 1 up to ``discards`` is refused, since the moment the
+    discards began to apply every score would be excluded.
+
     Returns standings in finishing order. Boats that remain tied after both
     tie-breaks share a position and consume the ones below, as elsewhere.
     """
     if discards < 0:
         raise InvalidInput(f"discards cannot be negative, got {discards!r}")
 
+    if discard_threshold < 0:
+        raise InvalidInput(
+            f"discard_threshold cannot be negative, got {discard_threshold!r}"
+        )
+    if discards and 1 <= discard_threshold <= discards:
+        raise InvalidInput(
+            f"discard_threshold {discard_threshold} must be larger than discards "
+            f"({discards}), or every score would be excluded"
+        )
+
     race_list = list(races)
     boat_ids = _boat_ids(race_list)
     if not boat_ids:
         return ()
 
-    excluded = min(discards, len(race_list))
+    excluded = (
+        0 if len(race_list) < discard_threshold else min(discards, len(race_list))
+    )
 
     rows = {}
     for boat_id in boat_ids:

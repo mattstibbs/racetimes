@@ -312,7 +312,9 @@ only.
   place and point that depends on them is updated as well.
 - **Series totals.** A boat's total is its points from every race, less its
   worst score or scores (the **discards** the series sets). The lowest total
-  wins.
+  wins. A series can say that no discards apply until a number of races have
+  been scored; until then every score counts, and the discards begin from that
+  race on, worked out afresh each time.
 - **Ties in the series.** Boats on the same total are split by comparing their
   scores best to worst. If they're still level, the most recent race decides
   (RRS A8).

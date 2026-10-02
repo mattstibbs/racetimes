@@ -60,7 +60,7 @@ def _write_heading(row, series):
         row([f"Provisional standings as at {_day(now)} {now:%H:%M}"])
     settings = [
         series.get_series_type_display(),
-        f"{series.discards} discard{'s' if series.discards != 1 else ''}",
+        series.discards_description,
     ]
     if series.apply_a5_3:
         settings.append("Scored under RRS A5.3")

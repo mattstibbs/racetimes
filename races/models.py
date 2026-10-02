@@ -294,6 +294,14 @@ class Series(models.Model):
         default=1,
         help_text="How many of each boat's worst scores are excluded (RRS A2.1).",
     )
+    discard_threshold = models.PositiveSmallIntegerField(
+        "No discards until this many races are scored",
+        default=0,
+        help_text=(
+            "Discards apply only once this many races have been scored (RRS A2.1). "
+            "0 means they always apply."
+        ),
+    )
     minimum_finishers = models.PositiveSmallIntegerField(
         default=0,
         help_text=(
@@ -357,6 +365,14 @@ class Series(models.Model):
         return self.declared_final_at is not None
 
     @property
+    def discards_description(self):
+        """The discards in words: "1 discard", or "1 discard once 4 races are scored"."""
+        text = f"{self.discards} discard{'s' if self.discards != 1 else ''}"
+        if self.discards and self.discard_threshold:
+            text += f" once {self.discard_threshold} races are scored"
+        return text
+
+    @property
     def nhc_options(self):
         """The optional extra NHC steps this series uses, as named with its results (slice 14)."""
         named = [
@@ -369,9 +385,16 @@ class Series(models.Model):
         # The engine refuses these combinations outright. Catching them here puts
         # the error on the form where it can be fixed, rather than on the
         # results page where it cannot.
-        if self.series_type != self.SeriesType.REGATTA:
-            return
         errors = {}
+        if self.discards and 1 <= self.discard_threshold <= self.discards:
+            errors["discard_threshold"] = (
+                "This must be larger than the number of discards, or every score "
+                "would be excluded. Use 0 for discards that always apply."
+            )
+        if self.series_type != self.SeriesType.REGATTA:
+            if errors:
+                raise ValidationError(errors)
+            return
         if self.minimum_finishers:
             errors["minimum_finishers"] = (
                 "A regatta has no minimum-finisher threshold; set this to 0."

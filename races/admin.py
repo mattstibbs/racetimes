@@ -258,6 +258,7 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
             {
                 "fields": [
                     "discards",
+                    "discard_threshold",
                     "minimum_finishers",
                     "apply_a5_3",
                     # Slice 14: the optional extra NHC steps (nhc/options.py).
