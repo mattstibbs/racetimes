@@ -6,7 +6,7 @@ failure there is a defect in the engine, never a fixture to adjust.
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     Boat,
     Finish,
     HandicapProgression,

@@ -1,4 +1,4 @@
-"""Slice 24: fixed-number series (Portsmouth Yardstick), scored by nhc.fixed_number.
+"""Slice 24: fixed-number series (Portsmouth Yardstick), scored by sailscoring.fixed_number.
 
 Organised by acceptance criterion. The worked examples PY-1 and PY-2 are in
 tests/fixtures/portsmouth_yardstick.yaml, worked by hand and checked by the
@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-import nhc
-from nhc import (
+import sailscoring
+from sailscoring import (
     Finish,
     FixedNumberBoat,
     FixedNumberSeries,
@@ -336,8 +336,8 @@ def both_kinds(case):
     races = [SeriesRace(race_id, finishes) for race_id, finishes in case["races"]]
 
     def nhc_series():
-        return nhc.Series(
-            [nhc.Boat(b, 1.0, 1.0) for b in case["boats"]], races, **options
+        return sailscoring.Series(
+            [sailscoring.Boat(b, 1.0, 1.0) for b in case["boats"]], races, **options
         )
 
     def fixed_series():
@@ -364,9 +364,9 @@ def test_an_nhc_series_still_reports_its_own_checks_in_the_same_order():
     before slice 24, over every pair of faults, when this was refactored."""
 
     def first_error(**options):
-        boats = options.pop("boats", [nhc.Boat("A", 1.0, 1.0)])
+        boats = options.pop("boats", [sailscoring.Boat("A", 1.0, 1.0)])
         with pytest.raises(InvalidInput) as error:
-            nhc.Series(boats, options.pop("races", []), **options)
+            sailscoring.Series(boats, options.pop("races", []), **options)
         return str(error.value)
 
     # No boats comes before the series' own option checks...
@@ -386,10 +386,10 @@ def test_an_nhc_series_still_reports_its_own_checks_in_the_same_order():
     )
     # ...which come before the checks for a boat or race entered twice.
     assert first_error(
-        minimum_finishers=-1, boats=[nhc.Boat("A", 1.0, 1.0)] * 2
+        minimum_finishers=-1, boats=[sailscoring.Boat("A", 1.0, 1.0)] * 2
     ).startswith("minimum_finishers cannot be negative")
     assert first_error(
-        series_type=nhc.SeriesType.REGATTA,
+        series_type=sailscoring.SeriesType.REGATTA,
         cap_extremes=True,
         races=[SeriesRace("R1"), SeriesRace("R1")],
     ).startswith("cap_extremes and realign_to_base are club-series options")
@@ -444,12 +444,12 @@ NHC_FIELDS = {
 
 @pytest.mark.parametrize("name", list(NHC_FIELDS))
 def test_the_nhc_types_have_the_same_fields_as_before(name):
-    fields = tuple(f.name for f in dataclasses.fields(getattr(nhc, name)))
+    fields = tuple(f.name for f in dataclasses.fields(getattr(sailscoring, name)))
     assert fields == NHC_FIELDS[name]
 
 
 def test_a_fixed_number_result_has_no_handicap_fields():
-    fields = {f.name for f in dataclasses.fields(nhc.FixedNumberResult)}
+    fields = {f.name for f in dataclasses.fields(sailscoring.FixedNumberResult)}
     assert not fields & {
         "tcf_used",
         "next_tcf",
@@ -472,7 +472,7 @@ def test_a_fixed_number_result_has_no_handicap_fields():
     }
 
 
-PACKAGE = Path(nhc.__file__).resolve().parent
+PACKAGE = Path(sailscoring.__file__).resolve().parent
 NHC_MODULES = ("handicap", "regatta", "options", "realignment", "series")
 
 

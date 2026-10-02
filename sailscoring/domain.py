@@ -301,11 +301,11 @@ class RaceResult:
     that is the recorded time, or None for a boat with none. In a regatta every
     boat needs a usable E, so a non-finisher's is back-calculated (spec section
     4, step 1) and this is where that shows. With the optional capping of
-    extreme results (``nhc/options.py``, step A) it is the capped time, so
+    extreme results (``sailscoring/options.py``, step A) it is the capped time, so
     ``capped`` tells the two apart.
 
     ``realignment_factor`` is the common factor a finisher's TCFn was scaled by
-    in the optional realignment to base numbers (``nhc/options.py``, step B),
+    in the optional realignment to base numbers (``sailscoring/options.py``, step B),
     or None when that step didn't run. ``next_tcf`` is already realigned; the
     unrealigned value is ``next_tcf / realignment_factor``.
 
@@ -340,7 +340,7 @@ class RaceResult:
 
     @property
     def capped(self) -> bool:
-        """Whether this finisher's result was capped as extreme (``nhc/options.py``, step A)."""
+        """Whether this finisher's result was capped as extreme (``sailscoring/options.py``, step A)."""
         return (
             self.elapsed_seconds is not None
             and self.elapsed_seconds_used is not None
@@ -388,7 +388,7 @@ class RealignmentResult:
 
 # --- Shared by every kind of series (slice 24) -------------------------------------------
 #
-# An NHC series and a fixed-number series (``nhc/fixed_number.py``) differ in how
+# An NHC series and a fixed-number series (``sailscoring/fixed_number.py``) differ in how
 # a corrected time is worked out and in whether handicaps move. Everything else
 # is RRS Appendix A and the same bookkeeping, so it lives here, where neither
 # kind of series has to import the other.

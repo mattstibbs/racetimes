@@ -10,7 +10,7 @@ import math
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     InvalidInput,
     Performance,
     RaceEntry,
@@ -19,7 +19,7 @@ from nhc import (
     RealignmentEntry,
     SeriesType,
 )
-from nhc.domain import Boat
+from sailscoring.domain import Boat
 from tests.scenario_loader import (
     RACE_SCENARIO_IDS,
     RACE_SCENARIOS,

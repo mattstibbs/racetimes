@@ -7,7 +7,7 @@ be fiddly to produce from elapsed times.
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     Boat,
     Finish,
     InvalidInput,

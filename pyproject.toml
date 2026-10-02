@@ -8,10 +8,10 @@ target-version = "py313"
 # Django generates migrations, so they are neither linted nor reformatted.
 extend-exclude = ["*/migrations/*", "site", "staticfiles"]
 
-# The scoring engine promises Python 3.11 or later (nhc/README.md), and its
+# The scoring engine promises Python 3.11 or later (sailscoring/README.md), and its
 # tests run on 3.11 in CI, so Ruff never suggests newer syntax there.
 [tool.ruff.per-file-target-version]
-"nhc/**" = "py311"
+"sailscoring/**" = "py311"
 "tests/**" = "py311"
 
 [tool.ruff.lint]

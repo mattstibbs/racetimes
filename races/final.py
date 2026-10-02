@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-import nhc
+import sailscoring
 
 from . import notifications, publishing, start_sheet
 from .models import ScoringChange, Series
@@ -193,19 +193,21 @@ def load(data):
     """Rebuild the engine's outcome (NHC, or fixed-number) from ``dump_outcome``'s output."""
     system = data.get("system", NHC)
     standings = tuple(
-        nhc.BoatStanding(
+        sailscoring.BoatStanding(
             boat_id=standing["boat_id"],
             position=standing["position"],
             total=standing["total"],
-            scores=tuple(nhc.RaceScore(**score) for score in standing["scores"]),
+            scores=tuple(
+                sailscoring.RaceScore(**score) for score in standing["scores"]
+            ),
         )
         for standing in data["standings"]
     )
     if system != NHC:
-        return nhc.FixedNumberOutcome(
-            system=nhc.FixedNumberSystem(system),
+        return sailscoring.FixedNumberOutcome(
+            system=sailscoring.FixedNumberSystem(system),
             races=tuple(
-                nhc.RaceOutcome(
+                sailscoring.RaceOutcome(
                     race_id=race["race_id"],
                     results=tuple(_fixed_result(r) for r in race["results"]),
                 )
@@ -213,9 +215,9 @@ def load(data):
             ),
             standings=standings,
         )
-    return nhc.SeriesOutcome(
+    return sailscoring.SeriesOutcome(
         races=tuple(
-            nhc.RaceOutcome(
+            sailscoring.RaceOutcome(
                 race_id=race["race_id"],
                 results=tuple(_result(r) for r in race["results"]),
             )
@@ -230,13 +232,13 @@ def load(data):
 
 def _result(data):
     data = dict(data)
-    data["status"] = nhc.RaceStatus(data["status"])
+    data["status"] = sailscoring.RaceStatus(data["status"])
     if data.get("performance") is not None:
-        data["performance"] = nhc.Performance(data["performance"])
-    return nhc.RaceResult(**data)
+        data["performance"] = sailscoring.Performance(data["performance"])
+    return sailscoring.RaceResult(**data)
 
 
 def _fixed_result(data):
     data = dict(data)
-    data["status"] = nhc.RaceStatus(data["status"])
-    return nhc.FixedNumberResult(**data)
+    data["status"] = sailscoring.RaceStatus(data["status"])
+    return sailscoring.FixedNumberResult(**data)

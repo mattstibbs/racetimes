@@ -1,4 +1,4 @@
-"""Guards the one structural promise the nhc package makes.
+"""Guards the one structural promise the sailscoring package makes.
 
 Slice 0 requires the scoring engine to be "a pure Python package ... No Django,
 no database, no I/O" that drops into any Python project. That is easy to state
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-PACKAGE_ROOT = Path(__file__).resolve().parent.parent / "nhc"
+PACKAGE_ROOT = Path(__file__).resolve().parent.parent / "sailscoring"
 
 SOURCE_FILES = sorted(PACKAGE_ROOT.rglob("*.py"))
 
@@ -26,7 +26,7 @@ def _imported_roots(path):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 roots.add(alias.name.split(".")[0])
-        # level > 0 is a relative import, i.e. within nhc itself.
+        # level > 0 is a relative import, i.e. within sailscoring itself.
         elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
             roots.add(node.module.split(".")[0])
     return roots
@@ -40,10 +40,10 @@ def test_package_has_source_files():
 
 @pytest.mark.parametrize("source", SOURCE_FILES, ids=lambda p: p.name)
 def test_imports_only_the_standard_library(source):
-    allowed = sys.stdlib_module_names | {"nhc"}
+    allowed = sys.stdlib_module_names | {"sailscoring"}
     extras = sorted(_imported_roots(source) - allowed)
     assert not extras, (
-        f"{source.name} imports {extras}; nhc must depend on the standard "
+        f"{source.name} imports {extras}; sailscoring must depend on the standard "
         f"library alone so it can be vendored into any project"
     )
 
@@ -55,7 +55,7 @@ def test_does_not_import_django(source):
 
 
 def test_imports_cleanly_without_django_configured():
-    """Importing nhc must not need Django settings, or any Django at all.
+    """Importing sailscoring must not need Django settings, or any Django at all.
 
     Run in a subprocess: this suite runs with DJANGO_SETTINGS_MODULE set and
     django already imported, so an in-process check would prove nothing.
@@ -64,14 +64,14 @@ def test_imports_cleanly_without_django_configured():
         [
             sys.executable,
             "-c",
-            "import sys; import nhc; print('django' in sys.modules)",
+            "import sys; import sailscoring; print('django' in sys.modules)",
         ],
         cwd=PACKAGE_ROOT.parent,
         capture_output=True,
         text=True,
         env={"PATH": "/usr/bin:/bin"},
     )
-    assert result.returncode == 0, f"importing nhc failed:\n{result.stderr}"
+    assert result.returncode == 0, f"importing sailscoring failed:\n{result.stderr}"
     assert result.stdout.strip() == "False", (
-        "importing nhc pulled django into sys.modules"
+        "importing sailscoring pulled django into sys.modules"
     )

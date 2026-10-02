@@ -6,7 +6,7 @@ most here: if it fails, the engine is wrong, not the fixture.
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     InvalidInput,
     Performance,
     RaceEntry,
@@ -15,7 +15,7 @@ from nhc import (
     SeriesType,
     compute_club_adjustment,
 )
-from nhc.handicap import adjustment_scale, classify_performance
+from sailscoring.handicap import adjustment_scale, classify_performance
 from tests.scenario_loader import (
     TOLERANCE,
     build_race_input,

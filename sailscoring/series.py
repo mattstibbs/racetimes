@@ -71,7 +71,7 @@ class Series:
     to start a regatta on its published Base Number, so that is what happens
     regardless. ``minimum_finishers`` is a club-series option and is refused on
     a regatta rather than silently ignored, and so are ``cap_extremes`` and
-    ``realign_to_base``, the optional extra steps in ``nhc/options.py``.
+    ``realign_to_base``, the optional extra steps in ``sailscoring/options.py``.
     """
 
     boats: tuple[Boat, ...]
@@ -111,7 +111,7 @@ class Series:
         self.__post_init__()
 
     def __post_init__(self) -> None:
-        # The checks every kind of series needs are shared (nhc/domain.py), and
+        # The checks every kind of series needs are shared (sailscoring/domain.py), and
         # run here in the order they always have, with this series' own checks
         # between them: which error is reported first, when two things are
         # wrong at once, is part of the behaviour.

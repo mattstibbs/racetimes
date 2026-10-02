@@ -1,6 +1,6 @@
 """Optional extra steps in the club-series handicap adjustment (slice 14).
 
-The RYA's club-series calculation (``nhc/handicap.py``, spec section 3) is the
+The RYA's club-series calculation (``sailscoring/handicap.py``, spec section 3) is the
 default, and stays exactly as written there. Some clubs publish results with a
 fuller method, which HalSail documents and Medway Cruising Club uses, adding
 two steps. Each is off unless a series asks for it, and each lives here on its
@@ -34,7 +34,7 @@ Non-finishers are left out of both steps: they carry their handicap forward
 unchanged, as in the core calculation, and count towards no sum.
 
 Neither step rounds. Handicaps stay at full precision between races (see the
-precision note in ``nhc/domain.py``); 3 d.p. is for display only.
+precision note in ``sailscoring/domain.py``); 3 d.p. is for display only.
 """
 
 from __future__ import annotations

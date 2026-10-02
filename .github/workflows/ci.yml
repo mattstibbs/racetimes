@@ -97,7 +97,7 @@ jobs:
         run: python manage.py check --deploy --fail-level WARNING
 
   engine-on-3-11:
-    # The site runs on 3.13, but nhc/README.md promises the scoring engine
+    # The site runs on 3.13, but sailscoring/README.md promises the scoring engine
     # works on Python 3.11 or later, so it can be copied into other projects.
     # Its tests (tests/) run here on 3.11 to keep that promise (slice 20).
     name: scoring engine tests (python 3.11)
@@ -121,11 +121,11 @@ jobs:
         run: python -m pytest tests
 
   vendorable:
-    # The nhc package promises to be standard-library only, so that anyone can
+    # The sailscoring package promises to be standard-library only, so that anyone can
     # copy it into another project. tests/test_package_purity.py checks that by
     # scanning imports; this checks it the other way round, by importing the
     # package on a machine where nothing has been installed at all.
-    name: nhc imports with nothing installed
+    name: sailscoring imports with nothing installed
     runs-on: ubuntu-latest
 
     steps:
@@ -133,32 +133,32 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # The oldest version nhc/README.md promises.
+          # The oldest version sailscoring/README.md promises.
           python-version: "3.11"
 
-      - name: Import nhc with no dependencies present
+      - name: Import sailscoring with no dependencies present
         run: |
           python - <<'PY'
           import importlib
           import sys
 
-          # Measure what importing nhc *adds*, rather than inspecting the whole
+          # Measure what importing sailscoring *adds*, rather than inspecting the whole
           # of sys.modules: the interpreter has already loaded a handful of its
-          # own modules before this runs, and they are not nhc's doing.
+          # own modules before this runs, and they are not sailscoring's doing.
           before = set(sys.modules)
-          nhc = importlib.import_module("nhc")
+          sailscoring = importlib.import_module("sailscoring")
           added = set(sys.modules) - before
 
-          assert "django" not in added, "importing nhc pulled in django"
+          assert "django" not in added, "importing sailscoring pulled in django"
           third_party = sorted(
               name for name in added
               if name.split(".")[0] not in sys.stdlib_module_names
-              and name.split(".")[0] != "nhc"
+              and name.split(".")[0] != "sailscoring"
           )
-          assert not third_party, f"nhc pulled in third-party modules: {third_party}"
+          assert not third_party, f"sailscoring pulled in third-party modules: {third_party}"
           print(
-              f"nhc imported cleanly on {sys.version.split()[0]}: "
-              f"{len(nhc.__all__)} public names, {len(added)} modules loaded, "
+              f"sailscoring imported cleanly on {sys.version.split()[0]}: "
+              f"{len(sailscoring.__all__)} public names, {len(added)} modules loaded, "
               f"all standard library"
           )
           PY

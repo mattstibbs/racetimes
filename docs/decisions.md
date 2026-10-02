@@ -2195,6 +2195,23 @@ are out of scope and the manual says to start a new series.
   adds `py_number` to Boat and BoatRequest, adds `handicap_system`, and
   replaces the constraint. Checked on SQLite and PostgreSQL, and reversible.
 
+## 2026-10-02 - Slice 25 part A: the scoring engine is renamed sailscoring
+
+**Decision.** The package `nhc/` is now `sailscoring/` (`git mv`, so history
+follows). Every import changed and no `nhc` alias is left. The exported names
+and behaviour are unchanged.
+
+**Why.** The package began as an NHC scorer. It now also scores Portsmouth
+Yardstick and (slice 25 part B) RYA YTC, so the old name was misleading. The
+independence promise is unchanged: standard library only, no I/O (tested, and
+checked in CI). One engine rather than a library per system, since places,
+points and standings (RRS Appendix A) are shared by every system.
+
+**What kept the name.** "NHC" stays wherever it means the RYA's scheme:
+`Series.nhc_cap_extremes`, `nhc_realign_to_base`, the NHC fixtures and test
+modules, and everything shown on the site. Earlier entries here and the
+completed slice specs say `nhc/` because that was its name then.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

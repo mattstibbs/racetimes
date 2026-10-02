@@ -80,8 +80,8 @@ requirements, such as the legal review needed before the first paying club.
 
 ## The scoring engine
 
-[`nhc/`](nhc/) is a standalone Python package implementing the NHC handicap
-rules and the parts of RRS Appendix A that scoring a series needs: corrected
+[`sailscoring/`](sailscoring/) is a standalone Python package implementing the RYA NHC handicap
+rules, fixed-number systems such as Portsmouth Yardstick, and the parts of RRS Appendix A that scoring a series needs: corrected
 times, finishing places, progressive handicaps, points, discards, series ties,
 regattas and end-of-series realignment.
 
@@ -98,7 +98,7 @@ times a race officer wrote down and it gives back a series table:
 1,573 lines across 10 modules, 31 public names, and about 3,000 lines of
 tests. The RYA's own published worked examples reproduce exactly.
 
-**[Full documentation in `nhc/README.md`](nhc/README.md)**, including the
+**[Full documentation in `sailscoring/README.md`](sailscoring/README.md)**, including the
 interface, the rules implemented, and what is deliberately not.
 
 ## Getting started
@@ -140,7 +140,7 @@ collected nothing and reported success, which is worse than failing.
 
 | Path | |
 | --- | --- |
-| `nhc/` | The scoring engine. Standard library only, no Django, no I/O |
+| `sailscoring/` | The scoring engine. Standard library only, no Django, no I/O |
 | `tests/` | The engine's tests and the scenario fixtures they run against, plus a check of the user manual's links |
 | `races/` | The Django app: clubs and memberships, models, admin, race day, publishing, final results, change history, member accounts and requests, emails |
 | `results/` | The public results pages and the series CSV download. Read-only: no models, GET only |
@@ -179,6 +179,6 @@ CI runs on every pull request:
 - the suite on Python 3.13 and 3.14, and the scoring engine's tests on 3.11;
 - `manage.py check` and a check for missing migrations;
 - `manage.py check --deploy` with production settings;
-- an import of `nhc` on a machine with nothing installed, to keep it honest
+- an import of `sailscoring` on a machine with nothing installed, to keep it honest
   about having no dependencies;
 - a strict build of the user manual.

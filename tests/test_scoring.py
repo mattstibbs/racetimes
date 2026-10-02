@@ -7,8 +7,15 @@ everything else.
 
 import pytest
 
-from nhc import InvalidInput, RaceEntry, RaceInput, RaceStatus, SeriesType, score_race
-from nhc.scoring import TIE_TOLERANCE_SECONDS, corrected_time
+from sailscoring import (
+    InvalidInput,
+    RaceEntry,
+    RaceInput,
+    RaceStatus,
+    SeriesType,
+    score_race,
+)
+from sailscoring.scoring import TIE_TOLERANCE_SECONDS, corrected_time
 from tests.scenario_loader import (
     TOLERANCE,
     build_race_input,

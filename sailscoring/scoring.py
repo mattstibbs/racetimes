@@ -27,7 +27,7 @@ def corrected_time(elapsed_seconds: float, tcf: float) -> float:
     """C = E x TCF (spec section 2).
 
     Kept at full precision. Rounding to whole seconds is for display only; see
-    the note in ``nhc/domain.py``.
+    the note in ``sailscoring/domain.py``.
     """
     return elapsed_seconds * tcf
 
@@ -75,7 +75,7 @@ def score_race(race: RaceInput) -> tuple[RaceResult, ...]:
 def assign_positions(scored: list[tuple[float, str]]) -> dict[str, int]:
     """Finishing places from corrected times already sorted ascending.
 
-    Public so a fixed-number series (``nhc/fixed_number.py``) ranks exactly as
+    Public so a fixed-number series (``sailscoring/fixed_number.py``) ranks exactly as
     an NHC series does. ``scored`` is (corrected time, boat id) pairs.
 
     Boats with equal corrected times share the better place, so a two-way tie

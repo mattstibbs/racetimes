@@ -9,5 +9,5 @@ class InvalidInput(ValueError):
     recorded as FINISHED with no usable elapsed time, and so on.
 
     Subclasses ValueError so callers that already handle bad input generically -
-    a Django form, say - catch it without importing anything from nhc.
+    a Django form, say - catch it without importing anything from sailscoring.
     """
