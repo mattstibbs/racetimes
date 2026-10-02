@@ -852,7 +852,7 @@ points and standings; the NHC types and calculation don't change (the
 owner's choice, 2026-10-02). The engine keeps its name, `nhc`, here; slice
 25 renames it.
 
-## Slice 25: RYA YTC series, and renaming the scoring engine. **Status: ready to build, after slice 24 (2026-10-02)**
+## Slice 25: RYA YTC series, and renaming the scoring engine. **Status: part A (the rename) complete, part B (RYA YTC) in progress (2026-10-02)**
 
 Spec: `docs/slices/25-rya-ytc-and-engine-rename.md`. Nothing is built. Built
 after slice 24, as two pull requests:

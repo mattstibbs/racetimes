@@ -1,7 +1,7 @@
 # Slice 25: RYA YTC series, and renaming the scoring engine
 
-**Status: ready to build, after slice 24 (2026-10-02).** Nothing is built.
-Part A has its one answer: the project owner chose the name `sailscoring`.
+**Status: part A (the rename) complete, part B (RYA YTC) in progress
+(2026-10-02).** Part A is PR #52.
 Part B is the RYA YTC work moved here from slice 8, which was parked by the
 project owner on 2026-09-24 and is now superseded. Its reference document is
 in `docs/reference/`, and the owner has answered its questions, approved its
