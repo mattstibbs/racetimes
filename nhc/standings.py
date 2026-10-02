@@ -30,6 +30,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from .domain import check_discards
 from .errors import InvalidInput
 
 
@@ -88,18 +89,7 @@ def compute_standings(
     Returns standings in finishing order. Boats that remain tied after both
     tie-breaks share a position and consume the ones below, as elsewhere.
     """
-    if discards < 0:
-        raise InvalidInput(f"discards cannot be negative, got {discards!r}")
-
-    if discard_threshold < 0:
-        raise InvalidInput(
-            f"discard_threshold cannot be negative, got {discard_threshold!r}"
-        )
-    if discards and 1 <= discard_threshold <= discards:
-        raise InvalidInput(
-            f"discard_threshold {discard_threshold} must be larger than discards "
-            f"({discards}), or every score would be excluded"
-        )
+    check_discards(discards, discard_threshold)
 
     race_list = list(races)
     boat_ids = _boat_ids(race_list)

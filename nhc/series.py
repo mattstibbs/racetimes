@@ -25,12 +25,16 @@ from enum import StrEnum
 
 from .domain import (
     Boat,
-    Finish,
     RaceEntry,
     RaceInput,
+    RaceOutcome,
     RaceResult,
     RaceStatus,
+    SeriesRace,
     SeriesType,
+    check_discards,
+    check_entries,
+    check_has_boats,
 )
 from .errors import InvalidInput
 from .handicap import compute_club_adjustment
@@ -53,33 +57,6 @@ class HandicapProgression(StrEnum):
 
     CARRY_OVER = "CARRY_OVER"
     RESET = "RESET"
-
-
-@dataclass(frozen=True, slots=True)
-class SeriesRace:
-    """One race within a series: who finished, and when.
-
-    Carries no handicaps. They are derived by the replay.
-    """
-
-    race_id: str
-    finishes: tuple[Finish, ...]
-
-    def __init__(self, race_id: str, finishes: Sequence[Finish] = ()) -> None:
-        object.__setattr__(self, "race_id", race_id)
-        object.__setattr__(self, "finishes", tuple(finishes))
-        self.__post_init__()
-
-    def __post_init__(self) -> None:
-        if not self.race_id:
-            raise InvalidInput("race_id is required")
-        seen: set[str] = set()
-        for finish in self.finishes:
-            if finish.boat_id in seen:
-                raise InvalidInput(
-                    f"race {self.race_id}: boat {finish.boat_id} has two recorded finishes"
-                )
-            seen.add(finish.boat_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,8 +111,11 @@ class Series:
         self.__post_init__()
 
     def __post_init__(self) -> None:
-        if not self.boats:
-            raise InvalidInput("a series needs at least one boat")
+        # The checks every kind of series needs are shared (nhc/domain.py), and
+        # run here in the order they always have, with this series' own checks
+        # between them: which error is reported first, when two things are
+        # wrong at once, is part of the behaviour.
+        check_has_boats(self.boats)
         if not isinstance(self.progression, HandicapProgression):
             raise InvalidInput(
                 f"progression must be one of {[p.value for p in HandicapProgression]}, "
@@ -147,17 +127,7 @@ class Series:
                 f"got {self.series_type!r}"
             )
 
-        if self.discards < 0:
-            raise InvalidInput(f"discards cannot be negative, got {self.discards!r}")
-        if self.discard_threshold < 0:
-            raise InvalidInput(
-                f"discard_threshold cannot be negative, got {self.discard_threshold!r}"
-            )
-        if self.discards and 1 <= self.discard_threshold <= self.discards:
-            raise InvalidInput(
-                f"discard_threshold {self.discard_threshold} must be larger than "
-                f"discards ({self.discards}), or every score would be excluded"
-            )
+        check_discards(self.discards, self.discard_threshold)
         if self.minimum_finishers < 0:
             # Caught here as well as in compute_club_adjustment, so a bad series
             # fails when it is built rather than when it is scored.
@@ -177,41 +147,12 @@ class Series:
                 "uses its own formulas and clamps to base numbers instead"
             )
 
-        boat_ids = [boat.boat_id for boat in self.boats]
-        duplicates = {i for i in boat_ids if boat_ids.count(i) > 1}
-        if duplicates:
-            raise InvalidInput(
-                f"boat entered twice in the series: {', '.join(sorted(duplicates))}"
-            )
-
-        race_ids = [race.race_id for race in self.races]
-        duplicate_races = {i for i in race_ids if race_ids.count(i) > 1}
-        if duplicate_races:
-            raise InvalidInput(
-                f"duplicate race_id: {', '.join(sorted(duplicate_races))}"
-            )
-
-        entered = set(boat_ids)
-        for race in self.races:
-            unknown = sorted({f.boat_id for f in race.finishes} - entered)
-            if unknown:
-                raise InvalidInput(
-                    f"race {race.race_id} records finishes for boats that are not "
-                    f"entered in the series: {', '.join(unknown)}"
-                )
+        check_entries(self.boats, self.races)
 
     @property
     def entry_count(self) -> int:
         """Boats entered in the series - the number RRS A5.2 scores against."""
         return len(self.boats)
-
-
-@dataclass(frozen=True, slots=True)
-class RaceOutcome:
-    """One race's scored results, in series order."""
-
-    race_id: str
-    results: tuple[RaceResult, ...]
 
 
 @dataclass(frozen=True, slots=True)

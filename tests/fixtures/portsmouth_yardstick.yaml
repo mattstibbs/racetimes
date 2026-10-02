@@ -1,0 +1,54 @@
+# Worked examples PY-1 and PY-2 for Portsmouth Yardstick (slice 24).
+#
+# SOURCE: docs/slices/24-portsmouth-number-series.md, "Worked examples".
+# Worked by hand with exact fractions in a calculator, not with the engine;
+# the arithmetic was re-checked with plain Python (no engine code), and the
+# project owner checked and approved both on 2026-10-02. They are copied here
+# as written. Never change an expected value to make a test pass: if the
+# engine disagrees, the engine is wrong, or this file's provenance needs
+# checking with the project owner first.
+#
+# Corrected time = elapsed x 1000 / PN. `corrected` is given to three decimal
+# places, so compare it within 0.0005. A boat that doesn't finish has no
+# `corrected` or `place`. `points` is the score under RRS A4, A5.2 and A7.
+# `standings` is the series table after the last race, with no discards.
+
+PY-1:   # a two-race series; A retires in race 2
+  entries: 3
+  discards: 0
+  boats: {A: 1010, B: 1072, C: 935}      # Portsmouth Numbers
+  races:
+    - race_id: R1
+      finishes: {A: 3930, B: 4150, C: 3700}      # elapsed seconds
+      expected:
+        B: {corrected: 3871.269, place: 1, points: 1}
+        A: {corrected: 3891.089, place: 2, points: 2}
+        C: {corrected: 3957.219, place: 3, points: 3}
+    - race_id: R2
+      finishes: {A: DNF, B: 3800, C: 3500}
+      expected:
+        B: {corrected: 3544.776, place: 1, points: 1}
+        C: {corrected: 3743.316, place: 2, points: 2}
+        A: {points: 4}                   # 3 entries + 1 (A5.2)
+  standings:                             # position and total, best first
+    - {boat: B, position: 1, total: 2}
+    - {boat: C, position: 2, total: 5}
+    - {boat: A, position: 3, total: 6}
+
+PY-2:   # a tie, and a near miss
+  entries: 4
+  discards: 0
+  boats: {D: 960, E: 1100, F: 1010, G: 1072}
+  races:
+    - race_id: R1
+      finishes: {D: 3840, E: 4400, F: 4131, G: 4385}
+      expected:
+        D: {corrected: 4000.000, place: 1, points: 1.5}     # tied with E
+        E: {corrected: 4000.000, place: 1, points: 1.5}
+        F: {corrected: 4090.099, place: 3, points: 3}
+        G: {corrected: 4090.485, place: 4, points: 4}       # 0.386 s behind F
+  standings:
+    - {boat: D, position: 1, total: 1.5}
+    - {boat: E, position: 1, total: 1.5}
+    - {boat: F, position: 3, total: 3}
+    - {boat: G, position: 4, total: 4}

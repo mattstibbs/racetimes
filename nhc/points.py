@@ -32,16 +32,16 @@ from collections import Counter
 from collections.abc import Sequence
 from dataclasses import replace
 
-from .domain import RaceResult, RaceStatus
+from .domain import RaceStatus, ScoredResult
 from .errors import InvalidInput
 
 
 def score_points(
-    results: Sequence[RaceResult],
+    results: Sequence[ScoredResult],
     *,
     series_entry_count: int,
     apply_a5_3: bool = False,
-) -> tuple[RaceResult, ...]:
+) -> tuple[ScoredResult, ...]:
     """Fill in each boat's points for one race.
 
     ``series_entry_count`` is the number of boats entered in the series, which

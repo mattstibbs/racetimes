@@ -53,6 +53,11 @@ SCORING_PENALTY_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "scoring_penalty.yaml"
 )
 
+#: Worked examples PY-1 and PY-2 (slice 24): Portsmouth Yardstick.
+PORTSMOUTH_YARDSTICK_FIXTURE = load_scenarios(
+    Path(__file__).resolve().parent / "fixtures" / "portsmouth_yardstick.yaml"
+)
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.
