@@ -4,7 +4,7 @@
       id="start-{{ row.entry.pk }}" method="post" action="{{ save_url }}"
       hx-post="{{ save_url }}" hx-trigger="change, submit" hx-target="this" hx-swap="outerHTML">
   {% csrf_token %}
-  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}</div>
+  <div><strong>{{ row.entry.boat.sail_number }}</strong> {{ row.entry.boat.name }}{% include "races/_ns_mark.html" with entry=row.entry %}</div>
   <label>{{ row.form.racing }} Racing</label>
   <label>{{ row.form.persons_on_board }} on board</label>
   <div><button type="submit">Save</button></div>

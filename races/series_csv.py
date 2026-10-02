@@ -31,6 +31,11 @@ SCP_NOTE = (
     "but scored 20% of the Did Not Finish score more."
 )
 
+NS_NOTE = (
+    "NS: raced on the boat's non-spinnaker YTC number, because she sailed "
+    "without a spinnaker or other downwind sail."
+)
+
 
 def typed(value):
     """Text someone typed, made safe to open in a spreadsheet."""
@@ -152,7 +157,9 @@ def _write_race(row, race_results):
                 typed(boat.name),
                 f"{finish_time:%H:%M:%S}" if finish_time else "",
                 hms(result.elapsed_seconds),
-                f"{line.raced_on:g}" if fixed else tcf(line.raced_on),
+                (f"{line.raced_on:g}{' NS' if line.is_non_spinnaker else ''}")
+                if fixed
+                else tcf(line.raced_on),
                 hms(result.corrected_time),
                 points(result.points),
                 "SCP"
@@ -160,6 +167,8 @@ def _write_race(row, race_results):
                 else ("" if result.position else line.place),
             ]
         )
+    if race_results.has_non_spinnaker:
+        row([NS_NOTE])
     if race_results.has_scoring_penalty:
         row([SCP_NOTE])
 

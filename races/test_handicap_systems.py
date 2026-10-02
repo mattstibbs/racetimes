@@ -594,9 +594,7 @@ def test_a_member_can_register_a_boat_with_only_a_portsmouth_number(client, memb
 
 def test_a_member_must_give_one_number_to_register_a_boat(client, member):
     response = client.post(reverse("races:register_boat"), request_form())
-    assert "Give a number for your boat to race on" in (
-        response.content.decode()
-    )
+    assert "Give a number for your boat to race on" in (response.content.decode())
     assert not BoatRequest.objects.exists()
 
 

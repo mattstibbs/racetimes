@@ -18,7 +18,7 @@
 {% for history in histories %}{% if history.next %}{% with next=history.next %}
 <p class="next-handicap">
   <strong>{{ history.series }}:</strong>
-  {% if next.fixed %}sails on PN <strong>{{ next.number }}</strong> for the whole series.
+  {% if next.fixed %}sails on {% if next.non_spinnaker %}her non-spinnaker {% endif %}{{ history.series.handicap_label }} <strong>{{ next.number|handicap:history.series }}</strong> for the whole series.
   {% elif next.race %}sails race {{ next.race.number }} on <strong>{{ next.tcf|tcf }}</strong>{% if next.base %}, its base number{% endif %}.
   {% elif next.base %}no races scheduled yet.
   {% else %}handicap after race {{ next.after.number }}, the last race so far: <strong>{{ next.tcf|tcf }}</strong>.
@@ -50,7 +50,7 @@
         <td class="num">{% if line.row.not_recorded %}<abbr title="Not recorded">NR</abbr>{% else %}{{ line.row.place }}{% endif %}</td>
         <td class="num{% if line.points_discarded %} discarded{% endif %}">{% if line.points_discarded %}({{ result.points|points }}{% if result.scoring_penalty %} <abbr title="Scoring penalty">SCP</abbr>{% endif %}){% else %}{{ result.points|points }}{% if result.scoring_penalty %} <abbr title="Scoring penalty">SCP</abbr>{% endif %}{% endif %}</td>
         <td class="num detail">{{ result.corrected_time|hms }}</td>
-        <td class="num">{{ line.row.raced_on|handicap:history.series }}</td>
+        <td class="num">{{ line.row.raced_on|handicap:history.series }}{% if line.row.is_non_spinnaker %} <abbr title="Non-spinnaker YTC number">NS</abbr>{% endif %}</td>
         {% if not history.series.is_fixed_number %}<td class="num">{{ line.row.next_handicap|tcf }}</td>{% endif %}
         {% endwith %}{% else %}
         <td colspan="{% if history.series.is_fixed_number %}4{% else %}5{% endif %}" class="muted">{% if not history.error %}{{ line.note }}{% endif %}</td>

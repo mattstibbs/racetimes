@@ -710,7 +710,9 @@ class SeriesEntry(models.Model):
     @property
     def is_non_spinnaker(self):
         """Whether the boat races on her non-spinnaker YTC number (shown as "NS")."""
-        return self.is_ytc and self.ytc_number_used == self.NumberUsed.NON_SPINNAKER
+        # The choice is checked first: outside a YTC series it is always the
+        # default, so the series isn't fetched for the many entries that aren't.
+        return self.ytc_number_used == self.NumberUsed.NON_SPINNAKER and self.is_ytc
 
     @staticmethod
     def default_number_used(boat):

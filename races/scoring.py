@@ -64,6 +64,11 @@ class BoatRaceResult:
         return isinstance(self.result, sailscoring.FixedNumberResult)
 
     @property
+    def is_non_spinnaker(self):
+        """Whether the boat raced on her non-spinnaker YTC number (slice 25)."""
+        return self.entry.is_non_spinnaker
+
+    @property
     def raced_on(self):
         """The number the boat raced on: a TCF under NHC, a PN under Portsmouth
         Yardstick (slice 24). The one place a template reads it, so it never
@@ -99,6 +104,10 @@ class RaceResults:
     @property
     def has_scoring_penalty(self):
         return any(row.result.scoring_penalty for row in self.rows)
+
+    @property
+    def has_non_spinnaker(self):
+        return any(row.is_non_spinnaker for row in self.rows)
 
 
 @dataclass(frozen=True)
