@@ -271,6 +271,7 @@ def _history(entry):
         "series": series,
         "error": results.error,
         "standing": standing,
+        "discards_apply": results.discards_apply,
         "fleet": len(results.standings),
         "lines": lines,
         "has_provisional": any(

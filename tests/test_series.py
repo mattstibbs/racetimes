@@ -383,3 +383,16 @@ def test_looking_up_an_unknown_race_raises():
     outcome = score_series(Series(boats=three_boats(), races=[race("R1", A=3600)]))
     with pytest.raises(KeyError):
         outcome.race("NOPE")
+
+
+@pytest.mark.parametrize("threshold, discards", [(-1, 1), (1, 1), (2, 2)])
+def test_a_bad_discard_threshold_is_rejected_when_the_series_is_built(
+    threshold, discards
+):
+    with pytest.raises(InvalidInput, match="discard_threshold"):
+        Series(
+            boats=three_boats(),
+            races=[],
+            discards=discards,
+            discard_threshold=threshold,
+        )

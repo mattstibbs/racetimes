@@ -97,7 +97,7 @@ a series entrant for the whole series whether she turns up or not.
 | `Boat(boat_id, base_number, current_tcf, name="")` | A boat's published rating (BN) and the handicap it carries into its next race |
 | `Finish(boat_id, status, elapsed_seconds=None)` | One recorded outcome: a time, or a scoring code |
 | `SeriesRace(race_id, finishes)` | One race's finishes. No handicaps - they are derived |
-| `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1, cap_extremes=False, realign_to_base=False)` | The races, the boats, and the rules they are scored under |
+| `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1, discard_threshold=0, cap_extremes=False, realign_to_base=False)` | The races, the boats, and the rules they are scored under |
 | `SeriesType` | `CLUB` or `REGATTA` |
 | `HandicapProgression` | `CARRY_OVER` starts a series on each boat's `current_tcf`; `RESET` starts it on `base_number` |
 | `RaceStatus` | `FINISHED`, `DNC`, `DNS`, `DNF` |
@@ -140,7 +140,7 @@ to drive the steps yourself.
 | `compute_club_adjustment(race, *, minimum_finishers=0, cap_extremes=False, realign_to_base=False)` | Scores a club race and computes next handicaps |
 | `compute_regatta_adjustment(race)` | The same for a regatta |
 | `score_points(results, *, series_entry_count, apply_a5_3=False)` | RRS Appendix A race points |
-| `compute_standings(races, *, discards=1)` | The series table |
+| `compute_standings(races, *, discards=1, discard_threshold=0)` | The series table |
 
 `score_points` needs `series_entry_count` because A5.2 scores every
 non-finisher at *one more than the number of boats entered in the series*, and
@@ -252,9 +252,10 @@ failure there is a defect in this package, never a fixture to adjust.
 - **Scoring codes beyond `FINISHED`, `DNC`, `DNS` and `DNF`.** RRS A10 defines
   fourteen. Adding the ones that finish and are then penalised would change an
   invariant here, since such a boat *does* have an elapsed time.
-- **A discard schedule.** `discards` is a fixed count; A2.1 also allows "a
-  specified number excluded if a specified number of races are scored", the
-  familiar *no discard until four races*.
+- **A discard schedule with several steps.** `discard_threshold` is
+  implemented: one count of `discards`, applying only once that many races are
+  scored (*no discard until four races*). A schedule such as "1 after 4 races,
+  2 after 8" is not.
 - **Adjusting handicaps for non-finishers in a club series.** The brief makes
   this a per-series choice, but the RYA spec defines only the "not adjusted"
   behaviour for club racing.

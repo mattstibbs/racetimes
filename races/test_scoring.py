@@ -8,11 +8,12 @@ engine, and results finding their way back to the right boat and race.
 from datetime import datetime
 
 import pytest
+from django.urls import reverse
 
 from races.models import Finish, Series
 from races.scoring import score_series
 from races.testing import enter, finish_clock, make_boat, make_race, make_series, record
-from tests.scenario_loader import SCEN_005, TOLERANCE
+from tests.scenario_loader import DISCARD_THRESHOLD_FIXTURE, SCEN_005, TOLERANCE
 
 pytestmark = pytest.mark.django_db
 
@@ -286,3 +287,82 @@ def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
     assert "cannot be calculated" in results.error
     assert results.note_for(race) == results.error
     assert "could not be scored" in caplog.text
+
+
+# --- Slice 23 part A: no discard until N races are scored -----------------------------
+
+
+def sail_dt1(series, races_sailed):
+    """Worked example DT-1 entered as finish times (a DNC for boat A in race 3).
+
+    Equal base numbers and a wide gap between boats keep the places as the
+    fixture says whatever the handicaps do between races; the standings
+    assertions would fail if they did not.
+    """
+    fixture = DISCARD_THRESHOLD_FIXTURE
+    entries = {
+        name: enter(series, make_boat(f"DT{name}", base_number="1.000"))
+        for name in fixture["places"]
+    }
+    races = []
+    for number in range(1, races_sailed + 1):
+        race = make_race(series, number=number)
+        races.append(race)
+        for name, scores in fixture["places"].items():
+            if number in fixture["dnc"].get(name, []):
+                record(race, entries[name], status="DNC")
+            else:
+                record(
+                    race,
+                    entries[name],
+                    finish_clock("18:00:00", 3600 + 600 * scores[number - 1]),
+                )
+    return races
+
+
+@pytest.mark.parametrize("sailed", [3, 4, 5])
+def test_dt1_through_the_database(sailed):
+    series = make_series(
+        discards=DISCARD_THRESHOLD_FIXTURE["discards"],
+        discard_threshold=DISCARD_THRESHOLD_FIXTURE["discard_threshold"],
+    )
+    sail_dt1(series, sailed)
+    results = score_series(series)
+    expected = DISCARD_THRESHOLD_FIXTURE["standings"][sailed]
+    for row in results.standings:
+        want = expected[row.entry.boat.sail_number[2:]]
+        assert row.total == want["total"]
+        excluded = [c.race.number for c in row.scores if c.discarded]
+        assert excluded == want["excluded"]
+    assert [r.entry.boat.sail_number[2:] for r in results.standings] == expected[
+        "order"
+    ]
+    assert results.discards_apply is (sailed >= 4)
+
+
+def test_a_race_that_is_not_sailed_does_not_count_towards_the_threshold():
+    series = make_series(discards=1, discard_threshold=4)
+    sail_dt1(series, 3)
+    make_race(series, number=4)  # scheduled, nothing recorded
+    results = score_series(series)
+    assert not results.discards_apply
+    assert not any(c.discarded for row in results.standings for c in row.scores)
+
+
+def test_the_series_in_words():
+    assert make_series("A", discards=1).discards_description == "1 discard"
+    assert make_series("B", discards=2).discards_description == "2 discards"
+    assert make_series("C", discards=0).discards_description == "0 discards"
+    assert (
+        make_series("D", discards=1, discard_threshold=4).discards_description
+        == "1 discard once 4 races are scored"
+    )
+
+
+@pytest.mark.parametrize("sailed, brackets", [(3, False), (4, True)])
+def test_the_brackets_note_shows_only_once_discards_apply(client, sailed, brackets):
+    series = make_series(discards=1, discard_threshold=4)
+    sail_dt1(series, sailed)
+    page = client.get(reverse("results:series", args=[series.pk])).content.decode()
+    assert "1 discard once 4 races are scored." in page
+    assert ("Discarded scores are in brackets." in page) is brackets

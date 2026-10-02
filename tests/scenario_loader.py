@@ -43,6 +43,11 @@ REALIGNMENT_SCENARIO_IDS = [s["scenario_id"] for s in REALIGNMENT_SCENARIOS]
 # database and read back from the pages.
 SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
 
+#: Worked example DT-1 (slice 23): no discard until four races are scored.
+DISCARD_THRESHOLD_FIXTURE = load_scenarios(
+    Path(__file__).resolve().parent / "fixtures" / "discard_threshold.yaml"
+)
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.

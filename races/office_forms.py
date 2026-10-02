@@ -212,6 +212,7 @@ class SeriesForm(ReasonWhereItAppliesMixin, forms.ModelForm):
             "name",
             "series_type",
             "discards",
+            "discard_threshold",
             "minimum_finishers",
             "apply_a5_3",
             "nhc_cap_extremes",
@@ -220,6 +221,7 @@ class SeriesForm(ReasonWhereItAppliesMixin, forms.ModelForm):
 
     SCORING_RULES = [
         "discards",
+        "discard_threshold",
         "minimum_finishers",
         "apply_a5_3",
         # Slice 14: the optional extra NHC steps (nhc/options.py).

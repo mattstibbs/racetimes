@@ -104,6 +104,7 @@ class Series:
     minimum_finishers: int = 0
     apply_a5_3: bool = False
     discards: int = 1
+    discard_threshold: int = 0
     cap_extremes: bool = False
     realign_to_base: bool = False
 
@@ -116,6 +117,7 @@ class Series:
         minimum_finishers: int = 0,
         apply_a5_3: bool = False,
         discards: int = 1,
+        discard_threshold: int = 0,
         cap_extremes: bool = False,
         realign_to_base: bool = False,
     ) -> None:
@@ -126,6 +128,7 @@ class Series:
         object.__setattr__(self, "minimum_finishers", minimum_finishers)
         object.__setattr__(self, "apply_a5_3", apply_a5_3)
         object.__setattr__(self, "discards", discards)
+        object.__setattr__(self, "discard_threshold", discard_threshold)
         object.__setattr__(self, "cap_extremes", cap_extremes)
         object.__setattr__(self, "realign_to_base", realign_to_base)
         self.__post_init__()
@@ -146,6 +149,15 @@ class Series:
 
         if self.discards < 0:
             raise InvalidInput(f"discards cannot be negative, got {self.discards!r}")
+        if self.discard_threshold < 0:
+            raise InvalidInput(
+                f"discard_threshold cannot be negative, got {self.discard_threshold!r}"
+            )
+        if self.discards and 1 <= self.discard_threshold <= self.discards:
+            raise InvalidInput(
+                f"discard_threshold {self.discard_threshold} must be larger than "
+                f"discards ({self.discards}), or every score would be excluded"
+            )
         if self.minimum_finishers < 0:
             # Caught here as well as in compute_club_adjustment, so a bad series
             # fails when it is built rather than when it is scored.
@@ -255,7 +267,11 @@ def score_series(series: Series) -> SeriesOutcome:
     return SeriesOutcome(
         races=tuple(outcomes),
         starting_handicaps=starting,
-        standings=compute_standings(outcomes, discards=series.discards),
+        standings=compute_standings(
+            outcomes,
+            discards=series.discards,
+            discard_threshold=series.discard_threshold,
+        ),
     )
 
 

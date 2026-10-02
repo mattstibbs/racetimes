@@ -1,0 +1,35 @@
+# Worked example DT-1 for the discard threshold (slice 23, part A).
+#
+# SOURCE: docs/slices/23-discard-threshold-and-scoring-penalty.md, "Worked
+# example DT-1". Worked by hand, not with the engine, re-worked when the spec
+# was reviewed, and checked and approved by the project owner on 2026-10-02.
+#
+# Three boats entered, one discard, no discards until four races are scored,
+# RRS A5.2 (a boat that doesn't finish scores 4). `places` are each boat's
+# score race by race (R3 for boat A is a DNC). `standings` are the table after
+# the third, fourth and fifth races (N-1, N and N+1), with the races excluded.
+
+discards: 1
+discard_threshold: 4
+entries: 3
+places:
+  A: [1, 1, 4, 1, 2]
+  B: [2, 2, 1, 2, 3]
+  C: [3, 3, 2, 3, 1]
+dnc: {A: [3]}        # races (1-based) where the score is a DNC, not a place
+standings:
+  3:
+    A: {total: 6, excluded: []}
+    B: {total: 5, excluded: []}
+    C: {total: 8, excluded: []}
+    order: [B, A, C]
+  4:
+    A: {total: 3, excluded: [3]}
+    B: {total: 5, excluded: [1]}
+    C: {total: 8, excluded: [1]}
+    order: [A, B, C]
+  5:
+    A: {total: 5, excluded: [3]}
+    B: {total: 7, excluded: [5]}
+    C: {total: 9, excluded: [1]}
+    order: [A, B, C]

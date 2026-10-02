@@ -29,6 +29,7 @@ AUDITED_FIELDS = {
     Series: [
         "series_type",
         "discards",
+        "discard_threshold",
         "minimum_finishers",
         "apply_a5_3",
         "nhc_cap_extremes",

@@ -98,6 +98,13 @@ class SeriesResults:
     # Set when the engine refused the series; nothing is scored then.
     error: str = ""
 
+    @property
+    def discards_apply(self):
+        """Whether any score is excluded yet: discards set, and enough races scored."""
+        return bool(self.series.discards) and (
+            len(self.races) >= self.series.discard_threshold
+        )
+
     def for_race(self, race):
         """This race's results, or None if it is not scored."""
         return next((r for r in self.races if r.race.pk == race.pk), None)
@@ -147,6 +154,7 @@ def build_engine_series(series, entries, races):
         minimum_finishers=series.minimum_finishers,
         apply_a5_3=series.apply_a5_3,
         discards=series.discards,
+        discard_threshold=series.discard_threshold,
         # Slice 14: the optional extra NHC steps, both off unless the series asks.
         cap_extremes=series.nhc_cap_extremes,
         realign_to_base=series.nhc_realign_to_base,

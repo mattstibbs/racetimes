@@ -64,7 +64,7 @@ way every boat, entry and result has been checked by someone on the committee.
 - [Publishing results](committee/publishing-results.md): marking a race's
   results final, emailing them to owners, and sending updated results after
   corrections.
-- [A series' scoring rules](committee/scoring-rules.md): discards, minimum
+- [A series' scoring rules](committee/scoring-rules.md): discards (and when they begin), minimum
   finishers, RRS A5.3, and the optional NHC steps (capping extreme results,
   realigning to base handicaps).
 - [Ending a series: final results](committee/ending-a-series.md): declaring
