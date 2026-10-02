@@ -292,9 +292,14 @@ def _next_handicap(entry, results, races):
     After the last scored race it is that race's next handicap, which every
     later race starts from. Before any race is scored, a series starts on base
     numbers. None if the series cannot be scored.
+
+    Under Portsmouth Yardstick nothing moves: the boat sails on her number for
+    the whole series (slice 24), which is what the page says instead.
     """
     if results.error:
         return None
+    if results.series.is_fixed_number:
+        return {"fixed": True, "number": entry.boat.py_number}
     if not results.races:
         return {
             "race": races[0] if races else None,

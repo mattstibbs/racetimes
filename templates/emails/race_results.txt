@@ -12,7 +12,7 @@ SCP: scoring penalty (RRS 44.3(c)). The boat finished and kept her place, but sc
 Series standings after this race:
 {% for row in standings %}{{ row.position|stringformat:"3d" }}  {{ row.entry.boat }} - {{ row.total|points }} pt{{ row.total|pluralize }}
 {% endfor %}{% endif %}
-Full results, including elapsed times and handicaps:
+Full results, including elapsed times{% if not race.series.is_fixed_number %} and handicaps{% endif %}:
 {{ results_url }}
 
 You are receiving this because you own a boat entered in {{ race.series }}.
