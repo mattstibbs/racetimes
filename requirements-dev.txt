@@ -2,9 +2,9 @@
 #
 #   .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 #
-# Nothing here may be imported by application code - only by tests. The nhc
+# Nothing here may be imported by application code - only by tests. The sailscoring
 # package is standard-library only by design, and tests/test_package_purity.py
-# enforces that for nhc/ specifically.
+# enforces that for sailscoring/ specifically.
 
 -r requirements.txt
 

@@ -1,7 +1,7 @@
 """The race committee's records: boats, series, races and finishes.
 
 Nothing here stores a handicap, a result or a place. Those are derived by
-replaying a series through the ``nhc`` engine on every request (see
+replaying a series through the ``sailscoring`` engine on every request (see
 ``races/scoring.py``), so a corrected finish can never leave a stale number
 behind. The brief's rule is that handicaps are never edited directly.
 """
@@ -326,12 +326,12 @@ class Series(models.Model):
     """
 
     class SeriesType(models.TextChoices):
-        # Values match nhc.SeriesType, so they convert with SeriesType(value).
+        # Values match sailscoring.SeriesType, so they convert with SeriesType(value).
         CLUB = "CLUB", "Club series"
         REGATTA = "REGATTA", "Regatta"
 
     class HandicapSystem(models.TextChoices):
-        # "PY" matches nhc.FixedNumberSystem.PY. "NHC" has no engine value: it
+        # "PY" matches sailscoring.FixedNumberSystem.PY. "NHC" has no engine value: it
         # means the series is scored by the NHC functions (slice 24).
         NHC = "NHC", "RYA NHC"
         PY = "PY", "Portsmouth Yardstick"
@@ -381,7 +381,7 @@ class Series(models.Model):
         ),
     )
     # Slice 14: two optional extra steps in the club-series handicap
-    # calculation (nhc/options.py), from the fuller NHC method some clubs use.
+    # calculation (sailscoring/options.py), from the fuller NHC method some clubs use.
     # Off, a series is scored exactly as the RYA's club-series rules say.
     nhc_cap_extremes = models.BooleanField(
         "cap extreme results",
@@ -726,7 +726,7 @@ class Finish(models.Model):
     """What the race officer wrote down for one boat: a time, or a code."""
 
     class Status(models.TextChoices):
-        # Values match nhc.RaceStatus. Only the engine's four for now; OCS, RET
+        # Values match sailscoring.RaceStatus. Only the engine's four for now; OCS, RET
         # and DSQ are deferred (see docs/decisions.md).
         FINISHED = "FINISHED", "Finished"
         DNC = "DNC", "DNC - did not come to the start"
@@ -746,7 +746,7 @@ class Finish(models.Model):
     )
     finish_time = models.TimeField(null=True, blank=True)
     # Slice 23: RRS 44.3(c), A10 code SCP. The boat keeps her place and scores
-    # 20% of the DNF score more (nhc/points.py). A tick, not a count: one per
+    # 20% of the DNF score more (sailscoring/points.py). A tick, not a count: one per
     # boat per race.
     scoring_penalty = models.BooleanField(
         "scoring penalty",

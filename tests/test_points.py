@@ -6,7 +6,7 @@ rule numbers in the test names are the ones being pinned.
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     InvalidInput,
     RaceEntry,
     RaceInput,

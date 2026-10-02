@@ -6,7 +6,7 @@ conftest fixtures are only available once a test is already running. The
 conftest wraps these same objects as fixtures for tests that would rather
 receive them as arguments.
 
-Reading the file happens here, on the test side of the boundary: ``nhc`` itself
+Reading the file happens here, on the test side of the boundary: ``sailscoring`` itself
 does no I/O and never learns that YAML exists.
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import yaml
 
-from nhc import RaceEntry, RaceInput, RaceStatus, RealignmentEntry, SeriesType
+from sailscoring import RaceEntry, RaceInput, RaceStatus, RealignmentEntry, SeriesType
 
 FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "nhc_test_scenarios.yaml"
 
@@ -68,7 +68,7 @@ def build_race_entries(scenario):
     """Turn a race scenario's boats into RaceEntry objects.
 
     Lives on the test side because it knows the fixture file's shape, which is
-    exactly the kind of knowledge nhc is meant not to have.
+    exactly the kind of knowledge sailscoring is meant not to have.
     """
     return [
         RaceEntry(

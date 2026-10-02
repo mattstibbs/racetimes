@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 import pytest
 from django.urls import reverse
 
-import nhc
+import sailscoring
 from races import final
 from races.models import Series
 from races.scoring import engine_outcome, score_series
@@ -125,25 +125,25 @@ def test_realignment_is_the_engines_given_the_same_boats(cap):
         base_from="base_number", nhc_cap_extremes=cap, nhc_realign_to_base=True
     )
     boats = [
-        nhc.Boat(
+        sailscoring.Boat(
             b["boat_id"], base_number=b["base_number"], current_tcf=b["base_number"]
         )
         for b in MCC_RACE["boats"]
     ]
     finishes = [
-        nhc.Finish(
+        sailscoring.Finish(
             b["boat_id"],
-            nhc.RaceStatus(b["status"]),
+            sailscoring.RaceStatus(b["status"]),
             elapsed_seconds=b["elapsed_seconds"],
         )
         for b in MCC_RACE["boats"]
     ]
-    engine = nhc.score_series(
-        nhc.Series(
+    engine = sailscoring.score_series(
+        sailscoring.Series(
             boats=boats,
-            races=[nhc.SeriesRace("R1", finishes)],
+            races=[sailscoring.SeriesRace("R1", finishes)],
             discards=0,
-            progression=nhc.HandicapProgression.RESET,
+            progression=sailscoring.HandicapProgression.RESET,
             cap_extremes=cap,
             realign_to_base=True,
         )

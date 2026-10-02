@@ -9,7 +9,7 @@ import statistics
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     Boat,
     Finish,
     InvalidInput,

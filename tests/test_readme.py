@@ -16,10 +16,10 @@ from pathlib import Path
 
 import pytest
 
-import nhc
+import sailscoring
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-README = PROJECT_ROOT / "nhc" / "README.md"
+README = PROJECT_ROOT / "sailscoring" / "README.md"
 
 
 def fenced_blocks(text):
@@ -56,10 +56,10 @@ def test_the_quick_start_example_runs_and_prints_what_the_readme_says(readme):
     assert result.stdout == documented_output
 
 
-@pytest.mark.parametrize("name", sorted(nhc.__all__))
+@pytest.mark.parametrize("name", sorted(sailscoring.__all__))
 def test_every_exported_name_is_documented(name, readme):
     assert name in readme, (
-        f"{name} is exported from nhc but not mentioned in the README"
+        f"{name} is exported from sailscoring but not mentioned in the README"
     )
 
 
@@ -71,5 +71,7 @@ def test_the_readme_does_not_document_names_that_no_longer_exist(readme):
     """
     documented = set(re.findall(r"`([A-Za-z_][A-Za-z0-9_]*)\(", readme))
     assert documented, "no documented calls found; check the regex still matches"
-    unknown = sorted(documented - set(nhc.__all__))
-    assert not unknown, f"README documents names that nhc does not export: {unknown}"
+    unknown = sorted(documented - set(sailscoring.__all__))
+    assert not unknown, (
+        f"README documents names that sailscoring does not export: {unknown}"
+    )

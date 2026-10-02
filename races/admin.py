@@ -262,7 +262,7 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
                     "discard_threshold",
                     "minimum_finishers",
                     "apply_a5_3",
-                    # Slice 14: the optional extra NHC steps (nhc/options.py).
+                    # Slice 14: the optional extra NHC steps (sailscoring/options.py).
                     "nhc_cap_extremes",
                     "nhc_realign_to_base",
                 ]

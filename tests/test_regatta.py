@@ -8,7 +8,7 @@ relationship matters more than the number, the test asserts the relationship.
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     InvalidInput,
     Performance,
     RaceEntry,
@@ -18,7 +18,7 @@ from nhc import (
     clamp_to_base_number,
     compute_regatta_adjustment,
 )
-from nhc.regatta import (
+from sailscoring.regatta import (
     FIRST_RACE_WEIGHT,
     OVER_PERFORMANCE_WEIGHT,
     UNDER_PERFORMANCE_WEIGHT,

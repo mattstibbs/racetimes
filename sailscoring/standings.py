@@ -18,7 +18,7 @@ them, A8.2 counts them. Getting that backwards would break ties the wrong way
 round in a way no test of a single boat would catch.
 
 Points are multiples of 0.1: whole places, halved across A7 ties, and a scoring
-penalty's tenths (``nhc/points.py``). Tenths are not exact in a float (0.1 +
+penalty's tenths (``sailscoring/points.py``). Tenths are not exact in a float (0.1 +
 0.2 is a hair over 0.3), so two boats level on a total could compare unequal
 and never reach the tie-breaks. Totals and the A8 keys are therefore worked out
 in whole tenths, which are integers, and turned back into points only for

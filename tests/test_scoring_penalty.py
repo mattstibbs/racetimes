@@ -6,7 +6,7 @@ Expected values come from the hand-worked examples in
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     Finish,
     InvalidInput,
     RaceEntry,

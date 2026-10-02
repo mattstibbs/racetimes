@@ -16,10 +16,10 @@ An over-performing boat moves twice as far towards TCFr (up) as an
 under-performing one does (down). Because of that asymmetry, the fleet's
 handicaps tend to drift upwards together over a season: in the RYA's worked
 example (spec section 8) their total goes from 3.688 to about 3.699 after one
-race. End-of-series realignment (``nhc/realignment.py``) and the optional
-realignment step (``nhc/options.py``) are what pull them back.
+race. End-of-series realignment (``sailscoring/realignment.py``) and the optional
+realignment step (``sailscoring/options.py``) are what pull them back.
 
-Nothing here rounds. See the precision note in ``nhc/domain.py``.
+Nothing here rounds. See the precision note in ``sailscoring/domain.py``.
 """
 
 from __future__ import annotations
@@ -118,7 +118,7 @@ def compute_club_adjustment(
     one - there is nothing to divide by - rather than raising.
 
     ``cap_extremes`` and ``realign_to_base`` switch on the two optional extra
-    steps in ``nhc/options.py`` (capping extreme results, and realigning the
+    steps in ``sailscoring/options.py`` (capping extreme results, and realigning the
     finishers' new handicaps to their base numbers). Both are off by default,
     which is exactly the RYA calculation above. They don't run in a race that
     falls below ``minimum_finishers``, where nothing is adjusted at all.

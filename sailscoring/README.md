@@ -1,7 +1,8 @@
-# nhc
+# sailscoring
 
-A scoring engine for sailing race series handicapped under the RYA National
-Handicap for Cruisers (NHC) scheme.
+A scoring engine for sailing race series under several handicap systems: the
+RYA National Handicap for Cruisers (NHC), where a boat's handicap moves after
+every race, and fixed-number systems such as Portsmouth Yardstick.
 
 Give it a series' boats and the finish times a race officer wrote down, and it
 returns corrected times, finishing places, points, handicaps for the next race,
@@ -17,7 +18,7 @@ data and returns plain Python data, so it can be copied into any project.
 ## Quick start
 
 ```python
-from nhc import Boat, Finish, RaceStatus, Series, SeriesRace, score_series
+from sailscoring import Boat, Finish, RaceStatus, Series, SeriesRace, score_series
 
 boats = [
     Boat("GBR1234", base_number=0.985, current_tcf=0.985, name="Arcona 340"),
@@ -240,7 +241,7 @@ RYA's.
 non-finite handicap, a boat marked `FINISHED` with no usable time, a regatta
 entry with no base number to clamp against. It subclasses `ValueError`, so code
 that already handles bad input generically catches it without importing from
-`nhc`.
+`sailscoring`.
 
 Every type validates itself on construction, so an invalid race cannot be built
 and a mistake surfaces where the bad data enters rather than several formulas

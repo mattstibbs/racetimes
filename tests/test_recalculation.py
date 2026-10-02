@@ -19,7 +19,7 @@ from itertools import pairwise
 
 import pytest
 
-from nhc import (
+from sailscoring import (
     Boat,
     Finish,
     HandicapProgression,
