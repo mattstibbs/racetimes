@@ -64,6 +64,11 @@ class BoatRaceResult:
         return isinstance(self.result, sailscoring.FixedNumberResult)
 
     @property
+    def is_non_spinnaker(self):
+        """Whether the boat raced on her non-spinnaker YTC number (slice 25)."""
+        return self.entry.is_non_spinnaker
+
+    @property
     def raced_on(self):
         """The number the boat raced on: a TCF under NHC, a PN under Portsmouth
         Yardstick (slice 24). The one place a template reads it, so it never
@@ -99,6 +104,10 @@ class RaceResults:
     @property
     def has_scoring_penalty(self):
         return any(row.result.scoring_penalty for row in self.rows)
+
+    @property
+    def has_non_spinnaker(self):
+        return any(row.is_non_spinnaker for row in self.rows)
 
 
 @dataclass(frozen=True)
@@ -183,7 +192,7 @@ def build_engine_series(series, entries, races):
             boats=[
                 sailscoring.FixedNumberBoat(
                     boat_id=str(entry.pk),
-                    number=_as_float(entry.boat.py_number),
+                    number=_as_float(entry.number),
                     name=str(entry.boat),
                 )
                 for entry in entries
@@ -250,14 +259,17 @@ def setup_problem(series, entries):
         ]
         if unused:
             return f"a {system} series can't use {', '.join(unused)}"
-    lacking = [entry.boat for entry in entries if series.boats_lack(entry.boat)]
-    if lacking:
-        names = ", ".join(str(boat) for boat in lacking)
-        return (
-            f"{names} {'has' if len(lacking) == 1 else 'have'} no "
-            f"{series.number_label}, which this series needs"
-        )
-    return ""
+    # A boat is scored on the number her entry chose, which under RYA YTC is
+    # one of two (slice 25), so each entry says which number it lacks.
+    missing = {}
+    for entry in entries:
+        if entry.number is None:
+            missing.setdefault(entry.number_label, []).append(str(entry.boat))
+    return "; ".join(
+        f"{', '.join(names)} {'has' if len(names) == 1 else 'have'} no {label}, "
+        "which this series needs"
+        for label, names in missing.items()
+    )
 
 
 def score_series(series):

@@ -41,7 +41,7 @@
       <td><a href="{% url 'results:boat' row.entry.boat.pk %}">{{ row.entry.boat|boat }}</a></td>
       <td class="num detail">{% if row.finish.finish_time %}{{ row.finish.finish_time|time:"H:i:s" }}{% endif %}</td>
       <td class="num detail">{{ row.result.elapsed_seconds|hms }}</td>
-      <td class="num detail">{{ row.raced_on|handicap:race.series }}</td>
+      <td class="num detail">{{ row.raced_on|handicap:race.series }}{% if row.is_non_spinnaker %} <abbr title="Non-spinnaker YTC number">NS</abbr>{% endif %}</td>
       <td class="num">{{ row.result.corrected_time|hms }}</td>
       <td class="num">{{ row.result.points|points }}{% if row.result.scoring_penalty %} <abbr title="Scoring penalty">SCP</abbr>{% endif %}</td>
       {% if not race.series.is_fixed_number %}<td class="num detail">{{ row.next_handicap|tcf }}{% if row.capped %}<abbr title="Result capped as extreme">&dagger;</abbr>{% endif %}</td>{% endif %}
@@ -51,6 +51,7 @@
 </table>
 </div>
 {% if race_results.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
+{% if detail and race_results.has_non_spinnaker %}<p class="muted">NS: Raced on the boat's non-spinnaker YTC number, because she sailed without a spinnaker or other downwind sail.</p>{% endif %}
 {% if race_results.has_scoring_penalty %}<p class="muted">SCP: Scoring penalty (RRS 44.3(c)). The boat finished and kept her place, but scored 20% of the Did Not Finish score more.</p>{% endif %}
 {% if race.series.nhc_options %}<p class="muted">Handicaps adjusted with: {{ race.series.nhc_options|join:", " }}.</p>{% endif %}
 {# The dagger marks the next-handicap column, which only More detail shows. #}

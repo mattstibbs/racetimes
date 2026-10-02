@@ -8,6 +8,7 @@
     {{ r.created_at|date:"j M Y H:i" }}.
     {% if r.kind == "CLAIM" %}Current owner: {{ r.boat.owner_display|default:"none recorded" }}.{% endif %}
   </p>
+  {% if row.kind == "entry" and r.series.handicap_system == "YTC" %}<p>Races on: <strong>{{ r.as_entry.number_label }} {{ r.as_entry.number|default_if_none:"(none)" }}</strong>.</p>{% endif %}
   {% if r.member_note %}<p>Member's note: <em>{{ r.member_note }}</em></p>{% endif %}
   {% if row.proposed %}
   <table class="proposed">

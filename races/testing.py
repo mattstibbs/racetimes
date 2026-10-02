@@ -55,8 +55,8 @@ def make_series(name="Autumn 2026", club=None, **fields):
     return Series.objects.create(club=club or default_club(), name=name, **fields)
 
 
-def enter(series, boat):
-    return SeriesEntry.objects.create(series=series, boat=boat)
+def enter(series, boat, **fields):
+    return SeriesEntry.objects.create(series=series, boat=boat, **fields)
 
 
 def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
@@ -83,6 +83,44 @@ def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
         )
         for letter, number in example["boats"].items()
     }
+    races = []
+    for index, race_example in enumerate(example["races"], start=1):
+        race = make_race(series, index, start=start)
+        races.append(race)
+        for letter, value in race_example["finishes"].items():
+            if isinstance(value, str):
+                record(race, entries[letter], status=value)
+            else:
+                record(race, entries[letter], finish_clock(start, value))
+    return series, entries, races
+
+
+def make_ytc_series(example, name="Cruisers", club=None, start="18:30:00", **entered):
+    """An RYA YTC series from a worked example, as the database holds it (slice 25).
+
+    ``example`` is YTC-1 or YTC-2 from tests/fixtures/ytc.yaml. Each boat has the
+    two numbers on her certificate, and her entry chooses one of them
+    (``entered={"A": "SPINNAKER"}`` overrides the example's choice). Finishes are
+    clock times, as for ``make_py_series``. Returns (series, {letter: entry}, [races]).
+    """
+    series = make_series(
+        name, club=club, handicap_system="YTC", discards=example["discards"]
+    )
+    entries = {}
+    for letter, certificate in example["certificates"].items():
+        boat = make_boat(
+            f"YTC{letter}",
+            base_number=None,
+            ytc_number=certificate["ytc"],
+            ytc_number_non_spinnaker=certificate["non_spinnaker"],
+            name=f"Boat {letter}",
+            club=club,
+        )
+        entries[letter] = enter(
+            series,
+            boat,
+            ytc_number_used=entered.get(letter, certificate["entered_on"]),
+        )
     races = []
     for index, race_example in enumerate(example["races"], start=1):
         race = make_race(series, index, start=start)
@@ -302,6 +340,12 @@ def boat_form(boat, **changes):
         "waterline_length_m": "",
         "base_number": "" if boat.base_number is None else str(boat.base_number),
         "py_number": "" if boat.py_number is None else str(boat.py_number),
+        "ytc_number": "" if boat.ytc_number is None else str(boat.ytc_number),
+        "ytc_number_non_spinnaker": (
+            ""
+            if boat.ytc_number_non_spinnaker is None
+            else str(boat.ytc_number_non_spinnaker)
+        ),
         "reason": "",
     }
     data.update(changes)
@@ -545,4 +589,5 @@ def urls_for(data, kind=None):
         "races:office_race": [race_1.pk],
         "races:office_remove_race": [race_1.pk],
         "races:office_remove_entry": [e1.pk],
+        "races:office_entry_number": [e1.pk],
     }

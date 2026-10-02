@@ -171,6 +171,11 @@ urlpatterns = [
         name="office_remove_race",
     ),
     path(
+        "office/entries/<int:pk>/number/",
+        office_views.change_entry_number,
+        name="office_entry_number",
+    ),
+    path(
         "office/entries/<int:pk>/remove/",
         office_views.remove_entry,
         name="office_remove_entry",

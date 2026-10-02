@@ -53,13 +53,14 @@
   <h2 id="entries">Boats entered ({{ entries|length }})</h2>
   {% if entries %}
   <div class="table-scroll"><table>
-    <thead><tr><th>Boat</th><th class="num">Results</th><th></th></tr></thead>
+    <thead><tr><th>Boat</th>{% if series.handicap_system == "YTC" %}<th class="num">{{ series.handicap_label }}</th>{% endif %}<th class="num">Results</th><th></th></tr></thead>
     <tbody>
     {% for entry in entries %}
     <tr>
       <td>{{ entry.boat }}</td>
+      {% if series.handicap_system == "YTC" %}<td class="num">{{ entry.number|default_if_none:"" }}{% if entry.is_non_spinnaker %} <abbr title="Non-spinnaker YTC number">NS</abbr>{% endif %}</td>{% endif %}
       <td class="num">{{ entry.result_count }}</td>
-      <td>{% if not series.is_final and not entry.result_count %}<a href="{% url 'races:office_remove_entry' entry.pk %}">Remove</a>{% endif %}</td>
+      <td>{% if series.handicap_system == "YTC" and not series.is_final %}<a href="{% url 'races:office_entry_number' entry.pk %}">Change number</a> {% endif %}{% if not series.is_final and not entry.result_count %}<a href="{% url 'races:office_remove_entry' entry.pk %}">Remove</a>{% endif %}</td>
     </tr>
     {% endfor %}
     </tbody>

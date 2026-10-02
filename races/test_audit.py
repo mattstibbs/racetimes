@@ -324,8 +324,14 @@ def test_every_audited_field_is_covered_by_a_test_above():
             "nhc_cap_extremes",
             "nhc_realign_to_base",
         ],
-        audit.SeriesEntry: [],
-        Boat: ["base_number", "py_number"],  # py_number: test_handicap_systems.py
+        # ytc_number_used: slice 25, tested in test_ytc.py
+        audit.SeriesEntry: ["ytc_number_used"],
+        Boat: [
+            "base_number",
+            "py_number",  # test_handicap_systems.py
+            "ytc_number",  # slice 25: tested in test_ytc.py
+            "ytc_number_non_spinnaker",
+        ],
     } == audit.AUDITED_FIELDS
 
 

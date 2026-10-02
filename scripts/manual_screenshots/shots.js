@@ -177,6 +177,28 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await phone.goto(`${BASE}/boats/5/`);
   await shot(phone.locator('body'), 'results-portsmouth-boat.png');
 
+  // RYA YTC (slice 25): the results with a boat marked NS, a boat's page, the
+  // Enter boats choice of number, and changing it on an entry.
+  await publicPage.goto(`${BASE}/series/5/?race=1&detail=1`);
+  const yTop = await publicPage.locator('#race-1').boundingBox();
+  const yNote = await publicPage.locator('p', { hasText: 'NS: Raced on' }).boundingBox();
+  await publicPage.screenshot({
+    path: path.join(OUT, 'results-ytc.png'), fullPage: true,
+    clip: { x: 0, y: yTop.y - 8, width: 1000, height: yNote.y + yNote.height - yTop.y + 16 },
+  });
+  await phone.goto(`${BASE}/series/5/`);
+  await phone.locator('a', { hasText: 'Arcona' }).first().click();
+  await phone.waitForLoadState('networkidle');
+  await shot(phone.locator('body'), 'results-ytc-boat.png');
+  await officer.goto(`${BASE}/office/series/5/entries/`);
+  await officer.locator('#boat-choices label', { hasText: 'Dunlin' }).locator('input').check();
+  await shot(officer.locator('main'), 'office-enter-boats-ytc.png');
+  await officer.goto(`${BASE}/office/series/5/`);
+  await shot(officer.locator('section[aria-labelledby=entries]'), 'office-series-ytc-entries.png');
+  await officer.locator('a', { hasText: 'Change number' }).first().click();
+  await officer.waitForLoadState('networkidle');
+  await shot(officer.locator('main'), 'office-entry-number.png');
+
   // Forgotten passwords.
   await publicPage.goto(`${BASE}/accounts/password-reset/`);
   await shot(publicPage.locator('body'), 'password-reset.png');

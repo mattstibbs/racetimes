@@ -1,7 +1,7 @@
 <div id="boat-table" aria-live="polite">
 {% if boats %}
 <div class="table-scroll"><table>
-  <thead><tr><th>Sail number</th><th>Name</th><th>Make</th><th>Model</th><th class="num">Base number</th><th class="num">PN</th><th>Owner</th></tr></thead>
+  <thead><tr><th>Sail number</th><th>Name</th><th>Make</th><th>Model</th><th class="num">Base number</th><th class="num">PN</th><th class="num">YTC</th><th class="num">YTC (NS)</th><th>Owner</th></tr></thead>
   <tbody>
   {% for boat in boats %}
   <tr>
@@ -11,6 +11,8 @@
     <td>{{ boat.model }}</td>
     <td class="num">{{ boat.base_number|default_if_none:"" }}</td>
     <td class="num">{{ boat.py_number|default_if_none:"" }}</td>
+    <td class="num">{{ boat.ytc_number|default_if_none:"" }}</td>
+    <td class="num">{{ boat.ytc_number_non_spinnaker|default_if_none:"" }}</td>
     <td>{{ boat.owner_display }}</td>
   </tr>
   {% endfor %}

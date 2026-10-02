@@ -246,6 +246,28 @@ class Boat(models.Model):
             "in a Portsmouth Yardstick series."
         ),
     )
+    # Slice 25: the two numbers on a boat's RYA YTC certificate, or the club's
+    # own. Each series entry chooses which one the boat races on.
+    ytc_number = models.PositiveSmallIntegerField(
+        "YTC number",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+        help_text=(
+            "The boat's RYA YTC number, e.g. 873. Needed to enter the boat in an "
+            "RYA YTC series on it."
+        ),
+    )
+    ytc_number_non_spinnaker = models.PositiveSmallIntegerField(
+        "Non-spinnaker YTC number",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+        help_text=(
+            "The boat's YTC number for racing without a spinnaker (white sails), "
+            "e.g. 899. Needed to enter the boat in an RYA YTC series on it."
+        ),
+    )
 
     # Only this club's rows: Boat.objects.for_club(club) (slice 11).
     objects = _club_manager("club")
@@ -279,10 +301,10 @@ class Boat(models.Model):
 
     def clean(self):
         errors = []
-        if self.base_number is None and self.py_number is None:
+        if all(getattr(self, field) is None for field in ALL_NUMBER_FIELDS):
             errors.append(
-                "A boat needs a number to race on: its NHC base number, its "
-                "Portsmouth Number, or both."
+                "A boat needs a number to race on: an NHC base number, a "
+                "Portsmouth Number or a YTC number."
             )
         if self.pk:
             # A number can't be cleared while a series is scored on it.
@@ -300,6 +322,24 @@ class Boat(models.Model):
                     errors.append(
                         f"The {label} can't be removed while the boat is entered "
                         f"in a series that uses it: {names}."
+                    )
+            # The same for a YTC number, but only a series whose entry chose it.
+            for field, used in YTC_NUMBER_FIELDS.items():
+                if getattr(self, field) is not None:
+                    continue
+                using = list(
+                    Series.objects.filter(
+                        entries__boat=self,
+                        handicap_system=Series.HandicapSystem.YTC,
+                        entries__ytc_number_used=used,
+                    ).distinct()
+                )
+                if using:
+                    label = self._meta.get_field(field).verbose_name
+                    names = ", ".join(str(series) for series in using)
+                    errors.append(
+                        f"The {label} can't be removed while the boat is entered "
+                        f"in a series on it: {names}."
                     )
         if errors:
             raise ValidationError(errors)
@@ -331,10 +371,11 @@ class Series(models.Model):
         REGATTA = "REGATTA", "Regatta"
 
     class HandicapSystem(models.TextChoices):
-        # "PY" matches sailscoring.FixedNumberSystem.PY. "NHC" has no engine value: it
-        # means the series is scored by the NHC functions (slice 24).
+        # "PY" and "YTC" match sailscoring.FixedNumberSystem. "NHC" has no engine
+        # value: it means the series is scored by the NHC functions (slice 24).
         NHC = "NHC", "RYA NHC"
         PY = "PY", "Portsmouth Yardstick"
+        YTC = "YTC", "RYA YTC"
 
     club = models.ForeignKey(
         Club, on_delete=models.CASCADE, editable=False, related_name="series"
@@ -345,8 +386,8 @@ class Series(models.Model):
         choices=HandicapSystem.choices,
         default=HandicapSystem.NHC,
         help_text=(
-            "NHC: handicaps move after every race. Portsmouth Yardstick: each "
-            "boat races on one fixed number for the whole series."
+            "NHC: handicaps move after every race. Portsmouth Yardstick and RYA "
+            "YTC: each boat races on one fixed number for the whole series."
         ),
     )
     series_type = models.CharField(
@@ -442,7 +483,13 @@ class Series(models.Model):
         return Boat._meta.get_field(self.number_field).verbose_name
 
     def boats_lack(self, boat):
-        """Whether this boat has no number for this series' system."""
+        """Whether this boat has no number for this series' system.
+
+        Under RYA YTC a boat needs either of her two numbers (slice 25); which
+        one she races on is chosen when she is entered.
+        """
+        if self.handicap_system == self.HandicapSystem.YTC:
+            return all(getattr(boat, field) is None for field in YTC_NUMBER_FIELDS)
         return getattr(boat, self.number_field) is None
 
     def lacks_number_message(self, boat):
@@ -458,15 +505,37 @@ class Series(models.Model):
             return []
         return [
             entry.boat
-            for entry in self.entries.select_related("boat").filter(
-                **{f"boat__{self.number_field}__isnull": True}
-            )
+            for entry in self.entries.select_related("boat")
+            if self.boats_lack(entry.boat)
         ]
+
+    def align_entries_with_system(self, was):
+        """Put each entry on the right YTC number after the system changed (slice 25).
+
+        Switching a series to RYA YTC enters each boat on her YTC number, or her
+        non-spinnaker number if that is the only one she has. Switching away
+        resets the choice, which means nothing outside a YTC series. Silent: the
+        change of system is the row in the history. Call after saving.
+        """
+        if was == self.handicap_system:
+            return
+        if self.handicap_system == self.HandicapSystem.YTC:
+            for entry in self.entries.select_related("boat"):
+                used = SeriesEntry.default_number_used(entry.boat)
+                if entry.ytc_number_used != used:
+                    SeriesEntry.objects.filter(pk=entry.pk).update(ytc_number_used=used)
+        else:
+            self.entries.exclude(
+                ytc_number_used=SeriesEntry.NumberUsed.SPINNAKER
+            ).update(ytc_number_used=SeriesEntry.NumberUsed.SPINNAKER)
 
     @property
     def handicap_label(self):
         """What the handicap column is headed: "PN" under Portsmouth Yardstick."""
-        return "PN" if self.handicap_system == self.HandicapSystem.PY else "Handicap"
+        return {
+            self.HandicapSystem.PY: "PN",
+            self.HandicapSystem.YTC: "YTC",
+        }.get(self.handicap_system, "Handicap")
 
     @property
     def discards_description(self):
@@ -564,7 +633,17 @@ NUMBER_FIELDS = {
     "base_number": Series.HandicapSystem.NHC,
     "py_number": Series.HandicapSystem.PY,
 }
-NUMBER_FIELD_FOR_SYSTEM = {system: field for field, system in NUMBER_FIELDS.items()}
+NUMBER_FIELD_FOR_SYSTEM = {
+    **{system: field for field, system in NUMBER_FIELDS.items()},
+    # A YTC boat has two; this is the one named when a message must pick (slice 25).
+    Series.HandicapSystem.YTC: "ytc_number",
+}
+#: A boat's two RYA YTC numbers, and the entry choice that races on each.
+YTC_NUMBER_FIELDS = {
+    "ytc_number": "SPINNAKER",
+    "ytc_number_non_spinnaker": "NON_SPINNAKER",
+}
+ALL_NUMBER_FIELDS = (*NUMBER_FIELDS, *YTC_NUMBER_FIELDS)
 
 
 class SeriesEntry(models.Model):
@@ -575,6 +654,20 @@ class SeriesEntry(models.Model):
     # was deleted.
     boat = models.ForeignKey(
         Boat, on_delete=models.PROTECT, related_name="series_entries"
+    )
+
+    class NumberUsed(models.TextChoices):
+        # Which of a boat's two RYA YTC numbers she races on in this series
+        # (slice 25). Means nothing outside a YTC series.
+        SPINNAKER = "SPINNAKER", "YTC number"
+        NON_SPINNAKER = "NON_SPINNAKER", "Non-spinnaker YTC number"
+
+    ytc_number_used = models.CharField(
+        "number used",
+        max_length=15,
+        choices=NumberUsed.choices,
+        default=NumberUsed.SPINNAKER,
+        help_text="Which of the boat's two YTC numbers it races on in this series.",
     )
 
     # Only this club's rows: SeriesEntry.objects.for_club(club) (slice 11).
@@ -594,13 +687,59 @@ class SeriesEntry(models.Model):
     def __str__(self):
         return str(self.boat)
 
+    @property
+    def is_ytc(self):
+        return self.series.handicap_system == Series.HandicapSystem.YTC
+
+    @property
+    def number_field(self):
+        """The Boat field this entry is scored on: for YTC, the one it chose (slice 25)."""
+        if self.is_ytc:
+            return {v: k for k, v in YTC_NUMBER_FIELDS.items()}[self.ytc_number_used]
+        return self.series.number_field
+
+    @property
+    def number(self):
+        """The number the boat races on in this series, or None if she has none."""
+        return getattr(self.boat, self.number_field)
+
+    @property
+    def number_label(self):
+        return Boat._meta.get_field(self.number_field).verbose_name
+
+    @property
+    def is_non_spinnaker(self):
+        """Whether the boat races on her non-spinnaker YTC number (shown as "NS")."""
+        # The choice is checked first: outside a YTC series it is always the
+        # default, so the series isn't fetched for the many entries that aren't.
+        return self.ytc_number_used == self.NumberUsed.NON_SPINNAKER and self.is_ytc
+
+    @staticmethod
+    def default_number_used(boat):
+        """The number a boat is entered on unless the committee says otherwise."""
+        if boat.ytc_number is None and boat.ytc_number_non_spinnaker is not None:
+            return SeriesEntry.NumberUsed.NON_SPINNAKER
+        return SeriesEntry.NumberUsed.SPINNAKER
+
     def clean(self):
         # A boat belongs to one club, and races only in that club's series (slice 11).
         if self.boat_id and self.series_id and self.boat.club_id != self.series.club_id:
             raise ValidationError({"boat": "This boat belongs to another club."})
+        if not (self.boat_id and self.series_id):
+            return
         # A boat can only be entered in a series if it has that series' number (slice 24).
-        if self.boat_id and self.series_id and self.series.boats_lack(self.boat):
+        if self.series.boats_lack(self.boat):
             raise ValidationError({"boat": self.series.lacks_number_message(self.boat)})
+        # Under YTC, the number the entry chose must be one she has (slice 25).
+        if self.is_ytc and self.number is None:
+            raise ValidationError(
+                {
+                    "ytc_number_used": (
+                        f"{self.boat} has no {self.number_label}. Choose the "
+                        "number she has, or give her this one first."
+                    )
+                }
+            )
 
 
 NOT_ON_START_SHEET = "This boat is not on the race's start sheet. Add it there first."
@@ -1027,6 +1166,18 @@ class BoatRequest(Request):
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(9999)],
     )
+    ytc_number = models.PositiveSmallIntegerField(
+        "YTC number",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+    )
+    ytc_number_non_spinnaker = models.PositiveSmallIntegerField(
+        "Non-spinnaker YTC number",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+    )
 
     # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
     objects = _club_manager("club")
@@ -1041,6 +1192,8 @@ class BoatRequest(Request):
         "waterline_length_m",
         "base_number",
         "py_number",
+        "ytc_number",
+        "ytc_number_non_spinnaker",
     ]
 
     class Meta(Request.Meta):
@@ -1074,6 +1227,13 @@ class EntryRequest(Request):
     boat = models.ForeignKey(
         Boat, on_delete=models.CASCADE, related_name="entry_requests"
     )
+    # Slice 25: for a YTC series, which of the boat's two numbers to race on.
+    ytc_number_used = models.CharField(
+        "number used",
+        max_length=15,
+        choices=SeriesEntry.NumberUsed.choices,
+        default=SeriesEntry.NumberUsed.SPINNAKER,
+    )
 
     # Only this club's rows: EntryRequest.objects.for_club(club) (slice 11).
     objects = _club_manager("series__club")
@@ -1090,6 +1250,15 @@ class EntryRequest(Request):
 
     def __str__(self):
         return f"Enter {self.boat} in {self.series}"
+
+    def as_entry(self):
+        """The series entry approving this request would create (slice 25)."""
+        used = (
+            self.ytc_number_used
+            if self.series.handicap_system == Series.HandicapSystem.YTC
+            else SeriesEntry.NumberUsed.SPINNAKER
+        )
+        return SeriesEntry(series=self.series, boat=self.boat, ytc_number_used=used)
 
     @property
     def club(self):

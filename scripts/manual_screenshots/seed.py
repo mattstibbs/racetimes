@@ -195,6 +195,52 @@ for number, day in [(1, 10), (2, 17)]:
             Finish.objects.create(race=race, entry=entry, status="DNF")
     Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
+# An RYA YTC fleet (slice 25): boats with the two numbers from their
+# certificates, and an entry that chooses which one to race on. Arcona races on
+# her non-spinnaker number (NS). Dunlin is not entered, for the Enter boats shot.
+# The numbers are examples. Created after the Portsmouth fleet so its ids stay.
+cruisers = Series.objects.create(
+    club=club, name="Cruisers' Cup", handicap_system="YTC", discards=0
+)
+cruiser_entries = [
+    SeriesEntry.objects.create(
+        series=cruisers,
+        ytc_number_used=used,
+        boat=Boat.objects.create(
+            club=club,
+            sail_number=sail,
+            name=name,
+            ytc_number=ytc,
+            ytc_number_non_spinnaker=ns,
+            owner_name=owner,
+        ),
+    )
+    for sail, name, ytc, ns, used, owner in [
+        ("GBR 340", "Arcona", 873, 899, "NON_SPINNAKER", "H. Lindqvist"),
+        ("GBR 8821", "Bluebird", 940, None, "SPINNAKER", "C. Ashby"),
+        ("GBR 1010", "Corsair", 1010, None, "SPINNAKER", "D. Okafor"),
+    ]
+]
+Boat.objects.create(
+    club=club,
+    sail_number="GBR 505",
+    name="Dunlin",
+    ytc_number=880,
+    ytc_number_non_spinnaker=905,
+    owner_name="M. Reeve",
+)
+cruiser_race = Race.objects.create(
+    series=cruisers, number=1, date=date(2026, 10, 24), start_time=time(18, 30)
+)
+for entry, finish in zip(
+    cruiser_entries,
+    [time(19, 30, 0), time(19, 33, 40), time(19, 38, 0)],
+    strict=True,
+):
+    RaceEntry.objects.create(race=cruiser_race, entry=entry)
+    Finish.objects.create(race=cruiser_race, entry=entry, finish_time=finish)
+Race.objects.filter(pk=cruiser_race.pk).update(published_at=sent, results_sent_at=sent)
+
 # One request of each kind, waiting.
 BoatRequest.objects.create(
     club=club,

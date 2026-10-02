@@ -14,7 +14,7 @@ what it changed. Once its results are final, only its name can change.
 
 | Rule | What it does |
 |---|---|
-| **Handicap system** | NHC or Portsmouth Yardstick: see [Handicap systems](handicap-systems.md). |
+| **Handicap system** | NHC, Portsmouth Yardstick or RYA YTC: see [Handicap systems](handicap-systems.md). |
 | **Discards** | How many of each boat's worst scores are left out of its total (RRS A2.1). |
 | **No discards until this many races are scored** | Discards apply only once this many races have results, as in "one discard once four races have been sailed" (RRS A2.1). 0, the starting value, means they always apply. A race not yet sailed, or held back, doesn't count. It must be larger than the number of discards, since otherwise every score would be left out. The series page says it in words: "1 discard once 4 races are scored". |
 | **Minimum finishers** | With fewer finishers than this in a race, nobody's handicap changes after it. 0 is off, which is the RYA's rule. Club series only. |
@@ -23,7 +23,7 @@ what it changed. Once its results are final, only its name can change.
 | **Realign to base handicaps** | See below. Off unless your club uses it. Club series only. |
 
 The minimum finishers rule and the two optional NHC steps are for NHC series
-only; a Portsmouth Yardstick series refuses them.
+only; a Portsmouth Yardstick or RYA YTC series refuses them.
 
 ## The two optional NHC steps
 

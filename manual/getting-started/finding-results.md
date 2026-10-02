@@ -72,6 +72,7 @@ you are following, so you can bookmark it or send the link to your crew.
 | **Last updated** | Under the series standings: the date of the latest correction that could have changed them. |
 | **Amended since published** | A published race has been corrected, and the committee has not yet sent the updated results. The page shows the results as they now stand. |
 | **Handicaps adjusted with: ...** | Under a race's results: the series uses one or both of the optional NHC steps when working out the next handicaps. See [A series' scoring rules](../committee/scoring-rules.md). |
+| **NS** | In an RYA YTC series, beside a boat's number: she raced on her non-spinnaker YTC number, because she sailed without a spinnaker or other downwind sail. See [Handicap systems](../committee/handicap-systems.md). |
 | **SCP** | Beside a boat's points: the boat finished and kept her place, but took a scoring penalty (RRS 44.3(c)), so it scored 20% of the Did Not Finish score more. See [How results are worked out](how-results-are-worked-out.md#a-scoring-penalty-scp). |
 | **†** | Next to a boat's next handicap (with More detail): its result was capped as extreme when working out that handicap. Its times, place and points are as recorded. |
 | **Final Results** | The race committee has declared the series over. Its standings are the final places, and it can no longer change. |

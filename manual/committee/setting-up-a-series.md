@@ -10,8 +10,8 @@ whenever something changes.
 ## Starting a series
 
 In the [race office](race-office.md), follow **New series**. Give it a name,
-choose its [handicap system](handicap-systems.md) (NHC or Portsmouth
-Yardstick), choose whether it's a **club series** or a **regatta**, and set its
+choose its [handicap system](handicap-systems.md) (NHC, Portsmouth
+Yardstick or RYA YTC), choose whether it's a **club series** or a **regatta**, and set its
 [scoring rules](scoring-rules.md). Press **Create the series** and you're
 taken to the series' page.
 
@@ -56,7 +56,8 @@ Every boat entered, and how many results each has.
 - **Enter boats** lists the club's boats not yet in the series. Tick each one
   to enter and press **Enter**. If the list is long, search first: the boats
   you've ticked stay ticked while you search. Each owner is emailed that their
-  boat is entered.
+  boat is entered. In an RYA YTC series, a boat with two YTC numbers is also
+  asked which she races on (see [Handicap systems](handicap-systems.md)).
 
   ![Entering boats in a series: a search box and a tick box for each of the club's boats not yet entered](../images/office-enter-boats.png)
 
@@ -70,7 +71,7 @@ boats are scored, so it needs a reason, like any other correction.
 
 A boat must be on the club's list before it can be entered, and must have the
 number the series' [handicap system](handicap-systems.md) needs (an NHC base
-number or a Portsmouth Number): see [Setting up boats](setting-up-boats.md).
+number, a Portsmouth Number or a YTC number): see [Setting up boats](setting-up-boats.md).
 
 ## A final series
 

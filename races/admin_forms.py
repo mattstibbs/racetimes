@@ -13,7 +13,7 @@ from django.forms.models import BaseInlineFormSet
 
 from . import audit, final
 from .audit import AuditedFormMixin
-from .models import Race, SeriesEntry
+from .models import YTC_NUMBER_FIELDS, Race, Series, SeriesEntry
 from .office_forms import BoatForm, SeriesForm, reason_field
 
 
@@ -42,8 +42,53 @@ class AuditedInlineForm(AuditedFormMixin, forms.ModelForm):
         return self.data.get("reason", "").strip()
 
 
+class EntryInlineForm(AuditedInlineForm):
+    """A series entry row: the boat, and under RYA YTC which number she races on.
+
+    The choice may be left blank: a new entry then takes the boat's own default
+    (slice 25), and outside a YTC series the choice means nothing, so it is
+    always the default and never recorded.
+    """
+
+    # Set by the formset: the system the series form was submitted with.
+    series_system = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "ytc_number_used" in self.fields:
+            self.fields["ytc_number_used"].required = False
+
+    def has_changed(self):
+        # A choice left blank is not a change: it keeps what the row has.
+        if not self.data.get(self.add_prefix("ytc_number_used")):
+            return bool(set(self.changed_data) - {"ytc_number_used"})
+        return super().has_changed()
+
+    def clean(self):
+        cleaned = super().clean()
+        used = cleaned.get("ytc_number_used")
+        boat = cleaned.get("boat")
+        if self.series_system != Series.HandicapSystem.YTC:
+            cleaned["ytc_number_used"] = SeriesEntry.NumberUsed.SPINNAKER
+        elif not used:
+            cleaned["ytc_number_used"] = (
+                self.instance.ytc_number_used
+                if self.instance.pk
+                else SeriesEntry.default_number_used(boat)
+                if boat
+                else None
+            )
+        return cleaned
+
+
 class AuditedInlineFormSet(BaseInlineFormSet):
     """Records rows removed from the series form, and requires a reason where due."""
+
+    def _construct_form(self, i, **kwargs):
+        form = super()._construct_form(i, **kwargs)
+        if isinstance(form, EntryInlineForm):
+            form.series_system = self.instance.handicap_system
+        return form
 
     def clean(self):
         super().clean()
@@ -77,6 +122,19 @@ class AuditedInlineFormSet(BaseInlineFormSet):
                 continue
             if self.instance.boats_lack(boat):
                 form.add_error("boat", self.instance.lacks_number_message(boat))
+                continue
+            # Under RYA YTC, the number the entry chose must be one she has
+            # (slice 25); she may have the other but not this.
+            used = form.cleaned_data.get("ytc_number_used")
+            if self.instance.handicap_system == Series.HandicapSystem.YTC and used:
+                field = {v: k for k, v in YTC_NUMBER_FIELDS.items()}[used]
+                if getattr(boat, field) is None:
+                    label = boat._meta.get_field(field).verbose_name
+                    form.add_error(
+                        "ytc_number_used",
+                        f"{boat} has no {label}. Choose the number she has, or "
+                        "give her this one first.",
+                    )
 
     def changes_to_record(self):
         """Added and changed rows; valid only after the formset has been validated."""

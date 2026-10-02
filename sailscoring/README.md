@@ -148,11 +148,13 @@ A `None` handicap field means *this pass did not compute it*, which is distinct
 from a genuine zero - a boat that did not finish earns an `adjustment_scale` of
 `0.0`, while a race below the finisher threshold leaves it `None`.
 
-### Fixed-number series (Portsmouth Yardstick)
+### Fixed-number series (Portsmouth Yardstick, RYA YTC)
 
 A boat races on one number for the whole series. Nothing is adjusted after a
 race, so there is no minimum finishers threshold, no regatta, no capping and no
-realignment. Corrected time is `elapsed x 1000 / PN`. Places, points, discards
+realignment. Corrected time is `elapsed x 1000 / number`, for both systems (the Portsmouth
+Number, or the RYA YTC number). The engine knows nothing about spinnakers: a YTC
+boat has two numbers on her certificate, and the caller passes whichever she races on. Places, points, discards
 and standings are exactly as for NHC, and `SeriesRace` and `Finish` are the
 same types.
 
@@ -160,7 +162,7 @@ same types.
 | --- | --- |
 | `FixedNumberBoat(boat_id, number, name="")` | A boat and its number. `number` is required, positive and finite; it need not be whole |
 | `FixedNumberSeries(boats, races, system, apply_a5_3=False, discards=1, discard_threshold=0)` | The boats, their races (the same `SeriesRace`) and the rules they are scored under |
-| `FixedNumberSystem` | `PY`, the RYA Portsmouth Yardstick |
+| `FixedNumberSystem` | `PY`, the RYA Portsmouth Yardstick, or `YTC`, RYA YTC |
 | `score_fixed_number_series(series)` | Scores every race, and returns a `FixedNumberOutcome` |
 | `FixedNumberOutcome` | `.system`, `.races`, `.standings`, `.race(race_id)` |
 | `FixedNumberResult` | One boat in one race: `.number` (what she raced on), `.elapsed_seconds`, `.corrected_time`, `.position`, `.points`, `.scoring_penalty`, `.penalty_points`. No handicap fields |
@@ -312,7 +314,7 @@ failure there is a defect in this package, never a fixture to adjust.
   Yardstick notice of race may allow, needs a number per race and is not
   implemented.
 - **Rounding corrected times before ranking**, under any system.
-- **Fixed-number systems other than Portsmouth Yardstick.**
+- **Fixed-number systems other than Portsmouth Yardstick and RYA YTC.**
 - **Multiple starts per race, and pursuit races**, both out of scope for this
   slice.
 
@@ -330,6 +332,11 @@ rather than against the RYA's own numbers.
   silent on the formula, so the scheme's published `elapsed x 1000 / PN` is used,
   and on rounding, so times are kept at full precision. Worked examples PY-1 and
   PY-2 are in `tests/fixtures/portsmouth_yardstick.yaml`.
+- RYA YTC: the RYA YTC 2026 Policy and Procedures,
+  `docs/reference/RYA-YTC-Policy-and-Procedures-2026.pdf`. Section 6.2 gives
+  `elapsed x 1000 / YTC number`; it says nothing on rounding, so times are kept
+  at full precision. Worked examples YTC-1 and YTC-2 are in
+  `tests/fixtures/ytc.yaml`.
 
 Where this implementation and those documents disagree, the documents win.
 

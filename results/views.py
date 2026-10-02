@@ -299,7 +299,16 @@ def _next_handicap(entry, results, races):
     if results.error:
         return None
     if results.series.is_fixed_number:
-        return {"fixed": True, "number": entry.boat.py_number}
+        # What she raced on, so a final series keeps the number it was declared
+        # with; before any race, the number her entry will race on (slice 25).
+        number = entry.number
+        if results.races:
+            number = results.races[-1].for_entry(entry).raced_on
+        return {
+            "fixed": True,
+            "number": number,
+            "non_spinnaker": entry.is_non_spinnaker,
+        }
     if not results.races:
         return {
             "race": races[0] if races else None,
