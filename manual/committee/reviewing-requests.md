@@ -35,7 +35,7 @@ are asking for.
 ### The four kinds of request
 
 **Register a boat.** A member wants a boat added to the club's records. You
-see all the details they entered. Check the NHC base number against their RYA
+see all the details they entered. Check the NHC base number (or YTC numbers) against their RYA
 certificate or the RYA's published list before approving: it is used in every
 result the boat sails.
 
@@ -58,6 +58,8 @@ nothing else about the boat changes.
 ![A request to be recorded as the owner of a boat already on record](../images/request-claim.png)
 
 **Enter a series.** A member wants to enter one of their boats in a series.
+For an RYA YTC series it also says which of the boat's two YTC numbers she
+would race on. If the boat has since lost that number, approving is refused.
 When you approve it, the boat is entered in the series, and is scored in every
 race of it from then on.
 

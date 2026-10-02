@@ -6,9 +6,9 @@ This page walks through exactly what Race Times does with a race. It starts
 with the numbers you give it and ends with each boat's handicap for its next
 race. Every step is simple arithmetic: adding, multiplying and dividing.
 
-This page is about NHC. A series can instead use the Portsmouth Yardstick,
-where each boat has a fixed number and corrected time is simply elapsed time
-times 1000 divided by that number; steps 1 to 3 below are then the same, and
+This page is about NHC. A series can instead use the Portsmouth Yardstick or
+RYA YTC, where each boat has a fixed number and corrected time is simply
+elapsed time times 1000 divided by that number; steps 1 to 3 below are then the same, and
 step 4 doesn't happen, since nothing changes. See
 [Handicap systems](../committee/handicap-systems.md).
 

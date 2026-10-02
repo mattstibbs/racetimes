@@ -10,7 +10,7 @@ the race committee can add and change boats directly here.
 
 In the [race office](race-office.md), follow **The club's boats**. Every boat
 is listed by sail number, with its name, make, model, NHC base number,
-Portsmouth Number and owner.
+Portsmouth Number, YTC numbers and owner.
 
 ![The club's boats: sail number, name, make, model, base number and owner, with a search box](../images/office-boats.png)
 
@@ -34,9 +34,12 @@ the sail number and at least one number (below) are required.
   0.964. An NHC series starts each boat on it.
 - **Portsmouth Number (PN)** is the boat's Portsmouth Yardstick number, such
   as 1072. A Portsmouth Yardstick series uses it for every race.
+- **YTC number** and **Non-spinnaker YTC number** are the two numbers on the
+  boat's RYA YTC certificate (or the club's own), such as 873 and 899. A series
+  entry chooses which of them the boat races on.
 
 A boat needs the number of every series she's entered in, so give her the
-one or both that she'll use. See
+ones she'll use. See
 [Handicap systems](handicap-systems.md).
 
 ## Changing a boat
@@ -49,7 +52,8 @@ the old and the new owner are told.
 
 Changing a boat's **NHC base number** changes the handicaps in every NHC series
 it's entered in, and changing her **Portsmouth Number** changes the results in
-every Portsmouth Yardstick series. Once the boat has results, the page shows a **Reason for
+every Portsmouth Yardstick series. A YTC number changes the series where a
+boat is entered on that number. Once the boat has results, the page shows a **Reason for
 change** box, and a new base number needs a reason: it is a correction, and
 it's recorded in each series' history with your name and the reason. After
 saving, the page says what the change moved in each series, such as

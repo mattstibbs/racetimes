@@ -38,6 +38,10 @@ tell them yourself. Changing the persons on board sends nothing.
 You can add a boat at any time, even after the race. If a boat raced but was
 missed off, add it on the start sheet, then record its finish.
 
+In an RYA YTC series, a boat racing on her non-spinnaker number is marked
+**NS** beside her name here and on the Finishing view, so you know which boats
+shouldn't be flying a spinnaker.
+
 ### Taking a boat off
 
 Untick **Racing**. Once a boat has a finish time or a code recorded in the

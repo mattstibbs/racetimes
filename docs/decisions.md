@@ -2212,6 +2212,41 @@ points and standings (RRS Appendix A) are shared by every system.
 modules, and everything shown on the site. Earlier entries here and the
 completed slice specs say `nhc/` because that was its name then.
 
+## 2026-10-02 - Slice 25 part B: RYA YTC series on the site
+
+**Decision.** `Series.handicap_system` gains `YTC`. A boat has two optional
+numbers, `ytc_number` and `ytc_number_non_spinnaker`, and each `SeriesEntry`
+chooses which she races on (`ytc_number_used`, default `SPINNAKER`). The engine
+knows nothing about spinnakers: `FixedNumberSystem.YTC` uses the same formula
+as Portsmouth Yardstick (elapsed x 1000 / number) and the site's bridge hands
+it whichever number the entry chose (`SeriesEntry.number`).
+
+**Why the choice is on the entry.** One number per boat couldn't put the same
+boat in a spinnaker series and a white-sail series at once (the owner's
+decision).
+
+**Rules.** A boat needs a number of some kind (now four fields). Entering her
+in a YTC series needs either YTC number, and the entry's choice must be one she
+has: checked in the race office, the admin, member requests (at asking and
+again at approving) and the model. A number can't be cleared while an entry
+races on it, but the other can. Switching a series to YTC puts each entry on
+the boat's YTC number (or her only one) and refuses, naming boats, if one has
+neither; switching away resets the choice. The reset and the default are
+silent: the change of system is the row in the history.
+
+**Audit.** The two boat numbers and `ytc_number_used` are audited fields.
+`ytc_number_used` is recorded only for a YTC series (it means nothing
+elsewhere). A boat-number change is written to the history of each series with
+an entry on that number, and is a correction only there; a number nobody races
+on is not a correction even if she has raced on her other one.
+
+**Smaller choices.** "NS" is shown beside the number everywhere it is shown
+(results, boat page, race day page, the email and the CSV, where it is text in
+the number cell with a note row). The boat page sentence reads the number from
+the stored results, so a final series keeps what she raced on. Temporary
+numbers (section 4.6) are out of scope, as the spec says, and the manual says
+so. One schema migration, 0025, with no data migration.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.
