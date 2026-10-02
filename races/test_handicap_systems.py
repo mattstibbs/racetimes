@@ -455,6 +455,34 @@ def test_the_office_names_every_boat_that_lacks_the_number(committee_client, py_
     assert "Nhc Only (N1), Spare (N2) have no Portsmouth Number (PN)" in page
 
 
+def test_the_enter_boats_list_says_why_a_boat_cant_be_ticked(
+    committee_client, py_boats
+):
+    series = make_series("Gaffers", handicap_system="PY")
+    page = committee_client.get(
+        reverse("races:office_enter_boats", args=[series.pk])
+    ).content.decode()
+    # Boats with a PN can be ticked; the NHC-only boat is listed, disabled, with why.
+    assert f'value="{py_boats["swift"].pk}"' in page
+    assert f'value="{py_boats["both"].pk}"' in page
+    assert f'value="{py_boats["nhc"].pk}"' not in page
+    assert "Nhc Only (N1) <span" in page and "has no Portsmouth Number (PN)" in page
+    assert '<input type="checkbox" disabled>' in page
+
+
+def test_an_nhc_series_lists_every_boat_as_tickable_that_has_a_base_number(
+    committee_client, py_boats
+):
+    series = make_series("Autumn")
+    page = committee_client.get(
+        reverse("races:office_enter_boats", args=[series.pk])
+    ).content.decode()
+    assert f'value="{py_boats["nhc"].pk}"' in page
+    assert f'value="{py_boats["both"].pk}"' in page
+    assert f'value="{py_boats["swift"].pk}"' not in page
+    assert "Swift (PY1) <span" in page and "has no NHC base number" in page
+
+
 def test_the_office_enters_boats_that_have_the_number(committee_client, py_boats):
     series = make_series("Gaffers", handicap_system="PY")
     response = office_enter(

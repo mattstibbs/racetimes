@@ -67,6 +67,8 @@ way every boat, entry and result has been checked by someone on the committee.
 - [A series' scoring rules](committee/scoring-rules.md): discards (and when they begin), minimum
   finishers, RRS A5.3, and the optional NHC steps (capping extreme results,
   realigning to base handicaps).
+- [Handicap systems: NHC and Portsmouth Yardstick](committee/handicap-systems.md):
+  choosing a system for a series, and the number each boat needs.
 - [Ending a series: final results](committee/ending-a-series.md): declaring
   a series final, emailing owners their final places, and reopening it.
 - [Reviewing waiting requests](committee/reviewing-requests.md): finding out

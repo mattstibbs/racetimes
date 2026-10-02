@@ -1,7 +1,13 @@
 <fieldset id="boat-choices" class="boat-choices" aria-label="Boats to enter" aria-live="polite">
   {% for boat in boats %}
+  {% if boat.pk in lacking %}
+  {# Slice 24: a boat without this series' number can't be entered, so say why. #}
+  <label><input type="checkbox" disabled>
+    {{ boat }} <span class="muted">has no {{ series.number_label }}, which this series needs</span></label>
+  {% else %}
   <label><input type="checkbox" name="boat" value="{{ boat.pk }}"{% if boat.pk|stringformat:"d" in ticked %} checked{% endif %}>
     {{ boat }}{% if boat.owner_display %} <span class="muted">{{ boat.owner_display }}</span>{% endif %}</label>
+  {% endif %}
   {% empty %}
   <p class="muted">No boats match &ldquo;{{ query }}&rdquo;.</p>
   {% endfor %}
