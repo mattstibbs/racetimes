@@ -821,7 +821,7 @@ The owner checked worked examples DT-1 and SP-1 to SP-6 (2026-10-02), so
 nothing is left to answer. They are fixtures in `tests/fixtures/`
 (`discard_threshold.yaml`, `scoring_penalty.yaml`).
 
-## Slice 24: Portsmouth Number series. **Status: part A (the engine) complete, part B (the site) in progress (2026-10-02)**
+## Slice 24: Portsmouth Number series. **Status: complete (2026-10-02)**
 
 Spec: `docs/slices/24-portsmouth-number-series.md`. Built in two parts.
 **Part A, the engine, is complete** (PR #50): `nhc/fixed_number.py`, with
