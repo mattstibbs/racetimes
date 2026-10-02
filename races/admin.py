@@ -23,6 +23,7 @@ from .admin_forms import (
     AuditedInlineForm,
     AuditedInlineFormSet,
     BoatAdminForm,
+    EntryInlineForm,
     RaceInlineFormSet,
     SeriesAdminForm,
 )
@@ -197,7 +198,8 @@ class BoatAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
 
 class SeriesEntryInline(ClubScopedInline, admin.TabularInline):
     model = SeriesEntry
-    form = AuditedInlineForm
+    form = EntryInlineForm
+    fields = ["boat", "ytc_number_used"]
     formset = AuditedInlineFormSet
     extra = 0
     autocomplete_fields = ["boat"]
@@ -306,7 +308,10 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
             else None
         )
         form.recorded = []
+        was = form.scoring_before.series.handicap_system if change else None
         super().save_model(request, obj, form, change)
+        if was is not None:
+            obj.align_entries_with_system(was)
         form.recorded += audit.record(
             form.scoring_changes, request.user, form.cleaned_data["reason"]
         )

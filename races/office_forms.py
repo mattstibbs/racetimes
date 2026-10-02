@@ -136,6 +136,8 @@ class BoatForm(ReasonWhereItAppliesMixin, forms.ModelForm):
             "waterline_length_m",
             "base_number",
             "py_number",
+            "ytc_number",
+            "ytc_number_non_spinnaker",
         ]
         help_texts = {"owner_name": "For a boat whose owner has no account here."}
 
@@ -272,7 +274,17 @@ class SeriesForm(ReasonWhereItAppliesMixin, forms.ModelForm):
             if series.pk
             else None
         )
+        was = (
+            Series.objects.for_club(series.club)
+            .filter(pk=series.pk)
+            .values_list("handicap_system", flat=True)
+            .first()
+            if series.pk
+            else None
+        )
         series.save()
+        if was is not None:
+            series.align_entries_with_system(was)
         recorded = audit.record(
             self.scoring_changes, request.user, self.cleaned_data.get("reason", "")
         )

@@ -19,6 +19,7 @@ from django.utils.text import capfirst
 
 from .models import (
     NUMBER_FIELDS,
+    YTC_NUMBER_FIELDS,
     Boat,
     Finish,
     Race,
@@ -44,9 +45,32 @@ AUDITED_FIELDS = {
         "nhc_cap_extremes",
         "nhc_realign_to_base",
     ],
-    SeriesEntry: [],  # only being added or removed matters (the A5.2 entry count)
-    Boat: ["base_number", "py_number"],
+    # Being added or removed matters (the A5.2 entry count). So does, in a YTC
+    # series only (slice 25), which of her two numbers the boat races on; see
+    # fields_for.
+    SeriesEntry: ["ytc_number_used"],
+    Boat: ["base_number", "py_number", "ytc_number", "ytc_number_non_spinnaker"],
 }
+
+
+def fields_for(obj):
+    """The audited fields that mean something for this row.
+
+    An entry's choice of number means nothing outside a YTC series (slice 25),
+    so it is not recorded there.
+    """
+    fields = AUDITED_FIELDS[type(obj)]
+    if isinstance(obj, SeriesEntry) and not _series_is_ytc(obj):
+        return [name for name in fields if name != "ytc_number_used"]
+    return fields
+
+
+def _series_is_ytc(entry):
+    try:
+        return entry.series.handicap_system == Series.HandicapSystem.YTC
+    except Series.DoesNotExist:  # an entry whose series is not set yet
+        return False
+
 
 KINDS = {
     Finish: ScoringChange.Kind.FINISH,
@@ -70,7 +94,7 @@ def changes_to_save(obj):
     Compares ``obj`` with its stored row, so call it after the form has
     updated the instance and before saving it. Empty if nothing audited changed.
     """
-    fields = AUDITED_FIELDS[type(obj)]
+    fields = fields_for(obj)
     stored = type(obj)._default_manager.filter(pk=obj.pk).first() if obj.pk else None
     if stored is None:
         if isinstance(obj, _CREATION_NOT_AUDITED):
@@ -90,10 +114,7 @@ def changes_to_save(obj):
 
 def changes_to_delete(obj):
     """The unsaved ScoringChange rows that deleting ``obj`` would record."""
-    changes = {
-        _label(obj, name): [_display(obj, name), ""]
-        for name in AUDITED_FIELDS[type(obj)]
-    }
+    changes = {_label(obj, name): [_display(obj, name), ""] for name in fields_for(obj)}
     return _rows(obj, ScoringChange.Action.REMOVED, changes)
 
 
@@ -147,17 +168,31 @@ def _rows(obj, action, changes):
     # complete without looking anywhere else. A change that touched no series
     # at all (a boat in none, or only in series that don't use that number) is
     # kept in one row for the club, so it is still recorded.
+    # A YTC number (slice 25) feeds a series only through the entries that chose
+    # it, so a change to one the boat is not entered on touches no series.
     series_list = (
         list(Series.objects.filter(entries__boat=obj).distinct()) if obj.pk else []
     )
     system_of_label = {_label(obj, field): s for field, s in NUMBER_FIELDS.items()}
+    ytc_label = {_label(obj, field): used for field, used in YTC_NUMBER_FIELDS.items()}
+    chose = {}  # series pk -> the YTC choices its entries for this boat made
+    if obj.pk:
+        for series_id, used in SeriesEntry.objects.filter(
+            boat=obj, series__handicap_system=Series.HandicapSystem.YTC
+        ).values_list("series_id", "ytc_number_used"):
+            chose.setdefault(series_id, set()).add(used)
+
+    def touches(label, series):
+        if label in ytc_label:
+            return ytc_label[label] in chose.get(series.pk, ())
+        return system_of_label.get(label, series.handicap_system) == (
+            series.handicap_system
+        )
+
     rows, covered = [], set()
     for series in series_list:
         mine = {
-            label: change
-            for label, change in changes.items()
-            if system_of_label.get(label, series.handicap_system)
-            == series.handicap_system
+            label: change for label, change in changes.items() if touches(label, series)
         }
         if mine:
             rows.append(row(series, None, series_has_finishes(series), mine))
