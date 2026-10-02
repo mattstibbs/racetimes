@@ -1840,6 +1840,259 @@ it is told to contact Race Times (`SERVICE_CONTACT_EMAIL`) instead.
 
 ---
 
+## 2026-10-02 - Portsmouth Yardstick moves from slice 8 to slice 24
+
+**Context.** Slice 8 (on hold) proposed two fixed-number systems together,
+Portsmouth Yardstick and RYA YTC. Portsmouth Yardstick is now wanted on its
+own, for clubs that race a fleet on Portsmouth Numbers, and YTC is still
+waiting on its reference documents.
+
+**Decision.** At the project owner's request, everything about Portsmouth
+Yardstick (the formula, the series setting, boats' numbers, the engine, the
+data model proposal, the manual, worked example PY-1 and the open question
+on rounding) moved to a slice of its own, slice 24. Slice 8's spec is cut
+down to RYA YTC. Slice 23 (a discard threshold and the scoring penalty) is
+separate, and neither depends on the other.
+
+**Consequence.** Slice 24 introduces the per-series handicap system
+setting, and slice 8 adds a choice to it, so slice 8 can't be built first.
+Slices 23 and 24 are drafts: their data model changes are still unapproved. PY-1 was
+corrected on the way: it said the fastest boat has the highest number, where
+it is the lowest.
+
+---
+
+## 2026-10-02 - Slice 23: the owner's answers on the discard threshold and the scoring penalty
+
+**Context.** Slice 23's draft spec was reviewed against the RRS 2025-2028 in
+`docs/reference/` and the code, and its open questions put to the project
+owner, with six more the review raised.
+
+**Decision.** The owner said yes to every recommendation:
+
+- **Both data model changes are approved:** `Series.discard_threshold` (a
+  whole number, default 0) and `Finish.scoring_penalty` (a boolean, with a
+  check constraint that only a finished row has one).
+- **One threshold, not a schedule.** "1 discard after 4 races, 2 after 8"
+  would need a different data model, and no club has asked for it.
+- **The threshold defaults to 0 for new series as well**, so a series
+  behaves as today unless the committee sets one.
+- **A tick, not a count:** one scoring penalty per boat per race, though RRS
+  44.3 allows one for each incident.
+- **20% of the Did Not Finish score only**, with no setting for a different
+  number of points.
+- **A penalised boat's handicap moves as any finisher's does.** The penalty
+  is about a rule, not her speed, and the RYA's NHC spec is silent.
+- **The 2025-2028 rule** (tenths of a point), not an older edition's whole
+  number of places.
+- **The WhatsApp race message marks a penalised boat "(SCP)".** It lists
+  places and no points, so without the mark nothing would say she scored
+  worse than the boat behind her.
+
+**Why the engine will count in tenths.** Every score is a whole number of
+tenths: place points are multiples of 0.5, and 20% of a whole DNF score is a
+multiple of 0.2. Binary floats don't hold tenths exactly, so worked example
+SP-6 was written to catch it: 2.4 + 4.4 and 3.4 + 3.4 are both 6.8, but as
+floats the first comes out a hair larger, and an engine comparing floats
+would miss the tie and rank the two boats the wrong way round.
+
+**Consequence.** The spec gained SP-6 and a fifth race on DT-1 (the
+threshold at N+1), the WhatsApp message, and the rewording of the engine
+README's "A discard schedule" entry. Nothing is built: the worked examples
+(DT-1, SP-1 to SP-6) are still to be checked by the owner before they become
+fixtures.
+
+---
+
+## 2026-10-02 - One scoring engine for every handicap system; YTC moves to slice 25, which renames it
+
+**Context.** With Portsmouth Yardstick (slice 24) and RYA YTC to come, the
+project owner asked whether each scoring method should be a library of its
+own, given how much work went into keeping the engine independent of the
+app. Slice 0 asked for "a pure Python package that scores a handicap series
+under NHC rules", with no Django, no database and no I/O.
+
+**Decision.** The owner decided four things:
+
+- **RYA YTC moves from slice 8 to a new slice 25.** Slice 8 has nothing
+  left, and its spec is now a short note marked superseded.
+- **The package is renamed as part of slice 25**, in a pull request of its
+  own (part A), so it stays one engine under a name that fits. Slice 24
+  keeps the name `nhc`.
+- **The new name is `sailscoring`.** It fits any handicap system, and can't
+  be confused with the app's own `races/scoring.py`.
+- **Inside the engine, each kind of handicap system has its own module.**
+  Slice 24 adds `fixed_number.py` for Portsmouth Yardstick (and YTC later),
+  with its own boat, series and result types, calling the shared ranking,
+  points and standings code. Slice 24's engine section was rewritten to
+  this.
+
+**Why one engine.** About half of `nhc/` isn't NHC: places, points, ties,
+discards and standings are RRS Appendix A (`points.py`, `standings.py`), and
+every handicap system uses them unchanged. A fixed-number system adds one
+formula and "nothing moves". A library per system would either copy the
+Appendix A rules, so that a fix (or slice 23's threshold and scoring
+penalty) has to be made twice, or depend on a third shared library, which
+turns "copy one folder" into three packages to keep in step. The
+independence slice 0 promised is about imports and I/O, not scope:
+`tests/test_package_purity.py` scans every file in the package, whatever
+systems it holds.
+
+**Why the rename is its own pull request.** It touches two app modules, one
+app test, about a dozen engine test files, Ruff's configuration and a CI
+job, and changes no behaviour. Kept apart, it can be reviewed as "only
+import lines changed". Nothing in the database carries the package's name,
+so no migration is needed.
+
+**Why a module of its own, not a setting on the NHC types.** Slice 24's
+first draft gave `nhc.Boat` an optional `py_number`, made `base_number`
+required only for NHC, and left a result's NHC-only fields empty under
+Portsmouth Yardstick. That loosens a check the NHC path relies on (every
+boat has a valid base number, refused when the boat is built), and makes one
+type mean two things. With separate types, the NHC types don't change at
+all, a fixed-number series has nowhere to put an NHC-only setting, and a
+rounding rule for one system (if its reference documents ask for one) can't
+leak into another. The two sides share only what is the same for both: the
+Appendix A ranking, points and standings, the finishes a race officer
+records, and the checks every series needs. A test will check that the
+fixed-number module and the NHC modules don't import each other.
+
+**Consequence.** Slice 24 makes three small moves in existing engine code,
+none of which changes behaviour: the ranking helper in `scoring.py` gets a
+public name, `SeriesRace` and `RaceOutcome` move from `series.py` to
+`domain.py` (still exported under the same names), and the checks every
+series shares move into one helper. YTC (slice 25, part B) then adds a value
+and a formula to the fixed-number module and touches no NHC code.
+
+---
+
+## 2026-10-02 - Slice 25: a boat holds both YTC numbers, and a series entry chooses one
+
+**Context.** The project owner added the RYA YTC reference document
+(`docs/reference/RYA-YTC-Policy-and-Procedures-2026.pdf`; the 2024 edition
+first, replaced the same day by the current one, which says the same on
+every point used here). It confirms what
+the draft assumed: corrected time is elapsed x 1000 / YTC number (section
+6.2), and a YTC number is whole (the example certificate, Appendix C). It
+also shows something the draft didn't allow for: a certificate carries two
+numbers, a "YTC Rating" (873 in the example) and a "Non Spinnaker YTC
+Rating" (899), for a boat racing without a spinnaker or other downwind sail.
+
+**Decision.** At the owner's direction, a boat stores both numbers, and
+which one she races on is chosen on her series entry. The fields proposed
+are `Boat.ytc_number`, `Boat.ytc_number_non_spinnaker` and
+`SeriesEntry.ytc_number_used`, with matching fields on the member requests.
+The owner approved them the same day, with the `YTC` choice on
+`Series.handicap_system`.
+
+**Why on the entry.** One number per boat, with the committee typing
+whichever applies, couldn't put the same boat in a spinnaker series and a
+white-sail series at the same time. On the series, as a "white sail series"
+setting, it couldn't mix the two in one fleet. On the entry, both work. It
+is the first setting a series entry has had, so entries gain a way to be
+changed, with the change audited as a correction once the series has
+results.
+
+**Why the engine doesn't change for it.** The engine's fixed-number boat
+has one `number`. Which of a boat's two numbers that is, is the site's
+business: the bridge in `races/scoring.py` picks it from the entry. The
+engine knows nothing about spinnakers.
+
+**Consequence.** A boat on her non-spinnaker number is marked "NS" wherever
+her handicap is shown, and on the race day page, so the committee on the
+water knows who shouldn't fly a spinnaker. The choice is for the whole
+series, not race by race.
+
+**The owner's other answers for slice 25.**
+
+- **No rounding before ranking.** The reference document is silent, so YTC
+  follows NHC: corrected times are compared at full precision and rounded
+  only for display. Two boats a fraction of a second apart are not tied,
+  even when the pages show them the same time (worked example YTC-2).
+- **Temporary numbers are out of scope.** Section 4.6 says results sailed on
+  a temporary number aren't altered retrospectively. The site rescores when
+  a number changes, and honouring 4.6 during a series would need a number
+  per race or numbers with dates. The manual says what happens, and that a
+  committee wanting the earlier results to stand keeps the temporary number
+  until the series is final.
+- **NHC stays the default for a new series.** The committee chooses YTC
+  series by series.
+
+Still open: the owner's check of worked examples YTC-1 and YTC-2.
+
+---
+
+## 2026-10-02 - Slice 24: the owner's answers, and what the PY reference document does and doesn't say
+
+**Context.** The project owner added the RYA Portsmouth Yardstick Scheme's
+sample notice of race wording
+(`docs/reference/PY_Notice_of_Race_and_Sailing_Instructions_Advice.pdf`) and
+said yes to the recommendations on slice 24's open questions.
+
+**Decision.**
+
+- **The data model is approved:** `Series.handicap_system`,
+  `Boat.py_number`, `BoatRequest.py_number`, and `Boat.base_number` (with
+  `BoatRequest.base_number`) becoming optional, so a boat that only races on
+  a PN needs no invented NHC base number.
+- **No rounding before ranking.** The reference document is silent, so
+  Portsmouth Yardstick follows NHC, as YTC does: corrected times are
+  compared at full precision and rounded only for display (worked example
+  PY-2).
+
+**What the document doesn't settle.** It is advice on wording a notice of
+race, not a statement of how PY is calculated:
+
+- **It doesn't give the formula.** The spec uses corrected time = elapsed x
+  1000 / PN, the scheme's published formula and the form the RYA YTC
+  document gives for YTC. That is still not backed by a document in
+  `docs/reference/`, and is an open question for the owner.
+- **It allows a PN to change during a series, for later races only.** Its
+  sample wording offers "PN's shall not be adjusted for the duration of the
+  event", or adjustments (and a change of configuration) that "shall not be
+  retrospectively applied to finished races". The site holds one PN for a
+  boat and rescores on a change, so it fits only the first. The YTC document
+  says the same of temporary numbers, which the owner put out of scope. The
+  same is recommended here and is open; supporting it for both systems
+  would be a slice of its own (a number per race, or numbers with dates).
+
+**Consequence.** Slice 24 has three things left before building: those two
+questions, and the owner's check of worked examples PY-1 and PY-2.
+
+---
+
+## 2026-10-02 - Slices 23, 24 and 25 are ready to build: the worked examples are checked
+
+**Context.** Three draft slices each waited on the project owner's check of
+their hand-worked examples, and slice 24 on two questions its reference
+document raised.
+
+**Decision.**
+
+- **The worked examples are right**, the owner says: DT-1 and SP-1 to SP-6
+  (slice 23), PY-1 and PY-2 (slice 24), YTC-1 and YTC-2 (slice 25). Each
+  becomes a fixture in `tests/fixtures/` when its slice is built, exactly as
+  written in its spec. Their provenance: worked by hand from the rules, not
+  with the engine; the arithmetic checked a second time (by hand for slice
+  23, with plain Python and no engine code for slices 24 and 25); checked by
+  the owner on 2026-10-02.
+- **Portsmouth Yardstick is built on corrected time = elapsed x 1000 / PN**,
+  though the reference document in the repo doesn't state it. It is the
+  scheme's published formula, and the form the RYA YTC document gives for
+  YTC.
+- **A PN that changes during a series, for later races only, is out of
+  scope**, with a note in the manual, like YTC's temporary numbers. The site
+  holds one number and rescores on a change. Both reference documents allow
+  the other behaviour, so a later slice may add a number per race, or
+  numbers with dates, for both systems.
+
+**Consequence.** No slice has an open question. The order to build in:
+slice 23 (part A, then part B), slice 24, then slice 25 (part A, the rename
+to `sailscoring`, then part B). Slice 23 and slice 24 don't depend on each
+other; slice 25 needs slice 24.
+
+---
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

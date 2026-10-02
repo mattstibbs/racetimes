@@ -286,15 +286,13 @@ A clean, simple, modern look for every page of the site: neutral nautical
 colours, the device's own font, light only, and the Django admin left as it
 is.
 
-## Slice 8: other handicap systems. **Status: on hold (2026-09-24)**
+## Slice 8: other handicap systems. **Status: superseded (2026-10-02)**
 
-Spec: `docs/slices/08-handicap-systems.md`, a draft parked by the project
-owner before any code was written. It proposes data model changes, not yet
-approved, and lists the open questions to answer before building.
-
-A series chooses its handicap system: NHC as today, Portsmouth Yardstick or
-RYA YTC. PY and YTC are fixed numbers, so nothing moves after a race. Places,
-points and standings are RRS Appendix A under all three.
+Spec: `docs/slices/08-handicap-systems.md`, now a short note of what happened
+to it. Nothing was built under this number. It was drafted to score a series
+under Portsmouth Yardstick or RYA YTC, and parked by the project owner on
+2026-09-24 before any code was written. On 2026-10-02 its two halves moved
+out: Portsmouth Yardstick to slice 24, and RYA YTC to slice 25.
 
 ## Slice 9: the race day page. **Status: complete (2026-09-24)**
 
@@ -800,3 +798,79 @@ each change is in the operator log, and the club's address stays fixed.
 The owner said yes to all three recommendations: new operator log actions
 (migration 0021, choices only), the club's administrators are emailed, and the
 contact email is in the same section.
+
+## Slice 23: a discard threshold and the scoring penalty. **Status: ready to build (2026-10-02)**
+
+Spec: `docs/slices/23-discard-threshold-and-scoring-penalty.md`. Nothing is
+built. Two rules club sailing instructions rely on, each its own pull request:
+
+- **Part A: "no discard until N races"** (RRS A2.1). A series gains a
+  threshold: no score is excluded until that many races are scored. 0, the
+  default, is today's behaviour.
+- **Part B: the scoring penalty** (RRS 44.3(c), SCP). A boat that finishes
+  and takes the penalty keeps her place and scores 20% of the Did Not Finish
+  score more, in tenths of a point, capped at the DNF score.
+
+The owner's answers (2026-10-02): both data model changes approved
+(`Series.discard_threshold`, `Finish.scoring_penalty`); 20% only; one
+threshold, not a schedule; one penalty per boat per race; a penalised boat's
+handicap moves as any finisher's; the 2025-2028 rules; and the WhatsApp race
+message marks a penalised boat "(SCP)".
+
+The owner checked worked examples DT-1 and SP-1 to SP-6 (2026-10-02), so
+nothing is left to answer. They become fixtures in `tests/fixtures/` when
+each part is built.
+
+## Slice 24: Portsmouth Number series. **Status: ready to build (2026-10-02)**
+
+Spec: `docs/slices/24-portsmouth-number-series.md`. Nothing is built. A
+series chooses its handicap system, NHC as today or Portsmouth Yardstick, a
+fixed number, so nothing moves after a race. Places, points and standings
+are RRS Appendix A under both. This is the Portsmouth Yardstick half of the
+superseded slice 8.
+
+The owner's answers (2026-10-02): the data model changes are approved
+(`Series.handicap_system`, `Boat.py_number`, `BoatRequest.py_number`, and
+the NHC base number becoming optional), and corrected times aren't rounded
+before ranking. The reference document
+(`docs/reference/PY_Notice_of_Race_and_Sailing_Instructions_Advice.pdf`,
+added 2026-10-02) is the RYA's sample notice of race wording.
+
+The document doesn't state the formula, and it allows a PN to change during
+a series for later races only, which the site can't do. The owner decided
+(2026-10-02) to build on the scheme's published formula, elapsed x 1000 /
+PN, and to leave a mid-series change out of scope, with a note in the
+manual. The owner also checked worked examples PY-1 and PY-2, so nothing is
+left to answer.
+
+In the engine, Portsmouth Yardstick is a module of its own
+(`fixed_number.py`) beside the NHC code, sharing the Appendix A ranking,
+points and standings; the NHC types and calculation don't change (the
+owner's choice, 2026-10-02). The engine keeps its name, `nhc`, here; slice
+25 renames it.
+
+## Slice 25: RYA YTC series, and renaming the scoring engine. **Status: ready to build, after slice 24 (2026-10-02)**
+
+Spec: `docs/slices/25-rya-ytc-and-engine-rename.md`. Nothing is built. Built
+after slice 24, as two pull requests:
+
+- **Part A: rename the scoring engine.** The package `nhc` becomes
+  `sailscoring` (the owner's choice, 2026-10-02), a name that fits an engine
+  scoring several handicap systems. No behaviour, public name, data model or
+  page changes. Nothing is left to answer.
+- **Part B: RYA YTC series.** The YTC half of the superseded slice 8: a
+  third choice on slice 24's handicap system setting. The reference document
+  (`docs/reference/RYA-YTC-Policy-and-Procedures-2026.pdf`, added
+  2026-10-02) confirms the formula, elapsed x 1000 / YTC number, and that
+  numbers are whole. The owner decided (2026-10-02) that a boat holds both
+  numbers on her certificate, the YTC number and the non-spinnaker one, and
+  each series entry chooses which she races on. The owner's other answers
+  (2026-10-02): the data model changes are approved (`Boat.ytc_number`,
+  `Boat.ytc_number_non_spinnaker`, `SeriesEntry.ytc_number_used`, the
+  matching request fields and the `YTC` choice); corrected times aren't
+  rounded before ranking; temporary numbers are out of scope, with a note in
+  the manual; and NHC stays the default for a new series.
+
+The owner checked worked examples YTC-1 and YTC-2 (2026-10-02), so nothing
+is left to answer. They become fixtures in `tests/fixtures/` when part B is
+built.
