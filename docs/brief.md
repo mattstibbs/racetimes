@@ -47,7 +47,7 @@ It will also expose all of the race and yacht data via a very simple to use API.
   plus race history. Correcting any finish triggers recalculation of all
   subsequent race handicaps and results in that series.
 - Handicap progression scope is configurable per series: carries over / resets.
-- Handicap adjustment for boats that don't finish is configurable per series: adjusted / not adjusted.
+- Handicap adjustment for boats that don't finish: not adjusted. (Originally a per-series choice, adjusted / not adjusted; the "adjusted" option was dropped 2026-10-03, because the RYA spec defines only "not adjusted" for a club series.)
 
 
 ### Roles and permissions

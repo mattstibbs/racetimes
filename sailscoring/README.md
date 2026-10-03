@@ -197,7 +197,7 @@ would quietly under-score non-finishers in any race with absentees.
 | Name | What it is |
 | --- | --- |
 | `realign_series(entries)` | `CN = (sum BN / sum EH) x EH`, pulling drifted handicaps back |
-| `realignment_entries(series, outcome)` | Builds that input from a scored series |
+| `realignment_entries(series, outcome)` | Builds that input from a scored series, leaving out boats that never started a race |
 | `realigned_boats(series, results)` | The same boats, ready for the next series |
 | `RealignmentEntry` / `RealignmentResult` | Its input and output |
 
@@ -306,9 +306,9 @@ failure there is a defect in this package, never a fixture to adjust.
   implemented: one count of `discards`, applying only once that many races are
   scored (*no discard until four races*). A schedule such as "1 after 4 races,
   2 after 8" is not.
-- **Adjusting handicaps for non-finishers in a club series.** The brief makes
-  this a per-series choice, but the RYA spec defines only the "not adjusted"
-  behaviour for club racing.
+- **Adjusting handicaps for non-finishers in a club series.** The RYA spec
+  defines only the "not adjusted" behaviour for club racing, so that is the
+  only one (the choice was dropped, 2026-10-03).
 - **A number that changes during a fixed-number series.** A boat has one
   number for the whole series. Changing it for later races only, as a Portsmouth
   Yardstick notice of race may allow, needs a number per race and is not

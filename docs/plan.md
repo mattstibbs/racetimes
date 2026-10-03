@@ -28,8 +28,9 @@ open question on clock times in `docs/decisions.md`, and it lands naturally in
 slice 1 where races gain real start times.
 
 Known gaps, all recorded in `docs/decisions.md`: RRS A6.1 and the scoring codes
-beyond FINISHED/DNC/DNS/DNF that would let it fire; A2.1's discard schedule;
-and the brief's "adjusted" option for non-finishers in a club series.
+beyond FINISHED/DNC/DNS/DNF that would let it fire (planned as slice 26); and
+A2.1's discard schedule beyond the single threshold of slice 23. The brief's
+"adjusted" option for non-finishers was dropped (2026-10-03).
 
 No Django, no database. Plain functions that take a series' race history (boats, base handicaps, starts, finishes) and return race handicaps, corrected times, results and standings. Build it test-first against your worked examples. This is where Claude Code shines: give it the reference docs and the fixtures, tell it the tests are the spec, and let it iterate until they pass. You review the logic, not the plumbing.
 
@@ -877,3 +878,15 @@ after slice 24, as two pull requests:
 The owner checked worked examples YTC-1 and YTC-2 (2026-10-02), so nothing
 is left to answer. They become fixtures in `tests/fixtures/` when part B is
 built.
+
+## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: planned (2026-10-03)**
+
+Not started, and no spec yet. The scoring-codes question from slice 0 was
+settled on 2026-10-03 (see `docs/decisions.md`): add DSQ, RET, OCS and NSC, so
+that A6.1 (boats moving up a place when one ahead is disqualified or retires
+after finishing) can fire. Needs, before any code: a spec in `docs/slices/`;
+the owner's approval of the data model change (new status choices, and a
+finish time kept on a non-finisher); the engine's rule that only a FINISHED
+boat carries an elapsed time relaxed; and the club's answer on whether a
+disqualified boat's handicap is adjusted. Fixtures from RRS Appendix A
+examples must come from the published rules, not the engine's output.

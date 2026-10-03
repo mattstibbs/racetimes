@@ -237,8 +237,36 @@ def test_resetting_the_next_series_ignores_the_realignment():
     assert used == {b.boat_id: b.base_number for b in series.boats}
 
 
-def test_realigned_boats_needs_a_result_for_every_boat():
-    series, outcome = sailed_series()
-    partial = realign_series(realignment_entries(series, outcome))[:1]
-    with pytest.raises(InvalidInput, match="no realigned handicap"):
-        realigned_boats(series, partial)
+def test_a_boat_that_never_started_is_left_out_of_realignment():
+    """Only boats that took part feed the sums (decided 2026-10-03); the others
+    keep the handicap they have."""
+    boats = [
+        Boat("ALBA", base_number=0.95, current_tcf=0.95),
+        Boat("BREEZE", base_number=1.00, current_tcf=1.00),
+        Boat("IDLE", base_number=1.10, current_tcf=1.10),
+        Boat("KEEN", base_number=1.20, current_tcf=1.20),
+    ]
+    races = [
+        SeriesRace(
+            "R1",
+            [
+                Finish("ALBA", RaceStatus.FINISHED, 3600),
+                Finish("BREEZE", RaceStatus.DNF),
+                Finish("IDLE", RaceStatus.DNS),
+                # KEEN has no finish at all, so is scored DNC.
+            ],
+        )
+    ]
+    series = Series(boats=boats, races=races)
+    outcome = score_series(series)
+
+    entries = realignment_entries(series, outcome)
+    assert [e.boat_id for e in entries] == ["ALBA", "BREEZE"]
+
+    results = realign_series(entries)
+    next_boats = {b.boat_id: b for b in realigned_boats(series, results)}
+    assert next_boats["IDLE"].current_tcf == 1.10
+    assert next_boats["KEEN"].current_tcf == 1.20
+    assert sum(
+        b.current_tcf for b in next_boats.values() if b.boat_id in "ALBA BREEZE"
+    ) == pytest.approx(0.95 + 1.00, abs=TOLERANCE)
