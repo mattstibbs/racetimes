@@ -891,11 +891,11 @@ boat carries an elapsed time relaxed; and the club's answer on whether a
 disqualified boat's handicap is adjusted. Fixtures from RRS Appendix A
 examples must come from the published rules, not the engine's output.
 
-## Slice 27: logging in from racetimes.co.uk. **Status: draft, waiting on the owner's answers (2026-10-03)**
+## Slice 27: logging in from racetimes.co.uk. **Status: ready to build (2026-10-03)**
 
-Spec: `docs/slices/27-log-in-from-the-service-page.md`. Nothing is built. A
-**Log in** on the service's front page, the same login as a club's, and a
-**Your clubs** page after it with a way into each club without logging in
-again. The main question is how: a signed one-time hand-off to the club's
-address (recommended, keeping slice 11's per-address sessions), or one login
-cookie across every `*.racetimes.co.uk` address. No data model change.
+Spec: `docs/slices/27-log-in-from-the-service-page.md`. A **Log in** on the
+service's front page, the same login as a club's, and a **Your clubs** page
+after it. The owner chose one login for every address (2026-10-03): the
+session cookie is shared across `*.racetimes.co.uk` in production, reversing
+slice 11's per-address sessions. Someone with one approved club goes straight
+there; My account works on the service's address too. No data model change.

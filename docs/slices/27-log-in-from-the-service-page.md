@@ -1,8 +1,9 @@
 # Slice 27: logging in from racetimes.co.uk
 
-**Status: draft, waiting on the project owner's answers (2026-10-03).**
-Nothing is built. Numbered 27 because slice 26 (more scoring codes) is
-already planned. See "Questions for the project owner" at the end.
+**Status: ready to build (2026-10-03).** The project owner chose one shared
+login (option B) and agreed the other recommendations; see "The project
+owner's answers" at the end. Numbered 27 because slice 26 (more scoring codes)
+is already planned.
 
 ## Goal
 Someone who lands on `racetimes.co.uk` can log in there, with the same email
@@ -48,9 +49,11 @@ their clubs') without logging in again.
   page says it works for every club, and that new members sign up on their
   club's site, with a link to **Find my club**.
 - **Forgotten your password?** works here too. The email comes from Race Times
-  itself (sender "Race Times", Reply-To `SERVICE_CONTACT_EMAIL`) rather than a
-  club, through the same `notifications.email_to` route as every other email,
-  so `races/test_email_sender.py` still holds.
+  itself (`DEFAULT_FROM_EMAIL`, as `notifications.sender` already does with no
+  club) rather than a club, so `races/test_email_sender.py` still holds.
+- **Send the confirmation link again** (offered on the login page to someone
+  whose email isn't confirmed yet) works here too: the email names, and links
+  to, the club they signed up at.
 - **The operator** can log in here too, and lands on the operator's pages. The
   admin's own login stays.
 
@@ -65,60 +68,49 @@ their clubs') without logging in again.
   address (they already act across every club), linked from Your clubs.
 - **One approved club only:** see question 2.
 
-### Getting into the club without logging in again
-The heart of the slice, and the main question (question 1). Two ways:
+### One login for every address *(the project owner's decision, 2026-10-03)*
+Logging in anywhere on `racetimes.co.uk` logs you in at every club's address,
+and logging out anywhere logs you out everywhere. This reverses slice 11's
+"logging in is per club address" (recorded in `docs/decisions.md`).
 
-- **A. A one-time hand-off (recommended).** **Go to <club>** sends the person
-  to the club's address with a signed, single-use link valid for a minute. The
-  club's site checks it, logs them in there, and goes straight on to **My
-  boats** (so the link never stays in the address bar). Each address still has
-  its own session, as slice 11 decided: logging out of one club doesn't log
-  you out of another, and nothing about one club's session is readable at
-  another.
-  - Signed with Django's signing (salt specific to this use), naming the
-    person and the club; refused for another club, after a minute, or a
-    second time (a used link is remembered in the database cache that the
-    login throttle already uses).
-  - Only for an active account, and only for a club the person has a
-    membership of. A refused link goes to the club's normal login page, which
-    says the link had expired.
-  - Recorded in the logs by user id and club, never by name or email.
-- **B. One login for every address.** Set the session cookie's domain to
-  `.racetimes.co.uk`, so logging in anywhere logs you in everywhere. Much less
-  code, but it reverses slice 11's decision, logs out everyone once when it's
-  deployed, and logging out logs you out of every club. Local development
-  (`localhost`) and the Render test site keep per-address sessions, because
-  browsers won't share a cookie there.
+- **The session cookie's domain** is `.racetimes.co.uk` in production only, set
+  by a `SESSION_COOKIE_DOMAIN` environment variable in the production
+  Blueprint. Locally (`localhost`) and on the Render test site (an onrender.com
+  address, Demo Club only) it stays unset, since a browser won't share a cookie
+  there.
+- **The cookie is renamed** (`racetimes_session`), so old per-address cookies
+  can't linger beside the new shared one and keep someone logged in after they
+  log out. Everyone is logged out once when this is deployed. The privacy
+  notice names the new cookie.
+- **Roles are unchanged:** they still belong to a membership of one club, so
+  being logged in at a club where you have no membership shows nothing more
+  than the public sees (`races/test_roles.py`).
+- **The CSRF cookie stays per address.** Only the session is shared.
+- **Every `*.racetimes.co.uk` address must stay Race Times'.** Anything else on
+  a subdomain would receive the login cookie; `docs/production.md` says so.
 
 ### Logging out
-- **Log out** on the service's address logs out of the service's address.
-  Under A, each club's site keeps its own session (as now); under B, it logs
-  out everywhere.
+- **Log out** on any address logs out everywhere and goes to that address's
+  front page.
 
 ## Data model
-None. No migration. (A's used links live in the existing database cache.)
+None. No migration.
 
 ## Security and privacy
 - No new cookies: still only `sessionid` and `csrftoken` (`races/test_legal.py`).
 - `next` after logging in on the service's address only ever goes to a page on
-  the service's address; Go to <club> only to that club's address.
+  the service's address.
 - The service's address shows a person their own clubs only, as My account
   does today. Nothing about any club is shown to someone not logged in beyond
   what Find my club shows now.
-- Under A, the hand-off link is in a URL for a moment: one minute, single use,
-  and the club's site redirects away from it at once.
 
 ## Tests
 - Logging in on the service's address: right and wrong password, the
   throttle, an unconfirmed email, an inactive account, the operator.
 - Your clubs: approved, waiting, suspended, none; the role shown; only the
   person's own clubs (an isolation test).
-- Under A: a hand-off logs in at the right club only; refused when expired,
-  reused, for another club, for a club with no membership, for an inactive
-  account, or tampered with; the link doesn't survive in the address; a club's
-  session is untouched by logging out of another address.
-- Under B: the cookie's domain in production settings (`races/test_production.py`),
-  and that local and test-site settings don't share.
+- The cookie's domain is in the production Blueprint and nowhere else
+  (`races/test_production.py`), and the session cookie's name.
 - Forgotten password on the service's address: sent as Race Times, from the
   usual sender, and the link works.
 - `races/test_isolation.py` and `races/test_roles.py` cover the new paths.
@@ -132,19 +124,17 @@ None. No migration. (A's used links live in the existing database cache.)
 
 ## Out of scope
 - Signing up on the service's address (you sign up by asking to join a club).
-- Logging out of every club at once (under A).
 - "Remember me", social logins, two-factor authentication.
 - A club on its own domain rather than a subdomain.
 
-## Questions for the project owner
-1. **Getting into the club: A (hand-off, recommended) or B (one login
-   everywhere)?** A keeps slice 11's "logging in is per club address"; B
-   reverses it for simplicity.
-2. **One approved club only: go straight there after logging in, or always
-   show Your clubs?** Recommended: straight there, since most people belong to
-   one club; Your clubs is still in the header.
-3. **My account on the service's address:** open My account, Download my data
-   and Delete my account there too (recommended, they already work across
-   clubs), or only Your clubs and Change password?
-4. **Wording:** "Log in" in the front page header, and "Your clubs" for the
-   page after. Fine?
+## The project owner's answers *(2026-10-03)*
+1. **One login for every address (option B),** not a one-time hand-off. The
+   owner accepted that a forgotten logout on a shared computer reaches every
+   club the person belongs to, and that every `*.racetimes.co.uk` address must
+   stay Race Times'.
+2. **One approved club only: straight there** after logging in, to its My boats.
+   Your clubs is still in the header.
+3. **My account, Download my data and Delete my account** work on the
+   service's address too.
+4. **"Log in"** in the front page header, and **"Your clubs"** for the page
+   after.
