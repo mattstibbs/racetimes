@@ -21,9 +21,22 @@ from .models import Club
 
 # Paths that work on the service's own address, with no club: the operator's
 # pages (slice 11 part 3), the Django admin, where the operator logs in and
-# manages accounts, the privacy notice and terms (part 5), and changing your
-# password (slice 16), which the operator can do here too.
-SERVICE_PATHS = ("/admin/", "/operator/", "/privacy/", "/terms/", "/account/password/")
+# manages accounts, the privacy notice and terms (part 5), and (slice 27)
+# logging in and out, a forgotten password, sending the confirmation link
+# again, Your clubs, and a person's own account pages, which act across every
+# club already. Signing up stays on a club's address: it asks to join that club.
+SERVICE_PATHS = (
+    "/admin/",
+    "/operator/",
+    "/privacy/",
+    "/terms/",
+    "/account/",
+    "/accounts/login/",
+    "/accounts/logout/",
+    "/accounts/password-reset/",
+    "/accounts/confirm/again/",
+    "/clubs/",
+)
 
 
 def subdomain_of(host):

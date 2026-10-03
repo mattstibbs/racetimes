@@ -91,6 +91,10 @@ services:
       # SINGLE_CLUB unset: every club is at its own subdomain.
       - key: TRUSTED_PROXIES
         value: "1"
+      # Slice 27: one login for every club's address. Every *.racetimes.co.uk
+      # address must stay Race Times', since each one receives this cookie.
+      - key: SESSION_COOKIE_DOMAIN
+        value: .racetimes.co.uk
       # An hour to start; raise it once the site has run well for a while
       # (docs/production.md).
       - key: SECURE_HSTS_SECONDS

@@ -38,6 +38,19 @@
           <a href="{% url 'races:signup' %}">Sign up</a>
         {% endif %}
       </nav>
+      {% elif user.is_authenticated and not user.is_superuser %}
+      {# Slice 27: the service's own address, for someone logged in: their clubs and their account. #}
+      <nav aria-label="Site">
+        <a href="{% url 'races:your_clubs' %}">Your clubs</a>
+        <a href="{% url 'races:account' %}">My account</a>
+        <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
+          <button type="submit" class="link">Log out</button>
+        </form>
+      </nav>
+      {% elif not user.is_authenticated %}
+      <nav aria-label="Site">
+        <a href="{% url 'races:login' %}">Log in</a>
+      </nav>
       {% elif user.is_superuser %}
       {# The service's own address: the operator's pages (slice 11 part 3). #}
       <nav aria-label="Operator">

@@ -22,6 +22,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_POST
 
 from . import club_export, notifications
+from .clubs import club_address
 from .models import ClubMembership
 from .roles import club_administrator_required, forget_memberships, membership
 
@@ -44,10 +45,21 @@ confirmation_tokens = EmailConfirmationTokenGenerator()
 
 def send_confirmation(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    link = request.build_absolute_uri(
-        reverse("races:confirm_email", args=[uid, confirmation_tokens.make_token(user)])
+    path = reverse(
+        "races:confirm_email", args=[uid, confirmation_tokens.make_token(user)]
     )
-    notifications.confirm_email(user, request.club, request, link)
+    club = request.club
+    if club is None:
+        # Slice 27: sent again from the service's own address, it names and
+        # links to the club they signed up at, as the first one did.
+        first = user.memberships.select_related("club").order_by("created_at").first()
+        club = first.club if first else None
+    link = (
+        club_address(request, club, path)
+        if club is not None and request.club is None
+        else request.build_absolute_uri(path)
+    )
+    notifications.confirm_email(user, club, request, link)
 
 
 def confirm_email(request, uidb64, token):

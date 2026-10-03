@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Your clubs - Race Times{% endblock %}
+{% block content %}
+<h1>Your clubs</h1>
+{% if rows %}
+<ul class="your-clubs">
+  {% for row in rows %}{% with m=row.membership %}
+  <li class="card">
+    <h2>{{ m.club.name }}</h2>
+    {% if not row.active %}
+    <p class="muted">This club's site is paused at the moment.</p>
+    {% elif m.is_approved %}
+    <p>{{ m.get_role_display }}.</p>
+    <p><a class="button" href="{{ row.address }}">Go to {{ m.club.name }}</a></p>
+    {% else %}
+    <p class="muted">Waiting for the club's administrators to approve you joining. You'll get an email when they decide.</p>
+    <p><a href="{{ row.address }}">Go to {{ m.club.name }}</a></p>
+    {% endif %}
+  </li>
+  {% endwith %}{% endfor %}
+</ul>
+{% else %}
+<p>You haven't joined a club yet. <a href="/#find-my-club">Find your club</a>, then ask to join it on its site.</p>
+{% endif %}
+<p class="muted">You're logged in at every club with this account. <a href="{% url 'races:account' %}">My account</a>
+  has your password, your data and deleting your account.</p>
+{% endblock %}

@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE = process.env.BASE_URL;
+const SERVICE = process.env.SERVICE_URL;
 const OUT = process.env.OUT_DIR;
 const PASSWORD = 'manual-screenshots-only';
 
@@ -236,6 +237,19 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const invited = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
   await invited.goto(`${BASE}${fs.readFileSync(process.env.INVITATION_FILE, 'utf8')}`);
   await shot(invited.locator('main'), 'invitation.png');
+
+  // Logging in from the service's own address (slice 27): the front page's
+  // header and Log in line, the login page, and Pat's Your clubs.
+  const visitor = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
+  await visitor.goto(`${SERVICE}/`);
+  await shot(visitor.locator('header.site-header'), 'service-header-log-in.png');
+  await visitor.goto(`${SERVICE}/accounts/login/`);
+  await shot(visitor.locator('main'), 'service-login.png');
+  await visitor.fill('#id_username', 'pat@example.com');
+  await visitor.fill('#id_password', PASSWORD);
+  await visitor.click('form.stacked button[type=submit]');
+  await visitor.waitForLoadState('networkidle');
+  await shot(visitor.locator('body'), 'your-clubs.png');
 
   await browser.close();
   console.log(`Screenshots written to ${OUT}`);

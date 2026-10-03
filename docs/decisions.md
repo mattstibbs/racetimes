@@ -2271,6 +2271,39 @@ give totals and points only, not positions, since A8's tie-break would decide
 those and the owner hadn't been asked. The engine agreed with every figure the
 first time.
 
+## 2026-10-03 - Slice 27: one login for every club's address
+
+**Decision.** At the project owner's choice, the session cookie belongs to the
+parent domain in production (`SESSION_COOKIE_DOMAIN=.racetimes.co.uk`, set in
+the production Blueprint only), so logging in at `racetimes.co.uk` or at any
+club logs you in at every club, and logging out anywhere logs you out
+everywhere. This reverses slice 11's "logging in is per club address".
+Roles are unchanged: they belong to each club's membership.
+
+**Why.** A login on the service's front page is only useful if it carries to
+the clubs. The other way, a signed one-time hand-off to each club's address,
+would have kept per-address sessions at the cost of more code. The owner
+accepted the trade: a forgotten logout on a shared computer reaches every club
+the person belongs to (the manual says to log out on shared computers), and
+every `*.racetimes.co.uk` address must stay Race Times' (`docs/production.md`).
+
+**Smaller choices.**
+
+- The cookie is renamed `racetimes_session`, everywhere, so an old per-address
+  `sessionid` can't sit beside the shared one and keep someone logged in at a
+  club after they log out. Everyone is logged out once when this is deployed.
+  The CSRF cookie stays per address.
+- Not set locally or on the Render test site: a browser won't share a cookie
+  across `localhost` or an onrender.com address.
+- On the service's address: logging in, logging out, a forgotten password (sent
+  as `DEFAULT_FROM_EMAIL`, as `notifications.sender` does with no club),
+  sending the confirmation link again (from the club they signed up at, as the
+  first was), Your clubs (`/clubs/`) and My account. Signing up stays on a
+  club's address.
+- After logging in there: the operator goes to the operator's pages; someone
+  approved at exactly one active club goes straight to its My boats; anyone
+  else to Your clubs. A safe `next` still wins.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

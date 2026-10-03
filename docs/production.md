@@ -76,6 +76,13 @@ manager as you go.
 3. Back in Render, **Verify** each domain. When all three say the certificate
    is issued, the addresses work over HTTPS.
 
+**Every `*.racetimes.co.uk` address must stay Race Times'** (slice 27). The
+login cookie belongs to `.racetimes.co.uk` (`SESSION_COOKIE_DOMAIN` in the
+Blueprint), so the browser sends it to every subdomain. Never point a
+subdomain at anything else (a status page, a blog, a help site): put such
+things on another domain. If a subdomain's DNS record is removed, remove the
+record entirely rather than leaving it pointing at a service that's gone.
+
 ### 3. Email, with Postmark
 1. Create a Postmark account and a **Server** called "Race Times". Its default
    *transactional* stream is the right one.

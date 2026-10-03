@@ -36,6 +36,7 @@ urlpatterns = [
     ),
     path("join/", membership_views.join_club, name="join_club"),
     path("account/", account_views.account, name="account"),
+    path("clubs/", account_views.your_clubs, name="your_clubs"),
     path("account/data.json", account_views.download_my_data, name="download_my_data"),
     path("account/delete/", account_views.delete_my_account, name="delete_account"),
     path("account/password/", account_views.change_password, name="change_password"),

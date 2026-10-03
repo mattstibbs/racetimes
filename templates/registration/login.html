@@ -16,6 +16,13 @@
   <button type="submit" class="secondary">Send the confirmation link again</button>
 </form>
 {% endif %}
+{% if request.club %}
 <p class="muted">No account yet? <a href="{% url 'races:signup' %}">Sign up</a>.
   <a href="{% url 'races:password_reset' %}">Forgotten your password?</a></p>
+{% else %}
+{# Slice 27: the service's own address. One login works at every club; signing up asks to join one. #}
+<p class="muted">Use the same email and password as at your club: one login works at every club you belong to.
+  <a href="{% url 'races:password_reset' %}">Forgotten your password?</a></p>
+<p class="muted">No account yet? <a href="/#find-my-club">Find your club</a> and sign up there.</p>
+{% endif %}
 {% endblock %}

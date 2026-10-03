@@ -42,6 +42,13 @@
     <button type="submit">Find</button>
   </form>
   {% include "clubs/_club_matches.html" %}
+  {# Slice 27: one login for every club, so it can start here too. #}
+  {% if user.is_authenticated %}
+  <p class="muted">You're logged in. <a href="{% url 'races:your_clubs' %}">Go to your clubs</a>.</p>
+  {% else %}
+  <p class="muted">Already have an account? <a href="{% url 'races:login' %}">Log in</a>: the same email and password
+    work at every club.</p>
+  {% endif %}
 </section>
 
 <section class="landing-section" aria-labelledby="what-you-get">
