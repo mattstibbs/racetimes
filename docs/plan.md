@@ -899,3 +899,12 @@ after it. The owner chose one login for every address (2026-10-03): the
 session cookie is shared across `*.racetimes.co.uk` in production, reversing
 slice 11's per-address sessions. Someone with one approved club goes straight
 there; My account works on the service's address too. No data model change.
+
+## Slice 28: signing up from racetimes.co.uk, starting with your club. **Status: draft, waiting on the owner's answers (2026-10-03)**
+
+Spec: `docs/slices/28-sign-up-from-the-service-page.md`. Nothing is built.
+Builds on slice 27. A **Sign up** on the service's front page whose first step
+is "find the club you want to join" (the Find my club search, at
+`racetimes.co.uk/signup/`), then that club's own sign-up page, which now names
+the club and shows "Step 2 of 2". Logged-in people get "Join another club"
+on Your clubs. No data model change.
