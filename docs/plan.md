@@ -891,7 +891,7 @@ boat carries an elapsed time relaxed; and the club's answer on whether a
 disqualified boat's handicap is adjusted. Fixtures from RRS Appendix A
 examples must come from the published rules, not the engine's output.
 
-## Slice 27: logging in from racetimes.co.uk. **Status: ready to build (2026-10-03)**
+## Slice 27: logging in from racetimes.co.uk. **Status: complete (2026-10-03)**
 
 Spec: `docs/slices/27-log-in-from-the-service-page.md`. A **Log in** on the
 service's front page, the same login as a club's, and a **Your clubs** page

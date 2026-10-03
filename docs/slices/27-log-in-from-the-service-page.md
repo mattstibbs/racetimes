@@ -1,6 +1,6 @@
 # Slice 27: logging in from racetimes.co.uk
 
-**Status: ready to build (2026-10-03).** The project owner chose one shared
+**Status: complete (2026-10-03), PR #57.** The project owner chose one shared
 login (option B) and agreed the other recommendations; see "The project
 owner's answers" at the end. Numbered 27 because slice 26 (more scoring codes)
 is already planned.
