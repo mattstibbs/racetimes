@@ -122,7 +122,7 @@ RACE_COLUMNS = [
     "Boat",
     "Finish time",
     "Elapsed",
-    "Handicap",
+    "TCF",
     "Corrected",
     "Points",
     "Code",
@@ -145,8 +145,13 @@ def _write_race(row, race_results):
         ]
     )
     fixed = race.series.is_fixed_number
+    ytc = race.series.handicap_system == "YTC"
     # The handicap column is headed with the series' system (slice 24).
-    row([race.series.handicap_label if c == "Handicap" else c for c in RACE_COLUMNS])
+    columns = [race.series.handicap_label if c == "TCF" else c for c in RACE_COLUMNS]
+    if ytc:
+        # A column of its own for boats on their non-spinnaker number (slice 25).
+        columns.insert(columns.index(race.series.handicap_label) + 1, "NS")
+    row(columns)
     for line in race_results.rows:
         result, boat = line.result, line.entry.boat
         finish_time = line.finish.finish_time if line.finish else None
@@ -157,9 +162,8 @@ def _write_race(row, race_results):
                 typed(boat.name),
                 f"{finish_time:%H:%M:%S}" if finish_time else "",
                 hms(result.elapsed_seconds),
-                (f"{line.raced_on:g}{' NS' if line.is_non_spinnaker else ''}")
-                if fixed
-                else tcf(line.raced_on),
+                f"{line.raced_on:g}" if fixed else tcf(line.raced_on),
+                *(["NS" if line.is_non_spinnaker else ""] if ytc else []),
                 hms(result.corrected_time),
                 points(result.points),
                 "SCP"

@@ -84,7 +84,7 @@ def test_the_race_table_is_headed_pn_and_has_no_next_handicap_column(client):
     series, _, _ = make_py_series(PY_1)
     table = race_table(series_page(client, series, race=1), 1)
     assert '<th class="num detail">PN</th>' in table
-    assert "Next handicap" not in table and ">Handicap<" not in table
+    assert "Next TCF" not in table and ">TCF<" not in table
     assert "&dagger;" not in table
 
 
@@ -176,7 +176,7 @@ def test_a_boat_in_both_kinds_of_series_shows_each_correctly(client):
     assert "Base number 0.964." in page and "Portsmouth Number 1010." in page
     autumn = page[page.index("Autumn</a>") : page.index("Gaffers</a>")]
     gaffers = page[page.index("Gaffers</a>") :]
-    assert '<th class="num">Handicap</th><th class="num">Next</th>' in autumn
+    assert '<th class="num">TCF</th><th class="num">Next</th>' in autumn
     assert '<th class="num">PN</th>' in gaffers and "Next</th>" not in gaffers
     assert "sails on PN <strong>1010</strong>" in page
 
@@ -195,8 +195,8 @@ def test_nhc_pages_keep_their_headings_and_columns(client):
         )
     page = series_page(client, series, race=1)
     table = race_table(page, 1)
-    assert '<th class="num detail">Handicap</th>' in table
-    assert '<th class="num detail">Next handicap</th>' in table
+    assert '<th class="num detail">TCF</th>' in table
+    assert '<th class="num detail">Next TCF</th>' in table
     assert "Scored under RYA NHC." in page
 
 
@@ -218,7 +218,7 @@ def test_the_csv_is_headed_pn_with_whole_numbers(client):
     ]  # fmt: skip
     first = rows[rows.index(header) + 1]
     assert first[2] == "Boat B" and first[5] == "1072"
-    assert "Handicap" not in {cell for row in rows for cell in row}
+    assert "TCF" not in {cell for row in rows for cell in row}
 
 
 # --- Pages that must not break ------------------------------------------------------------------

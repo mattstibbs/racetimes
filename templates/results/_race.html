@@ -31,7 +31,7 @@
     <tr>
       <th class="num">Pos</th><th>Boat</th><th class="num detail">Finish</th><th class="num detail">Elapsed</th>
       <th class="num detail">{{ race.series.handicap_label }}</th><th class="num">Corrected</th><th class="num">Points</th>
-      {% if not race.series.is_fixed_number %}<th class="num detail">Next handicap</th>{% endif %}
+      {% if not race.series.is_fixed_number %}<th class="num detail">Next TCF</th>{% endif %}
     </tr>
   </thead>
   <tbody>
@@ -55,7 +55,7 @@
 {% if race_results.has_scoring_penalty %}<p class="muted">SCP: Scoring penalty (RRS 44.3(c)). The boat finished and kept her place, but scored 20% of the Did Not Finish score more.</p>{% endif %}
 {% if race.series.nhc_options %}<p class="muted">Handicaps adjusted with: {{ race.series.nhc_options|join:", " }}.</p>{% endif %}
 {# The dagger marks the next-handicap column, which only More detail shows. #}
-{% if detail and race.series.nhc_cap_extremes %}<p class="muted">&dagger; Result capped as extreme when working out the next handicap.</p>{% endif %}
+{% if detail and race.series.nhc_cap_extremes %}<p class="muted">&dagger; Result capped as extreme when working out the next TCF.</p>{% endif %}
 {% else %}
 <p class="muted">{{ section.note }}</p>
 {% endif %}

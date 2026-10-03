@@ -64,7 +64,7 @@ def test_the_series_page_shows_the_worked_example(client, example_id):
     for race, race_example in zip(races, example["races"], strict=True):
         table = race_table(series_page(client, series, race=race.number), race.number)
         assert '<th class="num detail">YTC</th>' in table
-        assert "Next handicap" not in table
+        assert "Next TCF" not in table
         for letter, want in race_example["expected"].items():
             row = row_for(table, entries[letter].boat)
             number = example["boats"][letter]
@@ -136,12 +136,11 @@ def test_the_csv_is_headed_ytc_and_marks_ns(client):
     response = client.get(reverse("results:series_csv", args=[series.pk]))
     rows = list(csv.reader(io.StringIO(response.content.decode("utf-8-sig"))))
     header = next(row for row in rows if "Corrected" in row)
-    assert header[5] == "YTC"
+    assert header[5:7] == ["YTC", "NS"]  # NS has a column of its own
     first = rows[rows.index(header) + 1]
-    assert first[2] == "Boat A" and first[5] == "899 NS"
-    assert (
-        next(r for r in rows[rows.index(header) + 1 :] if r[2] == "Boat B")[5] == "940"
-    )
+    assert first[2] == "Boat A" and first[5:7] == ["899", "NS"]
+    boat_b = next(r for r in rows[rows.index(header) + 1 :] if r[2] == "Boat B")
+    assert boat_b[5:7] == ["940", ""]
     assert any(row and row[0].startswith("NS: raced on") for row in rows)
 
 

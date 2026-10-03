@@ -110,6 +110,6 @@ def test_the_capping_footnote_is_its_own_line_and_only_with_more_detail(client, 
     assert (
         '<p class="muted">Handicaps adjusted with: extreme-result capping.</p>' in html
     )
-    footnote = '<p class="muted">&dagger; Result capped as extreme when working out the next handicap.</p>'
+    footnote = '<p class="muted">&dagger; Result capped as extreme when working out the next TCF.</p>'
     assert (footnote in html) is detail
     assert "shown with More detail" not in html

@@ -27,7 +27,9 @@ Race Times needs only three things:
 - **Each boat's NHC base number.** The RYA publishes it, and the race
   committee enters it on the boat's page (see
   [Setting up boats](../committee/setting-up-boats.md)). It's the boat's
-  handicap in the first race of every series.
+  handicap in the first race of every series. A handicap number like this is
+  called a **TCF** (time correction factor), and it is what the results pages
+  head their handicap column with.
 - **The race's start time.**
 - **Each boat's finish time**, or a code if it didn't finish: DNC (did not
   come to the start), DNS (did not start) or DNF (did not finish).
@@ -43,7 +45,7 @@ number, so it has to sail faster to beat slower boats.
 
 Five boats are entered. The race starts at 18:30:00.
 
-| Boat | Handicap for this race | Finish time |
+| Boat | TCF for this race | Finish time |
 |---|---|---|
 | Boat 1 | 0.966 | 19:28:47 |
 | Boat 2 | 0.819 | 19:46:50 |
@@ -77,7 +79,7 @@ Each boat's elapsed time is multiplied by its handicap:
 The boat with the **lowest corrected time wins**, and the others follow in
 order.
 
-| Place | Boat | Elapsed (seconds) | × Handicap | = Corrected (seconds) | Shown as |
+| Place | Boat | Elapsed (seconds) | × TCF | = Corrected (seconds) | Shown as |
 |---|---|---|---|---|---|
 | 1 | Boat 4 | 3448 | × 0.964 | = 3323.87 | 0:55:24 |
 | 2 | Boat 3 | 3548 | × 0.939 | = 3331.57 | 0:55:32 |
@@ -191,7 +193,7 @@ par. That's its **achieved handicap**:
 
 > **Achieved handicap = par time ÷ elapsed time**
 
-| Boat | Par time ÷ elapsed | = Achieved handicap | Handicap it raced on |
+| Boat | Par time ÷ elapsed | = Achieved TCF | TCF it raced on |
 |---|---|---|---|
 | Boat 4 | 3439.28 ÷ 3448 | = 0.9975 | 0.964 |
 | Boat 3 | 3439.28 ÷ 3548 | = 0.9694 | 0.939 |

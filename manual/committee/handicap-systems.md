@@ -100,7 +100,7 @@ on her YTC number in one series and her non-spinnaker number in another.
 
 The results head the column **YTC**. A boat on her non-spinnaker number is
 marked **NS**, with a line under the table saying what it means. The same
-mark is on the race day page, in the results emails and in the CSV download,
+mark is on the race day page, in the results emails and (as a column of its own) in the CSV download,
 so the committee on the water knows which boats shouldn't be flying a
 spinnaker.
 
@@ -146,8 +146,8 @@ that suits her. Each series has its own results and its own standings.
 
 ## What the public sees
 
-The series' results show a **PN** column in place of the NHC handicap, and no
-"next handicap", since nothing changes.
+The series' results show a **PN** column in place of the NHC TCF, and no
+"next TCF", since nothing changes.
 
 ![A Portsmouth Yardstick race's results: each boat's PN, elapsed and corrected times, places and points](../images/results-portsmouth.png)
 
