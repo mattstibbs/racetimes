@@ -282,4 +282,15 @@ invitation = ClubInvitation.objects.create(
 if os.environ.get("INVITATION_FILE"):
     with open(os.environ["INVITATION_FILE"], "w") as out:
         out.write(reverse("races:accept_invitation", args=[token_for(invitation)]))
+# A second club (slice 27), so Pat's Your clubs page, on the service's own
+# address, has two clubs on it: a member at Demo Club and on the race
+# committee at Harbour. Created last, so every other row keeps its id.
+from races.models import ClubMembership  # noqa: E402
+
+harbour = Club.objects.create(
+    subdomain="harbour", name="Harbour Sailing Club", contact_email="hello@example.com"
+)
+ClubMembership.objects.create(
+    user=pat, club=harbour, role="COMMITTEE", status="APPROVED"
+)
 print("Seeded the manual's sample data.")

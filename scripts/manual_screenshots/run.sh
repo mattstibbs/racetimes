@@ -29,7 +29,16 @@ cd "$ROOT"
 "$PYTHON" manage.py shell --verbosity 0 < "$HERE/seed.py"
 "$PYTHON" manage.py runserver "$PORT" --noreload > "$WORK/server.log" 2>&1 &
 SERVER=$!
+# Slice 27: a second copy of the app with no SINGLE_CLUB, for the service's own
+# address (localhost) and its club addresses (demo.localhost, which Chromium
+# finds on this machine by itself), on the same throwaway database.
+SERVICE_PORT=$((PORT + 1))
+SINGLE_CLUB="" "$PYTHON" manage.py runserver "$SERVICE_PORT" --noreload > "$WORK/service.log" 2>&1 &
+SERVICE_SERVER=$!
+trap 'kill "${SERVER:-}" "${SERVICE_SERVER:-}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 for _ in $(seq 30); do curl -s -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 0.5; done
+for _ in $(seq 30); do curl -s -o /dev/null "http://localhost:$SERVICE_PORT/" && break; sleep 0.5; done
 
-BASE_URL="http://127.0.0.1:$PORT" OUT_DIR="$ROOT/manual/images" \
+BASE_URL="http://127.0.0.1:$PORT" SERVICE_URL="http://localhost:$SERVICE_PORT" \
+  OUT_DIR="$ROOT/manual/images" \
   NODE_PATH="${NODE_PATH:-$(npm root -g)}" node "$HERE/shots.js"

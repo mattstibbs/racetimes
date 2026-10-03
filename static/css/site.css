@@ -381,6 +381,9 @@ a.button:hover { background: var(--accent-strong); border-color: var(--accent-st
 a.button.secondary { background: var(--surface); color: var(--accent); }
 a.button.secondary:hover { background: var(--accent-soft); color: var(--accent-strong); }
 
+/* Your clubs (slice 27): one card per club, on the service's own address. */
+ul.your-clubs { list-style: none; padding: 0; margin: 0 0 1.25rem; }
+
 /* The header's logo on the service's own pages: bigger than on a club's site. */
 .brand-service-home { font-size: 1.5rem; }
 .brand-service-home img { width: 2.25rem; height: 2.25rem; }

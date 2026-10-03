@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 
 from . import approvals
 from .account_forms import LoginForm, SignUpForm
+from .account_views import landing_after_login
 from .membership_views import send_confirmation
 from .models import Boat, BoatRequest, ClubMembership, EntryRequest
 from .request_forms import BoatChangeForm, BoatRegistrationForm, EntryRequestForm
@@ -52,6 +53,14 @@ def signup(request):
 class LoginView(auth_views.LoginView):
     authentication_form = LoginForm
     redirect_authenticated_user = True
+
+    def get_default_redirect_url(self):
+        # Slice 27: on the service's own address there's no club to show My
+        # boats for, so it's Your clubs, a club's My boats or the operator's
+        # pages. A safe ``next`` still wins, as at a club.
+        if self.request.club is None:
+            return landing_after_login(self.request)
+        return super().get_default_redirect_url()
 
 
 @login_required

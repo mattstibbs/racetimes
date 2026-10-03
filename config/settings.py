@@ -210,6 +210,16 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 # One login page for everyone; see races/member_views.py.
+# Slice 27: one login for every club's address. In production the session
+# cookie belongs to the parent domain (".racetimes.co.uk"), so logging in on the
+# service's front page, or at any club, logs you in at every club; roles still
+# belong to each club's membership. Set only in production's Blueprint: a
+# browser won't share a cookie across localhost or the test site's onrender.com
+# address. Renamed from Django's "sessionid" so an old per-address cookie
+# can't sit beside the shared one and outlive a logout.
+SESSION_COOKIE_NAME = "racetimes_session"
+SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN") or None
+
 LOGIN_URL = "races:login"
 LOGIN_REDIRECT_URL = "races:my_boats"
 LOGOUT_REDIRECT_URL = "results:home"

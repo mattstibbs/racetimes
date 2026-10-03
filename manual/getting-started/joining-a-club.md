@@ -26,6 +26,34 @@ If the confirmation email doesn't arrive, check your spam folder. If you try
 to log in before confirming, you're offered **Send the confirmation link
 again**.
 
+## Logging in
+
+Log in with your email address and password, either at your club's address
+(**Log in** at the top of its pages) or at `racetimes.co.uk`. One login works
+at every club: once you're logged in at one, you're logged in at all the
+clubs you belong to, and **Log out** logs you out of them all.
+
+At `racetimes.co.uk`, **Log in** is at the top of the page, and under
+**Find my club**.
+
+![The top of the racetimes.co.uk front page, with Log in on the right](../images/service-header-log-in.png)
+
+![The login page at racetimes.co.uk: email, password, and links for a forgotten password and for finding your club to sign up](../images/service-login.png)
+
+If you belong to one club, logging in there takes you straight to its **My
+boats**. If you belong to more than one, or are still waiting to be approved,
+you see **Your clubs**: each club with your role there, and a button to go to
+it.
+
+![Your clubs: Demo Club, where Pat is a member, and Harbour Sailing Club, where Pat is on the race committee, each with a Go to button](../images/your-clubs.png)
+
+Signing up is still done at your club's address, because signing up asks to
+join that club.
+
+On a shared computer, such as one in the clubhouse, remember to log out when
+you've finished: someone using it after you would be logged in at every club
+you belong to.
+
 ## Joining a second club
 
 If you sail at another club that also uses Race Times, you don't need a new
@@ -33,13 +61,13 @@ account. Go to that club's address, log in with the same email and password,
 and choose **Join this club**. That club's administrator approves you in the
 same way.
 
-Each club's site keeps its own login, so you log in at each club's address
-separately. Your role is separate at each club too: being on the race
-committee at one club gives you nothing at another.
+Your role is separate at each club: being on the race committee at one club
+gives you nothing at another, even though you're logged in at both.
 
 ## Your account
 
-**My account**, at the top of every page once you're logged in, shows your name
+**My account**, at the top of every page once you're logged in (at your club
+or at `racetimes.co.uk`), shows your name
 and email address, and your role at each club you've joined or asked to join.
 Under **My password** you can [change your password](changing-your-password.md).
 

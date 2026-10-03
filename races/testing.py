@@ -566,6 +566,7 @@ def urls_for(data, kind=None):
         "races:terms": [],
         # The account's own pages, which cover every club the person belongs to.
         "races:account": [],
+        "races:your_clubs": [],
         "races:download_my_data": [],
         "races:delete_account": [],
         "races:change_password": [],

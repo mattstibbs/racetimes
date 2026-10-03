@@ -12,13 +12,14 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from . import notifications
 from .account_deletion import clubs_needing_them, delete_account
 from .account_forms import ChangePasswordForm, DeleteAccountForm
 from .clubs import club_address
-from .models import ClubMembership
+from .models import Club, ClubMembership
 from .my_data import my_data
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,62 @@ def account(request):
             "memberships": [(m, club_address(request, m.club)) for m in memberships],
         },
     )
+
+
+def own_clubs(user):
+    """A person's memberships of clubs, waiting or approved, by club name (slice 27).
+
+    Only their own: this is the one page on the service's address that names
+    clubs a person belongs to, as My account does at a club.
+    """
+    return list(
+        ClubMembership.objects.filter(
+            user=user,
+            status__in=[ClubMembership.Status.APPROVED, ClubMembership.Status.WAITING],
+        )
+        .select_related("club")
+        .order_by("club__name")
+    )
+
+
+def landing_after_login(request):
+    """Where logging in on the service's own address goes (slice 27).
+
+    The operator to their pages; someone approved at exactly one active club
+    straight to its My boats (most people belong to one club); anyone else to
+    Your clubs. The session is shared across every club's address in
+    production, so they are logged in there already.
+    """
+    user = request.user
+    if user.is_superuser:
+        return reverse("races:operator_clubs")
+    approved = [
+        m
+        for m in own_clubs(user)
+        if m.is_approved and m.club.status == Club.Status.ACTIVE
+    ]
+    if len(approved) == 1:
+        return club_address(request, approved[0].club, reverse("races:my_boats"))
+    return reverse("races:your_clubs")
+
+
+@login_required
+def your_clubs(request):
+    """The clubs a person belongs to, with a way into each (slice 27).
+
+    On the service's own address only; at a club, My account lists them.
+    """
+    if request.club is not None:
+        return redirect("races:account")
+    rows = [
+        {
+            "membership": m,
+            "active": m.club.status == Club.Status.ACTIVE,
+            "address": club_address(request, m.club, reverse("races:my_boats")),
+        }
+        for m in own_clubs(request.user)
+    ]
+    return render(request, "races/your_clubs.html", {"rows": rows})
 
 
 @login_required
@@ -100,6 +157,8 @@ def change_password(request):
         logger.info("user %s changed their password", user.pk)
         notifications.send([notifications.password_changed(user, request)], request)
         messages.success(request, PASSWORD_CHANGED)
-        # My account is a club page; on the service's own address the operator goes back to their clubs.
-        return redirect("races:account" if request.club else "races:operator_clubs")
+        # The operator, on the service's own address, goes back to their pages.
+        if request.club is None and request.user.is_superuser:
+            return redirect("races:operator_clubs")
+        return redirect("races:account")
     return render(request, "races/change_password.html", {"form": form})

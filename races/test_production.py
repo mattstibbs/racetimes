@@ -181,6 +181,19 @@ def test_production_is_every_club_at_its_own_address_with_no_secret_in_the_file(
         }
 
 
+def test_production_shares_one_login_across_every_club_address(settings):
+    """Slice 27: the session cookie is the parent domain's in production only."""
+    assert env(SERVICES["racetimes-production"])["SESSION_COOKIE_DOMAIN"] == {
+        "key": "SESSION_COOKIE_DOMAIN",
+        "value": ".racetimes.co.uk",
+    }
+    # Not on the test site, whose onrender.com address can't share a cookie
+    # with racetimes.co.uk, nor locally.
+    assert "SESSION_COOKIE_DOMAIN" not in env(SERVICES["racetimes"])
+    assert settings.SESSION_COOKIE_DOMAIN is None
+    assert settings.SESSION_COOKIE_NAME == "racetimes_session"
+
+
 def test_the_test_site_is_as_it_was():
     test_site = SERVICES["racetimes"]
     assert test_site["plan"] == "free" and test_site["buildCommand"] == "./build.sh"
