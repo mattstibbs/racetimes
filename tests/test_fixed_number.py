@@ -24,7 +24,10 @@ from sailscoring import (
     fixed_number_corrected_time,
     score_fixed_number_series,
 )
-from tests.scenario_loader import PORTSMOUTH_YARDSTICK_FIXTURE
+from tests.scenario_loader import (
+    FIXED_NUMBER_RULES_FIXTURE,
+    PORTSMOUTH_YARDSTICK_FIXTURE,
+)
 
 PY = FixedNumberSystem.PY
 FIN = RaceStatus.FINISHED
@@ -230,52 +233,85 @@ def test_scoring_does_not_change_the_series_it_is_given():
 # --- Appendix A is shared, so slice 23's rules work here too ------------------------------
 
 
-def test_the_discard_threshold_applies():
-    """No discard until three races are scored: after two, nothing is excluded."""
-    two = [
-        {"race_id": rid, "finishes": f}
-        for rid, f in (
-            ("R1", {"A": 3600, "B": 3500}),
-            ("R2", {"A": 3500, "B": 3700}),
+RULES = FIXED_NUMBER_RULES_FIXTURE
+
+
+def build_rules(example, races=None, discard_threshold=None):
+    """A FixedNumberSeries from tests/fixtures/fixed_number_rules.yaml."""
+    race_list = []
+    for race in example["races"][:races]:
+        penalised = set(race.get("scp", ()))
+        race_list.append(
+            SeriesRace(
+                race["race_id"],
+                [
+                    Finish(boat, FIN, elapsed, scoring_penalty=boat in penalised)
+                    for boat, elapsed in race["finishes"].items()
+                ],
+            )
         )
-    ]
-    example = {"boats": {"A": 1000, "B": 1000}, "discards": 1, "races": two}
-    series = dataclasses.replace(build(example), discard_threshold=3)
-    standings = score_fixed_number_series(series).standings
-    assert all(not score.discarded for row in standings for score in row.scores)
-    # Without the threshold the one discard applies as usual.
-    standings = score_fixed_number_series(build(example)).standings
-    assert sum(score.discarded for row in standings for score in row.scores) == 2
-
-
-def test_a_scoring_penalty_worsens_points_and_nothing_else():
-    """Two boats entered, A5.2: a DNF scores 3, so SCP on first place adds 20% of
-    3 = 0.6 to the 1 point for first. The place and corrected time don't move."""
-
-    def run(scp):
-        finishes = [
-            Finish("A", FIN, 3600, scoring_penalty=scp),
-            Finish("B", FIN, 4000),
-        ]
-        series = FixedNumberSeries(
-            [FixedNumberBoat("A", 1000), FixedNumberBoat("B", 1000)],
-            [SeriesRace("R1", finishes)],
-            PY,
-        )
-        return next(
-            r
-            for r in score_fixed_number_series(series).races[0].results
-            if r.boat_id == "A"
-        )
-
-    plain, penalised = run(False), run(True)
-    assert (plain.points, plain.penalty_points) == (1, None)
-    assert (penalised.points, penalised.penalty_points) == (1.6, 0.6)
-    assert penalised.scoring_penalty
-    assert (penalised.position, penalised.corrected_time) == (
-        plain.position,
-        plain.corrected_time,
+    return FixedNumberSeries(
+        [FixedNumberBoat(boat, number) for boat, number in example["boats"].items()],
+        race_list,
+        PY,
+        discards=example["discards"],
+        discard_threshold=(
+            example.get("discard_threshold", 0)
+            if discard_threshold is None
+            else discard_threshold
+        ),
     )
+
+
+def totals(outcome):
+    return {row.boat_id: row.total for row in outcome.standings}
+
+
+def discarded(outcome):
+    return sum(score.discarded for row in outcome.standings for score in row.scores)
+
+
+def test_the_discard_threshold_applies():
+    """DT-FN-1: no discard until three races are scored."""
+    example = RULES["DT-FN-1"]
+    two = score_fixed_number_series(build_rules(example, races=2))
+    assert totals(two) == example["totals_after_2"]
+    assert discarded(two) == example["discarded_after_2"]
+
+    three = score_fixed_number_series(build_rules(example))
+    assert totals(three) == example["totals_after_3"]
+    assert discarded(three) == example["discarded_after_3"]
+
+    without = score_fixed_number_series(
+        build_rules(example, races=2, discard_threshold=0)
+    )
+    assert totals(without) == example["totals_after_2_without_threshold"]
+
+
+@pytest.mark.parametrize("example_id", ["SP-FN-1", "SP-FN-2"])
+def test_a_scoring_penalty_worsens_points_and_nothing_else(example_id):
+    """The penalty is 20% of the DNF score, capped at the DNF score, and it moves
+    neither the place nor the corrected time."""
+    example = RULES[example_id]
+    outcome = score_fixed_number_series(build_rules(example))
+    plain = score_fixed_number_series(
+        build_rules(
+            {
+                **example,
+                "races": [{**race, "scp": []} for race in example["races"]],
+            }
+        )
+    )
+    for race, race_example, plain_race in zip(
+        outcome.races, example["races"], plain.races, strict=True
+    ):
+        got = {r.boat_id: r for r in race.results}
+        without = {r.boat_id: r for r in plain_race.results}
+        for boat, want in race_example["expected"].items():
+            assert got[boat].points == pytest.approx(want), (race.race_id, boat)
+            assert got[boat].scoring_penalty == (boat in race_example.get("scp", ()))
+            assert got[boat].position == without[boat].position
+            assert got[boat].corrected_time == without[boat].corrected_time
 
 
 # --- Validation ----------------------------------------------------------------------------

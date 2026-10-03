@@ -1,0 +1,62 @@
+# Worked examples for two Appendix A rules on a fixed-number series (slice 24).
+#
+# SOURCE: suggested by Claude and approved by the project owner on
+# 2026-10-03, in the conversation that closed slices 24 and 25. Worked by hand
+# from RRS A5.2 (a boat that doesn't finish scores the entries + 1), the
+# discard rule, and RRS 44.3(c) / A10 SCP (the penalty is 20% of the Did Not
+# Finish score, in tenths of a point, and never makes a score worse than Did
+# Not Finish) as slice 23's fixtures state them; not with the engine. Never
+# change an expected value to make a test pass: if the engine disagrees, the
+# engine is wrong, or this file's provenance needs checking with the project
+# owner first.
+#
+# Every boat has number 1000, so corrected time = elapsed time and places are
+# just the order of the elapsed times. `scp` lists the boats given a scoring
+# penalty in that race. `totals` is the series table's total per boat; the
+# examples don't give positions, which A8's tie-break would decide.
+
+DT-FN-1:   # one discard, but none until three races are scored
+  discards: 1
+  discard_threshold: 3
+  boats: {A: 1000, B: 1000}
+  races:
+    - race_id: R1
+      finishes: {A: 3600, B: 3500}        # B 1st, A 2nd
+      expected: {A: 2, B: 1}
+    - race_id: R2
+      finishes: {A: 3500, B: 3700}        # A 1st, B 2nd
+      expected: {A: 1, B: 2}
+    - race_id: R3
+      finishes: {A: 3600, B: 3550}        # B 1st, A 2nd
+      expected: {A: 2, B: 1}
+  # Totals after the first two races only: nothing is discarded yet.
+  totals_after_2: {A: 3, B: 3}
+  discarded_after_2: 0                    # scores discarded across all boats
+  # After all three, each boat drops its worst score (a 2).
+  totals_after_3: {A: 3, B: 2}            # A 2+1+2-2, B 1+2+1-2
+  discarded_after_3: 2
+  # The same two races with no threshold (discard_threshold 0): each boat
+  # drops its 2, and both total 1.
+  totals_after_2_without_threshold: {A: 1, B: 1}
+
+SP-FN-1:   # two entered: a DNF scores 3, the penalty is 20% of 3 = 0.6
+  discards: 0
+  boats: {A: 1000, B: 1000}
+  races:
+    - race_id: R1
+      finishes: {A: 3600, B: 4000}
+      scp: [A]
+      expected: {A: 1.6, B: 2}            # 1st + 0.6
+
+SP-FN-2:   # five entered: a DNF scores 6, the penalty is 20% of 6 = 1.2
+  discards: 0
+  boats: {A: 1000, B: 1000, C: 1000, D: 1000, E: 1000}
+  races:
+    - race_id: R1
+      finishes: {A: 3600, B: 3700, C: 3800, D: 3900, E: 4000}
+      scp: [B]
+      expected: {A: 1, B: 3.2, C: 3, D: 4, E: 5}      # 2nd: 2 + 1.2
+    - race_id: R2
+      finishes: {A: 3600, B: 3700, C: 3800, D: 3900, E: 4000}
+      scp: [E]
+      expected: {A: 1, B: 2, C: 3, D: 4, E: 6}        # 5th: 5 + 1.2 = 6.2, capped at DNF
