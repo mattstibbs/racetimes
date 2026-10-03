@@ -2260,6 +2260,17 @@ In an RYA YTC series' CSV, "NS" is a column of its own after the number
 ("899", then "NS" or empty), instead of text in the number cell, so the
 number stays a number in a spreadsheet. Other series' CSVs have no such column.
 
+## 2026-10-03 - The fixed-number discard and scoring-penalty tests are now fixtures
+
+**Decision.** The two part-A behaviour checks on a fixed-number series (the
+discard threshold, and the scoring penalty) now read hand-worked figures from
+`tests/fixtures/fixed_number_rules.yaml` (DT-FN-1, SP-FN-1, SP-FN-2), which the
+project owner approved on 2026-10-03. They were suggested from the formula and
+RRS as slice 23's fixtures state them, not produced by the engine. The examples
+give totals and points only, not positions, since A8's tie-break would decide
+those and the owner hadn't been asked. The engine agreed with every figure the
+first time.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

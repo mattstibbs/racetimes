@@ -61,6 +61,12 @@ PORTSMOUTH_YARDSTICK_FIXTURE = load_scenarios(
 #: Worked examples YTC-1 and YTC-2 (slice 25, part B): RYA YTC.
 YTC_FIXTURE = load_scenarios(Path(__file__).resolve().parent / "fixtures" / "ytc.yaml")
 
+#: Worked examples DT-FN-1, SP-FN-1 and SP-FN-2: the discard threshold and the
+#: scoring penalty on a fixed-number series (slice 24, approved 2026-10-03).
+FIXED_NUMBER_RULES_FIXTURE = load_scenarios(
+    Path(__file__).resolve().parent / "fixtures" / "fixed_number_rules.yaml"
+)
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.
