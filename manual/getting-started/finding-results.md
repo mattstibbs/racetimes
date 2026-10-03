@@ -36,7 +36,7 @@ Below that, for each series, newest first:
 
 - where your boat stands in the series, and its points;
 - each race: your place (or a code such as DNF), your points, your corrected
-  time, the handicap you sailed on, and the handicap you took into the next
+  time, the TCF you sailed on, and the TCF you took into the next
   race.
 
 Points in brackets are **discarded**: your worst results, which the series'
@@ -56,7 +56,7 @@ results; press a race's button to see another.
 - **Follow a boat**, below the results, highlights one boat in the standings
   and in every race you look at, so you can find it quickly in a big fleet.
 - On a phone, each race shows place, boat, corrected time and points. Press
-  **More detail** for the finish time, elapsed time, and the handicap each
+  **More detail** for the finish time, elapsed time, and the TCF each
   boat sailed on and takes into the next race.
 
 Every page's address includes what you chose, such as the race and the boat

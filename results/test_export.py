@@ -84,7 +84,7 @@ def test_each_race_is_listed_with_its_rows(client, season):
         "Boat",
         "Finish time",
         "Elapsed",
-        "Handicap",
+        "TCF",
         "Corrected",
         "Points",
         "Code",

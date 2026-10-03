@@ -2247,6 +2247,19 @@ the stored results, so a final series keeps what she raced on. Temporary
 numbers (section 4.6) are out of scope, as the spec says, and the manual says
 so. One schema migration, 0025, with no data migration.
 
+## 2026-10-03 - NHC columns are headed TCF, and NS has a CSV column of its own
+
+**Decision.** At the project owner's request, the results pages head the NHC
+handicap column "TCF" and the next-handicap column "Next TCF" (the slice 24
+spec's wording), where slice 24 had kept "Handicap". The CSV header follows,
+and the manual defines TCF. Prose that says "handicap" for the idea is
+unchanged, and so are the system's names. Portsmouth and YTC columns stay "PN"
+and "YTC".
+
+In an RYA YTC series' CSV, "NS" is a column of its own after the number
+("899", then "NS" or empty), instead of text in the number cell, so the
+number stays a number in a spreadsheet. Other series' CSVs have no such column.
+
 ## Open requirements
 
 Things that must be done before a stated milestone, but aren't code.

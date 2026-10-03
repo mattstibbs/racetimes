@@ -21,7 +21,7 @@
   {% if next.fixed %}sails on {% if next.non_spinnaker %}her non-spinnaker {% endif %}{{ history.series.handicap_label }} <strong>{{ next.number|handicap:history.series }}</strong> for the whole series.
   {% elif next.race %}sails race {{ next.race.number }} on <strong>{{ next.tcf|tcf }}</strong>{% if next.base %}, its base number{% endif %}.
   {% elif next.base %}no races scheduled yet.
-  {% else %}handicap after race {{ next.after.number }}, the last race so far: <strong>{{ next.tcf|tcf }}</strong>.
+  {% else %}TCF after race {{ next.after.number }}, the last race so far: <strong>{{ next.tcf|tcf }}</strong>.
   {% endif %}
 </p>
 {% endwith %}{% endif %}{% endfor %}

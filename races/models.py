@@ -531,11 +531,11 @@ class Series(models.Model):
 
     @property
     def handicap_label(self):
-        """What the handicap column is headed: "PN" under Portsmouth Yardstick."""
+        """What the handicap column is headed: "TCF" (NHC), "PN" or "YTC"."""
         return {
             self.HandicapSystem.PY: "PN",
             self.HandicapSystem.YTC: "YTC",
-        }.get(self.handicap_system, "Handicap")
+        }.get(self.handicap_system, "TCF")
 
     @property
     def discards_description(self):

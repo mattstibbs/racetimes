@@ -420,7 +420,7 @@ def test_after_the_last_race_the_next_handicap_says_so(client, three_races):
     _series, races, entries = three_races
     races[3].delete()
     page = boat_page(client, entries[0].boat)
-    assert "handicap after race 3, the last race so far:" in page
+    assert "TCF after race 3, the last race so far:" in page
 
 
 def test_before_any_race_a_boat_sails_on_its_base_number(client):
