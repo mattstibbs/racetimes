@@ -161,12 +161,12 @@ Realignment factor: about 0.99154 (realign only) and about 0.99082 (both on).
 
 ## 9. Definition of done
 
-- [ ] Migration adds both fields with default `False`
-- [ ] Series form and admin show and save the settings
-- [ ] Scoring implements Steps A–C exactly as specified, rounding only at the end
-- [ ] All tests in §7 pass, including the regression test
-- [ ] Results page shows which options were applied
-- [ ] Existing test suite still passes
+- [x] Migration adds both fields with default `False`
+- [x] Series form and admin show and save the settings
+- [x] Scoring implements Steps A–C exactly as specified, rounding only at the end
+- [x] All tests in §7 pass, including the regression test
+- [x] Results page shows which options were applied
+- [x] Existing test suite still passes
 
 ## Reference
 

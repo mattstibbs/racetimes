@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from .domain import Boat, RealignmentEntry, RealignmentResult
+from .domain import Boat, RaceStatus, RealignmentEntry, RealignmentResult
 from .errors import InvalidInput
 
 
@@ -71,15 +71,21 @@ def realignment_entries(series, outcome) -> tuple[RealignmentEntry, ...]:
     it on. A series with no races yet leaves every boat where it started, so
     realigning one is a no-op rather than an error.
 
-    Every boat entered in the series is included. Section 5 is faintly
-    contradictory here - its opening says "every boat that took part in that
-    series", while the note on the formula says "every boat in the series being
-    realigned". A boat that entered but never sailed arguably did not take
-    part, and including it does shift the ratio for everyone else. The result
-    is a plain sequence, so a caller who wants the stricter reading can filter
-    it before passing it on.
+    Only boats that took part are included: those that started at least one
+    race (finished, or started and did not finish). Section 5 says "every boat
+    that took part in that series", so a boat that entered but never sailed
+    would only shift the ratio for everyone else (decided 2026-10-03). Such a
+    boat is left out of the sums and ``realigned_boats`` leaves her handicap
+    alone. If nobody has started a race, every boat is included, so realigning
+    an unsailed series is still a no-op.
     """
     ending = outcome.ending_handicaps
+    started = {
+        result.boat_id
+        for race in outcome.races
+        for result in race.results
+        if result.status in (RaceStatus.FINISHED, RaceStatus.DNF)
+    }
     return tuple(
         RealignmentEntry(
             boat_id=boat.boat_id,
@@ -87,6 +93,7 @@ def realignment_entries(series, outcome) -> tuple[RealignmentEntry, ...]:
             ending_handicap=ending[boat.boat_id],
         )
         for boat in series.boats
+        if boat.boat_id in started or not started
     )
 
 
@@ -96,17 +103,15 @@ def realigned_boats(series, results: Sequence[RealignmentResult]) -> tuple[Boat,
     Base numbers are unchanged - they are published ratings, not something a
     season of racing alters. Only ``current_tcf`` moves. Feeding these into the
     next series with ``HandicapProgression.CARRY_OVER`` is how a club carries
-    realigned handicaps forward.
+    realigned handicaps forward. A boat with no result (one that never started,
+    see ``realignment_entries``) keeps her current handicap.
     """
     realigned = {result.boat_id: result.realigned_tcf for result in results}
-    missing = [boat.boat_id for boat in series.boats if boat.boat_id not in realigned]
-    if missing:
-        raise InvalidInput(f"no realigned handicap for: {', '.join(sorted(missing))}")
     return tuple(
         Boat(
             boat_id=boat.boat_id,
             base_number=boat.base_number,
-            current_tcf=realigned[boat.boat_id],
+            current_tcf=realigned.get(boat.boat_id, boat.current_tcf),
             name=boat.name,
         )
         for boat in series.boats

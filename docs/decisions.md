@@ -2296,41 +2296,39 @@ Things that must be done before a stated milestone, but aren't code.
 
 ## Open questions
 
-Carried from the slice 0 planning pass. These need answers before the affected
-step, not before any code is written.
-
-- **DNF in a club race.** Spec section 3 step 1 computes AS "for every boat that
-  finished"; step 2 says the sums run over "every boat that started". A DNF boat
-  started but has no elapsed time, so the two sentences disagree. Implemented
-  and tested as: excluded from both sums, handicap carried forward unchanged.
-  Still worth confirming with the club. See also the next question, which is
-  the brief's per-series "adjusted / not adjusted" switch.
-- **"Adjusted" non-finishers.** The brief makes handicap adjustment for boats
-  that do not finish configurable per series: "adjusted / not adjusted". Only
-  "not adjusted" is implemented, because it is the only behaviour the RYA spec
-  defines for a club series - section 3 has non-starters carry forward and be
-  excluded from the sums. The reference docs contain exactly one mechanism for
-  giving a non-finisher a usable elapsed time, the regatta back-calculation in
-  section 4 step 1, so "adjusted" would mean borrowing that into a club series.
-  Coherent, but a rule decision for the club rather than an implementation
-  detail, so it is not guessed at.
-- **Who counts as having "taken part"?** Spec section 5 opens by realigning
-  "every boat that took part in that series", but the note on its formula says
-  the sums run over "every boat in the series being realigned". A boat that
-  entered and never sailed is arguably not the first, and including it shifts
-  the ratio for everyone else. `realignment_entries` includes every entered
-  boat and returns a plain sequence, so the stricter reading is a filter away.
-- **Scoring codes.** The spec's status enum has FINISHED/DNC/DNS/DNF; the
-  brief's glossary adds OCS, RET and DSQ; RRS A10 lists fourteen. Which subset
-  for v1? This now gates two things. RRS A6.1 (boats moving up when one ahead
-  is disqualified or retires after finishing) cannot fire without DSQ/RET/NSC.
-  And those codes break an invariant the domain types currently hold: a boat
-  disqualified after finishing *does* have an elapsed time, whereas today only
-  a FINISHED boat may carry one. Whether such a boat's handicap is adjusted is
-  not addressed by the RYA spec at all. Slice 1 uses only the engine's four;
-  see "Slice 1: only the engine's four statuses" above.
-- **Elapsed time vs start/finish clock times.** Resolved 2026-09-23: the
-  committee enters clock times and the app derives elapsed. See "Slice 1: the
-  committee enters clock times" above.
+None open. The five carried from the slice 0 planning pass were resolved on
+2026-10-03; the decisions are in the entries below (the clock-times question
+was resolved earlier, 2026-09-23, see "Slice 1: the committee enters clock
+times").
 
 ---
+
+## 2026-10-03 - Open questions from slice 0, resolved
+
+**DNF in a club race.** Confirmed by the project owner: a DNF boat is
+excluded from both sums and its handicap is carried forward unchanged. This is
+what spec section 3 step 2 supports and what the worked examples show.
+
+**"Adjusted" non-finishers.** Dropped. The brief's per-series
+"adjusted / not adjusted" switch is not built: the RYA spec defines only "not
+adjusted" for a club series, and the one mechanism that gives a non-finisher a
+time (the regatta back-calculation) is not a club rule. `docs/brief.md` is
+amended to say so. A club that wants it later needs a rule from the club and a
+spec of its own.
+
+**Who "took part" in realignment.** Only boats that started at least one race
+(FINISHED, or DNF) feed the realignment sums. A boat that entered and never
+sailed (DNC or DNS in every race) is left out, because including her shifts
+the ratio for everyone else. She keeps her current handicap in
+`realigned_boats`, which no longer insists on a result for every boat. If
+nobody has started a race, every boat is included, so realigning an unsailed
+series is still a no-op. No fixture covers this reading; it is the owner's
+judgement, tested in `tests/test_realignment.py`.
+
+**Scoring codes.** The site's four statuses stay for now. The next step is a
+planned slice (slice 26 in `docs/plan.md`) to add DSQ, RET, OCS and NSC, which
+is what lets RRS A6.1 fire. It needs a data model change and an engine change
+(a boat with a time that is not FINISHED), so it waits for its own spec and the
+owner's approval. Whether a disqualified boat's handicap is adjusted is for
+that spec to settle with the club.
+
