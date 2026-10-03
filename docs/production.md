@@ -163,7 +163,7 @@ first club is invited.
 | 2026-09-27 | `check --deploy` | Pass: no issues, 1 silenced (W021) |
 | 2026-09-27 | Test email: SPF, DKIM, DMARC |Pass: manually verified |
 | 2026-09-27 | Sentry test message | Pass: manually verified |
-| | Uptime alert | |
+| 2026-10-03 | Uptime alert | Pass: manually verified |
 | | Nightly backup ran | |
 | | Restore rehearsed; `series_summary` identical | |
 
