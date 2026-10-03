@@ -51,32 +51,11 @@ It is built for:
   review), essential cookies only, people download or delete their own data,
   and a club downloads everything it holds before leaving.
 
-## Status
-
-| Slice | | |
-| --- | --- | --- |
-| 0 | Scoring engine | **Complete** |
-| 1 | Walking skeleton: Django models, finish entry, results page | **Complete** |
-| 2 | Corrections and audit trail | **Complete** |
-| 3 | Member self-service and accounts | **Complete** |
-| 4 | Emailing results | **Complete** |
-| 5 | Public results web app | **Complete** |
-| 6 | Race-level entry: a start sheet for every race | **Complete** |
-| 7 | Visual styling | **Complete** |
-| 8 | Other handicap systems (Portsmouth Yardstick, RYA YTC) | On hold |
-| 9 | The race day page | **Complete** |
-| 10 | Final results and CSV export | **Complete** |
-| 11 | Race Times as a service for many clubs | **Complete** |
-| 12 | Production hosting at `racetimes.co.uk` | Built; the launch steps in `docs/production.md` are next |
-| 13 | The operator approves people waiting to join a club | **Complete** |
-| 14 | Optional NHC steps: capping extreme results, realigning to base handicaps | **Complete** |
-| 15 | General UI improvements: results pages, boat names, page names and the menu | **Complete** |
-| 16 | Changing your password from My account | **Complete** |
-
 Production runs on Render in Frankfurt, deployed by hand, beside the free test
-site, which runs Demo Club with sample data. See [`docs/plan.md`](docs/plan.md) for what each
-slice covers, and [`docs/decisions.md`](docs/decisions.md) for open
-requirements, such as the legal review needed before the first paying club.
+site, which runs Demo Club with sample data. See [`HISTORY.md`](HISTORY.md) for
+what has changed, [`docs/plan.md`](docs/plan.md) for what each slice covers,
+and [`docs/decisions.md`](docs/decisions.md) for open requirements, such as the
+legal review needed before the first paying club.
 
 ## The scoring engine
 
