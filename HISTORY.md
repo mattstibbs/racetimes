@@ -10,15 +10,25 @@ The plan for what comes next is in [`docs/plan.md`](docs/plan.md).
 
 ## Upcoming
 
-- **Slice 24: Portsmouth Number series.** Choose NHC or Portsmouth Yardstick
-  per series (specified, not built).
-- **Slice 25: RYA YTC series, and renaming the engine** from `nhc` to
-  `sailscoring` (specified, not built).
-- **Slice 8: other handicap systems.** Superseded by slices 24 and 25;
-  nothing was built under this number.
 - **Slice 12 launch.** The production site is built; the launch steps in
   [`docs/production.md`](docs/production.md) are still to do, along with the
   legal review of the privacy notice and terms.
+
+## Slice 25: RYA YTC series, and the engine renamed (2026-10-02)
+
+- The scoring engine package is renamed from `nhc` to `sailscoring`, since it
+  now scores more than one handicap system. No change in behaviour.
+- A series can be scored under RYA YTC (Yacht Time Correction), the RYA's
+  fixed-number system for cruisers.
+- Slice 8, the original draft of this work, is superseded.
+
+## Slice 24: Portsmouth Number series (2026-10-02)
+
+- The committee chooses a **Handicap system** per series: NHC, or Portsmouth
+  Yardstick with fixed numbers, including numbers the club sets itself.
+- Places, points and discards are worked out the same way under both.
+- Afterwards: NHC handicap columns are headed TCF, and fixed-number checks use
+  approved fixtures (2026-10-03).
 
 ## Slice 23: discard threshold and scoring penalty (2026-10-02)
 
@@ -163,6 +173,6 @@ Built in five parts.
 
 ## Slice 0: scoring engine (2026-09-23)
 
-- `nhc/`, a standalone, standard-library-only Python package implementing the
+- `nhc/` (since renamed `sailscoring/`), a standalone, standard-library-only Python package implementing the
   RYA NHC handicap rules and RRS Appendix A scoring, tested against the RYA's
   published worked examples.
