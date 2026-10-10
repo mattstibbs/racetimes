@@ -1,4 +1,4 @@
-"""The public results pages: the home page, a series and a boat (slice 5)."""
+"""The public results pages: the home page, a series and a boat."""
 
 from django.urls import path
 

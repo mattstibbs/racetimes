@@ -36,7 +36,7 @@ def fast_password_hashing(settings):
 
 @pytest.fixture(autouse=True)
 def single_club(settings):
-    # Slice 11: the test client's address ("testserver") names no club, so
+    # The test client's address ("testserver") names no club, so
     # every test sees the first club, as the test site on Render does.
     # Tests of several clubs set the host instead (races/test_isolation.py).
     settings.SINGLE_CLUB = "demo"
@@ -58,7 +58,7 @@ def plain_csrf_tokens(monkeypatch):
 def admin_user(django_user_model):
     """pytest-django's superuser, plus Demo Club's administrator membership.
 
-    That's what the migration gives the site's existing superuser (slice 11),
+    That's what the migration gives the site's existing superuser,
     so tests that use admin_client for the admin still reach Demo Club's.
     """
     user = django_user_model.objects.create_superuser(
@@ -99,7 +99,7 @@ def committee_client(client):
 
 @pytest.fixture
 def staff_user(django_user_model):
-    # The superuser is Demo Club's administrator, as the slice 11 migration makes it.
+    # The superuser is Demo Club's administrator, as the first-club migration makes it.
     user = django_user_model.objects.create_user(
         "officer", is_staff=True, is_superuser=True
     )
@@ -166,7 +166,7 @@ def clubs():
         make_member("ann@example.com", first_name="Ann"),
         shared,
     )
-    join(shared, harbour)  # a member of both clubs (slice 11 part 2)
+    join(shared, harbour)  # a member of both clubs
     harbour_data = build_club_data(
         harbour,
         "Black",

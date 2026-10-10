@@ -14,6 +14,7 @@ from . import (
     race_day_views,
     request_views,
     series_views,
+    service_views,
 )
 from .account_forms import ClubPasswordResetForm
 
@@ -22,6 +23,7 @@ app_name = "races"
 urlpatterns = [
     path("privacy/", legal_views.privacy, name="privacy"),
     path("terms/", legal_views.terms, name="terms"),
+    path("signup/", service_views.signup, name="service_signup"),
     path("accounts/signup/", member_views.signup, name="signup"),
     path("accounts/login/", member_views.LoginView.as_view(), name="login"),
     path(
@@ -36,6 +38,7 @@ urlpatterns = [
     ),
     path("join/", membership_views.join_club, name="join_club"),
     path("account/", account_views.account, name="account"),
+    path("clubs/", account_views.your_clubs, name="your_clubs"),
     path("account/data.json", account_views.download_my_data, name="download_my_data"),
     path("account/delete/", account_views.delete_my_account, name="delete_account"),
     path("account/password/", account_views.change_password, name="change_password"),
@@ -53,7 +56,7 @@ urlpatterns = [
         invitations.accept_invitation,
         name="accept_invitation",
     ),
-    # The operator's pages, on the service's own address only (slice 11 part 3).
+    # The operator's pages, on the service's own address only.
     path("operator/", operator_views.clubs, name="operator_clubs"),
     path(
         "operator/clubs/new/", operator_views.create_club, name="operator_create_club"
@@ -132,7 +135,7 @@ urlpatterns = [
         race_day_views.publish_results,
         name="publish_results",
     ),
-    # The race office (slice 18): the committee's setup pages.
+    # The race office: the committee's setup pages.
     path("office/", office_views.home, name="office"),
     path("office/boats/", office_views.boats, name="office_boats"),
     path("office/boats/new/", office_views.new_boat, name="office_new_boat"),
@@ -202,7 +205,7 @@ urlpatterns = [
     ),
     path("series/<int:pk>/final/send/", series_views.send_final, name="send_final"),
     path("races/<int:pk>/", race_day_views.race_day_page, name="race_day"),
-    # The slice 6 and slice 1 addresses, redirecting to the race day page.
+    # The old start sheet and finish-entry addresses, redirecting to the race day page.
     path(
         "races/<int:pk>/entries/", race_day_views.start_sheet_page, name="start_sheet"
     ),

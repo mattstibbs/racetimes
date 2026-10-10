@@ -1,4 +1,4 @@
-"""Slice 11 part 5: the privacy notice and terms, the footer, and essential cookies only."""
+"""The privacy notice and terms, the footer, and essential cookies only."""
 
 import pytest
 from django.urls import reverse
@@ -7,7 +7,7 @@ from races.testing import DEMO, PASSWORD, log_in_as, make_member, urls_for
 
 pytestmark = pytest.mark.django_db
 
-ESSENTIAL = {"sessionid", "csrftoken"}
+ESSENTIAL = {"racetimes_session", "csrftoken"}
 
 
 @pytest.mark.parametrize(
@@ -31,7 +31,10 @@ def test_the_notice_names_the_club_as_controller_and_lists_the_cookies(client):
     assert (
         "<strong>controller</strong>" in html and "<strong>processor</strong>" in html
     )
-    assert "<strong>sessionid</strong>" in html and "<strong>csrftoken</strong>" in html
+    assert (
+        "<strong>racetimes_session</strong>" in html
+        and "<strong>csrftoken</strong>" in html
+    )
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-"""Slice 21: sharing published results and final standings to WhatsApp.
+"""Sharing published results and final standings to WhatsApp.
 
 The share buttons are ordinary links to ``https://wa.me/?text=<message>``, so
 these tests read the link off the page and decode the message from it.

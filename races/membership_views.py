@@ -1,4 +1,4 @@
-"""People and clubs (slice 11 part 2): confirming an email, joining a club, and
+"""People and clubs: confirming an email, joining a club, and
 the club administrator's Members page.
 
 One account can belong to many clubs, with a role at each. Signing up at a
@@ -22,6 +22,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_POST
 
 from . import club_export, notifications
+from .clubs import club_address
 from .models import ClubMembership
 from .roles import club_administrator_required, forget_memberships, membership
 
@@ -44,10 +45,21 @@ confirmation_tokens = EmailConfirmationTokenGenerator()
 
 def send_confirmation(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    link = request.build_absolute_uri(
-        reverse("races:confirm_email", args=[uid, confirmation_tokens.make_token(user)])
+    path = reverse(
+        "races:confirm_email", args=[uid, confirmation_tokens.make_token(user)]
     )
-    notifications.confirm_email(user, request.club, request, link)
+    club = request.club
+    if club is None:
+        # Sent again from the service's own address, it names and
+        # links to the club they signed up at, as the first one did.
+        first = user.memberships.select_related("club").order_by("created_at").first()
+        club = first.club if first else None
+    link = (
+        club_address(request, club, path)
+        if club is not None and request.club is None
+        else request.build_absolute_uri(path)
+    )
+    notifications.confirm_email(user, club, request, link)
 
 
 def confirm_email(request, uidb64, token):
@@ -128,7 +140,7 @@ def members_page(request):
     )
 
 
-# How the club sees a decision the service's operator made (slice 13).
+# How the club sees a decision the service's operator made.
 OPERATOR_NAME = "the Race Times operator"
 
 OWN_MEMBERSHIP = (
@@ -171,7 +183,7 @@ def decide(club, target, action, role, by, by_name=None):
     """Approve, turn down, change the role of, or remove one person at ``club``.
 
     The one place a membership is decided: the club's Members page, and the
-    operator's club page for people waiting (slice 13), both come here.
+    operator's club page for people waiting, both come here.
     ``by`` is who decided; ``by_name`` is how the club sees them, their login
     unless given. Returns the change ("approved", ...), or None if there was
     nothing to change (e.g. a stale page).
@@ -218,5 +230,5 @@ def _name(user):
 
 @club_administrator_required
 def export_club_data(request):
-    """Everything this club holds, as a ZIP of CSV files (slice 11 part 5)."""
+    """Everything this club holds, as a ZIP of CSV files."""
     return club_export.download(request.club)

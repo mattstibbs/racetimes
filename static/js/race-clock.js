@@ -1,4 +1,4 @@
-// The race clock on the race day page (slice 9): the site's time of day, and
+// The race clock on the race day page: the site's time of day, and
 // the time since the start, ticking every second.
 //
 // The page is served with the site's time. The difference between that and

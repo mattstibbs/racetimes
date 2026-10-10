@@ -70,7 +70,7 @@ def test_finish_entry_lists_every_boat_on_the_start_sheet(committee_client, race
     assert save_url(race, a) in page
     assert save_url(race, b) in page
     assert 'value="19:00:00"' in page
-    # Slice 9: a boat with nothing recorded is listed under "Still racing".
+    # A boat with nothing recorded is listed under "Still racing".
     assert "Still racing (1)" in page
 
 
@@ -85,7 +85,7 @@ def test_saving_a_time_over_htmx_returns_the_row(committee_client, race_night):
     assert response.status_code == 200
     html = response.content.decode()
     assert f'id="finish-{b.pk}"' in html
-    # Slice 9: the Finished list shows the finish and elapsed times; corrected
+    # The Finished list shows the finish and elapsed times; corrected
     # times are on the results page.
     assert "19:10:00" in html and "elapsed 1:10:00" in html
     assert "Saved" in html
@@ -211,7 +211,7 @@ def test_saving_only_a_code_in_a_regatta_race_explains_the_wait(
     )
     assert response.status_code == 200
     html = response.content.decode()
-    # Slice 9: the whole Finishing panel comes back, the race's note included.
+    # The whole Finishing panel comes back, the race's note included.
     assert 'id="finish-panel"' in html and 'id="race-note"' in html
     assert "at least one boat has a finish time" in html
     assert Finish.objects.get(race=race_2, entry=a).status == "DNF"

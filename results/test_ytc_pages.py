@@ -1,4 +1,4 @@
-"""Slice 25, part B: an RYA YTC series, read back from the pages.
+"""An RYA YTC series, read back from the pages.
 
 The worked examples YTC-1 and YTC-2 (tests/fixtures/ytc.yaml, checked by the
 project owner) are entered as clock times, and the pages must show them: the

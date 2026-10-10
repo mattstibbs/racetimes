@@ -1,4 +1,4 @@
-"""Slice 11 part 5: a person's account page, downloading their data, and deleting their account."""
+"""A person's account page, downloading their data, and deleting their account."""
 
 import json
 

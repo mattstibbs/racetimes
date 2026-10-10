@@ -901,3 +901,22 @@ finish time kept on a non-finisher); the engine's rule that only a FINISHED
 boat carries an elapsed time relaxed; and the club's answer on whether a
 disqualified boat's handicap is adjusted. Fixtures from RRS Appendix A
 examples must come from the published rules, not the engine's output.
+
+## Slice 27: logging in from racetimes.co.uk. **Status: complete (2026-10-03)**
+
+Spec: `docs/slices/27-log-in-from-the-service-page.md`. A **Log in** on the
+service's front page, the same login as a club's, and a **Your clubs** page
+after it. The owner chose one login for every address (2026-10-03): the
+session cookie is shared across `*.racetimes.co.uk` in production, reversing
+slice 11's per-address sessions. Someone with one approved club goes straight
+there; My account works on the service's address too. No data model change.
+
+## Slice 28: signing up from racetimes.co.uk, starting with your club. **Status: complete (2026-10-10)**
+
+Spec: `docs/slices/28-sign-up-from-the-service-page.md`. The owner agreed all
+four recommendations (2026-10-10), and it is built as specified.
+Builds on slice 27. A **Sign up** on the service's front page whose first step
+is "find the club you want to join" (the Find my club search, at
+`racetimes.co.uk/signup/`), then that club's own sign-up page, which now names
+the club and shows "Step 2 of 2". Logged-in people get "Join another club"
+on Your clubs. No data model change.

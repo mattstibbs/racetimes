@@ -1,5 +1,5 @@
 #!/bin/sh
-# Restore one of backup.sh's copies into an EMPTY database (slice 12).
+# Restore one of backup.sh's copies into an EMPTY database.
 #
 #   BACKUP_PASSPHRASE=... backup/restore.sh <file.dump.gpg> <target DATABASE_URL>
 #

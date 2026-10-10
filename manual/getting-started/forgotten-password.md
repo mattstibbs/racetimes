@@ -5,7 +5,8 @@
 If you know your password and just want a new one, see
 [Changing your password](changing-your-password.md) instead.
 
-1. On the **Log in** page, choose **Forgotten your password?**
+1. On the **Log in** page, at your club's address or at `racetimes.co.uk`,
+   choose **Forgotten your password?**
 2. Enter the email address you log in with, and press **Email me a link**.
 
    ![The password reset page, asking for your email address](../images/password-reset.png)

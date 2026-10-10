@@ -1,4 +1,4 @@
-"""The privacy notice and terms (slice 11 part 5).
+"""The privacy notice and terms.
 
 The same text on every address, the service's and each club's, so the
 footer's links never leave the site you're on.

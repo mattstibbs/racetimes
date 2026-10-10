@@ -1,4 +1,4 @@
-"""Slice 18: the race office's forms - boats, series, races and entries: their
+"""The race office's forms - boats, series, races and entries: their
 rules, history, emails and the final-series locks.
 
 The same rules the admin's boat form had, now tested through the race office's

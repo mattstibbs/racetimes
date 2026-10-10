@@ -1,5 +1,5 @@
 """The Django admin: the club's boats and series, and read-only views of members'
-requests (slice 1 onwards).
+requests.
 
 Every admin page shows only the current club's rows (``ClubScopedAdmin``), and
 saving a score-affecting field records it in the history (``races/audit.py``),
@@ -42,7 +42,7 @@ from .scoring import score_series
 # are saved together or not at all.
 
 
-# --- Clubs (slice 11) -----------------------------------------------------------------
+# --- Clubs -----------------------------------------------------------------
 
 
 class ClubScopedAdmin:
@@ -66,7 +66,7 @@ class ClubScopedAdmin:
             return list_display
         return [*list_display, self.model._default_manager.none().club_path]
 
-    # Permission comes from the club membership (slice 11 part 2): this club's
+    # Permission comes from the club membership: this club's
     # race committee and administrators may set things up here. Django's own
     # per-model permissions, which came from the old site-wide group, aren't
     # consulted. On the service's own address, only the operator.
@@ -97,7 +97,7 @@ class ClubScopedAdmin:
 
 
 def _club_pages_only_at_a_club(request, fields, link):
-    """Leave out a link to a club page on the service's own address (slice 18).
+    """Leave out a link to a club page on the service's own address.
 
     Club pages (the race day page, series history, final results) exist only
     at a club's address, and the operator has no role there, so on the
@@ -129,8 +129,8 @@ class ClubScopedInline(ClubScopedAdmin):
 
 
 # Clubs and memberships aren't in the admin. The operator creates clubs and
-# invites their administrators on the operator's pages (races/operator_views.py,
-# slice 11 part 3); a club's administrators manage its people on its Members page.
+# invites their administrators on the operator's pages (races/operator_views.py);
+# a club's administrators manage its people on its Members page.
 
 
 def _operator_here(request):
@@ -264,7 +264,7 @@ class SeriesAdmin(ClubScopedAdmin, ReasonInAdminHistoryMixin, admin.ModelAdmin):
                     "discard_threshold",
                     "minimum_finishers",
                     "apply_a5_3",
-                    # Slice 14: the optional extra NHC steps (sailscoring/options.py).
+                    # The optional extra NHC steps (sailscoring/options.py).
                     "nhc_cap_extremes",
                     "nhc_realign_to_base",
                 ]
@@ -353,7 +353,7 @@ class RequestAdmin(ClubScopedAdmin, admin.ModelAdmin):
         return False  # a request is a record of what was asked and decided
 
     def changelist_view(self, request, extra_context=None):
-        if request.club is None:  # no Change requests page here (slice 18)
+        if request.club is None:  # no Change requests page here
             return super().changelist_view(request, extra_context)
         messages.info(
             request,
@@ -392,7 +392,7 @@ class EntryRequestAdmin(RequestAdmin):
 
 # --- Accounts and groups: the operator's alone ---------------------------------------
 #
-# Since slice 11, a club's administrator manages its people on the club's
+# A club's administrator manages its people on the club's
 # Members page (races/membership_views.py), never here. Accounts span every
 # club, so the Django admin for them is the operator's, on the service's own
 # address only.

@@ -45,8 +45,8 @@ class AuditedInlineForm(AuditedFormMixin, forms.ModelForm):
 class EntryInlineForm(AuditedInlineForm):
     """A series entry row: the boat, and under RYA YTC which number she races on.
 
-    The choice may be left blank: a new entry then takes the boat's own default
-    (slice 25), and outside a YTC series the choice means nothing, so it is
+    The choice may be left blank: a new entry then takes the boat's own default,
+    and outside a YTC series the choice means nothing, so it is
     always the default and never recorded.
     """
 
@@ -92,7 +92,7 @@ class AuditedInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
-        # Slice 10: a final series' races and entries can't change. Checked
+        # A final series' races and entries can't change. Checked
         # against the database, not the form, which may have been open a while.
         if self.instance.pk and any(form.has_changed() for form in self.forms):
             final.check_series_open(self.instance.pk)
@@ -108,7 +108,7 @@ class AuditedInlineFormSet(BaseInlineFormSet):
             raise ValidationError(audit.REASON_REQUIRED)
 
     def _check_boats_have_the_number(self):
-        """Entries need the series' number (slice 24).
+        """Entries need the series' number.
 
         The entry's own check (``SeriesEntry.clean``) can't run on the "add a
         series" page, where the series isn't saved and so isn't on the entry
@@ -123,8 +123,8 @@ class AuditedInlineFormSet(BaseInlineFormSet):
             if self.instance.boats_lack(boat):
                 form.add_error("boat", self.instance.lacks_number_message(boat))
                 continue
-            # Under RYA YTC, the number the entry chose must be one she has
-            # (slice 25); she may have the other but not this.
+            # Under RYA YTC, the number the entry chose must be one she has;
+            # she may have the other but not this.
             used = form.cleaned_data.get("ytc_number_used")
             if self.instance.handicap_system == Series.HandicapSystem.YTC and used:
                 field = {v: k for k, v in YTC_NUMBER_FIELDS.items()}[used]

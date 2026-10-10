@@ -1,4 +1,4 @@
-"""The race office's forms for setting up boats, series and races (slice 18).
+"""The race office's forms for setting up boats, series and races.
 
 The Django admin uses the boat and series forms through thin subclasses
 (``races/admin_forms.py``), so the rules live in one place whichever page a
@@ -35,7 +35,7 @@ def reason_field():
 
 
 class ReasonWhereItAppliesMixin(AuditedFormMixin):
-    """Adds the reason box only when saving could be a correction (slice 18).
+    """Adds the reason box only when saving could be a correction.
 
     Worked out each time the form is built, so a result recorded while the
     form was open adds the box on the next submit rather than losing the
@@ -65,7 +65,7 @@ class OwnerChoiceField(forms.ModelChoiceField):
 
 
 def owner_choices(club):
-    """Only this club's approved members can own its boats (slice 11)."""
+    """Only this club's approved members can own its boats."""
     return (
         get_user_model()
         .objects.filter(
@@ -115,7 +115,7 @@ class BoatForm(ReasonWhereItAppliesMixin, forms.ModelForm):
     """A boat, as the race committee sets it up.
 
     The reason box appears only when the boat has results in some series, the
-    one case where changing a number is a correction (slice 18). The admin's
+    one case where changing a number is a correction. The admin's
     subclass always shows it.
     """
 
@@ -235,12 +235,12 @@ class SeriesForm(ReasonWhereItAppliesMixin, forms.ModelForm):
         "discard_threshold",
         "minimum_finishers",
         "apply_a5_3",
-        # Slice 14: the optional extra NHC steps (sailscoring/options.py).
+        # The optional extra NHC steps (sailscoring/options.py).
         "nhc_cap_extremes",
         "nhc_realign_to_base",
     ]
 
-    # A final series can still be renamed: a name moves no score (slice 10).
+    # A final series can still be renamed: a name moves no score.
     UNLOCKED_FIELDS = {"name", "reason"}
 
     def __init__(self, *args, club=None, **kwargs):
@@ -339,7 +339,7 @@ class RaceForm(ReasonWhereItAppliesMixin, forms.ModelForm):
     def clean_number(self):
         # The unique rule includes the series, which isn't a field here, so the
         # form can't check it itself. A clear refusal rather than a swap
-        # feature: renumbering is rare (slice 18).
+        # feature: renumbering is rare.
         number = self.cleaned_data["number"]
         taken = self.instance.series.races.filter(number=number).exclude(
             pk=self.instance.pk
@@ -361,7 +361,7 @@ class RaceForm(ReasonWhereItAppliesMixin, forms.ModelForm):
 
 
 class EntryNumberForm(ReasonWhereItAppliesMixin, forms.ModelForm):
-    """Which of a boat's two YTC numbers she races on in a series (slice 25).
+    """Which of a boat's two YTC numbers she races on in a series.
 
     Changing it rescores every race she has sailed in the series, so once the
     series has results it is a correction and needs a reason.

@@ -1,4 +1,4 @@
-"""Slice 15: where the series page's links and notes go, and when they show."""
+"""Where the series page's links and notes go, and when they show."""
 
 import pytest
 from django.urls import reverse

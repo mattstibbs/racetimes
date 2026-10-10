@@ -1,4 +1,4 @@
-"""The health check at /health/ (slice 11 part 4).
+"""The health check at /health/.
 
 The host and an external uptime check poll it to see whether the site is up.
 It's a middleware, first in the list, so it answers before anything else runs:

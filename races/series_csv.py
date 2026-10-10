@@ -1,11 +1,11 @@
-"""A series' standings and race results as one CSV file (slice 10).
+"""A series' standings and race results as one CSV file.
 
 It holds exactly what the series page shows, from the same ``score_series``,
 formatted the same way, and no owner names or persons on board, like every
 public page. Python's own csv module; no new dependency.
 
 The public download (``results/views.py``) and the club's data export
-(``races/club_export.py``, slice 11 part 5) both use it, so it lives here:
+(``races/club_export.py``) both use it, so it lives here:
 ``races`` never imports from ``results``.
 """
 
@@ -146,10 +146,10 @@ def _write_race(row, race_results):
     )
     fixed = race.series.is_fixed_number
     ytc = race.series.handicap_system == "YTC"
-    # The handicap column is headed with the series' system (slice 24).
+    # The handicap column is headed with the series' system.
     columns = [race.series.handicap_label if c == "TCF" else c for c in RACE_COLUMNS]
     if ytc:
-        # A column of its own for boats on their non-spinnaker number (slice 25).
+        # A column of its own for boats on their non-spinnaker number.
         columns.insert(columns.index(race.series.handicap_label) + 1, "NS")
     row(columns)
     for line in race_results.rows:

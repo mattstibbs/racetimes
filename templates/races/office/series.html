@@ -20,7 +20,7 @@
     {% if series.minimum_finishers %}No handicap changes with fewer than {{ series.minimum_finishers }} finishers.{% endif %}
     {% if series.apply_a5_3 %}Scored under RRS A5.3.{% else %}Scored under RRS A5.2.{% endif %}
     {% if series.nhc_options %}Handicaps adjusted with {{ series.nhc_options|join:" and " }}.{% endif %}</p>
-  {# A final series can still be renamed (slice 10), so the link stays. #}
+  {# A final series can still be renamed, so the link stays. #}
   <p><a href="{% url 'races:office_series_settings' series.pk %}">{% if series.is_final %}Change the name{% else %}Change settings{% endif %}</a></p>
 </section>
 

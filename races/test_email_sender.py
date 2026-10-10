@@ -1,4 +1,4 @@
-"""Slice 11 part 4: every email comes from its club.
+"""Every email comes from its club.
 
 From is "<Club name> via Race Times" at the service's one sending address, and
 replies go to the club's contact email. The club's name here has a comma,

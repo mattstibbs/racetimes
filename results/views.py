@@ -74,7 +74,7 @@ def home(request):
 
 
 def by_name(boat):
-    """Sort key for lists people pick a boat from: by name, or sail number for a boat with none (slice 15)."""
+    """Sort key for lists people pick a boat from: by name, or sail number for a boat with none."""
     return ((boat.name or boat.sail_number).casefold(), boat.sail_number)
 
 
@@ -294,13 +294,13 @@ def _next_handicap(entry, results, races):
     numbers. None if the series cannot be scored.
 
     Under Portsmouth Yardstick nothing moves: the boat sails on her number for
-    the whole series (slice 24), which is what the page says instead.
+    the whole series, which is what the page says instead.
     """
     if results.error:
         return None
     if results.series.is_fixed_number:
         # What she raced on, so a final series keeps the number it was declared
-        # with; before any race, the number her entry will race on (slice 25).
+        # with; before any race, the number her entry will race on.
         number = entry.number
         if results.races:
             number = results.races[-1].for_entry(entry).raced_on

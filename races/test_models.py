@@ -62,7 +62,7 @@ def test_base_number_must_be_positive(base_number):
 
 
 def test_a_boat_needs_at_least_one_number_to_race_on():
-    # Slice 24: neither number is required on its own, so a boat that only races
+    # Neither number is required on its own, so a boat that only races
     # on a Portsmouth Number needn't be given an invented NHC base number.
     with pytest.raises(ValidationError) as caught:
         Boat(sail_number="GBR1").full_clean()

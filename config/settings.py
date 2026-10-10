@@ -45,7 +45,7 @@ if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
     CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
 
-# Slice 11: many clubs, each at <subdomain>.<SERVICE_DOMAIN> (races/clubs.py).
+# Many clubs, each at <subdomain>.<SERVICE_DOMAIN> (races/clubs.py).
 # In development that's e.g. demo.localhost:8000, which every current browser
 # resolves with no setup.
 SERVICE_DOMAIN = os.environ.get(
@@ -93,7 +93,7 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Slice 11 part 4: a service for paying clubs is HTTPS only. (These were
+    # A service for paying clubs is HTTPS only. (These were
     # left off for the test site, whose host already redirects to HTTPS; see
     # docs/decisions.md.) Browsers are told to use HTTPS for every club's
     # address (HSTS), for an hour to begin with; raise SECURE_HSTS_SECONDS
@@ -115,7 +115,7 @@ SECURE_REFERRER_POLICY = "same-origin"
 # Application definition
 
 INSTALLED_APPS = [
-    # The admin, aware of clubs (slice 11): races/admin_site.py.
+    # The admin, aware of clubs: races/admin_site.py.
     "races.admin_site.ClubAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -143,7 +143,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Before the club lookup, which answers the service's front page itself
-    # (slice 19): that page's club search needs request.htmx too.
+    #: that page's club search needs request.htmx too.
     "django_htmx.middleware.HtmxMiddleware",
     # After authentication, so a suspended club's page can let the operator in.
     "races.clubs.ClubMiddleware",
@@ -185,7 +185,7 @@ DATABASES = {
 }
 
 
-# Email (slice 4). With no EMAIL_HOST set, emails are printed to the console
+# Email. With no EMAIL_HOST set, emails are printed to the console
 # instead of sent, which is what development wants; the tests use Django's
 # in-memory outbox whatever this says. Set EMAIL_HOST and friends to send
 # through a real mail server. See docs/deploying.md.
@@ -206,10 +206,20 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 
 # Messages ("Saved") travel in the session, not in a cookie of their own, so
 # the only cookies are the session and the CSRF token, both essential: no
-# cookie banner is needed (slice 11 part 5; the privacy notice lists them).
+# cookie banner is needed (the privacy notice lists them).
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 # One login page for everyone; see races/member_views.py.
+# One login for every club's address. In production the session
+# cookie belongs to the parent domain (".racetimes.co.uk"), so logging in on the
+# service's front page, or at any club, logs you in at every club; roles still
+# belong to each club's membership. Set only in production's Blueprint: a
+# browser won't share a cookie across localhost or the test site's onrender.com
+# address. Renamed from Django's "sessionid" so an old per-address cookie
+# can't sit beside the shared one and outlive a logout.
+SESSION_COOKIE_NAME = "racetimes_session"
+SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN") or None
+
 LOGIN_URL = "races:login"
 LOGIN_REDIRECT_URL = "races:my_boats"
 LOGOUT_REDIRECT_URL = "results:home"

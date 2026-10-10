@@ -1,4 +1,4 @@
-"""Slice 11 part 4: log lines name the club and no email addresses, and error reports keep personal data out.
+"""Log lines name the club and no email addresses, and error reports keep personal data out.
 
 Log output is captured from the console handler the settings configure, so
 these check the lines exactly as the host would collect them. Sentry is

@@ -37,7 +37,8 @@ way every boat, entry and result has been checked by someone on the committee.
 - [Finding your results](getting-started/finding-results.md): your boat's
   results and next handicap, and a series' standings.
 - [Joining a club, and your data](getting-started/joining-a-club.md): signing
-  up, confirming your email, waiting for the club to approve you, and
+  up, confirming your email, waiting for the club to approve you, logging in
+  (at your club or at racetimes.co.uk, one login for every club), and
   downloading your data or deleting your account.
 - [Forgotten your password?](getting-started/forgotten-password.md)
 - [Changing your password](getting-started/changing-your-password.md): from

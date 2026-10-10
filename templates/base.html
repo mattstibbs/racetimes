@@ -12,16 +12,16 @@
   <header class="site-header">
     <div class="wrap">
       {% if request.club %}
-      {# Slice 11: every page says which club it belongs to, with the service's name smaller. #}
+      {# Every page says which club it belongs to, with the service's name smaller. #}
       <a class="brand" href="{% url 'results:home' %}"><img src="{% static 'img/sail.svg' %}" alt="">
         <span class="brand-text"><span>{{ request.club.name }}</span> <small class="brand-service">Race Times</small></span></a>
       {% else %}
-      {# Slice 19: bigger on the service's own pages; a club's site leads with the club's name. #}
+      {# Bigger on the service's own pages; a club's site leads with the club's name. #}
       <a class="brand brand-service-home" href="/"><img src="{% static 'img/sail.svg' %}" alt=""> Race Times</a>
       {% endif %}
       {% if request.club %}
       <nav aria-label="Site">
-        {# Slice 15: the club's results first, then the club's pages, then the person's own. #}
+        {# The club's results first, then the club's pages, then the person's own. #}
         <a href="{% url 'results:home' %}">Club results</a>
         {% if user.is_authenticated %}
           {% if is_committee %}<a href="{% url 'races:office' %}">Race office</a>{% endif %}
@@ -38,8 +38,22 @@
           <a href="{% url 'races:signup' %}">Sign up</a>
         {% endif %}
       </nav>
+      {% elif user.is_authenticated and not user.is_superuser %}
+      {# The service's own address, for someone logged in: their clubs and their account. #}
+      <nav aria-label="Site">
+        <a href="{% url 'races:your_clubs' %}">Your clubs</a>
+        <a href="{% url 'races:account' %}">My account</a>
+        <form class="inline" method="post" action="{% url 'races:logout' %}">{% csrf_token %}
+          <button type="submit" class="link">Log out</button>
+        </form>
+      </nav>
+      {% elif not user.is_authenticated %}
+      <nav aria-label="Site">
+        <a href="{% url 'races:login' %}">Log in</a>
+        <a href="{% url 'races:service_signup' %}">Sign up</a>
+      </nav>
       {% elif user.is_superuser %}
-      {# The service's own address: the operator's pages (slice 11 part 3). #}
+      {# The service's own address: the operator's pages. #}
       <nav aria-label="Operator">
         <a href="{% url 'races:operator_clubs' %}">Clubs</a>
         <a href="{% url 'races:operator_log' %}">Operator log</a>

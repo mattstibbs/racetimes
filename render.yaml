@@ -42,7 +42,7 @@ services:
         generateValue: true
       - key: DJANGO_DEBUG
         value: "0"
-      # Slice 11: the test site's onrender.com address can't have club
+      # The test site's onrender.com address can't have club
       # subdomains, so it shows Demo Club, which holds the site's data.
       - key: SINGLE_CLUB
         value: demo
@@ -57,7 +57,7 @@ services:
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
 
-  # --- Production (slice 12) -------------------------------------------------
+  # --- Production -------------------------------------------------
   - type: web
     name: racetimes-production
     runtime: python
@@ -91,6 +91,10 @@ services:
       # SINGLE_CLUB unset: every club is at its own subdomain.
       - key: TRUSTED_PROXIES
         value: "1"
+      # One login for every club's address. Every *.racetimes.co.uk
+      # address must stay Race Times', since each one receives this cookie.
+      - key: SESSION_COOKIE_DOMAIN
+        value: .racetimes.co.uk
       # An hour to start; raise it once the site has run well for a while
       # (docs/production.md).
       - key: SECURE_HSTS_SECONDS

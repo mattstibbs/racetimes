@@ -1,8 +1,8 @@
-"""The race day page (slice 9): one page per race, for the race committee.
+"""The race day page: one page per race, for the race committee.
 
 It has two views: the start sheet (who is racing) and finishing (the
 Finished button, typed times and codes, and publishing the results). It
-replaces the slice 1 finish-entry page and the slice 6 start sheet page, whose
+replaces the old finish-entry page and start sheet page, whose
 addresses now redirect here.
 """
 
@@ -74,13 +74,13 @@ def _race_day_url(race, view):
 
 @committee_required
 def start_sheet_page(request, pk):
-    """The slice 6 address: kept working for bookmarks."""
+    """The old start sheet address: kept working for bookmarks."""
     return redirect(_race_day_url(_race(request, pk), "start"))
 
 
 @committee_required
 def finish_entry(request, pk):
-    """The slice 1 address: kept working for bookmarks and old links."""
+    """The old finish-entry address: kept working for bookmarks and old links."""
     return redirect(_race_day_url(_race(request, pk), "finish"))
 
 
@@ -491,7 +491,7 @@ def _publishing_context(request, race, results):
     amended = publishing.amended_since_sent(race)
     unrecorded = start_sheet.unrecorded(race)
     share_url = None
-    # Only published results are shared (slice 21), and only once they're
+    # Only published results are shared, and only once they're
     # complete and sent, or corrected since: a provisional race might change.
     if race.published_at and race.results_sent_at and not unrecorded:
         share_url = sharing.whatsapp_url(
