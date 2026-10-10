@@ -2365,3 +2365,40 @@ is what lets RRS A6.1 fire. It needs a data model change and an engine change
 owner's approval. Whether a disqualified boat's handicap is adjusted is for
 that spec to settle with the club.
 
+---
+
+## 2026-10-10 - Slice 26: the owner's answers on DSQ, RET, OCS and NSC
+
+**Context.** The scoring-codes question was settled in outline on 2026-10-03
+(above): add DSQ, RET, OCS and NSC so RRS A6.1 can fire. The spec
+(`docs/slices/26-more-scoring-codes-and-a6-1.md`) put six questions to the
+project owner, who agreed every recommendation.
+
+**Decision.**
+- **A6.1 is the ranking leaving the boat out.** In a handicap race places
+  come from corrected times, so a boat with one of the four codes has no
+  place and no corrected time, and the finishers are ranked without her.
+  She scores as a DNF does (A5.2, or A5.3 as a boat that came to the
+  starting area).
+- **The data model change is approved.** Four new `Finish.Status` choices.
+  "A time or a code, never both" becomes: FINISHED needs a time; DNC, DNS
+  and DNF have none; DSQ, RET, OCS and NSC may keep one. This changes the
+  brief's invariant for those four codes only.
+- **A coded boat's time doesn't feed the NHC handicaps.** She is treated as
+  a DNF is, with or without a time: out of the sums, handicap carried
+  forward. The RYA spec gives only FINISHED boats a usable time, and an OCS
+  or NSC time isn't a fair measure. This differs from the scoring penalty
+  (slice 23), where the boat is still a finisher.
+- **Regattas:** all four are back-calculated as DNF is, from the median
+  finisher's corrected time. The RYA spec doesn't mention them.
+- **Realignment:** all four count as having taken part, OCS included.
+- **The kept time is public,** in More detail and the CSV, with the
+  corrected time blank.
+
+**Consequence.** The kept time is a record, not an input: it changes no
+score and no handicap, and exists so a reinstated boat needs nothing
+retyped and an owner can see what was recorded. The RRS has no worked
+example of A6.1, so CODE-1 to CODE-6, worked by hand and checked by the
+owner on 2026-10-10, are the specification and become fixtures. DNE, UFD,
+BFD, ZFP, RDG and DPI stay unimplemented.
+
