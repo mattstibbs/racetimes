@@ -1,4 +1,4 @@
-"""Slice 26, part A: the scoring codes DSQ, RET, OCS and NSC, and RRS A6.1.
+"""The scoring codes DSQ, RET, OCS and NSC, and RRS A6.1.
 
 The worked examples CODE-1 to CODE-6 are in tests/fixtures/codes_and_a6_1.yaml,
 worked by hand and checked by the project owner. The engine is never used to

@@ -31,8 +31,8 @@ from .domain import Boat, RaceStatus, RealignmentEntry, RealignmentResult
 from .errors import InvalidInput
 
 #: The statuses that count as having taken part in a series for realignment
-#: (section 5): a boat that finished, or sailed and did not finish. The codes
-#: of slice 26 all sailed the race, OCS included.
+#: (section 5): a boat that finished, or sailed and did not finish. The four
+#: A10 codes all sailed the race, OCS included.
 _TOOK_PART = frozenset(
     {
         RaceStatus.FINISHED,

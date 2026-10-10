@@ -1,11 +1,11 @@
-# Worked examples for two Appendix A rules on a fixed-number series (slice 24).
+# Worked examples for two Appendix A rules on a fixed-number series .
 #
 # SOURCE: suggested by Claude and approved by the project owner on
-# 2026-10-03, in the conversation that closed slices 24 and 25. Worked by hand
+# 2026-10-03, in the conversation that settled the fixed-number series. Worked by hand
 # from RRS A5.2 (a boat that doesn't finish scores the entries + 1), the
 # discard rule, and RRS 44.3(c) / A10 SCP (the penalty is 20% of the Did Not
 # Finish score, in tenths of a point, and never makes a score worse than Did
-# Not Finish) as slice 23's fixtures state them; not with the engine. Never
+# Not Finish) as the discard threshold and scoring penalty fixtures state them; not with the engine. Never
 # change an expected value to make a test pass: if the engine disagrees, the
 # engine is wrong, or this file's provenance needs checking with the project
 # owner first.

@@ -1,4 +1,4 @@
-"""Optional extra steps in the club-series handicap adjustment (slice 14).
+"""Optional extra steps in the club-series handicap adjustment.
 
 The RYA's club-series calculation (``sailscoring/handicap.py``, spec section 3) is the
 default, and stays exactly as written there. Some clubs publish results with a

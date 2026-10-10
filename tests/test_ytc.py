@@ -1,4 +1,4 @@
-"""Slice 25, part B: RYA YTC, scored by sailscoring.fixed_number.
+"""RYA YTC, scored by sailscoring.fixed_number.
 
 The worked examples YTC-1 and YTC-2 are in tests/fixtures/ytc.yaml, worked by
 hand from section 6.2 of the RYA YTC 2026 Policy and Procedures and checked by

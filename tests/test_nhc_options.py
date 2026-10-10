@@ -1,4 +1,4 @@
-"""The optional extra NHC steps: capping extreme results and realigning to base numbers (slice 14).
+"""The optional extra NHC steps: capping extreme results and realigning to base numbers.
 
 Checked against one real Medway Cruising Club race, whose published results
 used both steps (``tests/fixtures/mcc_full_nhc_method.yaml``). The test cases

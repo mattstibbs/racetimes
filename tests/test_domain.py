@@ -52,7 +52,7 @@ def finisher(boat_id="A", tcf=0.95, elapsed=3600.0, **kwargs):
 
 
 def test_race_status_members_match_the_spec():
-    # The four of section 6, and the four A10 codes slice 26 added.
+    # The four of section 6, and the four A10 codes.
     assert {s.value for s in RaceStatus} == {
         "FINISHED",
         "DNC",

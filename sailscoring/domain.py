@@ -416,7 +416,7 @@ class RealignmentResult:
     realigned_tcf: float
 
 
-# --- Shared by every kind of series (slice 24) -------------------------------------------
+# --- Shared by every kind of series -------------------------------------------
 #
 # An NHC series and a fixed-number series (``sailscoring/fixed_number.py``) differ in how
 # a corrected time is worked out and in whether handicaps move. Everything else

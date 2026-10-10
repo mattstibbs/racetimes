@@ -1,4 +1,4 @@
-"""The recalculation acceptance criterion for slice 0.
+"""The recalculation acceptance criterion .
 
 "Changing any finish and re-scoring gives correct downstream handicaps."
 

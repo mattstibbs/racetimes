@@ -44,7 +44,7 @@ CLAMP_UPPER = 1.1
 TOP_FINISHERS_AVERAGED = 3
 
 #: Non-finishers back-calculated from the median finisher rather than the top
-#: few (see ``_elapsed_times``). The four codes of slice 26 sit beside DNF.
+#: few (see ``_elapsed_times``). The four A10 codes sit beside DNF.
 _TREATED_AS_DNF = frozenset(
     {
         RaceStatus.DNF,
@@ -165,7 +165,7 @@ def _elapsed_times(race: RaceInput, finishers) -> dict[str, float]:
         elif entry.status in _TREATED_AS_DNF:
             # A DNF, or a boat coded DSQ, RET, OCS or NSC: she was on the water
             # and is back-calculated as a DNF is, with or without a time she
-            # recorded (slice 26).
+            # recorded.
             times[entry.boat_id] = median / entry.tcf_used
         else:
             # DNC and DNS: the boat never sailed the course.

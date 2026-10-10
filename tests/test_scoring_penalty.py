@@ -1,4 +1,4 @@
-"""The scoring penalty (RRS 44.3(c), A10 SCP; slice 23 part B).
+"""The scoring penalty (RRS 44.3(c), A10 SCP).
 
 Expected values come from the hand-worked examples in
 ``tests/fixtures/scoring_penalty.yaml``.

@@ -315,7 +315,7 @@ failure there is a defect in this package, never a fixture to adjust.
 - **Rounding corrected times before ranking**, under any system.
 - **Fixed-number systems other than Portsmouth Yardstick and RYA YTC.**
 - **Multiple starts per race, and pursuit races**, both out of scope for this
-  slice.
+  package.
 
 There is no published RYA worked example for regattas as there is for club
 series, so the regatta rules are validated against a reading of section 4

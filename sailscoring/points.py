@@ -22,7 +22,7 @@ The rules that apply to a single race:
 * **A6.1** A boat disqualified, or retired after finishing, or scored did not
   sail the course, leaves the places: each boat with a worse finishing place
   moves up one. The engine gets this from the ranking alone. Only FINISHED
-  boats have a place, so a DSQ, RET, OCS or NSC boat (slice 26) is left out
+  boats have a place, so a DSQ, RET, OCS or NSC boat is left out
   and the boats behind her are ranked without her, ties and all.
 """
 

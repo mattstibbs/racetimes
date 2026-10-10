@@ -43,31 +43,31 @@ REALIGNMENT_SCENARIO_IDS = [s["scenario_id"] for s in REALIGNMENT_SCENARIOS]
 # database and read back from the pages.
 SCEN_005 = next(s for s in SCENARIOS if s["scenario_id"].startswith("SCEN-005"))
 
-#: Worked example DT-1 (slice 23): no discard until four races are scored.
+#: Worked example DT-1 : no discard until four races are scored.
 DISCARD_THRESHOLD_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "discard_threshold.yaml"
 )
 
-#: Worked examples SP-1 to SP-6 (slice 23, part B): the scoring penalty.
+#: Worked examples SP-1 to SP-6 : the scoring penalty.
 SCORING_PENALTY_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "scoring_penalty.yaml"
 )
 
-#: Worked examples PY-1 and PY-2 (slice 24): Portsmouth Yardstick.
+#: Worked examples PY-1 and PY-2 : Portsmouth Yardstick.
 PORTSMOUTH_YARDSTICK_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "portsmouth_yardstick.yaml"
 )
 
-#: Worked examples YTC-1 and YTC-2 (slice 25, part B): RYA YTC.
+#: Worked examples YTC-1 and YTC-2 : RYA YTC.
 YTC_FIXTURE = load_scenarios(Path(__file__).resolve().parent / "fixtures" / "ytc.yaml")
 
 #: Worked examples DT-FN-1, SP-FN-1 and SP-FN-2: the discard threshold and the
-#: scoring penalty on a fixed-number series (slice 24, approved 2026-10-03).
+#: scoring penalty on a fixed-number series (approved 2026-10-03).
 FIXED_NUMBER_RULES_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "fixed_number_rules.yaml"
 )
 
-#: Worked examples CODE-1 to CODE-6 (slice 26): DSQ, RET, OCS and NSC, and A6.1.
+#: Worked examples CODE-1 to CODE-6 : DSQ, RET, OCS and NSC, and A6.1.
 CODES_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "codes_and_a6_1.yaml"
 )
@@ -132,7 +132,7 @@ def race_boat_params(field):
     return params, ids
 
 
-# --- Slice 14: one MCC race, scored with the optional extra NHC steps --------------------------
+# --- One MCC race, scored with the optional extra NHC steps --------------------------
 
 MCC_FIXTURE_PATH = (
     Path(__file__).resolve().parent / "fixtures" / "mcc_full_nhc_method.yaml"

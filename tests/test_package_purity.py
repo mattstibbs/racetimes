@@ -1,6 +1,6 @@
 """Guards the one structural promise the sailscoring package makes.
 
-Slice 0 requires the scoring engine to be "a pure Python package ... No Django,
+The brief requires the scoring engine to be "a pure Python package ... No Django,
 no database, no I/O" that drops into any Python project. That is easy to state
 and easy to erode: one convenience import of ``django.utils`` and the package
 quietly stops being portable. These tests fail the moment that happens.
