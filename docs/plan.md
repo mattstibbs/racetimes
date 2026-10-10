@@ -879,7 +879,7 @@ The owner checked worked examples YTC-1 and YTC-2 (2026-10-02), so nothing
 is left to answer. They become fixtures in `tests/fixtures/` when part B is
 built.
 
-## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: part A built (2026-10-10); part B to build**
+## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: built (2026-10-10), in two parts**
 
 Spec: `docs/slices/26-more-scoring-codes-and-a6-1.md`. Nothing is built. To
 be built in two parts, each its own pull request: the engine, then the site.
