@@ -26,7 +26,7 @@ from races.models import (
 )
 from races.testing import make_member
 
-# Everything belongs to Demo Club, which the migrations create (slice 11).
+# Everything belongs to Demo Club, which the migrations create.
 club = Club.objects.get(subdomain="demo")
 
 PASSWORD = "manual-screenshots-only"
@@ -39,7 +39,7 @@ def account(email, first, last, **fields):
     return user
 
 
-# Roles are Demo Club memberships (slice 11): Chris is the club's administrator,
+# Roles are Demo Club memberships: Chris is the club's administrator,
 # Alex is on the race committee, and the rest are members.
 account("admin@example.com", "Chris", "Admin", role="ADMINISTRATOR")
 officer = account("officer@example.com", "Alex", "Officer", role="COMMITTEE")
@@ -135,7 +135,7 @@ RaceEntry.objects.create(race=race_4, entry=entries[2], persons_on_board=4)
 wednesdays = Series.objects.create(club=club, name="Wednesday Evenings")
 
 # A finished summer series, every race published and sent, ready to be
-# declared final (slice 10). Race 3 was cancelled for weather: nothing recorded.
+# declared final. Race 3 was cancelled for weather: nothing recorded.
 summer = Series.objects.create(club=club, name="Summer 2026 Series")
 summer_entries = [
     SeriesEntry.objects.create(series=summer, boat=boat)
@@ -156,7 +156,7 @@ for number, day in [(1, 1), (2, 8), (3, 15)]:
             Finish.objects.create(race=race, entry=entry, finish_time=finish)
         Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
-# A Portsmouth Yardstick fleet (slice 24), a series of its own with its own
+# A Portsmouth Yardstick fleet, a series of its own with its own
 # boats, which have only a Portsmouth Number. Race 1 is published; the numbers
 # are examples, not the RYA's. Created last so the other series keep their ids.
 gaffers = Series.objects.create(
@@ -195,7 +195,7 @@ for number, day in [(1, 10), (2, 17)]:
             Finish.objects.create(race=race, entry=entry, status="DNF")
     Race.objects.filter(pk=race.pk).update(published_at=sent, results_sent_at=sent)
 
-# An RYA YTC fleet (slice 25): boats with the two numbers from their
+# An RYA YTC fleet: boats with the two numbers from their
 # certificates, and an entry that chooses which one to race on. Arcona races on
 # her non-spinnaker number (NS). Dunlin is not entered, for the Enter boats shot.
 # The numbers are examples. Created after the Portsmouth fleet so its ids stay.
@@ -274,7 +274,7 @@ BoatRequest.objects.create(
 )
 EntryRequest.objects.create(series=wednesdays, boat=kittiwake, requested_by=pat)
 
-# An invitation from the operator to run the club (slice 11 part 3). shots.js
+# An invitation from the operator to run the club. shots.js
 # opens its link, which run.sh passes over in a file.
 invitation = ClubInvitation.objects.create(
     club=club, email="lee@example.com", invited_by_name="operator"
@@ -282,7 +282,7 @@ invitation = ClubInvitation.objects.create(
 if os.environ.get("INVITATION_FILE"):
     with open(os.environ["INVITATION_FILE"], "w") as out:
         out.write(reverse("races:accept_invitation", args=[token_for(invitation)]))
-# A second club (slice 27), so Pat's Your clubs page, on the service's own
+# A second club, so Pat's Your clubs page, on the service's own
 # address, has two clubs on it: a member at Demo Club and on the race
 # committee at Harbour. Created last, so every other row keeps its id.
 from races.models import ClubMembership  # noqa: E402

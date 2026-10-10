@@ -1,4 +1,4 @@
-"""Sharing published results to WhatsApp (slice 21).
+"""Sharing published results to WhatsApp.
 
 The committee's pages offer a WhatsApp "click to chat" link with a message
 already written: ``https://wa.me/?text=<message>``. With no phone number in

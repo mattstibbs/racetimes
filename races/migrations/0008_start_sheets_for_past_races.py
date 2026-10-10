@@ -1,6 +1,6 @@
 """Give every race already sailed a start sheet: the boats that have a finish.
 
-From slice 6 only a boat on the start sheet can have a finish, so every
+Since start sheets were added, only a boat on the start sheet can have a finish, so every
 existing finish needs its boat on the sheet. Boats without a finish stay off,
 so they score DNC exactly as they did before. No emails are sent from a
 migration.

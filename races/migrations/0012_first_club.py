@@ -1,4 +1,4 @@
-"""Slice 11: every existing row joins the first club.
+"""Every existing row joins the first club.
 
 The site held one club's data before clubs existed. This creates that club,
 named from FIRST_CLUB_NAME and FIRST_CLUB_SUBDOMAIN (by default "Demo Club" at

@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         # 3.13 is what the sites run (render.yaml). 3.14 is tested too, so we
-        # know when the next step is safe (slice 20).
+        # know when the next step is safe.
         python-version: ["3.13", "3.14"]
 
     steps:
@@ -47,7 +47,7 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
 
   lint:
-    # Ruff, configured in pyproject.toml (slice 17): the linter, and the
+    # Ruff, configured in pyproject.toml: the linter, and the
     # formatter in check mode, which fails if any file isn't formatted.
     name: ruff lint and format
     runs-on: ubuntu-latest
@@ -72,8 +72,8 @@ jobs:
         run: ruff format --check .
 
   deploy-settings:
-    # Django's deployment checklist, against the production settings (slice 11
-    # part 4). --fail-level WARNING matters: without it the check reports its
+    # Django's deployment checklist, against the production settings.
+    # --fail-level WARNING matters: without it the check reports its
     # warnings and still passes. The secret key is a throwaway for this job.
     name: production settings pass the deploy check
     runs-on: ubuntu-latest
@@ -99,7 +99,7 @@ jobs:
   engine-on-3-11:
     # The site runs on 3.13, but sailscoring/README.md promises the scoring engine
     # works on Python 3.11 or later, so it can be copied into other projects.
-    # Its tests (tests/) run here on 3.11 to keep that promise (slice 20).
+    # Its tests (tests/) run here on 3.11 to keep that promise.
     name: scoring engine tests (python 3.11)
     runs-on: ubuntu-latest
 

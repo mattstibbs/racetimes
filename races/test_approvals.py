@@ -1,4 +1,4 @@
-"""Slice 3: the race committee deciding members' requests.
+"""The race committee deciding members' requests.
 
 Driven through the Requests page as the committee would, because approving is
 where a member's request becomes a change to boats, entries and results.

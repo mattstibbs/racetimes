@@ -1,4 +1,4 @@
-"""Deleting a person's account, keeping the clubs' records whole (slice 11 part 5).
+"""Deleting a person's account, keeping the clubs' records whole.
 
 What goes, with the account (the foreign keys do it): their memberships and
 the requests they made. What stays: their boats, as each club's records with

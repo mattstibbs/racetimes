@@ -1,4 +1,4 @@
-"""Slice 24, part B: Portsmouth Yardstick through the database and the adapter.
+"""Portsmouth Yardstick through the database and the adapter.
 
 The engine reproduces PY-1 and PY-2 on its own (tests/test_fixed_number.py).
 What is checked here is the translation: clock times becoming elapsed seconds,
@@ -106,7 +106,7 @@ def test_an_nhc_series_still_reports_its_handicaps():
 
 
 def test_changing_any_finish_changes_only_that_race_and_the_standings():
-    """The slice's recalculation test, through the database.
+    """The recalculation test, through the database.
 
     Under NHC a corrected finish ripples into later races through the
     handicaps. Under a fixed number it can't: every other race scores as before.
@@ -281,10 +281,10 @@ def test_a_final_portsmouth_series_keeps_its_results_when_a_boats_number_changes
     assert first.raced_on == EXAMPLES["PY-1"]["boats"]["B"]  # as she raced
 
 
-def test_a_stored_nhc_copy_from_before_this_slice_still_loads_as_nhc(
+def test_a_stored_nhc_copy_from_before_systems_still_loads_as_nhc(
     committee_client,
 ):
-    """Copies stored before slice 24 name no system. They are NHC results."""
+    """Copies stored before systems were recorded name no system. They are NHC results."""
     series = make_series("Old")
     race = make_race(series, start="18:30:00")
     for sail, base, elapsed in [("GBR1", "0.964", 3500), ("GBR2", "0.900", 3600)]:

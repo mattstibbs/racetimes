@@ -1,4 +1,4 @@
-"""Which club a request is for (slice 11).
+"""Which club a request is for.
 
 Every club has its own address, ``<subdomain>.<SERVICE_DOMAIN>``, and the
 middleware here works out the club from the request's host. It attaches it as
@@ -20,11 +20,11 @@ from . import logs
 from .models import Club
 
 # Paths that work on the service's own address, with no club: the operator's
-# pages (slice 11 part 3), the Django admin, where the operator logs in and
-# manages accounts, the privacy notice and terms (part 5), and (slice 27)
+# pages, the Django admin, where the operator logs in and
+# manages accounts, the privacy notice and terms (part 5), and
 # logging in and out, a forgotten password, sending the confirmation link
 # again, Your clubs, and a person's own account pages, which act across every
-# club already. Signing up starts here (slice 28, step 1: find your club) and finishes on the
+# club already. Signing up starts with finding your club and finishes on the
 # club's own address, since it asks to join that club.
 SERVICE_PATHS = (
     "/admin/",
@@ -79,7 +79,7 @@ class ClubMiddleware:
         subdomain = subdomain_of(request.get_host())
         if subdomain == "www":
             # www.racetimes.co.uk is the service's own address by another name
-            # (slice 12); "www" is reserved, never a club's.
+            # "www" is reserved, never a club's.
             return HttpResponsePermanentRedirect(
                 club_address(request, None, request.get_full_path())
             )
@@ -95,7 +95,7 @@ class ClubMiddleware:
                     request, "clubs/paused.html", {"paused_club": club}, status=503
                 )
             request.club = club
-            # Log lines and error reports say which club (slice 11 part 4).
+            # Log lines and error reports say which club.
             logs.club.set(club.subdomain)
             sentry_sdk.set_tag("club", club.subdomain)
         elif not request.path.startswith(SERVICE_PATHS):

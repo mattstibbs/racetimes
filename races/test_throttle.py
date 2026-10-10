@@ -1,4 +1,4 @@
-"""Slice 11 part 4: after 10 failed logins, an account or an address is locked for 15 minutes."""
+"""After 10 failed logins, an account or an address is locked for 15 minutes."""
 
 import re
 

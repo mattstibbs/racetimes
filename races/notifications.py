@@ -1,4 +1,4 @@
-"""The emails the site sends (slice 4), and how they are sent.
+"""The emails the site sends, and how they are sent.
 
 Every email goes through ``send``, which waits for the surrounding database
 transaction to commit, so a change that fails and is rolled back never emails
@@ -11,7 +11,7 @@ message to everyone: owners should not see each other's email addresses.
 
 Templates are in templates/emails/. Their first line is the subject.
 
-Each email comes from its club (slice 11 part 4): "<Club name> via Race
+Each email comes from its club: "<Club name> via Race
 Times", at the service's one sending address, with replies going to the
 club's contact email. See ``sender``.
 """
@@ -122,7 +122,7 @@ def series_owners(series):
     """Approved members of the series' club who own a boat entered in it.
 
     Someone removed from the club, or still waiting to join, gets no results
-    emails from it even if a boat there is recorded as theirs (slice 11).
+    emails from it even if a boat there is recorded as theirs.
     """
     return (
         get_user_model()
@@ -159,7 +159,7 @@ def race_results(race, request, *, updated, on_sent=None):
 
 
 def final_standings(series, request, *, updated, on_sent=None):
-    """Email a final series' standings to every owner in it, each with their own place (slice 10)."""
+    """Email a final series' standings to every owner in it, each with their own place."""
     results = score_series(series)
     place = {}
     for row in results.standings:
@@ -189,7 +189,7 @@ def final_standings(series, request, *, updated, on_sent=None):
     return len(owners)
 
 
-# --- Accounts and memberships (slice 11) -------------------------------------------
+# --- Accounts and memberships -------------------------------------------
 
 
 def confirm_email(user, club, request, link):
@@ -202,7 +202,7 @@ def membership_decided(membership, request, change):
 
     ``change`` is "approved", "rejected", "role" or "removed". The links go to
     the club's own address even when the operator decided, on the service's
-    address (slice 13).
+    address.
     """
     club = membership.club
     send(
@@ -230,7 +230,7 @@ def _club_link(request, club, name):
 
 
 def account_deleted(user, request):
-    """The one email confirming an account was deleted (slice 11 part 5).
+    """The one email confirming an account was deleted.
 
     Built before the account goes, and sent by the caller once it has: the
     last email Race Times sends to that address.
@@ -245,7 +245,7 @@ def account_deleted(user, request):
 
 
 def password_changed(user, request):
-    """Tell the person their password was changed, in case it wasn't them (slice 16).
+    """Tell the person their password was changed, in case it wasn't them.
 
     The reset link is on the club's address; the service's own address, where
     only the operator changes a password, has no reset page.
@@ -267,7 +267,7 @@ def password_changed(user, request):
 
 
 def invitation(invitation, request, link):
-    """The operator's invitation to run a club, with its 7-day link (slice 11 part 3)."""
+    """The operator's invitation to run a club, with its 7-day link."""
     send(
         [
             email_to(
@@ -284,7 +284,7 @@ def invitation(invitation, request, link):
 
 
 def club_settings_changed(club, request, *, old_name, old_contact_email):
-    """Tell the club's administrators the operator changed its name or contact email (slice 22).
+    """Tell the club's administrators the operator changed its name or contact email.
 
     Sent from the club as it now is, so the From name is the new one and
     replies go to the new contact email.

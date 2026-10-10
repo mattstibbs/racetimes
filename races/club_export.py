@@ -1,4 +1,4 @@
-"""Everything a club holds, as one ZIP of CSV files (slice 11 part 5).
+"""Everything a club holds, as one ZIP of CSV files.
 
 The club's administrators download it from the Members page, and the operator
 from the club's operator page, which works while the club is suspended: that

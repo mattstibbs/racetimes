@@ -1,4 +1,4 @@
-"""Slice 15: a boat is named "Name (Sail number)", except on the race day page."""
+"""A boat is named "Name (Sail number)", except on the race day page."""
 
 import re
 

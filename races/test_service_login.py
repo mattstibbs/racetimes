@@ -1,4 +1,4 @@
-"""Slice 27: logging in from the service's own address, racetimes.co.uk.
+"""Logging in from the service's own address, racetimes.co.uk.
 
 The same login as a club's, a Your clubs page after it, and a person's own
 account pages, all on the service's address (``localhost`` in tests, with

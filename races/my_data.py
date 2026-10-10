@@ -1,4 +1,4 @@
-"""A person's own data, as one JSON file (slice 11 part 5).
+"""A person's own data, as one JSON file.
 
 Everything held about them, at every club: it's all theirs, so the file isn't
 limited to the club whose address they downloaded it from. It leaves out

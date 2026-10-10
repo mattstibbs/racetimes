@@ -1,4 +1,4 @@
-"""Slice 9: the race day page - tapping Finished, Undo, refreshing, the clock.
+"""The race day page - tapping Finished, Undo, refreshing, the clock.
 
 Organised by acceptance criterion. The clock is fixed in each test: tapping
 Finished reads ``race_day.now`` (the site's local time), and Undo's two
@@ -105,7 +105,7 @@ def test_the_old_addresses_redirect_to_the_race_day_page(
 def test_the_old_addresses_still_need_the_committee(client, racing):
     client.force_login(make_member("someone@example.com"))
     response = client.get(reverse("races:finish_entry", args=[racing["race"].pk]))
-    assert response.status_code == 403  # refused, not a login loop (slice 11)
+    assert response.status_code == 403  # refused, not a login loop
 
 
 def test_the_page_opens_on_finishing_once_anyone_is_racing(client, committee, racing):
@@ -353,7 +353,7 @@ def test_undo_is_refused_once_published(client, committee, racing, clock):
     assert Finish.objects.count() == 3
 
 
-def test_a_finish_from_before_slice_9_never_offers_undo(
+def test_a_finish_from_before_recording_time_never_offers_undo(
     client, committee, racing, clock
 ):
     clock(19, 10)
@@ -442,7 +442,7 @@ def test_the_clock_is_shown_only_on_the_race_date(client, committee, racing, clo
     assert 'id="race-clock"' in html and 'data-date="2026-09-23"' in html
 
 
-# Slice 15: boats are named sail number first here, unlike everywhere else.
+# Boats are named sail number first here, unlike everywhere else.
 
 
 def test_the_race_day_page_names_boats_sail_number_first(

@@ -1,4 +1,4 @@
-"""Slice 16: changing your own password from My account."""
+"""Changing your own password from My account."""
 
 import logging
 

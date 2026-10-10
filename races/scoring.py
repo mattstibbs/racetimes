@@ -9,7 +9,7 @@ template can show a boat's sail number rather than an id.
 Results are computed here on every call and never stored. Replaying a series
 is microseconds of arithmetic, and a stored result could go stale when a
 finish is corrected; see docs/decisions.md. The one exception is a series
-declared final (slice 10): it is locked, and scored from the copy of the
+declared final: it is locked, and scored from the copy of the
 engine's output saved when it was declared (``races/final.py``).
 """
 
@@ -49,7 +49,7 @@ class BoatRaceResult:
     result: sailscoring.RaceResult
     # On the start sheet but nothing recorded yet. Still scored DNC - the
     # engine is not told otherwise - but shown as "Not recorded", and the race
-    # cannot be published until it is (slice 6).
+    # cannot be published until it is.
     not_recorded: bool = False
 
     @property
@@ -65,13 +65,13 @@ class BoatRaceResult:
 
     @property
     def is_non_spinnaker(self):
-        """Whether the boat raced on her non-spinnaker YTC number (slice 25)."""
+        """Whether the boat raced on her non-spinnaker YTC number."""
         return self.entry.is_non_spinnaker
 
     @property
     def raced_on(self):
         """The number the boat raced on: a TCF under NHC, a PN under Portsmouth
-        Yardstick (slice 24). The one place a template reads it, so it never
+        Yardstick. The one place a template reads it, so it never
         reaches into either engine type."""
         if self.is_fixed_number:
             return self.result.number
@@ -167,7 +167,7 @@ def build_engine_series(series, entries, races):
     starts on its boats' numbers (the engine's RESET) - carrying handicaps over
     is not supported yet - so an NHC boat's ``current_tcf`` is set to the base
     number too, and never read. A Portsmouth Yardstick series gets an
-    ``sailscoring.FixedNumberSeries``, which has no handicap to start or move (slice 24).
+    ``sailscoring.FixedNumberSeries``, which has no handicap to start or move.
 
     A boat without the series' number reaches the engine as None, which it
     refuses with ``InvalidInput``; ``score_series`` checks first, to say which.
@@ -221,7 +221,7 @@ def build_engine_series(series, entries, races):
         apply_a5_3=series.apply_a5_3,
         discards=series.discards,
         discard_threshold=series.discard_threshold,
-        # Slice 14: the optional extra NHC steps, both off unless the series asks.
+        # The optional extra NHC steps, both off unless the series asks.
         cap_extremes=series.nhc_cap_extremes,
         realign_to_base=series.nhc_realign_to_base,
     )
@@ -241,7 +241,7 @@ def _run_engine(engine_series):
 def setup_problem(series, entries):
     """What stops a series being scored, in words, or "" if nothing does.
 
-    The forms refuse these (slice 24), so this is for a row that got past them.
+    The forms refuse these, so this is for a row that got past them.
     The pages then say so, rather than show results that quietly ignore a
     setting or crash on a boat with no number.
     """
@@ -260,7 +260,7 @@ def setup_problem(series, entries):
         if unused:
             return f"a {system} series can't use {', '.join(unused)}"
     # A boat is scored on the number her entry chose, which under RYA YTC is
-    # one of two (slice 25), so each entry says which number it lacks.
+    # one of two, so each entry says which number it lacks.
     missing = {}
     for entry in entries:
         if entry.number is None:

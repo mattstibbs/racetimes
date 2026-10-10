@@ -36,7 +36,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
 
   // The committee's view.
   const officer = await logIn(browser, 'officer@example.com');
-  // The race office (slice 18), before any request is decided.
+  // The race office, before any request is decided.
   await officer.goto(`${BASE}/office/`);
   await shot(officer.locator('main'), 'race-office.png');
   await shot(officer.locator('section[aria-labelledby=waiting]'), 'front-page-committee.png');
@@ -49,7 +49,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await officer.locator('table a', { hasText: 'Autumn 2026 Series' }).click();
   await officer.waitForLoadState('networkidle');
   await shot(officer.locator('main'), 'office-series.png');
-  // A series' scoring rules (slice 14), on its settings page.
+  // A series' scoring rules, on its settings page.
   await officer.click('text=Change settings');
   await officer.waitForLoadState('networkidle');
   await shot(officer.locator('fieldset.group'), 'series-scoring-rules.png');
@@ -156,7 +156,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
     clip: { x: 0, y: title.y - 8, width: 1000, height: standings.y + standings.height - title.y + 16 },
   });
 
-  // Portsmouth Yardstick (slice 24): a series' handicap system on its settings
+  // Portsmouth Yardstick: a series' handicap system on its settings
   // page, then its results, and a boat that races on a Portsmouth Number.
   await officer.goto(`${BASE}/office/`);
   await officer.locator('table a', { hasText: "Gaffers' Cup" }).click();
@@ -178,7 +178,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await phone.goto(`${BASE}/boats/5/`);
   await shot(phone.locator('body'), 'results-portsmouth-boat.png');
 
-  // RYA YTC (slice 25): the results with a boat marked NS, a boat's page, the
+  // RYA YTC: the results with a boat marked NS, a boat's page, the
   // Enter boats choice of number, and changing it on an entry.
   await publicPage.goto(`${BASE}/series/5/?race=1&detail=1`);
   const yTop = await publicPage.locator('#race-1').boundingBox();
@@ -213,7 +213,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(sam.locator('main'), 'account.png');
   await sam.goto(`${BASE}/account/delete/`);
   await shot(sam.locator('main'), 'delete-account.png');
-  // Changing a password (slice 16; not submitted, so the seed's password stays).
+  // Changing a password (not submitted, so the seed's password stays).
   await sam.goto(`${BASE}/account/password/`);
   await shot(sam.locator('main'), 'change-password.png');
 
@@ -238,14 +238,14 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await invited.goto(`${BASE}${fs.readFileSync(process.env.INVITATION_FILE, 'utf8')}`);
   await shot(invited.locator('main'), 'invitation.png');
 
-  // Logging in from the service's own address (slice 27): the front page's
+  // Logging in from the service's own address: the front page's
   // header and Log in line, the login page, and Pat's Your clubs.
   const visitor = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
   await visitor.goto(`${SERVICE}/`);
   await shot(visitor.locator('header.site-header'), 'service-header-log-in.png');
   await visitor.goto(`${SERVICE}/accounts/login/`);
   await shot(visitor.locator('main'), 'service-login.png');
-  // Signing up from the service's address (slice 28): step 1, the search, and
+  // Signing up from the service's address: step 1, the search, and
   // step 2 on the club's own page (harbour.localhost, on the same server).
   await visitor.goto(`${SERVICE}/signup/?club=harbour`);
   await shot(visitor.locator('main'), 'signup-find-club.png');

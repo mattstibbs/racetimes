@@ -46,7 +46,7 @@ AUDITED_FIELDS = {
         "nhc_realign_to_base",
     ],
     # Being added or removed matters (the A5.2 entry count). So does, in a YTC
-    # series only (slice 25), which of her two numbers the boat races on; see
+    # series only, which of her two numbers the boat races on; see
     # fields_for.
     SeriesEntry: ["ytc_number_used"],
     Boat: ["base_number", "py_number", "ytc_number", "ytc_number_non_spinnaker"],
@@ -56,7 +56,7 @@ AUDITED_FIELDS = {
 def fields_for(obj):
     """The audited fields that mean something for this row.
 
-    An entry's choice of number means nothing outside a YTC series (slice 25),
+    An entry's choice of number means nothing outside a YTC series,
     so it is not recorded there.
     """
     fields = AUDITED_FIELDS[type(obj)]
@@ -162,13 +162,13 @@ def _rows(obj, action, changes):
         return [row(obj, None, series_has_finishes(obj))]
     if isinstance(obj, SeriesEntry):
         return [row(obj.series, None, series_has_finishes(obj.series))]
-    # A boat's numbers each feed only the series scored on them (slice 24): the
+    # A boat's numbers each feed only the series scored on them: the
     # NHC base number the NHC series, the Portsmouth Number the Portsmouth ones.
     # Each series' history gets a row of the changes that touched it, so it is
     # complete without looking anywhere else. A change that touched no series
     # at all (a boat in none, or only in series that don't use that number) is
     # kept in one row for the club, so it is still recorded.
-    # A YTC number (slice 25) feeds a series only through the entries that chose
+    # A YTC number feeds a series only through the entries that chose
     # it, so a change to one the boat is not entered on touches no series.
     series_list = (
         list(Series.objects.filter(entries__boat=obj).distinct()) if obj.pk else []
@@ -204,7 +204,7 @@ def _rows(obj, action, changes):
 
 
 def _club_of(obj):
-    """The club a changed row belongs to (slice 11)."""
+    """The club a changed row belongs to."""
     if isinstance(obj, Finish):
         return obj.race.series.club
     if isinstance(obj, (Race, SeriesEntry)):
@@ -296,7 +296,7 @@ def compare(before, after):
             continue
         if _places(old) != _places(race_results):
             places.append(race_results.race.number)
-        # No handicap can move in a fixed-number series (slice 24), so none is
+        # No handicap can move in a fixed-number series, so none is
         # ever reported as having moved.
         if not fixed and _handicaps(old) != _handicaps(race_results):
             handicaps.append(race_results.race.number)

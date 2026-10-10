@@ -1,4 +1,4 @@
-"""Slice 11 part 5: the privacy notice and terms, the footer, and essential cookies only."""
+"""The privacy notice and terms, the footer, and essential cookies only."""
 
 import pytest
 from django.urls import reverse

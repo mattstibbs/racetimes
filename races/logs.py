@@ -1,4 +1,4 @@
-"""Logs and error reports that say which club, and name nobody (slice 11 part 4).
+"""Logs and error reports that say which club, and name nobody.
 
 - Every log line says which club's address the request was for, e.g.
   ``WARNING [demo] django.request: Not Found: /series/99/``, or ``[-]`` outside

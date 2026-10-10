@@ -1,4 +1,4 @@
-"""Slice 23 part B: the scoring penalty (RRS 44.3(c), SCP) through the database.
+"""The scoring penalty (RRS 44.3(c), SCP) through the database.
 
 The engine's arithmetic is tested in tests/test_scoring_penalty.py against the
 hand-worked examples in tests/fixtures/scoring_penalty.yaml. Here the same
@@ -344,7 +344,7 @@ def test_stored_final_results_keep_the_penalty_and_old_ones_load_without_it(clie
     )
     stored = final.load(results)
     assert any(r.scoring_penalty for race in stored.races for r in race.results)
-    # A copy stored before this slice has neither field.
+    # A copy stored before these fields existed has neither field.
     for race in results["races"]:
         for result in race["results"]:
             del result["scoring_penalty"], result["penalty_points"]

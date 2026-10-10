@@ -1,4 +1,4 @@
-"""Slice 28: signing up from the service's own address, racetimes.co.uk.
+"""Signing up from the service's own address, racetimes.co.uk.
 
 Step 1 (find your club) is on the service's address; step 2 is the club's own
 sign-up page, which names the club. ``localhost`` is the service, with

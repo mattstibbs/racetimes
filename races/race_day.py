@@ -1,8 +1,7 @@
-"""The race day page (slice 9): tapping Finished, Undo, and what changed.
+"""The race day page: tapping Finished, Undo, and what changed.
 
 Finishes tapped here are ordinary Finish rows, saved through the same audit
 code as typed ones, so scoring, the history and publishing see no difference.
-See docs/slices/09-race-day-page.md.
 """
 
 import hashlib

@@ -1,4 +1,4 @@
-"""Slice 11 part 4: running as a service. The health check and the security settings.
+"""Running as a service. The health check and the security settings.
 
 Email from the club, Sentry, logs and throttling have their own sections
 below as they're added.
@@ -119,7 +119,7 @@ def test_the_production_settings_pass_the_deploy_check():
     assert result.returncode == 0, result.stderr
 
 
-# --- The Render Blueprint (slice 12) -----------------------------------------------------------
+# --- The Render Blueprint -----------------------------------------------------------
 
 BLUEPRINT = yaml.safe_load((ROOT / "render.yaml").read_text())
 SERVICES = {service["name"]: service for service in BLUEPRINT["services"]}
@@ -182,7 +182,7 @@ def test_production_is_every_club_at_its_own_address_with_no_secret_in_the_file(
 
 
 def test_production_shares_one_login_across_every_club_address(settings):
-    """Slice 27: the session cookie is the parent domain's in production only."""
+    """The session cookie is the parent domain's in production only."""
     assert env(SERVICES["racetimes-production"])["SESSION_COOKIE_DOMAIN"] == {
         "key": "SESSION_COOKIE_DOMAIN",
         "value": ".racetimes.co.uk",
@@ -232,7 +232,7 @@ def test_backups_are_encrypted_before_they_leave_and_never_logged():
     )
 
 
-# --- scripts/check_live.py (slice 12) ----------------------------------------------------------
+# --- scripts/check_live.py ----------------------------------------------------------
 
 sys.path.insert(0, str(ROOT / "scripts"))
 import check_live  # noqa: E402 (found through the sys.path line above)

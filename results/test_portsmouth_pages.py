@@ -1,4 +1,4 @@
-"""Slice 24, part B: a Portsmouth Yardstick series, read back from the pages.
+"""A Portsmouth Yardstick series, read back from the pages.
 
 The worked examples PY-1 and PY-2 (tests/fixtures/portsmouth_yardstick.yaml,
 checked by the project owner) are entered as clock times, as SCEN-005 is, and the

@@ -1,5 +1,5 @@
 """The race committee's pages for a whole series: its history of changes, and
-declaring its results final (slice 10).
+declaring its results final.
 """
 
 from django.contrib import messages
@@ -28,7 +28,7 @@ def series_history(request, pk):
     )
 
 
-# --- Final results (slice 10) ----------------------------------------------------------
+# --- Final results ----------------------------------------------------------
 
 
 @committee_required
@@ -41,7 +41,7 @@ def _final_context(request, series, reopen_error=""):
     results = score_series(series)
     share_url = None
     if series.is_final:
-        # Only a final series' standings are shared (slice 21).
+        # Only a final series' standings are shared.
         share_url = sharing.whatsapp_url(
             sharing.final_message(series, results, request)
         )

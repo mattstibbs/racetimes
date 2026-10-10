@@ -19,7 +19,7 @@ trap 'kill "${SERVER:-}" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
 export DATABASE_URL="sqlite:///$WORK/manual.sqlite3"
 export DJANGO_DEBUG=1
-# 127.0.0.1 names no club, so the pages are Demo Club's (slice 11).
+# 127.0.0.1 names no club, so the pages are Demo Club's.
 export SINGLE_CLUB=demo
 # Where seed.py leaves the link of the invitation shots.js photographs.
 export INVITATION_FILE="$WORK/invitation-link"
@@ -29,7 +29,7 @@ cd "$ROOT"
 "$PYTHON" manage.py shell --verbosity 0 < "$HERE/seed.py"
 "$PYTHON" manage.py runserver "$PORT" --noreload > "$WORK/server.log" 2>&1 &
 SERVER=$!
-# Slice 27: a second copy of the app with no SINGLE_CLUB, for the service's own
+# A second copy of the app with no SINGLE_CLUB, for the service's own
 # address (localhost) and its club addresses (demo.localhost, which Chromium
 # finds on this machine by itself), on the same throwaway database.
 SERVICE_PORT=$((PORT + 1))

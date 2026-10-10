@@ -1,4 +1,4 @@
-"""Slice 24, part B: choosing a handicap system, and the numbers boats race on.
+"""Choosing a handicap system, and the numbers boats race on.
 
 A series is scored under NHC or Portsmouth Yardstick. A boat has an NHC base
 number, a Portsmouth Number, or both, and needs the number of every series it is

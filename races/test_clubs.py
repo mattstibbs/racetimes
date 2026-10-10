@@ -1,4 +1,4 @@
-"""Slice 11 part 1: clubs, found from the address, and the rules that come with them.
+"""Clubs, found from the address, and the rules that come with them.
 
 The isolation of one club's data from another's is tested in
 races/test_isolation.py.
@@ -43,7 +43,7 @@ def test_the_migrations_create_demo_club():
 
 @pytest.mark.django_db(transaction=True)
 def test_the_migration_moves_existing_rows_into_the_first_club():
-    """A database from before slice 11, with no clubs, gets them all in Demo Club, scoring as before."""
+    """A database from before clubs existed, with no clubs, gets them all in Demo Club, scoring as before."""
     executor = MigrationExecutor(connection)
     executor.migrate([("races", "0010_series_final")])
     old = executor.loader.project_state([("races", "0010_series_final")]).apps
@@ -305,7 +305,7 @@ def test_history_rows_belong_to_the_club(client, harbour):
     assert list(harbour.scoring_changes.values_list("kind", flat=True)) == ["FINISH"]
 
 
-# --- www (slice 12) --------------------------------------------------------------------------
+# --- www --------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("path", ["/", "/privacy/?x=1", "/operator/"])

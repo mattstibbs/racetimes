@@ -1,4 +1,4 @@
-"""Slice 6: race-level entry - the start sheet, and what it changes.
+"""Race-level entry - the start sheet, and what it changes.
 
 Organised by acceptance criterion. Emails land in Django's in-memory outbox;
 ``run_on_commit`` makes "after commit" happen straight away, as on the live
@@ -292,7 +292,7 @@ def test_the_migration_puts_every_boat_with_a_finish_on_its_start_sheet(race_day
     record(race, puffin, status=Finish.Status.DNF)
     record(race_2, puffin, "19:40:05")
     before = score_series(race_day["series"])
-    RaceEntry.objects.all().delete()  # as the database was before slice 6
+    RaceEntry.objects.all().delete()  # as the database was before start sheets
 
     migration = importlib.import_module(
         "races.migrations.0008_start_sheets_for_past_races"
@@ -368,7 +368,7 @@ def test_public_pages_show_not_recorded(client, sailed, page):
 
 
 def test_the_finish_page_says_not_recorded_yet(client, committee, sailed):
-    # Slice 9: a boat with nothing recorded is listed under "Still racing".
+    # A boat with nothing recorded is listed under "Still racing".
     page = client.get(
         reverse("races:race_day", args=[sailed["race"].pk]) + "?view=finish"
     ).content.decode()
@@ -428,7 +428,7 @@ def test_a_boat_added_after_publishing_blocks_updated_results(
     assert "Still to record: GBR8 Gannet." in html
     assert not mail.outbox
 
-    # A first finish needs no reason (slice 2), but it is in the history, so
+    # A first finish needs no reason, but it is in the history, so
     # the race is amended since its results were sent.
     url = reverse("races:save_finish", args=[race.pk, visitor.pk])
     client.post(url, finish_row(visitor, "19:35:00"), HTTP_HX_REQUEST="true")
@@ -670,7 +670,7 @@ def test_only_the_committee_can_change_a_start_sheet(client, race_day, who):
     if who == "member":
         client.force_login(make_member("someone@example.com"))
     response = tick(client, race_day["race"], race_day["kittiwake"])
-    # The public is sent to log in; a member is refused, not sent round a login loop (slice 11).
+    # The public is sent to log in; a member is refused, not sent round a login loop.
     if who == "member":
         assert response.status_code == 403
     else:

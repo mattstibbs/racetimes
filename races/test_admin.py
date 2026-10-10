@@ -30,7 +30,7 @@ def test_series_page_links_each_race_to_finish_entry(admin_client):
     ).content.decode()
     assert (
         f'href="{reverse("races:race_day", args=[race.pk])}"' in page
-    )  # the race day page (slice 9)
+    )  # the race day page
     assert reverse("results:series", args=[series.pk]) in page  # "View on site"
 
 

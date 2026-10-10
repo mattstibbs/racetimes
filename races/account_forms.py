@@ -39,7 +39,7 @@ def _normalise_login(value):
 
 
 class SignUpForm(UserCreationForm):
-    """Anyone's own sign-up. The account is switched off until its email is confirmed (slice 11)."""
+    """Anyone's own sign-up. The account is switched off until its email is confirmed."""
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
@@ -147,7 +147,7 @@ class LoginForm(AuthenticationForm):
 
 
 class DeleteAccountForm(forms.Form):
-    """Deleting your own account needs your password (slice 11 part 5).
+    """Deleting your own account needs your password.
 
     The check is limited like a login (races/throttle.py), so this form can't
     be used to guess a password either.
@@ -171,7 +171,7 @@ class DeleteAccountForm(forms.Form):
 
 
 class ChangePasswordForm(PasswordChangeForm):
-    """Changing your own password, from My account (slice 16).
+    """Changing your own password, from My account.
 
     Django's form, with the site's labels. The current password is checked
     inside the login throttle (races/throttle.py), as for deleting an account,
@@ -215,7 +215,7 @@ class AdminLoginForm(AdminAuthenticationForm):
 
 
 class ClubPasswordResetForm(PasswordResetForm):
-    """Django's password reset, but the email comes from the club (slice 11 part 4).
+    """Django's password reset, but the email comes from the club.
 
     Django builds and sends this one email itself, so it can't go through
     notifications.email_to; this gives it the same sender. Like Django's, a

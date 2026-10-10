@@ -1,4 +1,4 @@
-"""Slice 7: the site's look stays readable, and loads nothing from elsewhere.
+"""The site's look stays readable, and loads nothing from elsewhere.
 
 static/css/site.css keeps every colour as a token in :root. These tests read
 the tokens and check each text colour against the backgrounds it is used on,

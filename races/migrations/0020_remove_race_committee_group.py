@@ -1,7 +1,7 @@
 """Remove the old "Race committee" permission group.
 
 Migration 0005 made it, when the race committee was staff in this group.
-Since slice 11 a role belongs to a membership of a club (ClubMembership), and
+Since clubs were added, a role belongs to a membership of a club (ClubMembership), and
 the group grants nothing: races/roles.py never reads it. Migration 0015 has
 already turned its members into Demo Club committee memberships.
 

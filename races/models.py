@@ -17,7 +17,7 @@ from django.db.models.functions import Replace, Upper
 from django.urls import reverse
 from django.utils import timezone
 
-# --- Clubs (slice 11) ----------------------------------------------------------------
+# --- Clubs ----------------------------------------------------------------
 
 
 class Club(models.Model):
@@ -39,7 +39,7 @@ class Club(models.Model):
         unique=True,
         help_text="The club's address: <subdomain>.racetimes.co.uk. Lower-case letters, digits and hyphens.",
     )
-    # Where replies to the club's emails go (slice 11, part 4).
+    # Where replies to the club's emails go.
     contact_email = models.EmailField(blank=True)
     status = models.CharField(
         max_length=10, choices=Status.choices, default=Status.ACTIVE
@@ -58,7 +58,7 @@ class Club(models.Model):
 
 
 class ClubMembership(models.Model):
-    """A person's place in a club: their role there, and whether it's approved (slice 11).
+    """A person's place in a club: their role there, and whether it's approved.
 
     Roles belong to a membership, not to the account, so one person can be a
     member at one club and on the race committee at another. Nobody has any
@@ -105,7 +105,7 @@ class ClubMembership(models.Model):
 
 
 class ClubInvitation(models.Model):
-    """The operator's invitation to someone to run a club (slice 11 part 3).
+    """The operator's invitation to someone to run a club.
 
     The emailed link is a signed token naming this row (``races/invitations.py``),
     so the link itself isn't stored. Accepting it gives the person an approved
@@ -132,7 +132,7 @@ class ClubInvitation(models.Model):
 
 
 class OperatorAction(models.Model):
-    """The operator log: one row for everything the operator does (slice 11 part 3).
+    """The operator log: one row for everything the operator does.
 
     Who and which club are kept as text, so the log still reads the same after
     the account or the club is deleted.
@@ -143,13 +143,10 @@ class OperatorAction(models.Model):
         INVITED = "INVITED", "Invited an administrator"
         SUSPENDED = "SUSPENDED", "Suspended a club"
         REACTIVATED = "REACTIVATED", "Reactivated a club"
-        # Slice 11 part 5.
         EXPORTED = "EXPORTED", "Downloaded a club's data"
         DELETED = "DELETED", "Deleted a club"
-        # Slice 13.
         APPROVED_JOIN = "APPROVED_JOIN", "Approved someone joining"
         TURNED_DOWN = "TURNED_DOWN", "Turned down someone joining"
-        # Slice 22.
         RENAMED = "RENAMED", "Renamed a club"
         CONTACT_CHANGED = "CONTACT_CHANGED", "Changed a club's contact email"
 
@@ -232,7 +229,7 @@ class Boat(models.Model):
             "Needed to enter the boat in an NHC series."
         ),
     )
-    # Slice 24: the Portsmouth Number for a Portsmouth Yardstick series. A whole
+    # The Portsmouth Number for a Portsmouth Yardstick series. A whole
     # number, higher for a slower boat. A boat needs the number of every series
     # it is entered in, and no more: a boat that only races on a PN has no NHC
     # base number, and the other way round.
@@ -246,7 +243,7 @@ class Boat(models.Model):
             "in a Portsmouth Yardstick series."
         ),
     )
-    # Slice 25: the two numbers on a boat's RYA YTC certificate, or the club's
+    # The two numbers on a boat's RYA YTC certificate, or the club's
     # own. Each series entry chooses which one the boat races on.
     ytc_number = models.PositiveSmallIntegerField(
         "YTC number",
@@ -269,7 +266,7 @@ class Boat(models.Model):
         ),
     )
 
-    # Only this club's rows: Boat.objects.for_club(club) (slice 11).
+    # Only this club's rows: Boat.objects.for_club(club).
     objects = _club_manager("club")
 
     class Meta:
@@ -279,7 +276,7 @@ class Boat(models.Model):
             # expression rather than a stored normalised copy so that Django's
             # form validation checks it too, and reports it against the sail
             # number field instead of failing on save.
-            # Unique within a club (slice 11): two clubs can each have a GBR 42.
+            # Unique within a club: two clubs can each have a GBR 42.
             models.UniqueConstraint(
                 "club",
                 Upper(Replace("sail_number", models.Value(" "), models.Value(""))),
@@ -294,7 +291,7 @@ class Boat(models.Model):
         ]
 
     def __str__(self):
-        # Slice 15: the name people know a boat by, then its sail number. The
+        # The name people know a boat by, then its sail number. The
         # race day page shows the sail number first, since that's what the
         # committee reads off a boat on the water.
         return f"{self.name} ({self.sail_number})" if self.name else self.sail_number
@@ -346,7 +343,7 @@ class Boat(models.Model):
 
     @property
     def race_day_label(self):
-        """The boat as the race day page names it: sail number first (slice 15)."""
+        """The boat as the race day page names it: sail number first."""
         return f"{self.sail_number} {self.name}".strip()
 
     @property
@@ -372,7 +369,7 @@ class Series(models.Model):
 
     class HandicapSystem(models.TextChoices):
         # "PY" and "YTC" match sailscoring.FixedNumberSystem. "NHC" has no engine
-        # value: it means the series is scored by the NHC functions (slice 24).
+        # value: it means the series is scored by the NHC functions.
         NHC = "NHC", "RYA NHC"
         PY = "PY", "Portsmouth Yardstick"
         YTC = "YTC", "RYA YTC"
@@ -421,7 +418,7 @@ class Series(models.Model):
             "Only if the notice of race says so; off is RRS A5.2."
         ),
     )
-    # Slice 14: two optional extra steps in the club-series handicap
+    # Two optional extra steps in the club-series handicap
     # calculation (sailscoring/options.py), from the fuller NHC method some clubs use.
     # Off, a series is scored exactly as the RYA's club-series rules say.
     nhc_cap_extremes = models.BooleanField(
@@ -440,7 +437,7 @@ class Series(models.Model):
             "the total of their base handicaps (RYA NHC). NHC club series only."
         ),
     )
-    # Slice 10: a series declared final is locked, and scored from a copy of
+    # A series declared final is locked, and scored from a copy of
     # the engine's results saved when it was declared (races/final.py).
     declared_final_at = models.DateTimeField(null=True, blank=True, editable=False)
     declared_final_by_name = models.CharField(
@@ -449,7 +446,7 @@ class Series(models.Model):
     final_results = models.JSONField(null=True, blank=True, editable=False)
     final_results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
 
-    # Only this club's rows: Series.objects.for_club(club) (slice 11).
+    # Only this club's rows: Series.objects.for_club(club).
     objects = _club_manager("club")
 
     class Meta:
@@ -469,7 +466,7 @@ class Series(models.Model):
 
     @property
     def is_fixed_number(self):
-        """Whether boats race on a fixed number, so no handicap moves (slice 24)."""
+        """Whether boats race on a fixed number, so no handicap moves."""
         return self.handicap_system != self.HandicapSystem.NHC
 
     @property
@@ -485,7 +482,7 @@ class Series(models.Model):
     def boats_lack(self, boat):
         """Whether this boat has no number for this series' system.
 
-        Under RYA YTC a boat needs either of her two numbers (slice 25); which
+        Under RYA YTC a boat needs either of her two numbers; which
         one she races on is chosen when she is entered.
         """
         if self.handicap_system == self.HandicapSystem.YTC:
@@ -510,7 +507,7 @@ class Series(models.Model):
         ]
 
     def align_entries_with_system(self, was):
-        """Put each entry on the right YTC number after the system changed (slice 25).
+        """Put each entry on the right YTC number after the system changed.
 
         Switching a series to RYA YTC enters each boat on her YTC number, or her
         non-spinnaker number if that is the only one she has. Switching away
@@ -547,7 +544,7 @@ class Series(models.Model):
 
     @property
     def nhc_options(self):
-        """The optional extra NHC steps this series uses, as named with its results (slice 14)."""
+        """The optional extra NHC steps this series uses, as named with its results."""
         named = [
             (self.nhc_cap_extremes, "extreme-result capping"),
             (self.nhc_realign_to_base, "realignment to base handicaps"),
@@ -571,7 +568,7 @@ class Series(models.Model):
                 errors["minimum_finishers"] = (
                     "A regatta has no minimum-finisher threshold; set this to 0."
                 )
-            # The NHC options follow the club-series formula; a regatta has its own (slice 14).
+            # The NHC options follow the club-series formula; a regatta has its own.
             for field in ("nhc_cap_extremes", "nhc_realign_to_base"):
                 if getattr(self, field):
                     errors[field] = (
@@ -582,7 +579,7 @@ class Series(models.Model):
             raise ValidationError(errors)
 
     def _clean_fixed_number(self, errors):
-        """Settings that only mean something under NHC are refused, not ignored (slice 24).
+        """Settings that only mean something under NHC are refused, not ignored.
 
         This is how a minimum-finishers threshold on a regatta is already
         handled. A regatta is NHC's own section 4 adjustment; a fixed-number
@@ -627,7 +624,7 @@ class Series(models.Model):
             )
 
 
-#: The Boat field each handicap system scores on (slice 24). A boat needs the
+#: The Boat field each handicap system scores on. A boat needs the
 #: number of every series it is entered in, and no others.
 NUMBER_FIELDS = {
     "base_number": Series.HandicapSystem.NHC,
@@ -635,7 +632,7 @@ NUMBER_FIELDS = {
 }
 NUMBER_FIELD_FOR_SYSTEM = {
     **{system: field for field, system in NUMBER_FIELDS.items()},
-    # A YTC boat has two; this is the one named when a message must pick (slice 25).
+    # A YTC boat has two; this is the one named when a message must pick.
     Series.HandicapSystem.YTC: "ytc_number",
 }
 #: A boat's two RYA YTC numbers, and the entry choice that races on each.
@@ -658,7 +655,7 @@ class SeriesEntry(models.Model):
 
     class NumberUsed(models.TextChoices):
         # Which of a boat's two RYA YTC numbers she races on in this series
-        # (slice 25). Means nothing outside a YTC series.
+        # Means nothing outside a YTC series.
         SPINNAKER = "SPINNAKER", "YTC number"
         NON_SPINNAKER = "NON_SPINNAKER", "Non-spinnaker YTC number"
 
@@ -670,7 +667,7 @@ class SeriesEntry(models.Model):
         help_text="Which of the boat's two YTC numbers it races on in this series.",
     )
 
-    # Only this club's rows: SeriesEntry.objects.for_club(club) (slice 11).
+    # Only this club's rows: SeriesEntry.objects.for_club(club).
     objects = _club_manager("series__club")
 
     class Meta:
@@ -693,7 +690,7 @@ class SeriesEntry(models.Model):
 
     @property
     def number_field(self):
-        """The Boat field this entry is scored on: for YTC, the one it chose (slice 25)."""
+        """The Boat field this entry is scored on: for YTC, the one it chose."""
         if self.is_ytc:
             return {v: k for k, v in YTC_NUMBER_FIELDS.items()}[self.ytc_number_used]
         return self.series.number_field
@@ -722,15 +719,15 @@ class SeriesEntry(models.Model):
         return SeriesEntry.NumberUsed.SPINNAKER
 
     def clean(self):
-        # A boat belongs to one club, and races only in that club's series (slice 11).
+        # A boat belongs to one club, and races only in that club's series.
         if self.boat_id and self.series_id and self.boat.club_id != self.series.club_id:
             raise ValidationError({"boat": "This boat belongs to another club."})
         if not (self.boat_id and self.series_id):
             return
-        # A boat can only be entered in a series if it has that series' number (slice 24).
+        # A boat can only be entered in a series if it has that series' number.
         if self.series.boats_lack(self.boat):
             raise ValidationError({"boat": self.series.lacks_number_message(self.boat)})
-        # Under YTC, the number the entry chose must be one she has (slice 25).
+        # Under YTC, the number the entry chose must be one she has.
         if self.is_ytc and self.number is None:
             raise ValidationError(
                 {
@@ -761,13 +758,13 @@ class Race(models.Model):
     # A plain time of day, stored as typed with no timezone: it is what the
     # race officer's watch said. Elapsed time is finish time minus this.
     start_time = models.TimeField()
-    # Slice 4. Results are public as soon as they are saved, but provisional
+    # Results are public as soon as they are saved, but provisional
     # until published. Publishing emails them; the committee can later send
     # them again after corrections, which moves results_sent_at on.
     published_at = models.DateTimeField(null=True, blank=True, editable=False)
     results_sent_at = models.DateTimeField(null=True, blank=True, editable=False)
 
-    # Only this club's rows: Race.objects.for_club(club) (slice 11).
+    # Only this club's rows: Race.objects.for_club(club).
     objects = _club_manager("series__club")
 
     class Meta:
@@ -828,7 +825,7 @@ class RaceEntry(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(99)],
     )
 
-    # Only this club's rows: RaceEntry.objects.for_club(club) (slice 11).
+    # Only this club's rows: RaceEntry.objects.for_club(club).
     objects = _club_manager("race__series__club")
 
     class Meta:
@@ -884,7 +881,7 @@ class Finish(models.Model):
         max_length=10, choices=Status.choices, default=Status.FINISHED
     )
     finish_time = models.TimeField(null=True, blank=True)
-    # Slice 23: RRS 44.3(c), A10 code SCP. The boat keeps her place and scores
+    # RRS 44.3(c), A10 code SCP. The boat keeps her place and scores
     # 20% of the DNF score more (sailscoring/points.py). A tick, not a count: one per
     # boat per race.
     scoring_penalty = models.BooleanField(
@@ -892,12 +889,12 @@ class Finish(models.Model):
         default=False,
         help_text="The boat accepted a 20% scoring penalty (RRS 44.3(c), SCP).",
     )
-    # Slice 9: when this finish was first saved, tapped or typed. The race day
+    # When this finish was first saved, tapped or typed. The race day
     # page's two-minute Undo is measured from it. Empty for finishes saved
-    # before slice 9, which therefore never offer Undo.
+    # before this was recorded, which therefore never offer Undo.
     recorded_at = models.DateTimeField(null=True, blank=True, editable=False)
 
-    # Only this club's rows: Finish.objects.for_club(club) (slice 11).
+    # Only this club's rows: Finish.objects.for_club(club).
     objects = _club_manager("race__series__club")
 
     class Meta:
@@ -1000,7 +997,7 @@ class ScoringChange(models.Model):
         SERIES = "SERIES", "Series settings"
         ENTRY = "ENTRY", "Entry"
         BOAT = "BOAT", "Boat"
-        # Slice 10: declaring a series final, and reopening it. These move no
+        # Declaring a series final, and reopening it. These move no
         # score, so they don't mark results amended.
         FINAL = "FINAL", "Final results"
 
@@ -1047,7 +1044,7 @@ class ScoringChange(models.Model):
     is_correction = models.BooleanField(default=False)
     reason = models.TextField(blank=True)
 
-    # Only this club's rows: ScoringChange.objects.for_club(club) (slice 11).
+    # Only this club's rows: ScoringChange.objects.for_club(club).
     objects = _club_manager("club")
 
     class Meta:
@@ -1179,7 +1176,7 @@ class BoatRequest(Request):
         validators=[MinValueValidator(1), MaxValueValidator(9999)],
     )
 
-    # Only this club's rows: BoatRequest.objects.for_club(club) (slice 11).
+    # Only this club's rows: BoatRequest.objects.for_club(club).
     objects = _club_manager("club")
 
     # The fields a registration or change proposes, in display order.
@@ -1227,7 +1224,7 @@ class EntryRequest(Request):
     boat = models.ForeignKey(
         Boat, on_delete=models.CASCADE, related_name="entry_requests"
     )
-    # Slice 25: for a YTC series, which of the boat's two numbers to race on.
+    # For a YTC series, which of the boat's two numbers to race on.
     ytc_number_used = models.CharField(
         "number used",
         max_length=15,
@@ -1235,7 +1232,7 @@ class EntryRequest(Request):
         default=SeriesEntry.NumberUsed.SPINNAKER,
     )
 
-    # Only this club's rows: EntryRequest.objects.for_club(club) (slice 11).
+    # Only this club's rows: EntryRequest.objects.for_club(club).
     objects = _club_manager("series__club")
 
     class Meta(Request.Meta):
@@ -1252,7 +1249,7 @@ class EntryRequest(Request):
         return f"Enter {self.boat} in {self.series}"
 
     def as_entry(self):
-        """The series entry approving this request would create (slice 25)."""
+        """The series entry approving this request would create."""
         used = (
             self.ytc_number_used
             if self.series.handicap_system == Series.HandicapSystem.YTC

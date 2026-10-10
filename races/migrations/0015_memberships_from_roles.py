@@ -1,4 +1,4 @@
-"""Slice 11 part 2: everyone keeps the access they had, as a membership of the first club.
+"""Everyone keeps the access they had, as a membership of the first club.
 
 Before clubs, roles were site-wide:
 - the administrator was a superuser;
@@ -17,7 +17,7 @@ Each becomes a membership of the first club (Demo Club):
 | switched off, never logged in (waiting)   | member, waiting               |
 | switched off after logging in             | member, removed               |
 
-A waiting sign-up's account is switched on. Under slice 11 an account can
+A waiting sign-up's account is switched on. Under the club model an account can
 log in once its email is confirmed, and it's the membership that waits.
 These people typed their email when they signed up, before confirmation
 existed, so they aren't made to confirm it now.

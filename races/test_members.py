@@ -1,4 +1,4 @@
-"""Slice 3: members' accounts, and the requests they make.
+"""Members' accounts, and the requests they make.
 
 Organised by acceptance criterion. Pages are driven the way a member would,
 through the client, including trying other members' boats and requests by URL.
@@ -48,8 +48,8 @@ def boat_form(**fields):
     return data
 
 
-# --- Sign-up (slice 11): confirm the email to log in; the club approves joining ------
-# Rewritten for slice 11, as the project owner agreed: it's joining a club that
+# --- Sign-up: confirm the email to log in; the club approves joining ------
+# Rewritten as the project owner agreed: it's joining a club that
 # waits for approval, not the account. The account logs in once its email is
 # confirmed.
 

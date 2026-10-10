@@ -1,4 +1,4 @@
-"""Declaring a series final, reopening it, and the copy of its results (slice 10).
+"""Declaring a series final, reopening it, and the copy of its results.
 
 A final series is locked: every write path that could move its results calls
 ``check_open`` first and is refused. It is also scored from a copy of the
@@ -27,7 +27,7 @@ NOTHING_SCORED = (
 REOPEN_NEEDS_REASON = "Give a reason for reopening the series."
 ALREADY_FINAL = "This series is already final."
 NOT_FINAL = "This series isn't final."
-#: What a stored copy says when it holds an NHC outcome (slice 24); copies from
+#: What a stored copy says when it holds an NHC outcome; copies from
 #: before that say nothing, and mean the same.
 NHC = Series.HandicapSystem.NHC.value
 
@@ -178,10 +178,10 @@ def dump(value):
 
 
 def dump_outcome(outcome):
-    """``dump`` for a whole series outcome, recording which kind it is (slice 24).
+    """``dump`` for a whole series outcome, recording which kind it is.
 
     A Portsmouth Yardstick outcome already carries its ``system``. An NHC one
-    doesn't, so it is added; copies stored before this slice have no ``system``
+    doesn't, so it is added; copies stored before the system was recorded have no ``system``
     at all, and ``load`` reads them as NHC.
     """
     data = dump(outcome)

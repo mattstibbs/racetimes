@@ -1,4 +1,4 @@
-"""Slice 10: a series' standings and race results as one CSV file, for anyone."""
+"""A series' standings and race results as one CSV file, for anyone."""
 
 import csv
 import io

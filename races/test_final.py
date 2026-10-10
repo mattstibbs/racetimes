@@ -1,4 +1,4 @@
-"""Slice 10: declaring a series final, the lock, the copy, reopening and the email.
+"""Declaring a series final, the lock, the copy, reopening and the email.
 
 Organised by acceptance criterion. The CSV download is tested in
 results/test_export.py.

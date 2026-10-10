@@ -1,4 +1,4 @@
-"""Slice 4: publishing results, and the emails the site sends.
+"""Publishing results, and the emails the site sends.
 
 Organised by acceptance criterion. Emails land in Django's in-memory outbox.
 
@@ -126,7 +126,7 @@ def test_the_amended_since_published_note_goes_once_the_update_is_sent(
     publish(client, published["race"], send="updated")
     page = results_page(client, published["series"])
     assert "Amended since published" not in page
-    assert "Amended " in page  # the slice 2 note, with its date, still says it changed
+    assert "Amended " in page  # the amended note, with its date, still says it changed
 
 
 def test_an_unpublished_correction_keeps_the_plain_amended_note(client, club):
@@ -217,7 +217,7 @@ def test_only_the_committee_can_publish(client, club, run_on_commit):
     client.force_login(club["pat"])
     with run_on_commit():
         response = client.post(reverse("races:publish_results", args=[club["race"].pk]))
-    assert response.status_code == 403  # refused, not a login loop (slice 11)
+    assert response.status_code == 403  # refused, not a login loop
     assert not mail.outbox
 
 
@@ -350,7 +350,7 @@ def test_a_rolled_back_change_sends_nothing(
     assert not mail.outbox
 
 
-# --- Accounts: see races/test_memberships.py (slice 11) --------------------------
+# --- Accounts: see races/test_memberships.py --------------------------
 
 
 # --- Requests: the member hears the decision, once ----------------------------

@@ -1,4 +1,4 @@
-"""Who can do what at a club (slice 11; see docs/brief.md).
+"""Who can do what at a club (see docs/brief.md).
 
 Roles belong to a person's membership of a club, not to their account:
 
@@ -10,7 +10,7 @@ Roles belong to a person's membership of a club, not to their account:
   given a membership there like anyone else.
 
 Django's is_staff flag and groups mean nothing here. (The old "Race committee"
-group, from before slice 11, was removed by migration 0020.) Every check takes
+group, from before clubs existed, was removed by migration 0020.) Every check takes
 the club, which pages get from ``request.club``.
 """
 
