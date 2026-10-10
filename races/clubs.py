@@ -24,7 +24,8 @@ from .models import Club
 # manages accounts, the privacy notice and terms (part 5), and (slice 27)
 # logging in and out, a forgotten password, sending the confirmation link
 # again, Your clubs, and a person's own account pages, which act across every
-# club already. Signing up stays on a club's address: it asks to join that club.
+# club already. Signing up starts here (slice 28, step 1: find your club) and finishes on the
+# club's own address, since it asks to join that club.
 SERVICE_PATHS = (
     "/admin/",
     "/operator/",
@@ -36,6 +37,7 @@ SERVICE_PATHS = (
     "/accounts/password-reset/",
     "/accounts/confirm/again/",
     "/clubs/",
+    "/signup/",
 )
 
 

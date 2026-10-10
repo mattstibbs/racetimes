@@ -1,6 +1,6 @@
 # Slice 28: signing up from racetimes.co.uk, starting with your club
 
-**Status: answers recorded, ready to build (2026-10-10).** Builds on slice 27
+**Status: complete (2026-10-10).** Builds on slice 27
 (logging in from racetimes.co.uk, one login for every club). The owner agreed
 every recommendation in "Questions for the project owner" at the end.
 

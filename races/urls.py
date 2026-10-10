@@ -14,6 +14,7 @@ from . import (
     race_day_views,
     request_views,
     series_views,
+    service_views,
 )
 from .account_forms import ClubPasswordResetForm
 
@@ -22,6 +23,7 @@ app_name = "races"
 urlpatterns = [
     path("privacy/", legal_views.privacy, name="privacy"),
     path("terms/", legal_views.terms, name="terms"),
+    path("signup/", service_views.signup, name="service_signup"),
     path("accounts/signup/", member_views.signup, name="signup"),
     path("accounts/login/", member_views.LoginView.as_view(), name="login"),
     path(

@@ -900,10 +900,10 @@ session cookie is shared across `*.racetimes.co.uk` in production, reversing
 slice 11's per-address sessions. Someone with one approved club goes straight
 there; My account works on the service's address too. No data model change.
 
-## Slice 28: signing up from racetimes.co.uk, starting with your club. **Status: answers recorded, ready to build (2026-10-10)**
+## Slice 28: signing up from racetimes.co.uk, starting with your club. **Status: complete (2026-10-10)**
 
 Spec: `docs/slices/28-sign-up-from-the-service-page.md`. The owner agreed all
-four recommendations (2026-10-10).
+four recommendations (2026-10-10), and it is built as specified.
 Builds on slice 27. A **Sign up** on the service's front page whose first step
 is "find the club you want to join" (the Find my club search, at
 `racetimes.co.uk/signup/`), then that club's own sign-up page, which now names

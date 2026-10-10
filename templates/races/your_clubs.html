@@ -20,8 +20,9 @@
   {% endwith %}{% endfor %}
 </ul>
 {% else %}
-<p>You haven't joined a club yet. <a href="/#find-my-club">Find your club</a>, then ask to join it on its site.</p>
+<p>You haven't joined a club yet. <a href="{% url 'races:service_signup' %}">Find your club</a>, then ask to join it on its site.</p>
 {% endif %}
+<p><a class="button secondary" href="{% url 'races:service_signup' %}">Join another club</a></p>
 <p class="muted">You're logged in at every club with this account. <a href="{% url 'races:account' %}">My account</a>
   has your password, your data and deleting your account.</p>
 {% endblock %}

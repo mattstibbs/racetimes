@@ -1,0 +1,24 @@
+<div id="signup-matches" aria-live="polite">
+{% if matches is None %}
+  {% if searched %}<p class="muted">Type at least {{ min_query }} letters of your club's name.</p>{% endif %}
+{% elif matches %}
+  <ul class="matches">
+    {% for club, address, membership in matches|slice:max_matches %}
+    <li>
+      <strong>{{ club.name }}</strong> <span class="muted">{{ club.subdomain }}.{{ service_domain }}</span>
+      {% if membership %}
+      <a class="button secondary" href="{{ address }}">Go to {{ club.name }}</a>
+      {% elif joining %}
+      <a class="button" href="{{ address }}">Join {{ club.name }}</a>
+      {% else %}
+      <a class="button" href="{{ address }}">Sign up at {{ club.name }}</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if matches|length > max_matches %}<p class="muted">Showing the first {{ max_matches }}. Type more to narrow it down.</p>{% endif %}
+{% else %}
+  <p class="muted">No club called &ldquo;{{ query }}&rdquo; uses Race Times yet. Check the name with your club,
+    or tell them about Race Times: <a href="/#get-race-times">Get Race Times for your club</a>.</p>
+{% endif %}
+</div>

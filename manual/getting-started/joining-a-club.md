@@ -7,14 +7,30 @@ enter series and hear about your results, you join the club.
 
 ## Signing up
 
-1. Go to your club's Race Times address, e.g. `demo.racetimes.co.uk`, and
-   choose **Sign up** at the top. If you don't know the address, type your
-   club's name into **Find my club** at `racetimes.co.uk`.
-2. Give your name, email address and a password. Your email address is also
+You can start at `racetimes.co.uk` or at your club's own address.
+
+**From racetimes.co.uk** (two steps):
+
+1. Choose **Sign up** at the top of the page. This is *Step 1 of 2: find your
+   club*: type your club's name, and choose **Sign up at** your club.
+
+   ![Step 1 of signing up: a search box, and Harbour Sailing Club listed with a Sign up at button](../images/signup-find-club.png)
+
+2. This takes you to your club's own sign-up page, *Step 2 of 2: your
+   details*. If it isn't your club, choose **Choose another**.
+
+   ![Step 2 of signing up, on Harbour Sailing Club's page: your name, email address and a password](../images/signup-your-details.png)
+
+**From your club's address,** e.g. `demo.racetimes.co.uk`, choose **Sign up** at
+the top: this is the same page as step 2.
+
+Either way:
+
+1. Give your name, email address and a password. Your email address is also
    how you'll log in.
-3. We email you a link to **confirm your email address**. Open it within
+2. We email you a link to **confirm your email address**. Open it within
    three days. Until you do, you can't log in.
-4. Your club's administrator is asked to approve you joining. Until they do,
+3. Your club's administrator is asked to approve you joining. Until they do,
    you can log in, and the site tells you you're waiting.
 
 ![Waiting to join: the page says you've asked to join Demo Club and the club's administrator hasn't decided yet](../images/join-waiting.png)
@@ -38,7 +54,7 @@ At `racetimes.co.uk`, **Log in** is at the top of the page, and under
 
 ![The top of the racetimes.co.uk front page, with Log in on the right](../images/service-header-log-in.png)
 
-![The login page at racetimes.co.uk: email, password, and links for a forgotten password and for finding your club to sign up](../images/service-login.png)
+![The login page at racetimes.co.uk: email, password, and links for a forgotten password and for signing up](../images/service-login.png)
 
 If you belong to one club, logging in there takes you straight to its **My
 boats**. If you belong to more than one, or are still waiting to be approved,
@@ -47,9 +63,6 @@ it.
 
 ![Your clubs: Demo Club, where Pat is a member, and Harbour Sailing Club, where Pat is on the race committee, each with a Go to button](../images/your-clubs.png)
 
-Signing up is still done at your club's address, because signing up asks to
-join that club.
-
 On a shared computer, such as one in the clubhouse, remember to log out when
 you've finished: someone using it after you would be logged in at every club
 you belong to.
@@ -57,9 +70,11 @@ you belong to.
 ## Joining a second club
 
 If you sail at another club that also uses Race Times, you don't need a new
-account. Go to that club's address, log in with the same email and password,
-and choose **Join this club**. That club's administrator approves you in the
-same way.
+account. Log in at `racetimes.co.uk`, and on **Your clubs** choose **Join another
+club**. Find the club, and choose **Join** it: you go to its site, already
+logged in, where **Join this club** asks to join. (You can also go straight to
+that club's address, log in and choose **Join this club**.) That club's
+administrator approves you in the same way.
 
 Your role is separate at each club: being on the race committee at one club
 gives you nothing at another, even though you're logged in at both.
