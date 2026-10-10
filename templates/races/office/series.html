@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ series }} - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <p class="muted"><a href="{% url 'races:office' %}">Race office</a></p>
 <h1>{{ series }}</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   <a href="{% url 'results:series' series.pk %}">Results</a>
   &middot; <a href="{% url 'races:series_history' series.pk %}">Series history</a>

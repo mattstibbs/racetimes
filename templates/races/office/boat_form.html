@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% load racing %}
 {% block title %}{% if adding %}Add a boat{% else %}{{ boat }}{% endif %} - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_boats' %}">Boats</a></p>
 <h1>{% if adding %}Add a boat{% else %}{{ boat|boat }}{% endif %}</h1>
+{% endblock %}
+{% block content %}
 {% if not adding %}
 <p class="muted">{% if boat.owner %}The owner is emailed about any change.{% else %}This boat has no owner with an account, so nobody is emailed about changes.{% endif %}</p>
 {% endif %}

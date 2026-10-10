@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Change requests - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Change requests from members</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">Oldest first. Approving applies exactly what was asked and records
   it in the change history under your name.</p>
 {% for row in pending %}

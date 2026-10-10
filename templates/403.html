@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Not available to you - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>This page isn't available to you</h1>
+{% endblock %}
+{% block content %}
 {% if request.club %}
 <p>It's for {{ request.club.name }}'s {% if "/members/" in request.path %}administrators{% else %}race committee or members{% endif %},
   and your login doesn't have that role here.</p>

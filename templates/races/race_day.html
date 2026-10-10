@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Race day: {{ race }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ race.series.name }}: Race {{ race.number }}</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   {{ race.date|date:"l j F Y" }}, start {{ race.start_time|time:"H:i:s" }}.
   <a href="{% url 'results:series' race.series.pk %}?race={{ race.number }}">Results</a>

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Check your email - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Check your email</h1>
+{% endblock %}
+{% block content %}
 <p>We've sent a link to <strong>{{ email }}</strong>. Open it to confirm your email address; then you
   can <a href="{% url 'races:login' %}">log in</a>.</p>
 <p>You've also asked to join <strong>{{ request.club.name }}</strong>. The club's administrator will

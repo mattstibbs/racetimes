@@ -926,3 +926,23 @@ is "find the club you want to join" (the Find my club search, at
 `racetimes.co.uk/signup/`), then that club's own sign-up page, which now names
 the club and shows "Step 2 of 2". Logged-in people get "Join another club"
 on Your clubs. No data model change.
+
+## Slice 29: page titles. **Status: complete (2026-10-11)**
+
+Spec: `docs/slices/29-page-titles.md`. Two changes the owner asked for,
+presentation only (no model, migration, dependency or JavaScript):
+
+- **A title band on every page:** a white band under the navy header holding
+  the page's heading (and its link back up, where it has one), so it's always
+  clear which page you're on. Messages and content start under it.
+- **The results home page** is headed by the club's name, with "Race results"
+  under it.
+
+The owner chose the white band and the home page's wording (2026-10-11).
+
+Manual check: in headless Chromium at 375 px and 1000 px, and at 375 px with
+JavaScript off, as a committee member on the manual's sample data: sixteen
+pages each have one heading, in the band, directly under the header, and
+none scrolls sideways. A 62-letter club name wraps cleanly on the home page.
+Every manual screenshot was regenerated.
+

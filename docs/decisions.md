@@ -2402,3 +2402,34 @@ example of A6.1, so CODE-1 to CODE-6, worked by hand and checked by the
 owner on 2026-10-10, are the specification and become fixtures. DNE, UFD,
 BFD, ZFP, RDG and DPI stay unimplemented.
 
+---
+
+## 2026-10-11 - Slice 29: a title band on every page, and the home page's title
+
+**Context.** The project owner asked for a page title style that makes it
+clear which page you're on, and a clearer title on a club's results home
+page, obvious about which club it's for. Every page had a plain `<h1>` at the
+top of its content, and the home page said only "Results".
+
+**Decision.**
+- **A white title band** under the navy header holds every page's heading
+  (the owner's choice, over a blue band or an accent bar with no band).
+  `base.html` has it; each page fills `{% block heading %}`.
+- **The link back up** ("Race office &rsaquo; Boats"), on pages that have
+  one, sits in the band above the heading.
+- **Messages show under the band,** not above the heading as before: the
+  title is where it always is, and the message is the first thing in the
+  content.
+- **The results home page** is headed by the club's name, with "Race
+  results" as a smaller line under it (the owner's choice), and its browser
+  tab says "Race results - <Club> - Race Times".
+- **The service's front page has no band:** its heading is in the photo
+  hero. The error page copies the band inline, as it copies the rest of the
+  look.
+
+**Consequence.** A page's heading is no longer inside `<main>`. Anything that
+photographs or tests "the page" by `<main>` alone misses the title: the
+manual's screenshot script now uses `pageShot` for whole pages.
+`races/test_page_titles.py` fails if a whole-page template has no heading
+block or an `<h1>` outside it, or if a partial has an `<h1>`.
+

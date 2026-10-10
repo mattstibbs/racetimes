@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load racing %}
 {% block title %}Final results: {{ series }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ series }}: final results</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   <a href="{% url 'results:series' series.pk %}">Results</a>
   &middot; <a href="{% url 'races:series_history' series.pk %}">Correction history</a>

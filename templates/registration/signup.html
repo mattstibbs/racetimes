@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Sign up - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Sign up to {{ request.club.name }}</h1>
+{% endblock %}
+{% block content %}
 {% if from_find %}
 <p class="muted">Step 2 of 2: your details</p>
 {% endif %}

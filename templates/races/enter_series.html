@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load racing %}
 {% block title %}Enter {{ boat }} in a series - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Enter {{ boat|boat }} in a series</h1>
+{% endblock %}
+{% block content %}
 {% if form.fields.series.queryset.exists %}
 <form method="post" class="stacked">
   {% csrf_token %}

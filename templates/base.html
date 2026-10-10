@@ -66,6 +66,10 @@
     </div>
   </header>
   {% block hero %}{% endblock %}
+  {# The title band: every page's heading, so it's always clear which page this is. #}
+  {% block page_header %}
+  <div class="page-title"><div class="wrap">{% block heading %}{% endblock %}</div></div>
+  {% endblock %}
   <main class="wrap">
     {% if messages %}
     <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Your clubs - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Your clubs</h1>
+{% endblock %}
+{% block content %}
 {% if rows %}
 <ul class="your-clubs">
   {% for row in rows %}{% with m=row.membership %}

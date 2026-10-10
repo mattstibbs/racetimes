@@ -2,10 +2,15 @@
 
 *For everyone. You do not need an account to see results.*
 
-The site's front page is the results page. It is built to be read on a
-phone, so you can check how you did straight after the race.
+The site's front page is the results page. Your club's name is at the top,
+with **Race results** under it, so you can see at once whose results they
+are. It is built to be read on a phone, so you can check how you did
+straight after the race.
 
-![The front page: the latest results, every series, and a box to find a boat](../images/results-home.png)
+Every page of the site has its title in the same place, in the white band
+under the menu.
+
+![The front page: the club's name, the latest results, every series, and a box to find a boat](../images/results-home.png)
 
 ## Finding your boat
 

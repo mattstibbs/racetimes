@@ -20,6 +20,15 @@ async function logIn(browser, email, viewport = { width: 1000, height: 700 }) {
 }
 
 const shot = (target, name) => target.screenshot({ path: path.join(OUT, name) });
+// A whole page without its header and footer: the title band and everything
+// under it. The boxes are page coordinates once the page is at the top.
+const pageShot = async (page, name) => {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const band = await page.locator('.page-title').boundingBox();
+  const main = await page.locator('main').boundingBox();
+  const clip = { x: 0, y: band.y, width: page.viewportSize().width, height: main.y + main.height - band.y };
+  await page.screenshot({ path: path.join(OUT, name), clip, fullPage: true });
+};
 // A race on the public results page: its heading down to the start of its table.
 // The page is at the top, so these boxes are page coordinates; fullPage lets
 // the clip reach below the window.
@@ -38,17 +47,17 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   const officer = await logIn(browser, 'officer@example.com');
   // The race office, before any request is decided.
   await officer.goto(`${BASE}/office/`);
-  await shot(officer.locator('main'), 'race-office.png');
+  await pageShot(officer, 'race-office.png');
   await shot(officer.locator('section[aria-labelledby=waiting]'), 'front-page-committee.png');
   await officer.goto(`${BASE}/office/boats/`);
-  await shot(officer.locator('main'), 'office-boats.png');
+  await pageShot(officer, 'office-boats.png');
   await officer.locator('#boat-table a', { hasText: 'GBR 42' }).click();
   await officer.waitForLoadState('networkidle');
-  await shot(officer.locator('main'), 'office-boat.png');
+  await pageShot(officer, 'office-boat.png');
   await officer.goto(`${BASE}/office/`);
   await officer.locator('table a', { hasText: 'Autumn 2026 Series' }).click();
   await officer.waitForLoadState('networkidle');
-  await shot(officer.locator('main'), 'office-series.png');
+  await pageShot(officer, 'office-series.png');
   // A series' scoring rules, on its settings page.
   await officer.click('text=Change settings');
   await officer.waitForLoadState('networkidle');
@@ -58,7 +67,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await officer.click('text=Enter boats');
   await officer.waitForLoadState('networkidle');
   await officer.locator('#boat-choices label', { hasText: 'Kittiwake' }).locator('input').check();
-  await shot(officer.locator('main'), 'office-enter-boats.png');
+  await pageShot(officer, 'office-enter-boats.png');
   await officer.goto(`${BASE}/requests/`);
   await shot(card(officer, 'Register a boat'), 'request-register.png');
   await shot(card(officer, 'Change a boat'), 'request-change.png');
@@ -148,17 +157,17 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await officer.goto(`${BASE}/series/1/final/`);
   await shot(officer.locator('#final-state'), 'final-not-ready.png');
   await officer.goto(`${BASE}/series/3/final/`);
-  await shot(officer.locator('main'), 'final-ready.png');
+  await pageShot(officer, 'final-ready.png');
   await officer.click('#final-state button');
   await officer.waitForLoadState('networkidle');
-  await shot(officer.locator('main'), 'final-declared.png');
+  await pageShot(officer, 'final-declared.png');
   // The public series page, from its title to the end of the final standings.
   await publicPage.goto(`${BASE}/series/3/`);
-  const title = await publicPage.locator('main h1').boundingBox();
+  const title = await publicPage.locator('.page-title').boundingBox();
   const standings = await publicPage.locator('#series-body .table-scroll').first().boundingBox();
   await publicPage.screenshot({
     path: path.join(OUT, 'results-final.png'), fullPage: true,
-    clip: { x: 0, y: title.y - 8, width: 1000, height: standings.y + standings.height - title.y + 16 },
+    clip: { x: 0, y: title.y, width: 1000, height: standings.y + standings.height - title.y + 8 },
   });
 
   // Portsmouth Yardstick: a series' handicap system on its settings
@@ -198,12 +207,12 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(phone.locator('body'), 'results-ytc-boat.png');
   await officer.goto(`${BASE}/office/series/5/entries/`);
   await officer.locator('#boat-choices label', { hasText: 'Dunlin' }).locator('input').check();
-  await shot(officer.locator('main'), 'office-enter-boats-ytc.png');
+  await pageShot(officer, 'office-enter-boats-ytc.png');
   await officer.goto(`${BASE}/office/series/5/`);
   await shot(officer.locator('section[aria-labelledby=entries]'), 'office-series-ytc-entries.png');
   await officer.locator('a', { hasText: 'Change number' }).first().click();
   await officer.waitForLoadState('networkidle');
-  await shot(officer.locator('main'), 'office-entry-number.png');
+  await pageShot(officer, 'office-entry-number.png');
 
   // Forgotten passwords.
   await publicPage.goto(`${BASE}/accounts/password-reset/`);
@@ -215,12 +224,12 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(sam.locator('table').first(), 'member-request-status.png');
   // Their account page, and deleting the account (not pressed).
   await sam.goto(`${BASE}/account/`);
-  await shot(sam.locator('main'), 'account.png');
+  await pageShot(sam, 'account.png');
   await sam.goto(`${BASE}/account/delete/`);
-  await shot(sam.locator('main'), 'delete-account.png');
+  await pageShot(sam, 'delete-account.png');
   // Changing a password (not submitted, so the seed's password stays).
   await sam.goto(`${BASE}/account/password/`);
-  await shot(sam.locator('main'), 'change-password.png');
+  await pageShot(sam, 'change-password.png');
 
   // The administrator's view.
   const admin = await logIn(browser, 'admin@example.com');
@@ -228,7 +237,7 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(admin.locator('section[aria-labelledby=waiting] ul.messages'), 'front-page-administrator.png');
   // The club administrator's Members page, then approving Robin as a member.
   await admin.goto(`${BASE}/members/`);
-  await shot(admin.locator('main'), 'members-page.png');
+  await pageShot(admin, 'members-page.png');
   await admin.locator('form.member-row', { hasText: 'Robin' }).locator('button[value=approve]').click();
   await admin.waitForLoadState('networkidle');
   await shot(admin.locator('.messages'), 'members-approved.png');
@@ -236,12 +245,12 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   // Joining: someone logged in who isn't a member is offered to join.
   const kim = await logIn(browser, 'kim@example.com');
   await kim.goto(`${BASE}/my/boats/`);
-  await shot(kim.locator('main'), 'join-waiting.png');
+  await pageShot(kim, 'join-waiting.png');
 
   // Accepting the operator's invitation to run the club, with no account yet.
   const invited = await (await browser.newContext({ viewport: { width: 1000, height: 700 }, locale: 'en-GB' })).newPage();
   await invited.goto(`${BASE}${fs.readFileSync(process.env.INVITATION_FILE, 'utf8')}`);
-  await shot(invited.locator('main'), 'invitation.png');
+  await pageShot(invited, 'invitation.png');
 
   // Logging in from the service's own address: the front page's
   // header and Log in line, the login page, and Pat's Your clubs.
@@ -249,14 +258,14 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await visitor.goto(`${SERVICE}/`);
   await shot(visitor.locator('header.site-header'), 'service-header-log-in.png');
   await visitor.goto(`${SERVICE}/accounts/login/`);
-  await shot(visitor.locator('main'), 'service-login.png');
+  await pageShot(visitor, 'service-login.png');
   // Signing up from the service's address: step 1, the search, and
   // step 2 on the club's own page (harbour.localhost, on the same server).
   await visitor.goto(`${SERVICE}/signup/?club=harbour`);
-  await shot(visitor.locator('main'), 'signup-find-club.png');
+  await pageShot(visitor, 'signup-find-club.png');
   const clubSignup = SERVICE.replace('//localhost', '//harbour.localhost');
   await visitor.goto(`${clubSignup}/accounts/signup/?from=find`);
-  await shot(visitor.locator('main'), 'signup-your-details.png');
+  await pageShot(visitor, 'signup-your-details.png');
   await visitor.goto(`${SERVICE}/accounts/login/`);
   await visitor.fill('#id_username', 'pat@example.com');
   await visitor.fill('#id_password', PASSWORD);

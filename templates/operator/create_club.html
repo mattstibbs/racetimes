@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Create a club - Operator - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Create a club</h1>
+{% endblock %}
+{% block content %}
 <form method="post" class="stacked">{% csrf_token %}
   {{ form.as_p }}
   <button type="submit">Create the club</button>

@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Delete {{ club.name }} - Operator - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <p><a href="{% url 'races:operator_club' club.pk %}">{{ club.name }}</a></p>
 <h1>Delete {{ club.name }}</h1>
+{% endblock %}
+{% block content %}
 {% if refused %}
 <p class="note">{{ refused }}</p>
 {% else %}

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Club members - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Club members</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">Who can use {{ request.club.name }}'s site, and what they can do. Each decision emails the person.
   You can't change your own membership, and the club always keeps at least one administrator.</p>
 

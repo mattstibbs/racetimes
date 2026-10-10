@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ title }} - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ title }}</h1>
+{% endblock %}
+{% block content %}
 {% if what == "race" %}
 <p>{% if result_count %}Its {{ result_count }} result{{ result_count|pluralize }} go{{ result_count|pluralize:"es," }} with it, and every later race's handicaps are worked out again.
   {% else %}It has no results yet.{% endif %}</p>

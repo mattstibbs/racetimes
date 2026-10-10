@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ series.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ series.name }}</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   {{ series.get_series_type_display }}.
   {{ series.discards_description }}.

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}History: {{ series.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ series.name }}: scoring history{% if race %}, Race {{ race.number }}{% endif %}</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   Every change to something that feeds a score, newest first.
   {% if race %}<a href="{% url 'races:series_history' series.pk %}">Whole series</a> &middot;

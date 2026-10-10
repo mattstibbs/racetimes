@@ -90,6 +90,16 @@ abbr[title] { text-decoration: none; cursor: help; }
 .site-header button.link { color: var(--header-link); text-decoration: none; }
 .site-header button.link:hover { color: var(--surface); text-decoration: underline; }
 
+/* --- The title band -----------------------------------------------------------
+   Every page's heading sits in a white band under the header, so it's always
+   clear which page this is. A page with a way back (the race office's) has
+   that link above its heading; the results home page has a line below. */
+
+.page-title { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem 0; }
+.page-title h1 { margin: 0; overflow-wrap: anywhere; }
+.page-title p { margin: 0 0 0.25rem; font-size: 0.95rem; }
+.page-title .page-subtitle { margin: 0.15rem 0 0; font-size: 1.15rem; color: var(--muted); }
+
 /* --- Buttons and fields ---------------------------------------------------------- */
 
 button {
@@ -282,6 +292,7 @@ table.boat-races td:first-child { white-space: nowrap; }
 @media (max-width: 40rem) {
   h1 { font-size: 1.55rem; }
   main.wrap { padding-top: 1rem; }
+  .page-title { padding: 0.9rem 0; }
   .site-header nav { gap: 0 0.75rem; font-size: 0.9rem; }
   .site-header nav a, .site-header button.link { display: inline-flex; align-items: center; min-height: var(--tap); }
   .brand { min-height: var(--tap); }

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Clubs - Operator - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>Clubs</h1>
+{% endblock %}
+{% block content %}
 <p><a href="{% url 'races:operator_create_club' %}">Create a club</a></p>
 <div class="table-scroll"><table>
   <thead><tr><th>Club</th><th>Address</th><th>Status</th><th>Members</th><th>Series</th><th>Last result recorded</th></tr></thead>

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ request.club.name }}</h1>
+{% endblock %}
+{% block content %}
 {% if membership.status == "WAITING" %}
 <p class="note">You've asked to join <strong>{{ request.club.name }}</strong>. The club's administrator hasn't
   decided yet; you'll get an email when they do.</p>

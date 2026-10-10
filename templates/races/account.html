@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}My account - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>My account</h1>
+{% endblock %}
+{% block content %}
 <p>{{ user.get_full_name|default:user.get_username }}<br><span class="muted">{{ user.email }}</span></p>
 
 <h2>My club memberships</h2>

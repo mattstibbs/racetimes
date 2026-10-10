@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Invitation - {{ request.club.name }} - Race Times{% endblock %}
+{% block heading %}
+{% if not valid %}<h1>That invitation link doesn't work</h1>{% else %}<h1>Join {{ request.club.name }} as its {{ invitation.get_role_display|lower }}</h1>{% endif %}
+{% endblock %}
 {% block content %}
 {% if not valid %}
-<h1>That invitation link doesn't work</h1>
 <p>It may have expired (invitations last 7 days), or already been accepted. If you still need to join
   {{ request.club.name }} as its administrator, ask for a new invitation.</p>
 <p>Accepted it already? <a href="{% url 'races:login' %}">Log in</a>.</p>
 {% else %}
-<h1>Join {{ request.club.name }} as its {{ invitation.get_role_display|lower }}</h1>
 <p>This invitation is for <strong>{{ invitation.email }}</strong>.</p>
 {% if someone_else %}
 <p class="note">You're logged in as {{ request.user.get_username }}. Log out, then open the invitation link again.</p>

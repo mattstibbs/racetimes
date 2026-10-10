@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load racing %}
 {% block title %}{{ boat }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <h1>{{ boat|boat }}</h1>
+{% endblock %}
+{% block content %}
 <p class="muted">
   {% if boat.make or boat.model %}{{ boat.make }} {{ boat.model }}. {% endif %}
   {% if boat.base_number %}Base number {{ boat.base_number|tcf }}.{% endif %}

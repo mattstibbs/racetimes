@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Enter boats: {{ series }} - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <p class="muted"><a href="{% url 'races:office' %}">Race office</a> &rsaquo; <a href="{% url 'races:office_series' series.pk %}">{{ series }}</a></p>
 <h1>Enter boats in {{ series }}</h1>
+{% endblock %}
+{% block content %}
 {% if any_to_enter %}
 <p class="muted">Search first if the list is long, then tick each boat to enter and press Enter. Their owners are emailed.</p>
 <form method="get" action="{% url 'races:office_enter_boats' series.pk %}" role="search" class="search">

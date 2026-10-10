@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Boats - {{ request.club.name }} - Race Times{% endblock %}
-{% block content %}
+{% block heading %}
 <p class="muted"><a href="{% url 'races:office' %}">Race office</a></p>
 <h1>Boats</h1>
+{% endblock %}
+{% block content %}
 <p><a href="{% url 'races:office_new_boat' %}">Add a boat</a></p>
 <form method="get" action="{% url 'races:office_boats' %}" role="search" class="search">
   <label for="boat-search">Sail number, boat name or owner</label>

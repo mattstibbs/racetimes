@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{% if joining %}Join another club{% else %}Sign up{% endif %} - Race Times{% endblock %}
+{% block heading %}
+<h1>{% if joining %}Join another club{% else %}Sign up{% endif %}</h1>
+{% endblock %}
 {% block content %}
 {# Finding the club. The second step is the club's own sign-up page. #}
-<h1>{% if joining %}Join another club{% else %}Sign up{% endif %}</h1>
 {% if joining %}
 <p>Find the club you want to join. You'll ask to join on its site, and its administrators approve you.</p>
 {% else %}

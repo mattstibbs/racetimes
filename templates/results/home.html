@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load racing %}
+{% block title %}Race results - {{ request.club.name }} - Race Times{% endblock %}
+{% block heading %}
+{# The club's name is the title, so nobody wonders whose results these are. #}
+<h1>{{ request.club.name }}</h1>
+<p class="page-subtitle">Race results</p>
+{% endblock %}
 {% block content %}
-<h1>Results</h1>
 
 {% if latest %}
 <section aria-labelledby="latest-results">
