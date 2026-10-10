@@ -879,9 +879,20 @@ The owner checked worked examples YTC-1 and YTC-2 (2026-10-02), so nothing
 is left to answer. They become fixtures in `tests/fixtures/` when part B is
 built.
 
-## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: planned (2026-10-03)**
+## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: ready to build (2026-10-10)**
 
-Not started, and no spec yet. The scoring-codes question from slice 0 was
+Spec: `docs/slices/26-more-scoring-codes-and-a6-1.md`. Nothing is built. To
+be built in two parts, each its own pull request: the engine, then the site.
+
+The owner's answers (2026-10-10): the data model change is approved (four new
+`Finish.Status` choices, and a finish time allowed on DSQ, RET, OCS and NSC);
+a coded boat is treated as a DNF is for NHC handicaps, with or without a
+time; in a regatta all four are back-calculated as DNF is; all four count as
+having taken part for realignment; and everyone sees the kept time, in More
+detail and the CSV. The owner checked worked examples CODE-1 to CODE-6, so
+nothing is left to answer.
+
+Background, from 2026-10-03: the scoring-codes question from slice 0 was
 settled on 2026-10-03 (see `docs/decisions.md`): add DSQ, RET, OCS and NSC, so
 that A6.1 (boats moving up a place when one ahead is disqualified or retires
 after finishing) can fire. Needs, before any code: a spec in `docs/slices/`;
