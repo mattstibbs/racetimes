@@ -67,6 +67,11 @@ FIXED_NUMBER_RULES_FIXTURE = load_scenarios(
     Path(__file__).resolve().parent / "fixtures" / "fixed_number_rules.yaml"
 )
 
+#: Worked examples CODE-1 to CODE-6 (slice 26): DSQ, RET, OCS and NSC, and A6.1.
+CODES_FIXTURE = load_scenarios(
+    Path(__file__).resolve().parent / "fixtures" / "codes_and_a6_1.yaml"
+)
+
 #: Absolute tolerance for comparing the fixtures' 8 d.p. expectations. The spec
 #: (section 7) requires full precision be carried through the calculation, so
 #: this is deliberately tight; 3 d.p. is a display convention only.

@@ -52,7 +52,17 @@ def finisher(boat_id="A", tcf=0.95, elapsed=3600.0, **kwargs):
 
 
 def test_race_status_members_match_the_spec():
-    assert {s.value for s in RaceStatus} == {"FINISHED", "DNC", "DNS", "DNF"}
+    # The four of section 6, and the four A10 codes slice 26 added.
+    assert {s.value for s in RaceStatus} == {
+        "FINISHED",
+        "DNC",
+        "DNS",
+        "DNF",
+        "DSQ",
+        "RET",
+        "OCS",
+        "NSC",
+    }
 
 
 def test_enums_compare_equal_to_plain_strings():
@@ -69,11 +79,33 @@ def test_enums_compare_equal_to_plain_strings():
         (RaceStatus.DNC, False),
         (RaceStatus.DNS, False),
         (RaceStatus.DNF, False),
+        (RaceStatus.DSQ, False),
+        (RaceStatus.RET, False),
+        (RaceStatus.OCS, False),
+        (RaceStatus.NSC, False),
     ],
     ids=lambda v: str(v),
 )
 def test_only_finished_counts_as_a_finisher(status, expected):
     assert status.is_finisher is expected
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        (RaceStatus.FINISHED, False),
+        (RaceStatus.DNC, False),
+        (RaceStatus.DNS, False),
+        (RaceStatus.DNF, False),
+        (RaceStatus.DSQ, True),
+        (RaceStatus.RET, True),
+        (RaceStatus.OCS, True),
+        (RaceStatus.NSC, True),
+    ],
+    ids=lambda v: str(v),
+)
+def test_only_the_four_codes_may_keep_a_time(status, expected):
+    assert status.may_keep_time is expected
 
 
 # --------------------------------------------------------------------------

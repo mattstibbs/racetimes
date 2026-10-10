@@ -19,11 +19,11 @@ The rules that apply to a single race:
   boats' scores don't change.
 * **A7** Tied boats share the points for their place and the places immediately
   below, divided equally.
-
-A6.1 - boats moving up a place when a boat ahead is disqualified or retires
-after finishing - is not implemented, because it cannot fire with the statuses
-the engine currently models. It needs DSQ, RET and NSC, which are boats that
-took a finishing place and then lost it. DNC, DNS and DNF never held one.
+* **A6.1** A boat disqualified, or retired after finishing, or scored did not
+  sail the course, leaves the places: each boat with a worse finishing place
+  moves up one. The engine gets this from the ranking alone. Only FINISHED
+  boats have a place, so a DSQ, RET, OCS or NSC boat (slice 26) is left out
+  and the boats behind her are ranked without her, ties and all.
 """
 
 from __future__ import annotations

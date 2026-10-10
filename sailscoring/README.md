@@ -108,12 +108,12 @@ the two parts import nothing from each other.
 | Name | What it is |
 | --- | --- |
 | `Boat(boat_id, base_number, current_tcf, name="")` | A boat's published rating (BN) and the handicap it carries into its next race |
-| `Finish(boat_id, status, elapsed_seconds=None, scoring_penalty=False)` | One recorded outcome: a time, or a scoring code |
+| `Finish(boat_id, status, elapsed_seconds=None, scoring_penalty=False)` | One recorded outcome: a time, or a scoring code. A DSQ, RET, OCS or NSC boat may also keep a time |
 | `SeriesRace(race_id, finishes)` | One race's finishes. No handicaps - they are derived |
 | `Series(boats, races, series_type=CLUB, progression=CARRY_OVER, minimum_finishers=0, apply_a5_3=False, discards=1, discard_threshold=0, cap_extremes=False, realign_to_base=False)` | The races, the boats, and the rules they are scored under |
 | `SeriesType` | `CLUB` or `REGATTA` |
 | `HandicapProgression` | `CARRY_OVER` starts a series on each boat's `current_tcf`; `RESET` starts it on `base_number` |
-| `RaceStatus` | `FINISHED`, `DNC`, `DNS`, `DNF` |
+| `RaceStatus` | `FINISHED`, `DNC`, `DNS`, `DNF`, and the codes `DSQ`, `RET`, `OCS`, `NSC` |
 
 Races are replayed in the order given. The engine does not sort by date: a
 date is yours to manage, and two races on one evening still have an order.
@@ -140,7 +140,8 @@ date is yours to manage, and two races on one evening still have an order.
 accepted the penalty keeps her place, and `score_points` makes her score worse
 by 20% of that race's Did Not Finish score, never worse than that score.
 `penalty_points` is what it added (`None` without a penalty). It is refused
-(`InvalidInput`) on a boat that did not finish. Handicaps are unaffected: she
+(`InvalidInput`) on a boat that did not finish, and on a DSQ, RET, OCS or NSC
+boat, who has no place to keep. Handicaps are unaffected: she
 sailed the course. Totals and the A8 tie-breaks are worked in whole tenths of a
 point, so scores that differ only by float noise are really tied.
 
@@ -281,6 +282,8 @@ that are quietly wrong.
 | Regatta adjustment, back-calculation and clamp (spec s4) | `regatta.py` |
 | End-of-series realignment (spec s5) | `realignment.py` |
 | RRS A4 low point, A5.2, A5.3, A7 ties | `points.py` |
+| RRS A6.1: a boat disqualified, retired after finishing, over the line at the start or not sailing the course leaves the places, so each boat behind her moves up one | `scoring.py`, `points.py` |
+| RRS A10 codes DSQ, RET, OCS and NSC: no place, scored as a DNF is, and a finish time may be kept | `domain.py` |
 | RRS A2.1 discards, A8.1 and A8.2 countback | `standings.py` |
 | Replaying a series, RRS A2.2 | `series.py` |
 | Portsmouth Yardstick corrected time, `E x 1000 / PN`, and replaying a fixed-number series | `fixed_number.py` |
@@ -293,15 +296,11 @@ failure there is a defect in this package, never a fixture to adjust.
 
 ## Not implemented
 
-- **RRS A6.1**, boats moving up a place when one ahead is disqualified or
-  retires after finishing. It cannot fire with the four statuses modelled here,
-  since none of them ever held a finishing place. It needs `DSQ`, `RET` or
-  `NSC`.
-- **Scoring codes beyond `FINISHED`, `DNC`, `DNS`, `DNF` and the scoring
-  penalty (SCP).** RRS A10 defines fourteen; OCS, RET, DSQ, DNE, RDG and the
-  rest are not implemented. Nor are other penalties (a stated number of
-  points, a different percentage, ZFP) or more than one scoring penalty for a
-  boat in one race.
+- **The other A10 codes:** DNE (a disqualification that can't be discarded),
+  UFD and BFD (flag disqualifications), ZFP (the 20% Z flag penalty), RDG
+  (redress, and A6.2) and DPI (discretionary penalty). Nor are other penalties
+  (a stated number of points, a different percentage) or more than one
+  scoring penalty for a boat in one race.
 - **A discard schedule with several steps.** `discard_threshold` is
   implemented: one count of `discards`, applying only once that many races are
   scored (*no discard until four races*). A schedule such as "1 after 4 races,

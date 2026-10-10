@@ -40,19 +40,42 @@ class RaceStatus(StrEnum):
     fixtures and in any JSON crossing the boundary, while still being a closed
     set that a typo cannot slip past.
 
-    This is the subset the handicap calculation needs. RRS A10 defines a further
-    ten abbreviations (OCS, RET, DSQ, NSC and the rest); those affect points,
-    not handicaps, and belong with the Appendix A scoring layer.
+    The codes DSQ, RET, OCS and NSC (RRS A10) are boats that were on the water
+    but lost their finishing place. They score as a DNF does, so the handicap
+    calculation treats them as non-finishers, and A6.1 (a boat moving up a place
+    when one ahead is disqualified or retires after finishing) falls out of the
+    ranking, which only ever sees FINISHED boats.
     """
 
     FINISHED = "FINISHED"
     DNC = "DNC"
     DNS = "DNS"
     DNF = "DNF"
+    DSQ = "DSQ"
+    RET = "RET"
+    OCS = "OCS"
+    NSC = "NSC"
 
     @property
     def is_finisher(self) -> bool:
         return self is RaceStatus.FINISHED
+
+    @property
+    def may_keep_time(self) -> bool:
+        """Whether a boat with this status may still have a recorded elapsed time.
+
+        A boat that finished and was then disqualified, retired, was over the
+        line at the start or did not sail the course keeps the time she wrote
+        down, so a protest or a look at the start recording can change her
+        result later without the time being retyped. DNC, DNS and DNF can't
+        have one: a boat with a time finished.
+        """
+        return self in _KEEPS_TIME
+
+
+_KEEPS_TIME = frozenset(
+    {RaceStatus.DSQ, RaceStatus.RET, RaceStatus.OCS, RaceStatus.NSC}
+)
 
 
 class SeriesType(StrEnum):
@@ -101,11 +124,17 @@ def _check_status(status: object, context: str) -> None:
 def _check_elapsed_time(record, context: str) -> None:
     """Validate and normalise ``record.elapsed_seconds`` against its status.
 
-    Shared by RaceEntry and Finish, which hold the same two rules: a finisher
-    needs a usable time, and anyone else must not have one.
+    Shared by RaceEntry and Finish, which hold the same rules: a finisher needs
+    a usable time; a DSQ, RET, OCS or NSC boat may have one; and DNC, DNS and
+    DNF must not.
     """
     if record.status.is_finisher:
         # Spec section 7: FINISHED with elapsed <= 0 is invalid input.
+        _check_positive(record.elapsed_seconds, "elapsed_seconds", context)
+    elif record.status.may_keep_time and record.elapsed_seconds:
+        # A DSQ, RET, OCS or NSC boat may keep the time she recorded, but a time
+        # that is there must still be usable: NaN, infinity and negatives are
+        # refused as they are for a finisher.
         _check_positive(record.elapsed_seconds, "elapsed_seconds", context)
     elif record.elapsed_seconds:
         # A non-finisher with a time is a data-entry mistake, and a costly one:
@@ -342,7 +371,8 @@ class RaceResult:
     def capped(self) -> bool:
         """Whether this finisher's result was capped as extreme (``sailscoring/options.py``, step A)."""
         return (
-            self.elapsed_seconds is not None
+            self.status.is_finisher
+            and self.elapsed_seconds is not None
             and self.elapsed_seconds_used is not None
             and self.elapsed_seconds_used != self.elapsed_seconds
         )
