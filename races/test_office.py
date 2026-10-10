@@ -1,4 +1,4 @@
-"""Slice 18: the race office's pages - the front page (with Coming up), the boats
+"""The race office's pages - the front page (with Coming up), the boats
 list, deleting a boat, and a series' page - and the switch-over from the admin:
 the menu, no links to the admin for club users, and the admin still working.
 

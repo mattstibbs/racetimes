@@ -5,5 +5,5 @@
 #
 # or once per clone: git config blame.ignoreRevsFile .git-blame-ignore-revs
 
-# Format the codebase with ruff format (slice 17)
+# Format the codebase with ruff format
 9e506f6cad44ac834a12659a9f4fb8175ee80829

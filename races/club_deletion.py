@@ -1,4 +1,4 @@
-"""Deleting a club and everything it holds (slice 11 part 5).
+"""Deleting a club and everything it holds.
 
 Only the operator does it, and only once the club is suspended (the pause in
 which to take its export). People's accounts stay: they may belong to other

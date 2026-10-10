@@ -31,7 +31,7 @@ PENDING_ALREADY = (
 
 
 def signup(request):
-    """A new account, asking to join this club (slice 11).
+    """A new account, asking to join this club.
 
     The account can log in once its email address is confirmed, from the link
     emailed now. Joining the club waits for the club's administrators.
@@ -54,7 +54,7 @@ def signup(request):
         "registration/signup.html",
         {
             "form": form,
-            # Slice 28: arriving from step 1 on the service's address. It only
+            # Arriving from step 1 on the service's address. It only
             # changes the wording; it carries nothing about the person.
             "from_find": request.GET.get("from") == "find",
             "choose_another": club_address(
@@ -69,7 +69,7 @@ class LoginView(auth_views.LoginView):
     redirect_authenticated_user = True
 
     def get_default_redirect_url(self):
-        # Slice 27: on the service's own address there's no club to show My
+        # On the service's own address there's no club to show My
         # boats for, so it's Your clubs, a club's My boats or the operator's
         # pages. A safe ``next`` still wins, as at a club.
         if self.request.club is None:
@@ -81,7 +81,7 @@ class LoginView(auth_views.LoginView):
 def my_boats(request):
     if not is_member(request.user, request.club):
         # Logged in, but not (or not yet) a member here: say where they stand,
-        # and offer to join (slice 11).
+        # and offer to join.
         return render(
             request,
             "races/not_a_member.html",

@@ -1,4 +1,4 @@
-"""Slice 19: the service's landing page, and Find my club.
+"""The service's landing page, and Find my club.
 
 The page is on the service's own address, which in tests is ``localhost`` with
 SINGLE_CLUB unset. A club's address is ``<subdomain>.localhost``.

@@ -30,7 +30,7 @@ from races.models import (
 
 
 def default_club():
-    """The first club, which the migrations create and tests see by default (slice 11)."""
+    """The first club, which the migrations create and tests see by default."""
     return Club.objects.get(subdomain="demo")
 
 
@@ -42,7 +42,7 @@ def make_club(subdomain, name=None, **fields):
 
 def make_boat(sail_number="GBR1234", base_number="0.964", club=None, **fields):
     """A boat. ``base_number=None`` makes one with no NHC base number, for a
-    boat that only races on a Portsmouth Number (``py_number=``, slice 24)."""
+    boat that only races on a Portsmouth Number (``py_number=``)."""
     return Boat.objects.create(
         club=club or default_club(),
         sail_number=sail_number,
@@ -96,7 +96,7 @@ def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
 
 
 def make_ytc_series(example, name="Cruisers", club=None, start="18:30:00", **entered):
-    """An RYA YTC series from a worked example, as the database holds it (slice 25).
+    """An RYA YTC series from a worked example, as the database holds it.
 
     ``example`` is YTC-1 or YTC-2 from tests/fixtures/ytc.yaml. Each boat has the
     two numbers on her certificate, and her entry chooses one of them
@@ -188,7 +188,7 @@ def make_member(
     """An active account, logged in by email, with an approved membership of Demo Club.
 
     Pass ``club`` for another club, or ``club=None`` for an account that
-    belongs to no club. ``role`` and ``status`` are the membership's (slice 11).
+    belongs to no club. ``role`` and ``status`` are the membership's.
     """
     from django.contrib.auth import get_user_model
 
@@ -398,7 +398,7 @@ class Clock:
         self.time += minutes * 60
 
 
-# --- Two clubs with overlapping data (slice 11) ---------------------------------------
+# --- Two clubs with overlapping data ---------------------------------------
 
 # Used by races/test_isolation.py and the other tests that check one club never
 # sees another's data.
@@ -546,13 +546,13 @@ def urls_for(data, kind=None):
         "results:home": [],
         "results:series": [series.pk],
         "results:series_csv": [series.pk],
-        # Slice 11 part 2: accounts and memberships.
+        # Accounts and memberships.
         "races:confirm_email": ["x", "y"],
         "races:resend_confirmation": [],
         "races:join_club": [],
         "races:members": [],
         "races:decide_membership": [data["membership"].pk],
-        # Slice 11 part 3: invitations, at the club, and the operator's pages, which
+        # Invitations, at the club, and the operator's pages, which
         # exist only on the service's own address (a 404 at every club).
         "races:accept_invitation": [data["invitation"]],
         "races:operator_clubs": [],
@@ -562,7 +562,7 @@ def urls_for(data, kind=None):
         "races:operator_invite": [data["club"].pk],
         "races:operator_club_status": [data["club"].pk],
         "races:operator_club_settings": [data["club"].pk],
-        # Slice 11 part 5: the privacy notice and terms, the same at every address.
+        # The privacy notice and terms, the same at every address.
         "races:privacy": [],
         "races:terms": [],
         # The account's own pages, which cover every club the person belongs to.
@@ -574,9 +574,9 @@ def urls_for(data, kind=None):
         "races:export_club_data": [],
         "races:operator_export_club": [data["club"].pk],
         "races:operator_delete_club": [data["club"].pk],
-        # Slice 13: the operator deciding who's waiting to join.
+        # The operator deciding who's waiting to join.
         "races:operator_decide_joining": [data["club"].pk, data["membership"].pk],
-        # Slice 18: the race office.
+        # The race office.
         "races:office": [],
         "races:office_boats": [],
         "races:office_new_boat": [],

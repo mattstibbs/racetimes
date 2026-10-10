@@ -126,7 +126,7 @@ def test_home_has_no_latest_results_before_any_race_is_sailed(client):
 
 
 def test_home_has_no_my_boats_section_for_anyone(client):
-    # Slice 15: people reach their boats from "My boats" in the menu instead.
+    # People reach their boats from "My boats" in the menu instead.
     member = make_member()
     make_boat("GBR42", name="Kittiwake", owner=member)
     assert "My boats" not in home(client).split("</header>")[1]
@@ -335,7 +335,7 @@ def test_series_shows_committee_links_to_the_committee(client, race_night):
     page = series_page(client, series)
     assert (
         f'href="{reverse("races:race_day", args=[race.pk])}"' in page
-    )  # the race day page (slice 9)
+    )  # the race day page
     assert reverse("races:series_history", args=[series.pk]) in page
 
 

@@ -1,4 +1,4 @@
-"""Slice 15: the menu's items and order for each role, and the renamed pages."""
+"""The menu's items and order for each role, and the renamed pages."""
 
 import re
 

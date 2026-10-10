@@ -1,4 +1,4 @@
-"""Print every series' standings, one line each, to compare two databases (slice 12).
+"""Print every series' standings, one line each, to compare two databases.
 
 After restoring a backup, run it against production and against the restored
 copy, and compare: the lines should be identical (docs/production.md).

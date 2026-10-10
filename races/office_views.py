@@ -1,4 +1,4 @@
-"""The race office (slice 18): where the race committee sets up the club's boats
+"""The race office: where the race committee sets up the club's boats
 and series, on the site's own pages instead of the Django admin.
 
 Every page here is the committee's, and finds rows through ``for_club``.
@@ -140,7 +140,7 @@ def _boat_form(request, boat):
 
 
 def _deletable(boat):
-    """A boat can go only if it has never been entered in a series (slice 18)."""
+    """A boat can go only if it has never been entered in a series."""
     return boat.pk is not None and not boat.series_entries.exists()
 
 
@@ -181,7 +181,7 @@ def _series(request, pk):
 
 
 def series_can_be_deleted(series):
-    """Only while no race in it has a result (slice 18): after that, declare it final."""
+    """Only while no race in it has a result: after that, declare it final."""
     return not audit.series_has_finishes(series)
 
 
@@ -377,7 +377,7 @@ class EnterBoatsForm(forms.Form):
 
     def clean_boat(self):
         # A boat can only be entered if it has the number this series is scored
-        # on (slice 24). They are listed, so the committee can see which, but
+        # on. They are listed, so the committee can see which, but
         # not enterable.
         lacking = [
             boat for boat in self.cleaned_data["boat"] if self.series.boats_lack(boat)
@@ -394,7 +394,7 @@ class EnterBoatsForm(forms.Form):
         return self.cleaned_data["boat"]
 
     def _numbers_chosen(self, boats):
-        """Which YTC number each boat is entered on (slice 25): {boat pk: choice}.
+        """Which YTC number each boat is entered on: {boat pk: choice}.
 
         The page asks per boat that has both; a boat with one is entered on it,
         and a choice for a number she doesn't have is refused, naming her.
@@ -466,7 +466,7 @@ def enter_boats(request, pk):
         for pk in request.GET.getlist("boat") + request.POST.getlist("boat")
         if pk.isdigit()
     }
-    # The same for the number each was to be entered on (slice 25).
+    # The same for the number each was to be entered on.
     chosen = {
         key.removeprefix("number_"): value
         for key, value in {**request.GET.dict(), **request.POST.dict()}.items()
@@ -487,7 +487,7 @@ def enter_boats(request, pk):
             "form": form,
             "series": series,
             "boats": boats,
-            # Boats the series can't take yet: listed, but not tickable (slice 24).
+            # Boats the series can't take yet: listed, but not tickable.
             "lacking": {boat.pk for boat in boats if series.boats_lack(boat)},
             "ticked": ticked,
             "chosen": chosen,
@@ -499,7 +499,7 @@ def enter_boats(request, pk):
 
 @committee_required
 def change_entry_number(request, pk):
-    """Change which YTC number a boat races on in one series (slice 25)."""
+    """Change which YTC number a boat races on in one series."""
     entry = get_object_or_404(
         SeriesEntry.objects.for_club(request.club).select_related("series", "boat"),
         pk=pk,

@@ -56,7 +56,7 @@ urlpatterns = [
         invitations.accept_invitation,
         name="accept_invitation",
     ),
-    # The operator's pages, on the service's own address only (slice 11 part 3).
+    # The operator's pages, on the service's own address only.
     path("operator/", operator_views.clubs, name="operator_clubs"),
     path(
         "operator/clubs/new/", operator_views.create_club, name="operator_create_club"
@@ -135,7 +135,7 @@ urlpatterns = [
         race_day_views.publish_results,
         name="publish_results",
     ),
-    # The race office (slice 18): the committee's setup pages.
+    # The race office: the committee's setup pages.
     path("office/", office_views.home, name="office"),
     path("office/boats/", office_views.boats, name="office_boats"),
     path("office/boats/new/", office_views.new_boat, name="office_new_boat"),
@@ -205,7 +205,7 @@ urlpatterns = [
     ),
     path("series/<int:pk>/final/send/", series_views.send_final, name="send_final"),
     path("races/<int:pk>/", race_day_views.race_day_page, name="race_day"),
-    # The slice 6 and slice 1 addresses, redirecting to the race day page.
+    # The old start sheet and finish-entry addresses, redirecting to the race day page.
     path(
         "races/<int:pk>/entries/", race_day_views.start_sheet_page, name="start_sheet"
     ),

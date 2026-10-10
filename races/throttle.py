@@ -1,4 +1,4 @@
-"""Slowing down password guessing (slice 11 part 4).
+"""Slowing down password guessing.
 
 Two counts of failed logins are kept, in Django's cache (the database cache,
 so every web worker shares them):

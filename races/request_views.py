@@ -1,5 +1,5 @@
 """The race committee's Change requests page: approving or rejecting what
-members ask for (slice 3). Members make the requests in ``member_views``;
+members ask for. Members make the requests in ``member_views``;
 ``approvals`` applies an approved one.
 """
 
@@ -46,7 +46,7 @@ def requests_page(request):
         {
             "pending": pending,
             "decided": decided[:RECENTLY_DECIDED],
-            # Slice 18: say when older ones are left out. The club's data
+            # Say when older ones are left out. The club's data
             # export has every request.
             "more_decided": len(decided) > RECENTLY_DECIDED,
             "recently_decided": RECENTLY_DECIDED,

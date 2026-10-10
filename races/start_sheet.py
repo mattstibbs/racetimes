@@ -1,4 +1,4 @@
-"""Race day's start sheet: which boats in the series are racing (slice 6).
+"""Race day's start sheet: which boats in the series are racing.
 
 Only a boat on the start sheet can have a finish recorded, and every boat on
 it must have a time or a code before the race's results are published. A boat

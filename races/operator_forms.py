@@ -1,4 +1,4 @@
-"""The operator's forms (slice 11 part 3): a new club, and inviting its administrator."""
+"""The operator's forms: a new club, and inviting its administrator."""
 
 import re
 
@@ -46,7 +46,7 @@ class ClubForm(forms.ModelForm):
 
 
 class ClubSettingsForm(forms.ModelForm):
-    """A live club's name and contact email, which the operator can change (slice 22).
+    """A live club's name and contact email, which the operator can change.
 
     Not its address: every link to the club's site uses it (docs/decisions.md).
     """

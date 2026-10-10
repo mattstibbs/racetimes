@@ -1,4 +1,4 @@
-// Makes the service's landing page images (slice 19) in static/img/landing/.
+// Makes the service's landing page images in static/img/landing/.
 //
 //   PHOTO=/path/to/cowes-week-2019.jpg \
 //     NODE_PATH="$(npm root -g)" node scripts/landing_images/make.js

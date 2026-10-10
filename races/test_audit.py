@@ -1,4 +1,4 @@
-"""Slice 2: the history of changes to anything that feeds a score.
+"""The history of changes to anything that feeds a score.
 
 Organised by acceptance criterion. Changes are made the way the committee
 makes them - through the finish-entry page and the admin - because a place
@@ -156,7 +156,7 @@ def test_a_first_finish_is_recorded_without_a_reason(staff_client, unsailed):
         ),
         ("minimum_finishers", "3", "Minimum finishers", "0", "3"),
         ("apply_a5_3", "on", "Use RRS A5.3", "No", "Yes"),
-        # Slice 14: the optional extra NHC steps.
+        # The optional extra NHC steps.
         ("nhc_cap_extremes", "on", "Cap extreme results", "No", "Yes"),
         ("nhc_realign_to_base", "on", "Realign to base handicaps", "No", "Yes"),
     ],
@@ -315,7 +315,7 @@ def test_every_audited_field_is_covered_by_a_test_above():
         Finish: ["status", "finish_time", "scoring_penalty"],
         Race: ["number", "start_time"],
         Series: [
-            "handicap_system",  # slice 24: tested in test_handicap_systems.py
+            "handicap_system",  # Tested in test_handicap_systems.py
             "series_type",
             "discards",
             "discard_threshold",
@@ -324,12 +324,12 @@ def test_every_audited_field_is_covered_by_a_test_above():
             "nhc_cap_extremes",
             "nhc_realign_to_base",
         ],
-        # ytc_number_used: slice 25, tested in test_ytc.py
+        # ytc_number_used: tested in test_ytc.py
         audit.SeriesEntry: ["ytc_number_used"],
         Boat: [
             "base_number",
             "py_number",  # test_handicap_systems.py
-            "ytc_number",  # slice 25: tested in test_ytc.py
+            "ytc_number",  # Tested in test_ytc.py
             "ytc_number_non_spinnaker",
         ],
     } == audit.AUDITED_FIELDS
@@ -608,7 +608,7 @@ def test_the_history_page_needs_staff(client, django_user_model, sailed):
     url = reverse("races:series_history", args=[series.pk])
     assert client.get(url).status_code == 302
     client.force_login(django_user_model.objects.create_user("member"))
-    assert client.get(url).status_code == 403  # refused, not a login loop (slice 11)
+    assert client.get(url).status_code == 403  # refused, not a login loop
 
 
 def test_the_history_page_shows_who_what_and_why(staff_client, sailed):

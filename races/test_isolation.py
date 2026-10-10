@@ -1,4 +1,4 @@
-"""Slice 11: one club never sees another's data. The acceptance criterion that matters most.
+"""One club never sees another's data. The acceptance criterion that matters most.
 
 Two clubs are built with overlapping data: the same sail numbers, and one
 person owning a boat at each. Every boat, series and request name is unique
@@ -47,7 +47,7 @@ pytestmark = pytest.mark.django_db
 
 
 # A person's own account pages show their memberships and data at every club,
-# since it's all theirs (slice 11 part 5). They're checked separately below.
+# since it's all theirs. They're checked separately below.
 OWN_DATA = {
     "races:account",
     "races:download_my_data",
@@ -333,14 +333,14 @@ def test_publishing_at_one_club_emails_only_its_owners(client, clubs, run_on_com
         "shared@example.com",
     ]
     assert all(leaks(m.subject + m.body) == [] for m in mail.outbox)
-    # Sent as Demo Club, with replies to Demo Club, never Harbour (slice 11 part 4).
+    # Sent as Demo Club, with replies to Demo Club, never Harbour.
     assert all(
         "Demo Club" in m.from_email and "Harbour" not in m.from_email + str(m.reply_to)
         for m in mail.outbox
     )
 
 
-# --- A person's own data, across their clubs (slice 11 part 5) ---------------------------------
+# --- A person's own data, across their clubs ---------------------------------
 
 
 def test_someone_at_one_club_sees_nothing_of_another_on_their_account_pages(

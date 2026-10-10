@@ -1,4 +1,4 @@
-/* Race Times: one stylesheet, no framework (slice 7).
+/* Race Times: one stylesheet, no framework.
 
    Every colour is a token here in :root, so the site's look can be changed in
    one place - a club's own colours, say. races/test_styles.py checks that no
@@ -78,7 +78,7 @@ abbr[title] { text-decoration: none; cursor: help; }
 .brand { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.15rem; }
 .site-header a.brand { color: var(--surface); }
 .brand img { width: 1.6rem; height: 1.6rem; }
-/* Slice 11: the club's name leads; the service's name follows, smaller. */
+/* The club's name leads; the service's name follows, smaller. */
 .brand-service {
   font-size: 0.75rem; font-weight: 500; color: var(--header-link); letter-spacing: 0.02em;
   white-space: nowrap;
@@ -174,7 +174,7 @@ ul.messages li.info { background: var(--accent-soft); border-left-color: var(--a
 .card.publishing p { margin-top: 0; }
 .card.publishing form > :last-child { margin-bottom: 0; }
 .card.publishing .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-/* Share to WhatsApp (slice 21): the site's secondary link button, with WhatsApp's glyph. */
+/* Share to WhatsApp: the site's secondary link button, with WhatsApp's glyph. */
 a.button.share-whatsapp { gap: 0.5rem; }
 a.button.share-whatsapp img { width: 1.25rem; height: 1.25rem; flex: none; }
 table.proposed { width: auto; box-shadow: none; }
@@ -208,7 +208,7 @@ tr.followed td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
 .finish-row { grid-template-columns: 10rem 11.5rem 11rem 1fr auto; }
 .start-row { grid-template-columns: 11rem 7rem 10rem auto; }
 fieldset.start-rows { border: 0; margin: 0; padding: 0; min-width: 0; }
-/* Slice 18: the race office. A series form's Scoring rules, and the boats to enter in a series. */
+/* The race office. A series form's Scoring rules, and the boats to enter in a series. */
 fieldset.group { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem 0; margin: 0 0 1rem; max-width: 30rem; }
 fieldset.group legend { font-weight: 700; color: var(--navy); padding: 0 0.3rem; }
 fieldset.boat-choices { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
@@ -247,7 +247,7 @@ ul.link-list a .final-badge { margin-left: 0.4rem; }
 ol.podium { margin: 0.25rem 0 0; padding-left: 1.5rem; }
 ol.podium li { padding: 0.1rem 0; }
 .card h3 .provisional { margin-left: 0.3rem; }
-/* Slice 10: a series declared final, in the published colours. */
+/* A series declared final, in the published colours. */
 .final-badge {
   display: inline-block; vertical-align: middle;
   font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
@@ -255,7 +255,7 @@ ol.podium li { padding: 0.1rem 0; }
   color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok);
 }
 .series-links { margin-top: -0.25rem; }
-/* Slice 15: links placed after the results they belong to. */
+/* Links placed after the results they belong to. */
 .end-links { margin-top: 1rem; }
 form.follow {
   display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 1.5rem 0 0.5rem; padding: 0.8rem 1rem;
@@ -298,7 +298,7 @@ table.boat-races td:first-child { white-space: nowrap; }
   .card { padding: 0.8rem 0.9rem; }
 }
 
-/* --- The race day page (slice 9) ------------------------------------------------------ */
+/* --- The race day page ------------------------------------------------------ */
 
 .race-clock {
   display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; align-items: baseline;
@@ -363,12 +363,12 @@ details.finish-form .figures { flex-basis: 100%; }
   .race-clock strong { font-size: 1.25rem; }
 }
 
-/* --- The Members page (slice 11) ---------------------------------------------------- */
+/* --- The Members page ---------------------------------------------------- */
 .member-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.6rem 1rem; align-items: center; margin-bottom: 0.6rem; }
 .member-row .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 @media (max-width: 40rem) { .member-row { grid-template-columns: 1fr; } }
 
-/* --- The service's landing page (slice 19) ------------------------------------------- */
+/* --- The service's landing page ------------------------------------------- */
 /* A link that looks like a button, for the landing page's calls to action. */
 a.button {
   display: inline-flex; align-items: center; justify-content: center;
@@ -381,7 +381,7 @@ a.button:hover { background: var(--accent-strong); border-color: var(--accent-st
 a.button.secondary { background: var(--surface); color: var(--accent); }
 a.button.secondary:hover { background: var(--accent-soft); color: var(--accent-strong); }
 
-/* Your clubs (slice 27): one card per club, on the service's own address. */
+/* Your clubs: one card per club, on the service's own address. */
 ul.your-clubs { list-style: none; padding: 0; margin: 0 0 1.25rem; }
 
 /* The header's logo on the service's own pages: bigger than on a club's site. */

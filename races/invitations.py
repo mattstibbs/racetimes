@@ -1,4 +1,4 @@
-"""Inviting someone to run a club, and accepting (slice 11 part 3).
+"""Inviting someone to run a club, and accepting.
 
 The operator invites a new club's first administrator from the operator's
 pages (``races/operator_views.py``). The invitation is emailed as a link to the

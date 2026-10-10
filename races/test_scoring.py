@@ -289,7 +289,7 @@ def test_input_the_engine_refuses_is_reported_not_raised(three_boats, caplog):
     assert "could not be scored" in caplog.text
 
 
-# --- Slice 23 part A: no discard until N races are scored -----------------------------
+# --- No discard until N races are scored -----------------------------
 
 
 def sail_dt1(series, races_sailed):

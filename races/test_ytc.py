@@ -1,4 +1,4 @@
-"""Slice 25, part B: RYA YTC series on the site.
+"""RYA YTC series on the site.
 
 A YTC boat has two numbers (her certificate's, and the non-spinnaker one) and
 each series entry chooses which she races on. The worked examples YTC-1 and

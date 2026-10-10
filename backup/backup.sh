@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copy production's database off-site, encrypted (slice 12).
+# Copy production's database off-site, encrypted.
 #
 #   1. pg_dump in PostgreSQL's compressed "custom" format, which pg_restore
 #      reads back;

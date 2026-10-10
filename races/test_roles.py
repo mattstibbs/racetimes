@@ -1,4 +1,4 @@
-"""The four roles, and the models slice 3 adds for members."""
+"""The four roles, and the models that give members their roles."""
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group
@@ -22,7 +22,7 @@ from races.testing import (
 pytestmark = pytest.mark.django_db
 
 
-# --- Who counts as what (slice 11: roles belong to a club membership) -------------
+# --- Who counts as what (roles belong to a club membership) -------------
 
 
 def test_roles_come_from_an_approved_membership_of_this_club():
@@ -156,7 +156,7 @@ def test_a_members_requests_go_with_their_account():
 
 # --- Every page, as each of the four roles -----------------------------------
 
-# Slice 11: roles at Demo Club, plus the operator (a superuser, with no role at
+# Roles at Demo Club, plus the operator (a superuser, with no role at
 # any club) and a race committee member of another club. Neither of the last two
 # may do anything here that the public can't, except see that they're not a member.
 ROLES = [
@@ -236,7 +236,7 @@ def pages():
             reverse("races:members"),
             [TO_LOGIN, REFUSED, REFUSED, SEES, REFUSED, REFUSED],
         ),
-        # Slice 18: the race office.
+        # The race office.
         "race office": (reverse("races:office"), committee),
         "office: boats": (reverse("races:office_boats"), committee),
         "office: add a boat": (reverse("races:office_new_boat"), committee),
@@ -312,7 +312,7 @@ def test_every_page_as_each_role(as_role, pages, role):
     }
 
 
-# --- The operator's pages: the service's own address, the operator only (slice 11 part 3) -----
+# --- The operator's pages: the service's own address, the operator only -----
 
 
 @pytest.fixture
@@ -370,7 +370,7 @@ def test_the_header_offers_requests_only_to_the_committee(as_role, role, sees_re
 
 
 # --- Accounts belong to the operator; a club's people are on its Members page -----
-# Slice 11: accounts span clubs, so the Django admin for them is the operator's,
+# Accounts span clubs, so the Django admin for them is the operator's,
 # on the service's own address. Approving people is on the Members page
 # (races/test_memberships.py).
 

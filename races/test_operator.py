@@ -1,4 +1,4 @@
-"""Slice 11 part 3: the operator's pages, invitations, and the service's front page.
+"""The operator's pages, invitations, and the service's front page.
 
 The operator's pages are on the service's own address, which in tests is
 ``localhost`` with SINGLE_CLUB unset. A club's address is ``<subdomain>.localhost``.
@@ -493,7 +493,7 @@ def test_the_operators_own_row_has_no_club(client, operator):
     assert '<td class="field-clubs">—</td>' in row
 
 
-# --- People waiting to join (slice 13) ----------------------------------------------------------
+# --- People waiting to join ----------------------------------------------------------
 
 
 def waiting_at(club, email="kim@example.com", first_name="Kim"):

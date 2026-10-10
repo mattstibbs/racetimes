@@ -1,4 +1,4 @@
-"""The admin site, aware of clubs (slice 11).
+"""The admin site, aware of clubs.
 
 The race committee sets up boats, series and races in the Django admin. On a
 club's address it shows only that club's rows (``ClubScopedAdmin`` in
@@ -15,7 +15,7 @@ class ClubAdminSite(admin.AdminSite):
     """At a club, the admin is for that club's race committee and administrators.
 
     Their access comes from their club membership (races/roles.py), not from
-    Django's staff flag, which means nothing since slice 11. On the service's
+    Django's staff flag, which means nothing here. On the service's
     own address, only the operator (a superuser) gets in.
     """
 

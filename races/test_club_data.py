@@ -1,4 +1,4 @@
-"""Slice 11 part 5: a club's data export, and the operator deleting a club."""
+"""A club's data export, and the operator deleting a club."""
 
 import csv
 import io

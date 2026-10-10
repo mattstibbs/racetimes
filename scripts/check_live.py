@@ -1,4 +1,4 @@
-"""Check a live Race Times site from outside, as a visitor's browser would (slice 12).
+"""Check a live Race Times site from outside, as a visitor's browser would.
 
     python scripts/check_live.py                      # racetimes.co.uk, club "demo"
     python scripts/check_live.py example.org --club exesc

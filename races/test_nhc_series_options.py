@@ -1,4 +1,4 @@
-"""Slice 14: a series' optional NHC steps, capping extreme results and realigning to base handicaps.
+"""A series' optional NHC steps, capping extreme results and realigning to base handicaps.
 
 The engine's own tests (tests/test_nhc_options.py) check the arithmetic against
 the MCC race's published figures. These check the site: the settings, where
@@ -157,7 +157,7 @@ def test_realignment_is_the_engines_given_the_same_boats(cap):
 
 
 def test_a_final_series_copy_keeps_what_the_options_did():
-    # A final series is scored from a saved copy of the engine's results (slice 10).
+    # A final series is scored from a saved copy of the engine's results.
     series, race, entries = mcc_series(nhc_cap_extremes=True, nhc_realign_to_base=True)
     live = score_series(series).for_race(race)
     copy = final.load(
@@ -173,12 +173,13 @@ def test_a_final_series_copy_keeps_what_the_options_did():
         )
 
 
-def test_a_final_copy_saved_before_slice_14_still_loads():
+def test_a_final_copy_saved_before_nhc_options_still_loads():
     series, _race, _ = mcc_series()
     data = final.dump(engine_outcome(series))
     for race_data in data["races"]:
         for result in race_data["results"]:
-            del result["realignment_factor"]  # as copies saved before slice 14 were
+            # Copies saved before the NHC options were added have no factor.
+            del result["realignment_factor"]
     assert all(r.realignment_factor is None for r in final.load(data).races[0].results)
 
 

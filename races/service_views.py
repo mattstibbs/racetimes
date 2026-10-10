@@ -1,4 +1,4 @@
-"""The service's own front page (slice 19): a landing page for clubs, and Find my club.
+"""The service's own front page: a landing page for clubs, and Find my club.
 
 It's only on the service's own address, ``racetimes.co.uk``. The club
 middleware (``races/clubs.py``) decides which address a request is for, and
@@ -64,7 +64,7 @@ def find_clubs(query):
 
 
 def signup(request):
-    """Step 1 of signing up (slice 28): find the club you want to join.
+    """Step 1 of signing up: find the club you want to join.
 
     The same search as Find my club. Each match goes to that club's own sign-up
     page (step 2), with ``?from=find`` so it can say "Step 2 of 2"; for someone

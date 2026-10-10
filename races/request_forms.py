@@ -1,4 +1,4 @@
-"""Members' change requests (slice 3): registering, claiming or changing a boat,
+"""Members' change requests: registering, claiming or changing a boat,
 and entering a series; and the committee's decision on one.
 """
 
@@ -40,7 +40,7 @@ class _BoatDetailsForm(forms.ModelForm):
     boat = None
 
     def __init__(self, *args, club, **kwargs):
-        # The club the boat is (or will be) registered with (slice 11).
+        # The club the boat is (or will be) registered with.
         self.club = club
         super().__init__(*args, **kwargs)
         self.fields["sail_number"].required = True
@@ -58,8 +58,8 @@ class _BoatDetailsForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        # Slice 24: no number is required on its own, but a boat needs one to
-        # race on at all (slice 25 adds the two YTC numbers).
+        # No number is required on its own, but a boat needs one to
+        # race on at all (the two YTC numbers count too).
         names = ("base_number", "py_number", *YTC_NUMBER_FIELDS)
         if not self.errors and all(cleaned.get(name) is None for name in names):
             raise ValidationError(
@@ -73,7 +73,7 @@ def boat_with_sail_number(club, sail_number, exclude=None):
     """The club's boat with this sail number, ignoring case and spaces, or None.
 
     The same comparison as the boat's unique constraint, so the two agree. Only
-    within the club: two clubs can each have a GBR 42 (slice 11).
+    within the club: two clubs can each have a GBR 42.
     """
     boats = Boat.objects.for_club(club)
     if exclude is not None:
@@ -128,7 +128,7 @@ class EntryRequestForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.boat = boat
         # Series the boat is not in and has not already asked to join.
-        # Only the boat's own club's series (slice 11).
+        # Only the boat's own club's series.
         self.fields["series"].queryset = (
             Series.objects.for_club(boat.club)
             .exclude(entries__boat=boat)
@@ -139,7 +139,7 @@ class EntryRequestForm(forms.Form):
         )
 
     def clean_series(self):
-        # Slice 24: a request the committee could never approve is refused now,
+        # A request the committee could never approve is refused now,
         # with a way forward, rather than left waiting.
         series = self.cleaned_data["series"]
         if series.boats_lack(self.boat):

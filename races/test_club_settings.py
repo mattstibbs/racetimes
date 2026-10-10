@@ -1,4 +1,4 @@
-"""Slice 22: the operator changes a live club's name or contact email.
+"""The operator changes a live club's name or contact email.
 
 The operator's pages are on the service's own address, which in tests is
 ``localhost`` with SINGLE_CLUB unset. A club's address is ``<subdomain>.localhost``.

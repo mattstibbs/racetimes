@@ -1,4 +1,4 @@
-"""Slice 11 part 2: people and roles per club.
+"""People and roles per club.
 
 Sign-up and confirming an email are tested in races/test_members.py, and
 every page as each role in races/test_roles.py. This file covers:
@@ -362,7 +362,7 @@ def test_each_clubs_login_is_its_own():
 
 
 def test_clubs_and_memberships_are_not_in_the_admin():
-    # The operator's pages (slice 11 part 3) and the Members page replace them.
+    # The operator's pages and the Members page replace them.
     from django.contrib import admin as django_admin
 
     from races.models import Club

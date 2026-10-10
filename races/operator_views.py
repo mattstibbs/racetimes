@@ -1,4 +1,4 @@
-"""The operator's pages (slice 11 part 3), at /operator/ on the service's own address.
+"""The operator's pages, at /operator/ on the service's own address.
 
 The operator runs the service: they create clubs, invite each club's first
 administrator, and suspend or reactivate a club. They change no club's data,
@@ -126,7 +126,7 @@ def _club_context(request, club, form, settings_form=None):
 @operator_required
 @require_POST
 def club_settings(request, pk):
-    """Change a club's name or contact email, suspended or not (slice 22).
+    """Change a club's name or contact email, suspended or not.
 
     Each change is logged, and the club's administrators are emailed. The
     address isn't in the form, so it can't change here.
@@ -237,7 +237,7 @@ def operator_log(request):
     )
 
 
-# --- A club's data, and deleting a club (slice 11 part 5) ---------------------------------------
+# --- A club's data, and deleting a club ---------------------------------------
 
 
 @operator_required
@@ -286,7 +286,7 @@ def delete_club(request, pk):
     )
 
 
-# --- People waiting to join (slice 13) -----------------------------------------------------------
+# --- People waiting to join -----------------------------------------------------------
 
 NOT_WHILE_SUSPENDED_TO_JOIN = (
     "Reactivate the club first: nobody can use its site while it's paused."
