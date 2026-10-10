@@ -39,6 +39,35 @@ UNSCORABLE = (
     "the race committee know. ({detail})"
 )
 
+#: One line for a results table to print under itself, for each code that
+#: appears in it, in this order (as the SCP line is printed for a penalty).
+CODE_NOTES = (
+    (
+        sailscoring.RaceStatus.DSQ,
+        "DSQ: Disqualified. Boats behind her moved up a place (RRS A6.1).",
+    ),
+    (
+        sailscoring.RaceStatus.RET,
+        "RET: Retired. A boat that retires after finishing moves the boats behind "
+        "her up a place (RRS A6.1).",
+    ),
+    (
+        sailscoring.RaceStatus.OCS,
+        "OCS: Over the line at the start and failed to start. She has no place, "
+        "and scores as a boat that did not finish.",
+    ),
+    (
+        sailscoring.RaceStatus.NSC,
+        "NSC: Did not sail the course. Boats behind her moved up a place (RRS A6.1).",
+    ),
+)
+
+
+def code_notes(statuses):
+    """The explanation lines for the codes among ``statuses``, in ``CODE_NOTES`` order."""
+    present = set(statuses)
+    return tuple(note for code, note in CODE_NOTES if code in present)
+
 
 @dataclass(frozen=True)
 class BoatRaceResult:
@@ -106,6 +135,11 @@ class RaceResults:
         return any(row.result.scoring_penalty for row in self.rows)
 
     @property
+    def code_notes(self):
+        """The explanation for each code in this race's table (see ``CODE_NOTES``)."""
+        return code_notes(row.result.status for row in self.rows)
+
+    @property
     def has_non_spinnaker(self):
         return any(row.is_non_spinnaker for row in self.rows)
 
@@ -141,6 +175,11 @@ class SeriesResults:
     def has_scoring_penalty(self):
         """Whether any boat in any scored race took a scoring penalty (SCP)."""
         return any(race.has_scoring_penalty for race in self.races)
+
+    @property
+    def code_notes(self):
+        """The explanation for each code in any scored race (see ``CODE_NOTES``)."""
+        return code_notes(row.result.status for race in self.races for row in race.rows)
 
     @property
     def discards_apply(self):

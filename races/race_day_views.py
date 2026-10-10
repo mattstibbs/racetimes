@@ -211,21 +211,26 @@ def _finishing_rows(race, bound_form, bound_entry, touched):
 def _order_across_the_line(finished):
     """Sort finished rows into the order they crossed the line, and number them.
 
-    Boats with a time come first, in time order; boats with a code after them,
-    by sail number. Two boats tapped within the same second share a time, so
-    the one saved first - tapped first - comes first. (The rows start in
-    sail-number order, and sort() keeps it for everything else that ties.)
+    Boats that finished come first, in time order. A boat with a code, even one
+    that kept her time, is listed after them, by sail number, and isn't numbered:
+    the code, not her place across the line, is what the committee needs to see.
+    Two boats tapped within the same second share a time, so the one saved
+    first - tapped first - comes first. (The rows start in sail-number order,
+    and sort() keeps it for everything else that ties.)
     """
     epoch = timezone.make_aware(datetime.min.replace(year=2000))
-    finished.sort(
-        key=lambda row: (
-            row["finish"].finish_time is None,
-            row["finish"].finish_time or time.min,
-            row["finish"].recorded_at or epoch,
-        )
-    )
-    timed = [row for row in finished if row["finish"].finish_time is not None]
-    for number, row in enumerate(timed, start=1):
+
+    def key(row):
+        finish = row["finish"]
+        if finish.status != Finish.Status.FINISHED:
+            return (True, time.min, epoch)
+        return (False, finish.finish_time, finish.recorded_at or epoch)
+
+    finished.sort(key=key)
+    numbered = [
+        row for row in finished if row["finish"].status == Finish.Status.FINISHED
+    ]
+    for number, row in enumerate(numbered, start=1):
         row["order"] = number
 
 

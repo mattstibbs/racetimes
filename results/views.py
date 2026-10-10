@@ -21,7 +21,7 @@ from django.views.decorators.http import require_safe
 from races import series_csv as csv_file  # the view below is called series_csv
 from races.models import Boat, ScoringChange, Series
 from races.publishing import amended_since_sent
-from races.scoring import score_series
+from races.scoring import code_notes, score_series
 
 # The home page shows the latest race of this many series, most recent first.
 LATEST_SERIES = 5
@@ -281,6 +281,7 @@ def _history(entry):
             line.row and line.row.result.scoring_penalty for line in lines
         ),
         "has_not_recorded": any(line.row and line.row.not_recorded for line in lines),
+        "code_notes": code_notes(line.row.result.status for line in lines if line.row),
         "next": _next_handicap(entry, results, races),
         "last_date": races[-1].date if races else None,
     }

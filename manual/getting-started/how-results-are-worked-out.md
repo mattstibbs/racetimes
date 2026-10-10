@@ -31,8 +31,11 @@ Race Times needs only three things:
   called a **TCF** (time correction factor), and it is what the results pages
   head their handicap column with.
 - **The race's start time.**
-- **Each boat's finish time**, or a code if it didn't finish: DNC (did not
-  come to the start), DNS (did not start) or DNF (did not finish).
+- **Each boat's finish time**, or a code. DNC (did not come to the start),
+  DNS (did not start) and DNF (did not finish) take no time. DSQ
+  (disqualified), RET (retired), OCS (over the line at the start) and NSC (did
+  not sail the course) may keep the time the boat recorded, or have none. See
+  [Codes that take a boat out of the places](#codes-that-take-a-boat-out-of-the-places).
 
 Everything else is worked out from these, every time a results page is
 shown. No handicap is ever typed in by hand.
@@ -111,6 +114,47 @@ Race Times uses the Low Point System (RRS Appendix A):
 | Boat 1 | 3 | 3 |
 | Boat 2 | 4 | 4 |
 | Boat 5 | DNC | 6 |
+
+### Codes that take a boat out of the places
+
+A boat that is disqualified (**DSQ**), retires (**RET**), is over the line at
+her start (**OCS**) or does not sail the course (**NSC**) has no finishing
+place. She scores as a boat that did not finish: one more than the number of
+boats entered, or, if the series uses RRS A5.3, one more than the boats that
+came to the start.
+
+She keeps the finish time recorded for her, if there is one. A protest, or a
+look at the start, can then change her result without her time being typed
+again. Her time shows in the More detail columns and in the download, with no
+corrected time, since she has no place to be ranked on.
+
+**RRS A6.1** then applies: each boat behind her moves up a place. The boats
+that finished are ranked without her, ties and all, so the boats behind her
+move up as if she had not finished. Points follow the new places.
+
+With six boats entered, Boat 2 finished second, and is then disqualified. Her
+time of 51:00 is kept:
+
+| Boat | As sailed | Boat 2 disqualified |
+|---|---|---|
+| Boat 1 | 1st, 1 | 1st, 1 |
+| Boat 2 | 2nd, 2 | DSQ, 7 (keeps 51:00) |
+| Boat 3 | 3rd, 3 | 2nd, 2 |
+| Boat 4 | 4th, 4 | 3rd, 3 |
+| Boat 5 | 5th, 5 | 4th, 4 |
+| Boat 6 | DNC, 7 | DNC, 7 |
+
+A boat that retires after finishing, or does not sail the course, moves the
+boats behind her up in the same way. A boat with OCS never had a place, so
+the effect on the others is the same.
+
+A boat with one of these codes is handicapped as a boat that did not finish
+is. She is left out of the handicap sums, and her handicap carries forward
+unchanged. In a regatta she is given a stand-in time, as a DNF is. Her
+recorded time doesn't count towards anyone's handicap: a time from a boat that
+was disqualified, retired, over the line or not sailing the course is not a
+fair measure of how she sails, and an OCS or NSC time may be a head start or
+a shorter course.
 
 ### A scoring penalty (SCP)
 
