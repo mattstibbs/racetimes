@@ -68,7 +68,11 @@ def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
     seconds, as SCEN-005 is. Returns (series, {letter: entry}, [races]).
     """
     series = make_series(
-        name, club=club, handicap_system="PY", discards=example["discards"]
+        name,
+        club=club,
+        handicap_system="PY",
+        discards=example["discards"],
+        apply_a5_3=example.get("apply_a5_3", False),
     )
     entries = {
         letter: enter(
@@ -88,11 +92,30 @@ def make_py_series(example, name="Portsmouth", club=None, start="18:30:00"):
         race = make_race(series, index, start=start)
         races.append(race)
         for letter, value in race_example["finishes"].items():
-            if isinstance(value, str):
-                record(race, entries[letter], status=value)
-            else:
-                record(race, entries[letter], finish_clock(start, value))
+            record_fixture_finish(race, entries[letter], value, start)
     return series, entries, races
+
+
+def record_fixture_finish(race, entry, value, start):
+    """One finish from a worked example's fixture, as a race officer writes it.
+
+    A number is a finisher's elapsed seconds. A string is a code with no time.
+    A mapping is a code that keeps a time (``elapsed``), optionally with a
+    scoring penalty (``penalty``).
+    """
+    if isinstance(value, str):
+        record(race, entry, status=value)
+    elif isinstance(value, dict):
+        elapsed = value.get("elapsed")
+        record(
+            race,
+            entry,
+            finish_clock(start, elapsed) if elapsed else None,
+            status=value["status"],
+            scoring_penalty=value.get("penalty", False),
+        )
+    else:
+        record(race, entry, finish_clock(start, value))
 
 
 def make_ytc_series(example, name="Cruisers", club=None, start="18:30:00", **entered):

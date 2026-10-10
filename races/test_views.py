@@ -116,7 +116,7 @@ def test_correcting_a_saved_finish_updates_it(committee_client, race_night):
     "finish_time, status, message",
     [
         ("", "FINISHED", "Enter a finish time"),
-        ("19:10:00", "DNF", "A boat with a code has no finish time"),
+        ("19:10:00", "DNF", "A boat that did not finish has no finish time"),
         ("17:59:00", "FINISHED", "The finish must be after the start"),
         ("not a time", "FINISHED", "Enter a valid time"),
     ],

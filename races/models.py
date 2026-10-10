@@ -862,12 +862,15 @@ class Finish(models.Model):
     """What the race officer wrote down for one boat: a time, or a code."""
 
     class Status(models.TextChoices):
-        # Values match sailscoring.RaceStatus. Only the engine's four for now; OCS, RET
-        # and DSQ are deferred (see docs/decisions.md).
+        # Values match sailscoring.RaceStatus.
         FINISHED = "FINISHED", "Finished"
         DNC = "DNC", "DNC - did not come to the start"
         DNS = "DNS", "DNS - did not start"
         DNF = "DNF", "DNF - did not finish"
+        DSQ = "DSQ", "DSQ - disqualified"
+        RET = "RET", "RET - retired"
+        OCS = "OCS", "OCS - over the line at the start"
+        NSC = "NSC", "NSC - did not sail the course"
 
     race = models.ForeignKey(Race, on_delete=models.CASCADE, related_name="finishes")
     # A finish belongs to the series entry rather than the boat, so one cannot
@@ -905,16 +908,18 @@ class Finish(models.Model):
                 name="finish_unique_per_entry_per_race",
                 violation_error_message="This boat already has a result in this race.",
             ),
-            # A time or a code, never both.
+            # A finisher has a time. A boat that did not finish has none. A
+            # boat disqualified, retired, over the line or not sailing the
+            # course may keep the time she recorded, or have none.
             models.CheckConstraint(
                 condition=(
                     models.Q(status="FINISHED", finish_time__isnull=False)
-                    | (
-                        ~models.Q(status="FINISHED")
-                        & models.Q(finish_time__isnull=True)
+                    | models.Q(
+                        status__in=["DNC", "DNS", "DNF"], finish_time__isnull=True
                     )
+                    | models.Q(status__in=["DSQ", "RET", "OCS", "NSC"])
                 ),
-                name="finish_time_xor_code",
+                name="finish_time_by_status",
             ),
             # A scoring penalty worsens a finisher's place points, so a boat
             # with a code has nothing to worsen.
@@ -939,10 +944,13 @@ class Finish(models.Model):
             raise ValidationError(
                 {"finish_time": "Enter a finish time, or choose a code."}
             )
-        if self.status != self.Status.FINISHED and self.finish_time is not None:
+        if (
+            self.status in (self.Status.DNC, self.Status.DNS, self.Status.DNF)
+            and self.finish_time is not None
+        ):
             raise ValidationError(
                 {
-                    "finish_time": "A boat with a code has no finish time. Clear it, or choose Finished."
+                    "finish_time": "A boat that did not finish has no finish time. Clear it, or choose a result that keeps one."
                 }
             )
         if self.scoring_penalty and self.status != self.Status.FINISHED:

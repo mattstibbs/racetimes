@@ -44,6 +44,8 @@ def start_moment(race):
 def describe(finish):
     if finish.status == Finish.Status.FINISHED:
         return f"finished at {finish.finish_time:%H:%M:%S}"
+    if finish.finish_time is not None:
+        return f"{finish.status}, crossed the line at {finish.finish_time:%H:%M:%S}"
     return finish.status
 
 

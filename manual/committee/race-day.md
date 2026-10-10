@@ -60,9 +60,11 @@ lists:
 - **Still racing**: every boat on the start sheet with nothing recorded yet,
   in sail-number order, so the rows don't move while you aim at them.
 - **Finished**: every boat with a time, in the order it crossed the line,
-  then any boats with a code.
+  then any boats with a code. A boat with a code that kept her time is listed
+  with the code and the time she crossed the line, for example "DSQ, crossed
+  the line at 19:02:11", after the boats that finished.
 
-![The Finishing view of race 4 on a tablet: the race clock, one boat still racing with a Finished button, and two boats finished in order, each with Undo and Edit](../images/race-day-finishing.png)
+![The Finishing view of race 4 on a tablet: the race clock, one boat still racing with a Finished button, two boats finished in order, and a disqualified boat listed after them with her time kept](../images/race-day-finishing.png)
 
 ### Tapping Finished
 
@@ -93,20 +95,30 @@ the undo are kept in the race's correction history.
 
 Every boat still racing has a **…** button, and every finished boat has
 **Edit**. Either one opens a small form. Type the finish time as the clock
-showed it, or choose a code (DNF, DNS or DNC), and press **Save**. Changing a
-saved finish is a correction and needs a reason.
+showed it, or choose a code, and press **Save**. Changing a saved finish is a
+correction and needs a reason.
+
+The codes DNC, DNS and DNF take no time. The codes **DSQ** (disqualified),
+**RET** (retired), **OCS** (over the line at the start) and **NSC** (did not
+sail the course) may keep the time the boat crossed the line, so leave the
+time in the box. A boat that retires on the first beat has no time: clear it.
+The boat loses her place, and the boats behind her move up one (RRS A6.1),
+but her time stays in the race's history and in the More detail columns. If a
+protest or a check of the start later overturns the decision, change her
+result back to **Finished**; her time is still there, so nothing needs
+typing again.
 
 To give a boat a **scoring penalty** (SCP, RRS 44.3(c)), tick **Scoring
 penalty (SCP)** on its form and press **Save**. The boat keeps her place and
 scores 20% of the Did Not Finish score more; see
 [How results are worked out](../getting-started/how-results-are-worked-out.md#a-scoring-penalty-scp).
-The tick is only for a boat with a finish time: a boat with a code (DNF, DNS
-or DNC) has no place to worsen, and the form refuses it. It is one penalty per
+The tick is only for a boat that finished: a boat with any other result has no
+place to worsen, and the form refuses it. It is one penalty per
 boat per race. Adding or removing the tick on a saved finish is a correction,
 so it needs a reason, is recorded in the race's history, and marks published
 results as amended.
 
-![The form under a boat's … button: a finish time, a result set to DNF, and Save](../images/race-day-typed.png)
+![A finished boat's form open for correction: its result set to DSQ, a reason typed in, and Save](../images/race-day-typed.png)
 
 ### Two devices at once
 

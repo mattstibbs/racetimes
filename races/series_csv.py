@@ -109,6 +109,8 @@ def _write_standings(row, results):
         )
     if results.has_scoring_penalty:
         row([SCP_NOTE])
+    for note in results.code_notes:
+        row([note])
 
 
 def _score_cell(cell):
@@ -175,6 +177,8 @@ def _write_race(row, race_results):
         row([NS_NOTE])
     if race_results.has_scoring_penalty:
         row([SCP_NOTE])
+    for note in race_results.code_notes:
+        row([note])
 
 
 def _day(value):

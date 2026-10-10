@@ -123,16 +123,21 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await tablet.locator('form.start-row.saved', { hasText: 'GBR 7' }).waitFor();
   await shot(tablet.locator('body'), 'race-day-start-sheet.png');
   await tablet.goto(`${BASE}/races/4/?view=finish`);
-  for (const boat of ['GBR 42', 'GBR 1234']) {
+  for (const boat of ['GBR 42', 'GBR 1234', 'GBR 7']) {
     await tablet.locator('.racing-row', { hasText: boat }).locator('button.finished').click();
     await tablet.locator('.finished-row.saved', { hasText: boat }).waitFor();
     await tablet.waitForTimeout(3000);  // boats seconds apart, as on the water
   }
-  await shot(tablet.locator('body'), 'race-day-finishing.png');
-  const tern = tablet.locator('.racing-row', { hasText: 'GBR 7' });
+  // Tern is disqualified after crossing the line: her time is kept, under a
+  // correction with a reason.
+  const tern = tablet.locator('.finished-row', { hasText: 'GBR 7' });
   await tern.locator('summary').click();
-  await tern.locator('select').selectOption('DNF');
+  await tern.locator('select').selectOption('DSQ');
+  await tern.locator('input[type=text]').fill('Protest upheld');
   await shot(tern, 'race-day-typed.png');
+  await tern.getByRole('button', { name: 'Save' }).click();
+  await tablet.locator('.finished-row.saved', { hasText: 'GBR 7' }).waitFor();
+  await shot(tablet.locator('body'), 'race-day-finishing.png');
   await tablet.goto(`${BASE}/races/4/?view=start`);
   await tablet.locator('form.start-row', { hasText: 'GBR 42' }).locator('input[type=checkbox]').uncheck();
   const refused = tablet.locator('form.start-row.has-errors', { hasText: 'GBR 42' });

@@ -8,7 +8,9 @@ Hello {{ user.first_name|default:user.get_username }},
 NS: raced on the boat's non-spinnaker YTC number.
 {% endif %}{% if race_results.has_scoring_penalty %}
 SCP: scoring penalty (RRS 44.3(c)). The boat finished and kept her place, but scored 20% of the Did Not Finish score more.
-{% endif %}{% else %}
+{% endif %}{% for note in race_results.code_notes %}
+{{ note }}
+{% endfor %}{% else %}
 {{ note }}
 {% endif %}{% if standings %}
 Series standings after this race:

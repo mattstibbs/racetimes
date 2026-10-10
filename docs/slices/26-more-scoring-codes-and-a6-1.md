@@ -1,6 +1,6 @@
 # Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1
 
-**Status: part A built (2026-10-10); part B (the site) still to build.** The project owner
+**Status: built (2026-10-10), both parts.** The project owner
 has answered the six questions, approved the data model change and checked
 the worked examples (see "The project owner's answers" at the end). Nothing
 is left to answer.

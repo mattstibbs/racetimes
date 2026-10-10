@@ -61,6 +61,8 @@
   </table>
   </div>
   {% if history.has_scoring_penalty %}<p class="muted">SCP: Scoring penalty (RRS 44.3(c)). The boat finished and kept her place, but scored 20% of the Did Not Finish score more.</p>{% endif %}
+  {% for note in history.code_notes %}<p class="muted">{{ note }}</p>
+  {% endfor %}
   {% if history.standing and history.discards_apply %}<p class="muted"><em>Discarded scores are in brackets.</em></p>{% endif %}
   {% if history.has_not_recorded %}<p class="muted">NR: Not recorded. The boat raced, but its time or code is not recorded yet; until it is, it is scored as DNC.</p>{% endif %}
   {% if history.has_provisional %}<p class="muted">* Provisional: may still change until the race committee publishes it.</p>{% endif %}
