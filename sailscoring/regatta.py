@@ -43,6 +43,18 @@ CLAMP_UPPER = 1.1
 #: How many finishers the DNC/DNS back-calculation averages over, at most.
 TOP_FINISHERS_AVERAGED = 3
 
+#: Non-finishers back-calculated from the median finisher rather than the top
+#: few (see ``_elapsed_times``). The four A10 codes sit beside DNF.
+_TREATED_AS_DNF = frozenset(
+    {
+        RaceStatus.DNF,
+        RaceStatus.DSQ,
+        RaceStatus.RET,
+        RaceStatus.OCS,
+        RaceStatus.NSC,
+    }
+)
+
 
 def compute_regatta_adjustment(race: RaceInput) -> tuple[RaceResult, ...]:
     """Score a regatta race and work out everyone's handicap for the next one.
@@ -150,7 +162,10 @@ def _elapsed_times(race: RaceInput, finishers) -> dict[str, float]:
     for entry in race.entries:
         if entry.status.is_finisher:
             times[entry.boat_id] = entry.elapsed_seconds
-        elif entry.status is RaceStatus.DNF:
+        elif entry.status in _TREATED_AS_DNF:
+            # A DNF, or a boat coded DSQ, RET, OCS or NSC: she was on the water
+            # and is back-calculated as a DNF is, with or without a time she
+            # recorded.
             times[entry.boat_id] = median / entry.tcf_used
         else:
             # DNC and DNS: the boat never sailed the course.

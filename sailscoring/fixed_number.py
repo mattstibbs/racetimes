@@ -1,4 +1,4 @@
-"""Fixed-number series: Portsmouth Yardstick (slice 24).
+"""Fixed-number series: Portsmouth Yardstick.
 
 Under NHC a boat's handicap moves after every race. Under a fixed-number
 system a boat has one number for the whole series and nothing moves. The

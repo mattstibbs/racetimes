@@ -17,7 +17,7 @@ Handicaps are carried at full precision and never rounded between races; see
 the note in ``sailscoring/domain.py``.
 
 The public interface is exported from here and is not yet complete; it is being
-built out slice by slice against the fixtures in ``tests/fixtures/``. So far it
+built out piece by piece against the fixtures in ``tests/fixtures/``. So far it
 covers the domain types, race scoring, club-series handicap adjustment (with
 its optional extreme-result capping and realignment to base numbers),
 Appendix A race points, replaying a whole series, series standings and

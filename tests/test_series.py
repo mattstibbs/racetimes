@@ -400,7 +400,7 @@ def test_a_bad_discard_threshold_is_rejected_when_the_series_is_built(
 
 @pytest.mark.parametrize("series_type", [SeriesType.CLUB, SeriesType.REGATTA])
 def test_a_scoring_penalty_leaves_handicaps_and_places_alone(series_type):
-    """She sailed the course, so her time is in everyone's adjustment (slice 23)."""
+    """She sailed the course, so her time is in everyone's adjustment."""
 
     def sailed(penalty):
         finishes = [

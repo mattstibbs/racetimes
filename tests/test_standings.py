@@ -296,7 +296,7 @@ def test_a_negative_discard_count_is_rejected_when_the_series_is_built():
         )
 
 
-# --- discard_threshold: no discard until N races are scored (slice 23) ----------------
+# --- discard_threshold: no discard until N races are scored ----------------
 
 
 def dt1_races(count):

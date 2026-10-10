@@ -30,6 +30,20 @@ from collections.abc import Sequence
 from .domain import Boat, RaceStatus, RealignmentEntry, RealignmentResult
 from .errors import InvalidInput
 
+#: The statuses that count as having taken part in a series for realignment
+#: (section 5): a boat that finished, or sailed and did not finish. The four
+#: A10 codes all sailed the race, OCS included.
+_TOOK_PART = frozenset(
+    {
+        RaceStatus.FINISHED,
+        RaceStatus.DNF,
+        RaceStatus.DSQ,
+        RaceStatus.RET,
+        RaceStatus.OCS,
+        RaceStatus.NSC,
+    }
+)
+
 
 def realign_series(
     entries: Sequence[RealignmentEntry],
@@ -84,7 +98,7 @@ def realignment_entries(series, outcome) -> tuple[RealignmentEntry, ...]:
         result.boat_id
         for race in outcome.races
         for result in race.results
-        if result.status in (RaceStatus.FINISHED, RaceStatus.DNF)
+        if result.status in _TOOK_PART
     }
     return tuple(
         RealignmentEntry(

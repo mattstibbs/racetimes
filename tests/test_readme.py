@@ -1,6 +1,6 @@
 """Checks on the package README.
 
-Slice 0's acceptance criteria include "public interface documented in the
+The acceptance criteria include "public interface documented in the
 package README". These tests make that checkable rather than a claim: the
 documented example is executed and its output compared against what the README
 says it prints, and every exported name has to appear somewhere in the text.

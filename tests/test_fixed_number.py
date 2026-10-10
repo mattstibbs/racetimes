@@ -1,4 +1,4 @@
-"""Slice 24: fixed-number series (Portsmouth Yardstick), scored by sailscoring.fixed_number.
+"""Fixed-number series (Portsmouth Yardstick), scored by sailscoring.fixed_number.
 
 Organised by acceptance criterion. The worked examples PY-1 and PY-2 are in
 tests/fixtures/portsmouth_yardstick.yaml, worked by hand and checked by the
@@ -187,7 +187,7 @@ def race_results(outcome):
 def test_changing_any_finish_changes_only_that_race_and_the_standings(
     changed_race, boat_id
 ):
-    """The fixed-number counterpart of slice 0's recalculation test.
+    """The fixed-number counterpart of the recalculation test in test_recalculation.py.
 
     Under NHC a corrected finish ripples into every later race through the
     handicaps. Here no number moves, so every other race scores exactly as it
@@ -230,7 +230,7 @@ def test_scoring_does_not_change_the_series_it_is_given():
     assert series == sweep_series(RACES)
 
 
-# --- Appendix A is shared, so slice 23's rules work here too ------------------------------
+# --- Appendix A is shared, so the discard threshold and penalty rules work here too ------------------------------
 
 
 RULES = FIXED_NUMBER_RULES_FIXTURE
@@ -397,7 +397,7 @@ def test_an_nhc_series_and_a_fixed_number_series_refuse_the_same_input_alike(nam
 def test_an_nhc_series_still_reports_its_own_checks_in_the_same_order():
     """Moving the shared checks into domain.py must not change which error comes
     first when two things are wrong at once. Checked against the code as it was
-    before slice 24, over every pair of faults, when this was refactored."""
+    before the fixed-number series were added, over every pair of faults, when this was refactored."""
 
     def first_error(**options):
         boats = options.pop("boats", [sailscoring.Boat("A", 1.0, 1.0)])
@@ -433,7 +433,7 @@ def test_an_nhc_series_still_reports_its_own_checks_in_the_same_order():
 
 # --- The two kinds of series stay apart ----------------------------------------------------
 
-#: The NHC types as they were before slice 24. A fixed-number series is not an
+#: The NHC types as they were before fixed-number series were added. A fixed-number series is not an
 #: NHC series with a field left empty, so these must not gain or lose a field.
 NHC_FIELDS = {
     "Boat": ("boat_id", "base_number", "current_tcf", "name"),
