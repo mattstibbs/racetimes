@@ -245,6 +245,14 @@ const card = (page, text) => page.locator('section.card', { hasText: text }).fir
   await shot(visitor.locator('header.site-header'), 'service-header-log-in.png');
   await visitor.goto(`${SERVICE}/accounts/login/`);
   await shot(visitor.locator('main'), 'service-login.png');
+  // Signing up from the service's address (slice 28): step 1, the search, and
+  // step 2 on the club's own page (harbour.localhost, on the same server).
+  await visitor.goto(`${SERVICE}/signup/?club=harbour`);
+  await shot(visitor.locator('main'), 'signup-find-club.png');
+  const clubSignup = SERVICE.replace('//localhost', '//harbour.localhost');
+  await visitor.goto(`${clubSignup}/accounts/signup/?from=find`);
+  await shot(visitor.locator('main'), 'signup-your-details.png');
+  await visitor.goto(`${SERVICE}/accounts/login/`);
   await visitor.fill('#id_username', 'pat@example.com');
   await visitor.fill('#id_password', PASSWORD);
   await visitor.click('form.stacked button[type=submit]');

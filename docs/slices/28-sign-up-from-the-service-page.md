@@ -1,8 +1,8 @@
 # Slice 28: signing up from racetimes.co.uk, starting with your club
 
-**Status: draft, waiting on the project owner's answers (2026-10-03).**
-Nothing is built. Builds on slice 27 (logging in from racetimes.co.uk, one
-login for every club). See "Questions for the project owner" at the end.
+**Status: complete (2026-10-10).** Builds on slice 27
+(logging in from racetimes.co.uk, one login for every club). The owner agreed
+every recommendation in "Questions for the project owner" at the end.
 
 ## Goal
 Someone new who arrives at `racetimes.co.uk` can sign up from there. Because
@@ -123,3 +123,10 @@ None. No migration.
 4. **Wording:** "Sign up", "Step 1 of 2: find your club", "Sign up at
    <Club>", "Step 2 of 2: your details", "Not your club? Choose another".
    Fine?
+
+**The owner's answers (2026-10-10):**
+1. Step 2 stays on the club's own sign-up page.
+2. Yes: "Join another club" on Your clubs, using the same search.
+3. Yes: a **Sign up** link in the hero beside **Find my club**; Find my club's
+   matches keep going to each club's results.
+4. The wording is fine as proposed.

@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Sign up - Race Times{% endblock %}
 {% block content %}
-<h1>Sign up</h1>
+<h1>Sign up to {{ request.club.name }}</h1>
+{% if from_find %}
+<p class="muted">Step 2 of 2: your details</p>
+{% endif %}
 <p>Club members can register their boats and enter series here. You'll confirm
-  your email address, and then the club's administrator approves you joining.</p>
+  your email address, and then {{ request.club.name }}'s administrators approve you joining.</p>
+{% if from_find %}
+<p class="muted">Not your club? <a href="{{ choose_another }}">Choose another</a>.</p>
+{% endif %}
 <form method="post" class="stacked">
   {% csrf_token %}
   {{ form.as_p }}

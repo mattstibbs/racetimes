@@ -20,6 +20,7 @@
       <p class="hero-actions">
         <a class="button" href="#get-race-times">Get Race Times for your club</a>
         <a class="button secondary" href="#find-my-club">Find my club</a>
+        {% if not user.is_authenticated %}<a class="button secondary" href="{% url 'races:service_signup' %}">Sign up</a>{% endif %}
       </p>
     </div>
   </div>

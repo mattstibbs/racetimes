@@ -12,11 +12,13 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from . import approvals
 from .account_forms import LoginForm, SignUpForm
 from .account_views import landing_after_login
+from .clubs import club_address
 from .membership_views import send_confirmation
 from .models import Boat, BoatRequest, ClubMembership, EntryRequest
 from .request_forms import BoatChangeForm, BoatRegistrationForm, EntryRequestForm
@@ -47,7 +49,19 @@ def signup(request):
             "registration/signup_done.html",
             {"email": form.cleaned_data["email"]},
         )
-    return render(request, "registration/signup.html", {"form": form})
+    return render(
+        request,
+        "registration/signup.html",
+        {
+            "form": form,
+            # Slice 28: arriving from step 1 on the service's address. It only
+            # changes the wording; it carries nothing about the person.
+            "from_find": request.GET.get("from") == "find",
+            "choose_another": club_address(
+                request, None, reverse("races:service_signup")
+            ),
+        },
+    )
 
 
 class LoginView(auth_views.LoginView):

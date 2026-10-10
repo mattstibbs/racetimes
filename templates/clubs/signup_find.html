@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{% if joining %}Join another club{% else %}Sign up{% endif %} - Race Times{% endblock %}
+{% block content %}
+{# Slice 28, step 1: find the club. Step 2 is the club's own sign-up page. #}
+<h1>{% if joining %}Join another club{% else %}Sign up{% endif %}</h1>
+{% if joining %}
+<p>Find the club you want to join. You'll ask to join on its site, and its administrators approve you.</p>
+{% else %}
+<p class="muted">Step 1 of 2: find your club</p>
+<p>Your account starts with the club you sail at. You can join other clubs later with the same account.</p>
+{% endif %}
+<form method="get" action="{% url 'races:service_signup' %}" role="search" class="search">
+  <label for="club-search">Your club's name</label>
+  <input type="search" id="club-search" name="club" value="{{ query }}" autocomplete="off"
+         hx-get="{% url 'races:service_signup' %}" hx-trigger="input changed delay:300ms, search"
+         hx-target="#signup-matches" hx-swap="outerHTML" hx-replace-url="true">
+  <button type="submit">Find</button>
+</form>
+{% include "clubs/_signup_matches.html" %}
+{% if not joining %}
+<p class="muted">Already have an account? <a href="{% url 'races:login' %}">Log in</a>.</p>
+{% else %}
+<p class="muted"><a href="{% url 'races:your_clubs' %}">Back to your clubs</a></p>
+{% endif %}
+{% endblock %}

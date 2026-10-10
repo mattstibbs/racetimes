@@ -50,6 +50,7 @@
       {% elif not user.is_authenticated %}
       <nav aria-label="Site">
         <a href="{% url 'races:login' %}">Log in</a>
+        <a href="{% url 'races:service_signup' %}">Sign up</a>
       </nav>
       {% elif user.is_superuser %}
       {# The service's own address: the operator's pages (slice 11 part 3). #}

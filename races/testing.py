@@ -537,6 +537,7 @@ def urls_for(data, kind=None):
         "races:send_final": [series.pk],
         "races:series_history": [series.pk],
         "races:signup": [],
+        "races:service_signup": [],
         "races:start_sheet": [race_1.pk],
         "races:tap_finish": [race_1.pk, e1.pk],
         "races:undo_finish": [race_1.pk, e1.pk],

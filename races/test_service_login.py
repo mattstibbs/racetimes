@@ -83,8 +83,9 @@ def test_the_login_page_is_on_the_services_address(client):
     assert response.status_code == 200
     assert "one login works at every club you belong to" in html
     assert reverse("races:password_reset") in html
-    # Signing up asks to join a club, so it's on a club's site, not here.
-    assert reverse("races:signup") not in html and "Find your club" in html
+    # Signing up asks to join a club: step 1 is here, step 2 on the club's site.
+    assert reverse("races:service_signup") in html
+    assert reverse("races:signup") not in html
 
 
 def test_signing_up_is_still_only_on_a_clubs_address(client):
@@ -230,7 +231,8 @@ def test_a_suspended_club_is_listed_without_a_way_in(client):
 def test_someone_with_no_clubs_is_pointed_to_find_my_club(client):
     client.force_login(make_member("pat@example.com", club=None))
     html = page(client, "races:your_clubs")
-    assert "You haven't joined a club yet." in html and "/#find-my-club" in html
+    assert "You haven't joined a club yet." in html
+    assert reverse("races:service_signup") in html
 
 
 def test_your_clubs_shows_only_your_own_clubs(client, harbour):
