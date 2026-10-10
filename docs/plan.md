@@ -879,10 +879,16 @@ The owner checked worked examples YTC-1 and YTC-2 (2026-10-02), so nothing
 is left to answer. They become fixtures in `tests/fixtures/` when part B is
 built.
 
-## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: built (2026-10-10), in two parts**
+## Slice 26: more scoring codes (DSQ, RET, OCS, NSC) and RRS A6.1. **Status: complete (2026-10-10)**
 
-Spec: `docs/slices/26-more-scoring-codes-and-a6-1.md`. Nothing is built. To
-be built in two parts, each its own pull request: the engine, then the site.
+Spec: `docs/slices/26-more-scoring-codes-and-a6-1.md`. Built in two parts,
+each its own pull request: the engine (#60), then the site (#63).
+
+Manual check: in headless Chromium at 375 px, on the manual's sample data, as
+a committee member: the Result list offers the four new codes; a boat tapped
+Finished and then corrected to DSQ keeps her time ("DSQ, crossed the line at
+..."); the series page shows DSQ with its A6.1 line and the boats behind her
+moved up. No page scrolls sideways.
 
 The owner's answers (2026-10-10): the data model change is approved (four new
 `Finish.Status` choices, and a finish time allowed on DSQ, RET, OCS and NSC);
